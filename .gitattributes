@@ -1,0 +1,18 @@
+# Chuẩn hoá xuống dòng LF cho mọi file text (tránh lỗi CRLF trên Windows)
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.glb binary
+*.blend binary
+*.ktx2 binary
+*.mp3 binary
+*.ogg binary
+*.webm binary
+*.woff2 binary

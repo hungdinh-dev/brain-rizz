@@ -1,0 +1,24 @@
+{
+  "name": "@brain-rizz/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Logic dùng chung giữa client và server: PRNG có seed, bộ sinh câu đố, tính điểm, giao thức tin nhắn.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

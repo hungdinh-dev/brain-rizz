@@ -1,0 +1,29 @@
+{
+  "name": "brain-rizz",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web party game gồm các minigame trí tuệ chơi real-time cùng bạn bè (2–8 người).",
+  "type": "module",
+  "packageManager": "pnpm@10.34.6",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "dev:web": "pnpm --filter @brain-rizz/web dev",
+    "dev:server": "pnpm --filter @brain-rizz/server dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "clean": "turbo run clean && rm -rf node_modules .turbo"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "turbo": "^2.11.7",
+    "typescript": "^7.0.2"
+  }
+}

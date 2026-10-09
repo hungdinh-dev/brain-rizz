@@ -1,0 +1,37 @@
+# Cấu hình Fly.io cho game server — chạy từ thư mục gốc repo:
+#   fly deploy
+# Đổi `app` thành tên app của bạn khi chạy `fly launch` lần đầu.
+
+app = "brain-rizz-server"
+primary_region = "sin" # Singapore — gần Việt Nam nhất
+
+[build]
+  dockerfile = "apps/server/Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "2567"
+
+[http_service]
+  internal_port = 2567
+  force_https = true
+  # Tự tắt máy khi không ai chơi, tự bật khi có người truy cập → chỉ trả tiền lúc đang chạy.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "connections"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/healthz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
