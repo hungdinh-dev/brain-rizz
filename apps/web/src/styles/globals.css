@@ -1,0 +1,189 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "./shadcn.css";
+@import "./characters.css";
+
+/* Chế độ tối bật bằng class `.dark` trên <html> (xem src/stores/theme.store.ts). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Phong cách "bảng phấn lớp học" (ADR 0009): nền là bảng phấn trong khung gỗ, nội dung đặt trên
+ * thẻ "giấy dán" viền mực. Chế độ sáng = bảng xanh lá, chế độ tối = bảng tím than.
+ *
+ * Màu thương hiệu: giữ nguyên ở cả hai chế độ, dùng cho điểm nhấn (avatar, nhóm kỹ năng, nhãn).
+ * Giao diện thông thường KHÔNG dùng trực tiếp các màu này mà dùng token ngữ nghĩa bên dưới
+ * (bg-background, text-muted-foreground, bg-primary…) để tự đổi theo sáng/tối.
+ */
+@theme {
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  /* Tiêu đề, nút, logo: font tròn vui mắt, đủ dấu tiếng Việt */
+  --font-display: "Baloo 2", "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #1f1b3a;
+  --color-paper: #fff8ef;
+  --color-mint: #7fd1ae;
+  --color-pink: #f7a8b8;
+  --color-sun: #ffd166;
+  --color-sky: #8ec5ff;
+  --color-grape: #c3a6ff;
+
+  /* Màu theo 5 nhóm kỹ năng */
+  --color-identify: #f2a541;
+  --color-memorize: #e85d75;
+  --color-analyze: #4d9de0;
+  --color-compute: #3bb273;
+  --color-visualize: #7768ae;
+}
+
+/* Token ngữ nghĩa kiểu shadcn → class Tailwind (bg-card, text-primary-foreground, ring-ring…). */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  /* Chữ nhấn màu mint, đủ tương phản trên thẻ giấy lẫn thẻ tối */
+  --color-highlight: var(--highlight);
+
+  /* Bảng phấn: chữ viết trực tiếp lên bảng dùng chalk / chalk-muted (KHÔNG dùng muted-foreground,
+     token đó dành cho chữ phụ bên trong thẻ). */
+  --color-board: var(--board);
+  --color-board-shade: var(--board-shade);
+  --color-chalk: var(--chalk);
+  --color-chalk-muted: var(--chalk-muted);
+  --color-wood: var(--wood);
+  /* Viền + bóng đổ của thẻ/nút kiểu nhãn dán */
+  --color-sticker: var(--sticker);
+  --shadow-sticker: 0 6px 0 var(--sticker);
+  --shadow-sticker-sm: 0 4px 0 var(--sticker);
+}
+
+:root {
+  color-scheme: light;
+  --background: #2d6a54;
+  --foreground: #f6f3ea;
+  --card: #fff8ef;
+  --card-foreground: #1f1b3a;
+  --popover: #fff8ef;
+  --popover-foreground: #1f1b3a;
+  --primary: #ffd166;
+  --primary-foreground: #1f1b3a;
+  --secondary: #1f1b3a;
+  --secondary-foreground: #ffd166;
+  --muted: #f3eadf;
+  --muted-foreground: #5a5578;
+  --accent: #efe4d6;
+  --accent-foreground: #1f1b3a;
+  --destructive: #c93a55;
+  --border: #1f1b3a;
+  --input: #1f1b3a;
+  --ring: #4d9de0;
+  --highlight: #2f8a66;
+
+  --board: #2d6a54;
+  --board-shade: rgb(0 0 0 / 0.22);
+  --chalk: #f6f3ea;
+  --chalk-muted: #d5e4dc;
+  --wood: #a8693b;
+  --sticker: #1f1b3a;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #24203f;
+  --foreground: #f6f3ea;
+  --card: #2f2a52;
+  --card-foreground: #fff8ef;
+  --popover: #2f2a52;
+  --popover-foreground: #fff8ef;
+  --primary: #ffd166;
+  --primary-foreground: #1f1b3a;
+  --secondary: #ffd166;
+  --secondary-foreground: #1f1b3a;
+  --muted: #3a3560;
+  --muted-foreground: #b9b5d2;
+  --accent: #3a3560;
+  --accent-foreground: #fff8ef;
+  --destructive: #f07a90;
+  --border: #0e0c1e;
+  --input: #0e0c1e;
+  --ring: #8ec5ff;
+  --highlight: #7fd1ae;
+
+  --board: #24203f;
+  --board-shade: rgb(0 0 0 / 0.28);
+  --chalk: #f6f3ea;
+  --chalk-muted: #c9c6dc;
+  --wood: #6b4528;
+  --sticker: #0e0c1e;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-wood font-sans text-foreground;
+    margin: 0;
+    /* Vân gỗ của khung bảng */
+    background-image:
+      repeating-linear-gradient(90deg, rgb(0 0 0 / 0.06) 0 2px, transparent 2px 11px),
+      repeating-linear-gradient(0deg, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 7px);
+    /* Không kéo-để-tải-lại, không zoom khi chạm hai lần trong lúc chơi */
+    overscroll-behavior: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@utility safe-area {
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+
+/* Mặt bảng phấn: bụi phấn loang + viền tối bên trong. Màu nền lấy từ bg-background. */
+@utility chalkboard {
+  background-image:
+    radial-gradient(ellipse at 18% 28%, rgb(255 255 255 / 0.07), transparent 38%),
+    radial-gradient(ellipse at 78% 70%, rgb(255 255 255 / 0.06), transparent 42%),
+    radial-gradient(ellipse at 55% 10%, rgb(255 255 255 / 0.05), transparent 30%);
+  box-shadow:
+    inset 0 0 0 4px rgb(0 0 0 / 0.22),
+    inset 0 0 120px rgb(0 0 0 / 0.35);
+}
+
+/* Chữ logo kiểu nhãn dán: viền mực dày, bóng đổ xuống dưới. Độ dày viền đặt qua --stroke. */
+@utility sticker-text {
+  -webkit-text-stroke: var(--stroke, 10px) var(--color-ink);
+  paint-order: stroke fill;
+  text-shadow: 0 calc(var(--stroke, 10px) * 0.7) 0 var(--color-ink);
+}
+
+/* Nét phấn sần cho hình vẽ trang trí (SVG filter #chalk khai báo trong ChalkDefs). */
+@utility chalk-stroke {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+  filter: url(#chalk);
+}
