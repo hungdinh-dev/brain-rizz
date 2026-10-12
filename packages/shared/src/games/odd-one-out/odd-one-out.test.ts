@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DIFFICULTIES } from "../difficulty";
+import { DIFFICULTIES } from "../../difficulty";
 import { oddOneOut } from "./odd-one-out";
 
 const sameCell = (a: object, b: object) => JSON.stringify(a) === JSON.stringify(b);

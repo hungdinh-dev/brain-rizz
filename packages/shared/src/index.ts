@@ -2,6 +2,7 @@ export * from "./clock";
 export * from "./constants";
 export * from "./difficulty";
 export * from "./games";
+export * from "./match";
 export * from "./protocol";
 export * from "./rng";
 export * from "./room-code";

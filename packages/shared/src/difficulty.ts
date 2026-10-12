@@ -1,14 +1,7 @@
-/** 0 = Mầm, 1 = Thường, 2 = Khó, 3 = Siêu khó. */
+/** 0 = Mầm, 1 = Thường, 2 = Khó, 3 = Siêu khó — tên hiển thị nằm ở i18n của web (khoá `difficulty.<n>`). */
 export type Difficulty = 0 | 1 | 2 | 3;
 
 export const DIFFICULTIES: readonly Difficulty[] = [0, 1, 2, 3];
-
-export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  0: "Mầm",
-  1: "Thường",
-  2: "Khó",
-  3: "Siêu khó",
-};
 
 /** Hệ số nhân điểm theo độ khó, giúp trẻ em và người lớn chơi chung vẫn cân bằng. */
 export const DIFFICULTY_MULTIPLIER: Record<Difficulty, number> = {

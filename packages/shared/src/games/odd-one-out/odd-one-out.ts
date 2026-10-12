@@ -1,6 +1,6 @@
-import type { Difficulty } from "../difficulty";
-import { createRng, deriveSeed } from "../rng";
-import type { MinigameDef } from "./types";
+import type { Difficulty } from "../../difficulty";
+import { createRng, deriveSeed } from "../../rng";
+import type { MinigameDef } from "../types";
 
 /**
  * Kẻ lạc đàn (nhóm Nhận diện): lưới hình giống nhau, chạm vào ô duy nhất khác biệt.
@@ -33,8 +33,6 @@ const GRID_BY_DIFFICULTY: Record<Difficulty, number> = { 0: 3, 1: 4, 2: 5, 3: 6 
 
 export const oddOneOut: MinigameDef<OddOneOutPuzzle, OddOneOutAnswer> = {
   id: "odd-one-out",
-  title: "Kẻ lạc đàn",
-  howTo: "Chạm vào hình duy nhất khác với tất cả các hình còn lại.",
   category: "identify",
   durationMs: 45_000,
 
