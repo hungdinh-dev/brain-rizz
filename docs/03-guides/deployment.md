@@ -19,7 +19,7 @@ Cách tính: shared-cpu-1x 512 MB ở Ashburn khoảng 3,69 USD/tháng nếu ch�
 | **Render Free** | 0 USD | Có | Có region Singapore ([Render](https://render.com/docs/regions)) | Tự ngủ sau 15 phút không có truy cập, khởi động lại mất khoảng 1 phút; 750 giờ/tháng; Render nói không dành cho production ([Render](https://render.com/docs/free)) |
 | **Oracle Cloud Always Free** (VM ARM) | 0 USD | Có (tự cài Docker) | Có region Singapore | Đăng ký cần thẻ, hay hết máy ở region đông, phải tự vận hành; tài liệu 2026 đã giảm hạn mức ARM miễn phí xuống 2 OCPU/12 GB ([TerminalBytes](https://terminalbytes.com/oracle-cloud-free-tier-changes-2026)) — vẫn dư cho game này |
 | **Cloudflare Durable Objects** (PartyServer) | 0 USD trong hạn mức ngày | **Không** — phải viết lại phần phòng chơi | Edge gần người chơi | Gói Free chỉ dùng Durable Objects loại SQLite, có hạn mức theo ngày ([Cloudflare](https://developers.cloudflare.com/durable-objects/platform/pricing)) |
-| **Supabase Realtime** (không có game server) | 0 USD | **Không** — đổi mô hình | — | Không có trọng tài/đồng hồ/giữ chỗ; xem [ADR 0002](adr/0002-game-server-colyseus-vs-supabase-realtime.md) |
+| **Supabase Realtime** (không có game server) | 0 USD | **Không** — đổi mô hình | — | Không có trọng tài/đồng hồ/giữ chỗ; xem [ADR 0002](../02-architecture/decisions/0002-game-server-colyseus-vs-supabase-realtime.md) |
 | **Colyseus Cloud** | Từ 15 USD/tháng | Có | Có nhiều region | Đắt nhất, nhưng không phải tự vận hành |
 
 Vì server được đóng gói Docker (`apps/server/Dockerfile`), chuyển giữa Fly, Render và Oracle chỉ là đổi nơi chạy container, không phải sửa code.

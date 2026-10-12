@@ -14,7 +14,7 @@ Ngân sách gần 0. Người chơi ở Việt Nam, cần ping thấp (server �
 - **Dự phòng 0 đồng:** Render Free region Singapore (ngủ sau 15 phút, khởi động khoảng 1 phút).
 - Server đóng gói **Docker** để đổi nhà cung cấp không cần sửa code.
 
-So sánh đầy đủ các lựa chọn và nguồn giá: [04-deployment.md](../04-deployment.md).
+So sánh đầy đủ các lựa chọn và nguồn giá: [Triển khai](../../03-guides/deployment.md).
 
 ## Hệ quả
 
