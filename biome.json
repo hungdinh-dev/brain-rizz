@@ -6,7 +6,15 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/dist", "!**/build", "!**/.turbo", "!**/node_modules", "!assets"]
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/build",
+      "!**/.turbo",
+      "!**/node_modules",
+      "!assets",
+      "!.claude/workflows"
+    ]
   },
   "formatter": {
     "enabled": true,
