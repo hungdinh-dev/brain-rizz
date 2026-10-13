@@ -18,6 +18,7 @@
     "typecheck": "turbo run typecheck",
     "lint": "biome check .",
     "format": "biome check --write .",
+    "new-game": "node scripts/new-game.mjs",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "clean": "turbo run clean && rm -rf node_modules .turbo"
   },

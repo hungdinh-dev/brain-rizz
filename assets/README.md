@@ -12,6 +12,6 @@ assets/
 └─ LICENSES.md   # SỔ GHI GIẤY PHÉP — bắt buộc cập nhật khi thêm asset của bên thứ ba
 ```
 
-Quy trình tối ưu và ngân sách dung lượng: [docs/05-assets-guide.md](../docs/05-assets-guide.md).
+Quy trình tối ưu và ngân sách dung lượng: [docs/03-guides/assets.md](../docs/03-guides/assets.md).
 
 File `.blend` lớn nên dùng [Git LFS](https://git-lfs.com/) (`git lfs track "*.blend"`) để repo không phình to.

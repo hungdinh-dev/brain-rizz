@@ -1,12 +1,20 @@
 import type { GameId } from "@brain-rizz/shared";
-import type Phaser from "phaser";
-
-type SceneModule = { default: new () => Phaser.Scene };
+import { balanceClient } from "./balance";
+import { lightTrailClient } from "./light-trail";
+import { numberBalloonsClient } from "./number-balloons";
+import { oddOneOutClient } from "./odd-one-out";
+import { rotateMatchClient } from "./rotate-match";
+import type { GameClient } from "./types";
 
 /**
- * Mỗi minigame là một chunk riêng, chỉ tải khi vòng chơi bắt đầu.
- * `satisfies` bắt buộc mọi GameId trong shared đều có scene tương ứng.
+ * Nối mã game → phần web của game (scene Phaser + chữ hiển thị).
+ * `satisfies` bắt buộc mọi GameId trong shared đều có mặt ở đây — quên là TypeScript báo lỗi.
  */
-export const SCENES = {
-  "odd-one-out": () => import("./odd-one-out/OddOneOutScene"),
-} satisfies Record<GameId, () => Promise<SceneModule>>;
+export const GAME_CLIENTS = {
+  "odd-one-out": oddOneOutClient,
+  "light-trail": lightTrailClient,
+  balance: balanceClient,
+  "number-balloons": numberBalloonsClient,
+  "rotate-match": rotateMatchClient,
+  // @new-game:entry
+} satisfies Record<GameId, GameClient>;

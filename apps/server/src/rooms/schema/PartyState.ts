@@ -2,19 +2,30 @@ import { type SchemaType, schema, t } from "@colyseus/schema";
 
 /**
  * State đồng bộ tự động (delta nhị phân) từ server xuống mọi client.
- * Hình dạng phải khớp với `PlayerView` / `PartyStateView` trong @brain-rizz/shared.
+ * Hình dạng phải khớp với `PlayerView` / `PartyStateView` trong @brain-rizz/shared
+ * (test "state khớp PartyStateView" trong test/PartyRoom.test.ts kiểm tra điều này).
  */
 export const Player = schema(
   {
     id: t.string(),
     name: t.string(),
     colorIndex: t.uint8(),
+    /** CharacterId — được phép trùng giữa người chơi. */
+    avatar: t.string().default("khoi"),
+    /** Độ khó cho vòng hiện tại; chọn lại ở pha game-intro. */
     difficulty: t.uint8().default(1),
     ready: t.boolean().default(false),
+    /** Đã bấm "Đã hiểu" ở màn hướng dẫn. */
+    introReady: t.boolean().default(false),
     connected: t.boolean().default(true),
     isHost: t.boolean().default(false),
     matchPoints: t.uint16().default(0),
+    /** Điểm trận vừa cộng ở vòng gần nhất. */
+    lastPoints: t.uint8().default(0),
+    /** Tổng điểm vòng cả trận (phá hoà chung cuộc). */
+    totalScore: t.uint32().default(0),
     roundScore: t.uint32().default(0),
+    roundCorrect: t.uint16().default(0),
     progress: t.uint16().default(0),
     streak: t.uint8().default(0),
   },
@@ -33,6 +44,15 @@ export const PartyState = schema(
     seed: t.uint32().default(0),
     startAt: t.float64().default(0),
     endsAt: t.float64().default(0),
+    /** PickMode: "wheel" | "pick". */
+    pickMode: t.string().default("wheel"),
+    /** sessionId → gameId, chỉ người không phải chủ phòng. */
+    votes: t.map("string"),
+    playedGames: t.array("string"),
+    wheelGameId: t.string().default(""),
+    wheelSpinAt: t.float64().default(0),
+    wheelSpinMs: t.uint32().default(0),
+    introEndsAt: t.float64().default(0),
     players: t.map(Player),
   },
   "PartyState",

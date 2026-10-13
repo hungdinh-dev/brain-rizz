@@ -3,14 +3,17 @@ import {
   type ErrorPayload,
   estimateClock,
   type JoinOptions,
+  type NudgePayload,
   type PartyStateView,
   type PongPayload,
   ROOM_NAME,
-  type RoundStartPayload,
   ServerMessage,
 } from "@brain-rizz/shared";
 import { Client, type Room } from "@colyseus/sdk";
-import { useGame } from "../store/game";
+import { toast } from "sonner";
+import { i18n } from "@/i18n";
+import { STORAGE_KEYS, safeSession } from "@/lib/storage";
+import { useGame } from "@/stores/game.store";
 
 /**
  * Lớp kết nối duy nhất tới game server. UI và Phaser không gọi Colyseus trực tiếp,
@@ -20,7 +23,7 @@ import { useGame } from "../store/game";
 const SERVER_URL =
   import.meta.env.VITE_SERVER_URL || `${location.protocol}//${location.hostname}:2567`;
 
-const TOKEN_KEY = "brain-rizz:reconnect";
+const TOKEN_KEY = STORAGE_KEYS.reconnect;
 
 const client = new Client(SERVER_URL);
 let room: Room | null = null;
@@ -67,15 +70,28 @@ function attach(r: Room) {
   r.onStateChange((state) => {
     useGame.getState().setParty(state.toJSON() as PartyStateView);
   });
-  r.onMessage(ServerMessage.RoundStart, (msg: RoundStartPayload) => {
-    useGame.getState().setRound(msg);
+  // Vòng, seed, đồng hồ đọc từ state; tin này chỉ để bỏ kết quả câu cũ sớm (và SDK không cảnh báo
+  // tin chưa đăng ký).
+  r.onMessage(ServerMessage.RoundStart, () => {
+    useGame.getState().onRoundStart();
   });
   r.onMessage(ServerMessage.AnswerResult, (msg) => {
     useGame.getState().pushAnswerResult(msg);
   });
+  // Chủ phòng nhắc độ khó (màn Hướng dẫn): thẻ nổi có nút đóng, không chặn thao tác.
+  r.onMessage(ServerMessage.Nudge, (msg: NudgePayload) => {
+    toast(i18n.t("intro.nudgeTitle"), {
+      description: i18n.t("intro.nudgeBody", { level: i18n.t(`difficulty.${msg.difficulty}`) }),
+      closeButton: true,
+      position: "top-center",
+    });
+  });
   r.onMessage(ServerMessage.Pong, onPong);
   r.onMessage(ServerMessage.Error, (msg: ErrorPayload) => {
-    useGame.getState().setToast(msg.message);
+    // Lệnh vừa gửi bị từ chối → mở khoá nút đang chờ phản hồi.
+    useGame.getState().pushError();
+    // Dịch theo mã lỗi; server cũ gửi mã lạ thì hiện nguyên câu server gửi.
+    toast.error(i18n.t(`errors.${msg.code}`, { defaultValue: msg.message }));
   });
   r.onDrop(() => useGame.getState().setConnection("reconnecting"));
   r.onReconnect(() => {
@@ -110,29 +126,3 @@ function onPong(msg: PongPayload) {
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && room) syncClock(3);
 });
-
-// ------------------------------------------------------------- storage an toàn
-
-const safeSession = {
-  get(key: string) {
-    try {
-      return sessionStorage.getItem(key);
-    } catch {
-      return null;
-    }
-  },
-  set(key: string, value: string) {
-    try {
-      sessionStorage.setItem(key, value);
-    } catch {
-      /* chế độ riêng tư: bỏ qua */
-    }
-  },
-  remove(key: string) {
-    try {
-      sessionStorage.removeItem(key);
-    } catch {
-      /* bỏ qua */
-    }
-  },
-};
