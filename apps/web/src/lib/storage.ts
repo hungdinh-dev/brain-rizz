@@ -39,4 +39,6 @@ export const STORAGE_KEYS = {
   language: "brain-rizz:lang",
   /** Nhạc nền: bật/tắt, âm lượng, bài đang nghe (JSON). */
   music: "brain-rizz:music",
+  /** Âm thanh hiệu ứng khi bấm nút: "on" | "off". */
+  sfx: "brain-rizz:sfx",
 } as const;

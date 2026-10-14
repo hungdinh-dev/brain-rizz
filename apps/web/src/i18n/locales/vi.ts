@@ -368,6 +368,10 @@ export const vi = {
     next: "Bài kế",
     volume: "Âm lượng",
   },
+  sfx: {
+    turnOn: "Bật âm thanh hiệu ứng",
+    turnOff: "Tắt âm thanh hiệu ứng",
+  },
 };
 
 export type LocaleMessages = typeof vi;

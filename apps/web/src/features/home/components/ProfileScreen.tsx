@@ -113,10 +113,16 @@ export function ProfileScreen({ profile, onBack, onConfirm }: ProfileScreenProps
             </strong>
           </p>
           <div className="flex gap-3">
-            <Button type="button" variant="chalk" className="rounded-2xl px-6" onClick={onBack}>
+            <Button
+              type="button"
+              variant="chalk"
+              data-sfx="back"
+              className="rounded-2xl px-6"
+              onClick={onBack}
+            >
               {t("home.profile.back")}
             </Button>
-            <Button type="submit" size="lg" disabled={!trimmed}>
+            <Button type="submit" data-sfx="confirm" size="lg" disabled={!trimmed}>
               {t("home.profile.confirm")}
             </Button>
           </div>

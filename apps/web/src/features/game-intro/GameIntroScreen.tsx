@@ -77,6 +77,7 @@ function IntroView({ gameId }: { gameId: GameId }) {
     <Button
       size="lg"
       disabled={!othersReady || start.pending}
+      data-sfx="confirm"
       className="min-h-14.5 w-full rounded-[18px] border-4 text-[26px] lg:min-h-15.5 lg:w-75"
       onClick={() => start.run(() => send(ClientMessage.StartRound, {}))}
     >
@@ -89,6 +90,7 @@ function IntroView({ gameId }: { gameId: GameId }) {
         size="lg"
         variant={me.introReady ? "outline" : "default"}
         aria-pressed={me.introReady}
+        data-sfx="confirm"
         className="min-h-14.5 w-full rounded-[18px] border-4 text-[26px] lg:min-h-15.5 lg:w-75"
         onClick={() => gotIt.run(() => send(ClientMessage.IntroReady, { ready: !me.introReady }))}
       >

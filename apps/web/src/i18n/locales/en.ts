@@ -361,4 +361,8 @@ export const en: LocaleMessages = {
     next: "Next track",
     volume: "Volume",
   },
+  sfx: {
+    turnOn: "Turn sound effects on",
+    turnOff: "Turn sound effects off",
+  },
 };

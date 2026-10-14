@@ -1,10 +1,11 @@
 import { COUNTDOWN_MS, GAMES, type GameId, isGameId } from "@brain-rizz/shared";
 import { HandIcon, MousePointerClickIcon } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { BrainMascot } from "@/components/brand";
 import { AvatarStrip } from "@/components/common/AvatarStrip";
 import { CategoryChip, RoundChip } from "@/components/common/MatchChips";
+import { playSfx } from "@/features/sfx";
 import { preloadGame } from "@/games/PhaserHost";
 import { countdownHint, useGameText } from "@/hooks/use-game-text";
 import { TOUCH_QUERY, useMediaQuery } from "@/hooks/use-media-query";
@@ -49,6 +50,14 @@ function CountdownView({ gameId }: { gameId: GameId }) {
   const hint = countdownHint(game, me?.difficulty, touch);
 
   useEffect(() => preloadGame(gameId), [gameId]);
+  // Mỗi giây một tiếng tick, giây cuối cao hơn (đổi số mới kêu, không kêu lại khi re-render).
+  const lastTick = useRef(0);
+  useEffect(() => {
+    // Nhớ giây đã kêu: StrictMode (dev) chạy effect hai lần lúc mount, khỏi kêu đúp.
+    if (lastTick.current === seconds) return;
+    lastTick.current = seconds;
+    playSfx("tick", { accent: seconds === 1 });
+  }, [seconds]);
 
   return (
     <main className="relative flex flex-1 flex-col items-center justify-between gap-4 text-center">

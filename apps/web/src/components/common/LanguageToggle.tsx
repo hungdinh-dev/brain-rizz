@@ -16,6 +16,7 @@ export function LanguageToggle() {
     <Button
       variant="chalk"
       size="icon-chalk"
+      data-sfx="toggle"
       aria-label={`${t("settings.language")}: ${LANGUAGE_NAMES[next]}`}
       title={LANGUAGE_NAMES[next]}
       onClick={() => void i18n.changeLanguage(next)}

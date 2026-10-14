@@ -12,6 +12,7 @@ import { LobbyScreen } from "@/features/lobby";
 import { MusicBar, useMusicAutoplay } from "@/features/music";
 import { CountdownScreen, PlayScreen } from "@/features/play";
 import { PodiumScreen, ResultsScreen } from "@/features/results";
+import { SfxToggle, useSfxEffects } from "@/features/sfx";
 import { resumeParty } from "@/net/connection";
 import { useGame } from "@/stores/game.store";
 
@@ -37,6 +38,8 @@ export function App() {
 
   // Nhạc nền: phát ở thao tác đầu tiên, dừng khi ẩn tab, nhỏ tiếng lúc đếm ngược/đang chơi.
   useMusicAutoplay(focused);
+  // Âm thanh hiệu ứng: bấm nút, lỗi server, đúng/sai (vẫn kêu lúc đang chơi dù hàng nút bị ẩn).
+  useSfxEffects();
 
   // Tải lại trang giữa trận → tự nối lại phòng cũ.
   useEffect(() => {
@@ -61,6 +64,7 @@ export function App() {
           {phase && !focused && (
             <div className="mb-3 flex flex-wrap justify-end gap-2">
               <MusicBar />
+              <SfxToggle />
               <LanguageToggle />
               <ThemeToggle />
             </div>

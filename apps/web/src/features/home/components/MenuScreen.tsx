@@ -26,6 +26,7 @@ import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { MusicBar } from "@/features/music";
+import { SfxToggle } from "@/features/sfx";
 import type { Profile } from "../profile";
 import { MenuCard } from "./MenuCard";
 
@@ -98,6 +99,7 @@ export function MenuScreen({
             <CircleHelpIcon />
           </Button>
           <MusicBar />
+          <SfxToggle />
           <LanguageToggle />
           <ThemeToggle />
         </div>
@@ -120,6 +122,7 @@ export function MenuScreen({
             title={t("home.menu.createTitle")}
             description={t("home.menu.createDesc")}
             onClick={onCreate}
+            sfx="confirm"
           >
             <span className="hidden flex-wrap gap-1.5 md:flex">
               <Chip>{t("home.menu.players", { max: MAX_PLAYERS })}</Chip>
@@ -147,6 +150,7 @@ export function MenuScreen({
               />
               <button
                 type="submit"
+                data-sfx="confirm"
                 disabled={busy || !isValidRoomCode(code)}
                 className="h-12 shrink-0 cursor-pointer rounded-2xl border-[3px] border-ink bg-ink px-5 font-display text-xl font-extrabold text-sun shadow-[0_4px_0_var(--color-ink)] transition-transform active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 md:h-14 md:text-2xl"
               >

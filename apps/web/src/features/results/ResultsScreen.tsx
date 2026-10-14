@@ -189,6 +189,7 @@ function TotalView({
             size="lg"
             className="min-h-16 rounded-[18px] border-4 text-[26px] lg:w-80"
             disabled={next.pending}
+            data-sfx="confirm"
             onClick={() => next.run(() => send(ClientMessage.NextRound, {}))}
           >
             {lastRound ? t("results.seeWinner") : t("results.nextRound")}

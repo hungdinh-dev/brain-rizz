@@ -83,6 +83,7 @@ export function LobbyScreen() {
           variant="chalk"
           size="icon-chalk"
           aria-label={t("lobby.leaveRoom")}
+          data-sfx="back"
           className="lg:h-12 lg:w-auto lg:gap-2 lg:pr-4 lg:pl-3"
           onClick={() => void leaveParty()}
         >
