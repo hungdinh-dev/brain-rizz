@@ -115,6 +115,7 @@ Lỗi chặn người chơi trên bản đang chạy: nhánh `fix/<tên>` từ t
 | Thêm/xoá/đổi tên file code | [Cây thư mục](../02-architecture/folder-structure.md) |
 | Chọn công nghệ, đổi kiến trúc | ADR mới + [Tech stack](../02-architecture/tech-stack.md) |
 | Thêm biến môi trường | `.env.example` + [Tech stack › Biến môi trường](../02-architecture/tech-stack.md#biến-môi-trường) |
+| Hết một ngày làm việc | [Báo cáo ngày](../00-tracking/reports/README.md) `reports/YYYY-MM-DD.md` |
 | Hết một tuần | [status.md](../00-tracking/status.md) |
 | Qua một cổng | [Lộ trình](../01-product/roadmap.md) (cột Thực tế + nhìn lại) + status.md |
 | Phát hành | changelog + tag + status.md |
@@ -124,6 +125,7 @@ Lỗi chặn người chơi trên bản đang chạy: nhánh `fix/<tên>` từ t
 | Nhịp | Việc | Thời gian |
 | --- | --- | --- |
 | Mỗi phiên làm | Chọn 1 dòng ⏳ trong features.md → làm tới Done | — |
+| Cuối mỗi ngày làm | Viết [báo cáo ngày](../00-tracking/reports/README.md) | 5 phút |
 | Mỗi tuần | Viết báo cáo tuần trong status.md; xem lại rủi ro và câu hỏi mở | 15 phút |
 | Mỗi cổng | Kiểm tiêu chí cổng, viết "nhìn lại" ở roadmap, chỉnh dự báo giai đoạn sau, xem lại các CR đang hoãn | 1 giờ |
 | Sau mỗi buổi chơi thử | Ghi phản hồi → lỗi thành issue, ý tưởng thành CR | 15 phút |

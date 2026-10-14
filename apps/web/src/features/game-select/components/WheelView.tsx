@@ -40,6 +40,7 @@ export function WheelView({ party, isHost }: WheelViewProps) {
     <Button
       size="lg"
       disabled={status !== "idle" || spin.pending}
+      data-sfx="confirm"
       className="min-h-16 rounded-[22px] border-4 text-3xl lg:min-h-21 lg:text-4xl"
       onClick={() => spin.run(() => send(ClientMessage.SpinWheel, {}))}
     >

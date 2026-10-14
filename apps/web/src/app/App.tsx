@@ -9,8 +9,10 @@ import { GameIntroScreen } from "@/features/game-intro";
 import { GameSelectScreen } from "@/features/game-select";
 import { HomeScreen } from "@/features/home";
 import { LobbyScreen } from "@/features/lobby";
+import { MusicBar, useMusicAutoplay } from "@/features/music";
 import { CountdownScreen, PlayScreen } from "@/features/play";
 import { PodiumScreen, ResultsScreen } from "@/features/results";
+import { SfxToggle, useSfxEffects } from "@/features/sfx";
 import { resumeParty } from "@/net/connection";
 import { useGame } from "@/stores/game.store";
 
@@ -25,13 +27,19 @@ const SCREENS: Record<Phase, () => React.ReactNode> = {
   podium: PodiumScreen,
 };
 
-/** Pha cần tập trung: ẩn nút ngôn ngữ/theme để nhường chỗ. */
+/** Pha cần tập trung: ẩn nút ngôn ngữ/theme/nhạc để nhường chỗ, nhạc nền nhỏ lại. */
 const FOCUS_PHASES: readonly Phase[] = ["countdown", "playing"];
 
 /** Chọn màn hình theo pha của phòng — app không dùng router. */
 export function App() {
   const party = useGame((s) => s.party);
   const phase = party?.phase;
+  const focused = !!phase && FOCUS_PHASES.includes(phase);
+
+  // Nhạc nền: phát ở thao tác đầu tiên, dừng khi ẩn tab, nhỏ tiếng lúc đếm ngược/đang chơi.
+  useMusicAutoplay(focused);
+  // Âm thanh hiệu ứng: bấm nút, lỗi server, đúng/sai (vẫn kêu lúc đang chơi dù hàng nút bị ẩn).
+  useSfxEffects();
 
   // Tải lại trang giữa trận → tự nối lại phòng cũ.
   useEffect(() => {
@@ -52,9 +60,11 @@ export function App() {
       <div className="chalkboard relative flex h-full flex-col overflow-x-hidden overflow-y-auto rounded-xl bg-background text-foreground">
         <ChalkDefs />
         <div className="safe-area mx-auto flex w-full max-w-6xl flex-1 flex-col">
-          {/* Trang chủ tự đặt nút ngôn ngữ/theme; lúc đếm ngược và đang chơi thì ẩn */}
-          {phase && !FOCUS_PHASES.includes(phase) && (
-            <div className="mb-3 flex justify-end gap-2">
+          {/* Trang chủ tự đặt nút ngôn ngữ/theme/nhạc; lúc đếm ngược và đang chơi thì ẩn */}
+          {phase && !focused && (
+            <div className="mb-3 flex flex-wrap justify-end gap-2">
+              <MusicBar />
+              <SfxToggle />
               <LanguageToggle />
               <ThemeToggle />
             </div>

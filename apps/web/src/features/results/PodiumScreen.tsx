@@ -73,6 +73,7 @@ export function PodiumScreen() {
             size="lg"
             className="min-h-16 rounded-[18px] border-4 text-[26px]"
             disabled={!canPlayAgain || hostAction.pending}
+            data-sfx="confirm"
             aria-describedby={canPlayAgain ? undefined : needPlayersId}
             onClick={() => hostAction.run(() => send(ClientMessage.PlayAgain, {}))}
           >
@@ -92,6 +93,7 @@ export function PodiumScreen() {
             className="min-h-13.5 rounded-2xl border-[3.5px] text-[21px]"
             disabled={hostAction.pending}
             onClick={() => hostAction.run(() => send(ClientMessage.BackToLobby, {}))}
+            data-sfx="back"
           >
             <HouseIcon aria-hidden strokeWidth={2.6} />
             {t("results.backToLobby")}
@@ -104,6 +106,7 @@ export function PodiumScreen() {
         variant="chalk"
         className="min-h-12.5 rounded-2xl text-[19px]"
         onClick={() => void leaveParty()}
+        data-sfx="back"
       >
         <DoorOpenIcon aria-hidden strokeWidth={2.6} />
         {t("results.leaveRoom")}

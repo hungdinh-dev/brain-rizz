@@ -354,4 +354,15 @@ export const en: LocaleMessages = {
     system: "System",
     language: "Language",
   },
+  music: {
+    label: "Background music",
+    play: "Play music",
+    pause: "Pause music",
+    next: "Next track",
+    volume: "Volume",
+  },
+  sfx: {
+    turnOn: "Turn sound effects on",
+    turnOff: "Turn sound effects off",
+  },
 };

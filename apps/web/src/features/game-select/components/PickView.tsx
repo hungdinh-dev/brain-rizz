@@ -14,7 +14,7 @@ import { useGameTextLookup } from "@/hooks/use-game-text";
 import { DESKTOP_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { usePendingAction } from "@/hooks/use-pending-action";
 import { send } from "@/net/connection";
-import { playedGameIds, tallyVotes, topVoted, UPCOMING } from "../catalog";
+import { desktopSoonLayout, playedGameIds, tallyVotes, topVoted, UPCOMING } from "../catalog";
 import { GameCard } from "./GameCard";
 
 /** Số ô của lưới thẻ trên máy tính (4 × 2). */
@@ -48,10 +48,8 @@ export function PickView({ party, sessionId, isHost }: PickViewProps) {
   const selected =
     picked && available.includes(picked) ? picked : (top?.id ?? available[0] ?? null);
 
-  // Ô "Sắp có": máy tính vừa lưới 4×2 (thừa thì gom thành "+N trò"), điện thoại gom một ô.
-  const soonSlots = Math.max(0, DESKTOP_CELLS - GAME_IDS.length);
-  const soonShown = UPCOMING.length > soonSlots ? soonSlots - 1 : UPCOMING.length;
-  const soonMore = UPCOMING.length - soonShown;
+  // Ô "Sắp có": máy tính lấp lưới 4×2 (thừa thì gom thành "+N trò"), điện thoại gom một ô.
+  const soon = desktopSoonLayout(GAME_IDS.length, UPCOMING.length, DESKTOP_CELLS);
 
   return (
     <div className="flex flex-1 flex-col gap-3 lg:gap-4">
@@ -84,7 +82,7 @@ export function PickView({ party, sessionId, isHost }: PickViewProps) {
         </span>
       )}
 
-      <div className="grid grid-cols-2 gap-x-3 gap-y-3.5 pt-1 lg:grid-cols-4 lg:grid-rows-2 lg:gap-x-4.5 lg:gap-y-4">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-3.5 pt-1 lg:grid-cols-4 lg:auto-rows-fr lg:gap-x-4.5 lg:gap-y-4">
         {GAME_IDS.map((id) => {
           const isPlayed = !available.includes(id);
           const voters = tally.get(id) ?? [];
@@ -113,7 +111,7 @@ export function PickView({ party, sessionId, isHost }: PickViewProps) {
         })}
         {desktop ? (
           <>
-            {UPCOMING.slice(0, soonShown).map((g) => (
+            {UPCOMING.slice(0, soon.cards).map((g) => (
               <GameCard
                 key={g.id}
                 id={g.id}
@@ -124,10 +122,10 @@ export function PickView({ party, sessionId, isHost }: PickViewProps) {
                 voters={[]}
               />
             ))}
-            {soonMore > 0 && (
+            {soon.more > 0 && (
               <div className="flex flex-col items-center justify-center gap-1 rounded-[20px] border-[3px] border-dashed border-chalk/55 text-chalk">
                 <span className="font-display text-[34px] leading-none font-extrabold">
-                  {t("gameSelect.moreSoon", { count: soonMore })}
+                  {t("gameSelect.moreSoon", { count: soon.more })}
                 </span>
                 <span className="text-sm text-chalk-muted">{t("gameSelect.moreSoonNote")}</span>
               </div>

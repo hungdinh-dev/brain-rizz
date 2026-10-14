@@ -85,6 +85,8 @@ Mã trong ngoặc trỏ tới [SRS](srs.md).
   - [x] Bộ sinh câu đố + test 10.000 seed, scene Phaser
 - [x] Hiển thị điểm cộng và trạng thái khoá từ `answerResult` (FR-VC-11)
 - [ ] Mã QR mời bạn trên máy tính (FR-PH-09)
+- [ ] Nhạc nền nhiều bài + thanh nhạc trên header (FR-GD-10, dời từ GĐ 2 theo [CR-007](../00-tracking/change-requests.md#cr-007))
+- [ ] Âm thanh hiệu ứng khi bấm nút, đếm ngược, đúng/sai (FR-GD-07, dời từ GĐ 2 theo [CR-008](../00-tracking/change-requests.md#cr-008))
 - [ ] Test nối lại phòng trong `PartyRoom.test.ts` (đã có tải lại trang ở từng pha; còn rớt mạng giữ chỗ / quá 45 giây) ([Kiểm thử](../03-guides/testing.md#6-lỗ-hổng-test-cần-bù))
 - [ ] Deploy: web lên Cloudflare Pages, server lên Fly.io (hoặc Render Free)
 - [ ] Test Playwright 4 trình duyệt chơi trọn một trận
@@ -94,7 +96,7 @@ Mã trong ngoặc trỏ tới [SRS](srs.md).
 ### Giai đoạn 2 — Đẹp và vui (Beta)
 
 - [x] ~~Avatar low-poly 3D, bục trao giải 3D~~ — huỷ theo [ADR 0010](../02-architecture/decisions/0010-drop-3d-2d-lobby-and-podium.md), thay bằng bản 2D ở GĐ 1
-- [ ] Âm thanh, nhạc nền, rung phản hồi, Wake Lock (FR-GD-07)
+- [ ] Rung phản hồi, Wake Lock (FR-GD-11; nhạc nền và âm thanh hiệu ứng đã dời sang GĐ 1)
 - [ ] Thêm 5 minigame (tổng 10)
 - [ ] PWA: cài lên màn hình chính, cache asset (FR-GD-08)
 - [ ] Theo dõi lỗi bằng Sentry

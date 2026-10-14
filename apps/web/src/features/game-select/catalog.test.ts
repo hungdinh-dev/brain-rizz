@@ -1,6 +1,6 @@
 import { GAME_IDS, type PartyStateView, type PlayerView } from "@brain-rizz/shared";
 import { describe, expect, it } from "vitest";
-import { CATALOG, tallyVotes, topVoted, UPCOMING, wheelSlices } from "./catalog";
+import { CATALOG, desktopSoonLayout, tallyVotes, topVoted, UPCOMING, wheelSlices } from "./catalog";
 
 const FIRST = GAME_IDS[0];
 
@@ -43,5 +43,27 @@ describe("bình chọn", () => {
     expect(tally.get(FIRST)?.map((x) => x.id)).toEqual(["a", "b"]);
     expect(topVoted(tally)).toEqual({ id: FIRST, votes: 2 });
     expect(topVoted(new Map())).toBeNull();
+  });
+});
+
+describe("ô Sắp có trên máy tính", () => {
+  it("còn chỗ thì hiện đủ thẻ, thiếu chỗ thì gom ô cuối thành +N", () => {
+    expect(desktopSoonLayout(4, 3, 8)).toEqual({ cards: 3, more: 0 });
+    expect(desktopSoonLayout(4, 11, 8)).toEqual({ cards: 3, more: 8 });
+    expect(desktopSoonLayout(7, 8, 8)).toEqual({ cards: 0, more: 8 });
+  });
+
+  it("game vượt số ô thì hiện đủ thẻ sắp có, không có ô +N; đủ 15 game thì không còn ô nào", () => {
+    expect(desktopSoonLayout(8, 7, 8)).toEqual({ cards: 7, more: 0 });
+    expect(desktopSoonLayout(13, 2, 8)).toEqual({ cards: 2, more: 0 });
+    expect(desktopSoonLayout(15, 0, 8)).toEqual({ cards: 0, more: 0 });
+  });
+
+  it("tổng thẻ sắp có + số gom luôn bằng số game sắp có", () => {
+    for (let games = 0; games <= 15; games++) {
+      const { cards, more } = desktopSoonLayout(games, 15 - games, 8);
+      expect(cards).toBeGreaterThanOrEqual(0);
+      expect(cards + more).toBe(15 - games);
+    }
   });
 });

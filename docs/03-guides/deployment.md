@@ -22,7 +22,7 @@ Cách tính: shared-cpu-1x 512 MB ở Ashburn khoảng 3,69 USD/tháng nếu ch�
 | **Supabase Realtime** (không có game server) | 0 USD | **Không** — đổi mô hình | — | Không có trọng tài/đồng hồ/giữ chỗ; xem [ADR 0002](../02-architecture/decisions/0002-game-server-colyseus-vs-supabase-realtime.md) |
 | **Colyseus Cloud** | Từ 15 USD/tháng | Có | Có nhiều region | Đắt nhất, nhưng không phải tự vận hành |
 
-Vì server được đóng gói Docker (`apps/server/Dockerfile`), chuyển giữa Fly, Render và Oracle chỉ là đổi nơi chạy container, không phải sửa code.
+Vì server được đóng gói Docker (`apps/server/Dockerfile`), chuyển giữa Fly, Render và Oracle chỉ là đổi nơi chạy container, không phải sửa code. Thứ tự dự phòng và rủi ro nếu bỏ Colyseus: [Kế hoạch dự phòng game server](../02-architecture/server-fallback.md).
 
 ## Deploy web lên Cloudflare Pages
 
@@ -40,11 +40,16 @@ Vì server được đóng gói Docker (`apps/server/Dockerfile`), chuyển gi�
 # Cài flyctl: https://fly.io/docs/flyctl/install/
 fly auth login
 fly launch --no-deploy --copy-config   # dùng fly.toml có sẵn ở thư mục gốc, đổi tên app nếu bị trùng
-fly deploy                             # build apps/server/Dockerfile và deploy lên region sin
+fly deploy --ha=false                  # build apps/server/Dockerfile, deploy đúng 1 máy ở region sin
+fly scale count 1                      # chắc chắn chỉ còn 1 máy (nếu lỡ deploy không có --ha=false)
 fly logs                               # xem log
 ```
 
 `fly.toml` đã bật `auto_stop_machines = "stop"`, `min_machines_running = 0` và health check `/healthz`. Khi có người mở game, Fly tự bật máy.
+
+**Chỉ chạy đúng 1 máy.** Mặc định Fly tạo 2 máy để dự phòng, nhưng Colyseus giữ phòng trong bộ nhớ của từng máy: người tạo phòng ở máy A, người vào sau bị đưa sang máy B sẽ gặp lỗi không tìm thấy phòng. Muốn chạy nhiều máy phải thêm Presence/Redis của Colyseus — chưa cần ở quy mô này.
+
+Nên deploy bằng `flyctl` như trên thay vì nút "Launch an App from GitHub" trên dashboard: form của dashboard điền sẵn region `ams`, cổng `8080` thay vì giá trị trong `fly.toml`.
 
 Lưu ý: khi deploy bản mới, phòng đang chơi sẽ bị ngắt. Hãy deploy lúc không ai chơi (hoặc bật graceful shutdown của Colyseus ở giai đoạn sau).
 

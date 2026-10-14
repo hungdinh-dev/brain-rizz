@@ -122,6 +122,7 @@ Xác suất (X) và Ảnh hưởng (A) chấm 1–3. Rủi ro đang mở đượ
 | R-09 | Trùng tài sản trí tuệ của Nintendo | 1 | 3 | Tên, hình, nhân vật tự làm; chỉ giữ ý tưởng thể loại | Đã xử lý |
 | R-10 | Supabase tạm dừng khi ít người chơi | 2 | 1 | Chỉ dùng từ GĐ 3; chế độ khách vẫn chơi khi DB ngủ | Mở |
 | R-11 | Không đủ 15 giờ/tuần như giả định | 2 | 2 | Lộ trình tính theo tuần làm việc; trễ thì cắt bớt minigame của GĐ 3, không cắt chất lượng | Mở |
+| R-12 | Nhạc nền "no copyright" thực ra vẫn có chủ, điều khoản thường chỉ cho dùng trong video, không cho dùng trong app/game → yêu cầu gỡ (DMCA) gửi tới GitHub hoặc Cloudflare | 1 | 2 | Chủ dự án chấp nhận rủi ro (2026-10-14, [CR-007](../00-tracking/change-requests.md#cr-007)). Repo chuyển sang private **trước khi** commit file nhạc; vẫn ghi nguồn từng bài vào `assets/LICENSES.md`; bị yêu cầu gỡ thì xoá bài đó ngay, thay bằng nhạc Pixabay/OpenGameArt CC0. Lưu ý: repo private không che được nhạc trên web đã deploy | Mở |
 
 ## 11. Câu hỏi mở
 

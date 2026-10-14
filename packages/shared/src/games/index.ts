@@ -1,9 +1,17 @@
 import { balance } from "./balance/balance";
+import { cashCount } from "./cash-count/cash-count";
+import { cubeCount } from "./cube-count/cube-count";
+import { foldBox } from "./fold-box/fold-box";
+import { hitTarget } from "./hit-target/hit-target";
 import { lightTrail } from "./light-trail/light-trail";
+import { marbleDrop } from "./marble-drop/marble-drop";
 import { numberBalloons } from "./number-balloons/number-balloons";
 import { oddOneOut } from "./odd-one-out/odd-one-out";
+import { pairFlip } from "./pair-flip/pair-flip";
 import { rotateMatch } from "./rotate-match/rotate-match";
+import { topView } from "./top-view/top-view";
 import type { AnyMinigame } from "./types";
+import { whoVanished } from "./who-vanished/who-vanished";
 
 /**
  * Danh mục minigame. Mỗi game là một thư mục `src/games/<id>/` (bộ sinh câu đố + test).
@@ -16,6 +24,14 @@ export const GAMES = {
   balance: balance,
   "number-balloons": numberBalloons,
   "rotate-match": rotateMatch,
+  "hit-target": hitTarget,
+  "cash-count": cashCount,
+  "top-view": topView,
+  "fold-box": foldBox,
+  "who-vanished": whoVanished,
+  "pair-flip": pairFlip,
+  "cube-count": cubeCount,
+  "marble-drop": marbleDrop,
   // @new-game:entry
 } as const satisfies Record<string, AnyMinigame>;
 
@@ -32,8 +48,16 @@ export function getGame(id: GameId): AnyMinigame {
 }
 
 export * from "./balance/balance";
+export * from "./cash-count/cash-count";
+export * from "./cube-count/cube-count";
+export * from "./fold-box/fold-box";
+export * from "./hit-target/hit-target";
 export * from "./light-trail/light-trail";
+export * from "./marble-drop/marble-drop";
 export * from "./number-balloons/number-balloons";
 export * from "./odd-one-out/odd-one-out";
+export * from "./pair-flip/pair-flip";
 export * from "./rotate-match/rotate-match";
+export * from "./top-view/top-view";
 export * from "./types";
+export * from "./who-vanished/who-vanished";

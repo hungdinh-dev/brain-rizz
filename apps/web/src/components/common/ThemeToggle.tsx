@@ -18,6 +18,7 @@ export function ThemeToggle() {
     <Button
       variant="chalk"
       size="icon-chalk"
+      data-sfx="toggle"
       aria-label={`${t("settings.theme")}: ${t(`settings.${next}`)}`}
       title={t(`settings.${next}`)}
       onClick={() => setPreference(next)}

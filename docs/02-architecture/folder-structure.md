@@ -29,7 +29,15 @@ brain-rizz/
 │  │  ├─ light-trail/          Theo dấu ánh đèn: <id>.ts (+ lightTrailRevealMs dùng chung scene/server) + test
 │  │  ├─ balance/              Cân não: <id>.ts (+ BALANCE_ITEMS: mã các vật) + test
 │  │  ├─ number-balloons/      Bóng bay số: <id>.ts + test
-│  │  └─ rotate-match/         Xoay hình: <id>.ts, shapes.ts (kho hình, chỉ dùng trong game) + test
+│  │  ├─ rotate-match/         Xoay hình: <id>.ts, shapes.ts (kho hình, chỉ dùng trong game) + test
+│  │  ├─ who-vanished/         Ai vừa biến mất: <id>.ts + test
+│  │  ├─ pair-flip/            Lật cặp: <id>.ts (+ PAIR_FLIP_TIMING, lịch xem/úp cho scene) + test
+│  │  ├─ cube-count/           Đếm khối: <id>.ts, model.ts (mô hình bậc thang) + test
+│  │  ├─ marble-drop/          Bi rơi đâu: <id>.ts (+ simulateMarbleDrop cho scene) + test
+│  │  ├─ hit-target/           Chạm đích: <id>.ts + test
+│  │  ├─ cash-count/           Đếm tiền nhanh: <id>.ts (+ CASH_DENOMINATIONS) + test
+│  │  ├─ top-view/             Nhìn từ trên: <id>.ts, iso.ts (hình học isometric), patterns.ts (kho hình chiếu) + test
+│  │  └─ fold-box/             Gấp hộp: <id>.ts, cube.ts (gấp lưới lập phương, 24 phép quay) + test
 │  │                           Game mới khai báo durationMs 60 giây, difficultyMultiplier và (nếu cần) speedAllowanceMs (CR-006)
 │  ├─ protocol.ts              Tên tin nhắn client ↔ server, kiểm tra dữ liệu (zod), hình dạng state
 │  ├─ scoring.ts               Công thức điểm: điểm gốc, thưởng tốc độ, combo (có trần), hệ số và
@@ -63,7 +71,10 @@ brain-rizz/
 ├─ apps/web/                   ★ CLIENT (trình duyệt) — import nội bộ dùng alias `@/` = `src/`
 │  ├─ src/
 │  │  ├─ main.tsx              Điểm khởi đầu: khởi tạo i18n, theme, CSS rồi render App
-│  │  ├─ app/App.tsx           Chọn màn hình theo pha của phòng; thanh nút ngôn ngữ/theme; Toaster
+│  │  ├─ app/App.tsx           Chọn màn hình theo pha của phòng; thanh nút nhạc/âm thanh/ngôn ngữ/theme; bật nhạc nền + âm thanh hiệu ứng; Toaster
+│  │  ├─ assets/music/         File nhạc nền (.mp3/.ogg/.m4a) — thả vào là tự nhận; README.md: cách đặt tên, dung lượng
+│  │  ├─ assets/sfx/           File âm thanh hiệu ứng `<loại>.mp3` (click, toggle, confirm, back, error, tick, correct, wrong) —
+│  │  │                        thiếu thì dùng tiếng tổng hợp; README.md: bảng tên file ↔ lúc phát, gợi ý bộ Kenney (CC0)
 │  │  ├─ features/             ★ MỖI MÀN HÌNH MỘT FEATURE — feature khác chỉ import qua index.ts
 │  │  │  ├─ home/              HomeScreen (giới thiệu → menu ⇄ chọn bạn đồng hành), profile.ts (nhớ hồ sơ),
 │  │  │  │                     components/IntroScreen, MenuScreen, MenuCard, ProfileScreen, SkillChips
@@ -71,6 +82,17 @@ brain-rizz/
 │  │  │  │                     đổi nhân vật, sẵn sàng, chủ phòng đặt số vòng + bắt đầu trận;
 │  │  │  │                     components/RoomCodePanel, ReadyMeter, PlayerSlot (+ ô trống), CharacterPicker,
 │  │  │  │                     MatchSetupCard (+ HostStatusCard)
+│  │  │  ├─ music/             Nhạc nền (FR-GD-10): music.store.ts (một thẻ <audio> dùng chung, phát lần lượt, nhỏ tiếng
+│  │  │  │                     lúc chơi) + test, audio-output.ts (âm lượng qua GainNode Web Audio — chạy cả trên iPhone; không
+│  │  │  │                     có Web Audio thì dùng audio.volume), track-list.ts (import.meta.glob src/assets/music), tracks.ts (tên bài, bài kế)
+│  │  │  │                     + test, settings.ts (nhớ bật/tắt, âm lượng, bài) + test, use-music-autoplay.ts (phát ở
+│  │  │  │                     thao tác đầu tiên, dừng khi ẩn tab), gesture.ts (thao tác nào thì phát/bỏ qua/thôi chờ)
+│  │  │  │                     + test, components/MusicBar (đặt cạnh nút ngôn ngữ/theme)
+│  │  │  ├─ sfx/               Âm thanh hiệu ứng (FR-GD-07): player.ts (playSfx: file đã giải mã hoặc tiếng tổng hợp, gain
+│  │  │  │                     riêng), kinds.ts (8 loại, chọn tiếng theo data-sfx / aria-pressed / role), recipes.ts (nốt
+│  │  │  │                     tổng hợp), sources.ts + sfx-files.ts (import.meta.glob src/assets/sfx), settings.ts + sfx.store.ts
+│  │  │  │                     (bật/tắt, nhớ trên máy), sfx.test.ts + player.test.ts, use-sfx-effects.ts (listener click uỷ quyền, tải trước file khi mở khoá, lỗi server,
+│  │  │  │                     đúng/sai), components/SfxToggle
 │  │  │  ├─ game-select/       GameSelectScreen — chọn game mỗi vòng: vòng quay đồng bộ / chủ phòng chọn + bình chọn;
 │  │  │  │                     catalog.ts (danh mục 15 game, gom phiếu, lát vòng quay) + test,
 │  │  │  │                     components/ModeSwitch, LuckyWheel, WheelView, PickView, GameCard, GameThumb,
@@ -91,17 +113,19 @@ brain-rizz/
 │  │  │  │  ├─ OddOneOutHowTo.tsx Hình minh hoạ SVG cho màn Hướng dẫn và thẻ game
 │  │  │  │  ├─ locales.ts      Chữ màn hướng dẫn (vi, en): tên, mô tả, 3 bước, điều khiển, câu nhắc, 4 mức
 │  │  │  │  └─ index.ts        GameClient: scene (tải lười) + locales + Illustration
-│  │  │  ├─ light-trail/, balance/, number-balloons/, rotate-match/
+│  │  │  ├─ light-trail/, balance/, number-balloons/, rotate-match/, who-vanished/, pair-flip/,
+│  │  │  │  cube-count/, marble-drop/, hit-target/, cash-count/, top-view/, fold-box/
 │  │  │  │                     Cùng khuôn: <Name>Scene.ts, <Name>HowTo.tsx, locales.ts, index.ts;
 │  │  │  │                     balance/ có thêm items.ts (hình 8 vật), light-trail/ có thêm shapes.ts (bóng đèn,
-│  │  │  │                     mắt, bàn tay, tua ngược) — đều dùng chung cho scene và hình minh hoạ
+│  │  │  │                     mắt, bàn tay, tua ngược) — đều dùng chung cho scene và hình minh hoạ;
+│  │  │  │                     cube-count/ có art.ts, who-vanished/ có items.ts + shapes.ts
 │  │  │  ├─ registry.ts        Nối mã game → GameClient — `pnpm new-game` tự đăng ký vào đây
 │  │  │  ├─ locales.test.ts    Test chữ các game: câu nhắc theo mức đủ ở mọi ngôn ngữ, danh mục i18n khớp tên + summary
 │  │  │  ├─ PhaserHost.tsx     Tạo/huỷ game Phaser, báo trạng thái tải, preloadGame (tải trước lúc đếm ngược)
 │  │  │  └─ types.ts           MinigameBridge (React ↔ Phaser), GameLocale (+ levelHints: câu nhắc theo mức), GameClient,
 │  │  │                        khung 720×1280
 │  │  ├─ components/
-│  │  │  ├─ ui/                Component shadcn đã chỉnh kiểu nhãn dán (button, input, card, toggle-group…)
+│  │  │  ├─ ui/                Component shadcn đã chỉnh kiểu nhãn dán (button, input, card, toggle-group, slider…)
 │  │  │  ├─ characters/        ★ NHÂN VẬT: Character (6 con vật × 7 biểu cảm, SVG + hoạt ảnh), specs.tsx
 │  │  │  ├─ brand/             Logo chữ nhún, linh vật BrainMascot, hình vẽ phấn ChalkDoodle + ChalkDefs
 │  │  │  └─ common/            Dùng ở nhiều feature: PlayerAvatar (nhân vật trong khung tròn), DifficultyPicker, ConnectionBanner,
@@ -116,7 +140,8 @@ brain-rizz/
 │  │  │                        use-number-format (1.180 / 1,2 theo ngôn ngữ), use-server-clock, use-server-time-reached
 │  │  │                        (giờ server cho đồng hồ, đếm ngược, hết giờ), use-pending-action (khoá nút gửi lệnh
 │  │  │                        tới khi state đổi hoặc server báo lỗi, chống bấm đúp)
-│  │  ├─ lib/                  utils.ts (cn), storage.ts (localStorage an toàn + tên khoá), avatar.ts
+│  │  ├─ lib/                  utils.ts (cn), storage.ts (localStorage an toàn + tên khoá), avatar.ts,
+│  │  │                        audio-context.ts (một AudioContext dùng chung cho nhạc nền + âm thanh hiệu ứng, mở khoá/resume)
 │  │  ├─ net/connection.ts     Mọi thứ liên quan mạng: tạo/vào/rời phòng, gửi tin, nối lại, đồng bộ giờ
 │  │  ├─ stores/
 │  │  │  ├─ game.store.ts      State phòng chơi (Zustand): phòng, độ lệch giờ, kết quả câu gần nhất…
@@ -149,7 +174,8 @@ brain-rizz/
 │  │  ├─ status.md             Báo cáo tình trạng hằng tuần
 │  │  ├─ features.md           Danh sách tính năng & use case, trạng thái
 │  │  ├─ changelog.md          Nhật ký phát hành theo phiên bản
-│  │  └─ change-requests.md    Yêu cầu thay đổi phạm vi (CR)
+│  │  ├─ change-requests.md    Yêu cầu thay đổi phạm vi (CR)
+│  │  └─ reports/              Báo cáo ngày: README.md (danh sách + quy chuẩn), _template.md, YYYY-MM-DD.md
 │  ├─ 01-product/              SẢN PHẨM
 │  │  ├─ README.md             Mục lục thư mục
 │  │  ├─ vision.md             Tầm nhìn & phạm vi, mục tiêu, rủi ro, câu hỏi mở
@@ -163,6 +189,7 @@ brain-rizz/
 │  │  ├─ overview.md           Kiến trúc, luồng phòng chơi, giao thức tin nhắn
 │  │  ├─ tech-stack.md         Công nghệ, phiên bản, dịch vụ, làm quen cho dev mới
 │  │  ├─ folder-structure.md   (file này)
+│  │  ├─ server-fallback.md    Kế hoạch dự phòng game server, rủi ro khi bỏ Colyseus
 │  │  └─ decisions/            Quyết định kỹ thuật: README.md, ADR 0001–0010, _template.md
 │  ├─ 03-guides/               HƯỚNG DẪN
 │  │  ├─ README.md             Mục lục thư mục
@@ -224,6 +251,8 @@ brain-rizz/
 | Hình minh hoạ cách chơi, nội dung màn Hướng dẫn của một game | `apps/web/src/games/<id>/locales.ts` + `…HowTo.tsx` (gán `Illustration` trong `index.ts`) |
 | Danh mục 15 game ở màn Chọn game (thẻ "Sắp có") | `apps/web/src/features/game-select/catalog.ts` + tên ở i18n `catalog.<id>` |
 | Lỗi kết nối, nối lại phòng, đồng hồ lệch | `apps/web/src/net/connection.ts` (client); `onDrop`/`onReconnect`/`onLeave` trong `PartyRoom.ts` (server) |
+| Thay tiếng bấm nút, đếm ngược, đúng/sai | Chép `<loại>.mp3` vào `apps/web/src/assets/sfx/` (xem README.md trong đó), ghi nguồn vào `assets/LICENSES.md`; tiếng tổng hợp: `apps/web/src/features/sfx/recipes.ts`; đổi tiếng một nút: thuộc tính `data-sfx` |
+| Thêm/bớt bài nhạc nền | Chép file vào `apps/web/src/assets/music/` (xem README.md trong đó), ghi nguồn vào `assets/LICENSES.md`; cách phát: `apps/web/src/features/music/` |
 | Thêm model/ảnh/âm thanh | File gốc vào `assets/source/`, bản tối ưu vào `apps/web/public/assets/`, ghi giấy phép vào `assets/LICENSES.md` |
 | Đổi địa chỉ server khi deploy | `apps/web/.env` (`VITE_SERVER_URL`), `fly.toml` |
 | Thêm thư viện | `pnpm --filter @brain-rizz/web add <tên>` (hoặc `@brain-rizz/server`, `@brain-rizz/shared`) |

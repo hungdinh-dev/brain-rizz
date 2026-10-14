@@ -35,6 +35,21 @@ export type CatalogEntry = (typeof CATALOG)[number];
 /** Game trong danh mục nhưng chưa có code. */
 export const UPCOMING: readonly CatalogEntry[] = CATALOG.filter((g) => !isGameId(g.id));
 
+/**
+ * Bố cục ô "Sắp có" trên lưới máy tính: `cards` thẻ game sắp có, `more` = số game gom vào ô "+N trò".
+ * Còn chỗ trong `cells` ô thì lấp vừa lưới (thừa thì gom ô cuối thành "+N").
+ * Game đã vượt quá số ô thì lưới tự thêm hàng: hiện đủ thẻ sắp có, không gom.
+ */
+export function desktopSoonLayout(
+  gameCount: number,
+  upcomingCount: number,
+  cells: number,
+): { cards: number; more: number } {
+  const slots = cells - gameCount;
+  if (slots <= 0 || upcomingCount <= slots) return { cards: upcomingCount, more: 0 };
+  return { cards: slots - 1, more: upcomingCount - (slots - 1) };
+}
+
 /** Game đã chơi trong trận (chỉ những id còn đăng ký). */
 export function playedGameIds(party: PartyStateView): GameId[] {
   return party.playedGames.filter(isGameId);

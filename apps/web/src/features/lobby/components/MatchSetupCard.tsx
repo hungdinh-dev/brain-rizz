@@ -175,6 +175,7 @@ export function MatchSetupCard({
           disabled={!canStart}
           aria-busy={pending || undefined}
           aria-describedby={hintId}
+          data-sfx="confirm"
           onClick={onStart}
         >
           {t("lobby.start")}

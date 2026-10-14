@@ -10,7 +10,8 @@ docs/
 │  ├─ status.md               -> Báo cáo tình trạng hằng tuần: đang ở giai đoạn nào, sức khoẻ dự án, rủi ro, việc chờ bạn quyết
 │  ├─ features.md             -> Theo dõi tính năng/use case đã xong hay chưa (khác srs.md: srs nói "phải làm gì", file này nói "làm tới đâu")
 │  ├─ changelog.md            -> Nhật ký phát hành: mỗi phiên bản (0.1.0, 0.5.0…) thay đổi gì
-│  └─ change-requests.md      -> Sổ yêu cầu thay đổi (CR): muốn thêm/đổi/bỏ tính năng thì bắt đầu ở đây
+│  ├─ change-requests.md      -> Sổ yêu cầu thay đổi (CR): muốn thêm/đổi/bỏ tính năng thì bắt đầu ở đây
+│  └─ reports/                -> Báo cáo ngày: mỗi ngày làm việc một file YYYY-MM-DD.md, việc theo giờ, file đã sửa, lỗi đã sửa
 │
 ├─ 01-product/                SẢN PHẨM: làm gì, cho ai, chơi thế nào, khi nào xong
 │  ├─ README.md               -> Mục lục thư mục
@@ -59,5 +60,6 @@ docs/
 | [features.md](features.md) | Use case / tính năng nào đã xong, bản nào có? | Bắt đầu và xong mỗi tính năng |
 | [changelog.md](changelog.md) | Mỗi phiên bản thay đổi gì? | Mỗi thay đổi được merge, mỗi lần phát hành |
 | [change-requests.md](change-requests.md) | Phạm vi đã đổi gì so với kế hoạch, vì sao? | Mỗi khi muốn thêm/đổi/bỏ tính năng |
+| [reports/](reports/README.md) | Hôm đó ai làm gì, lúc mấy giờ, sửa file nào, lỗi nào? | Cuối mỗi ngày làm việc |
 
 [← Mục lục tài liệu](../README.md)

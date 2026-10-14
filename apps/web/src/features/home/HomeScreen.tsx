@@ -2,6 +2,7 @@ import { normalizeRoomCode } from "@brain-rizz/shared";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { playSfx } from "@/features/sfx";
 import { createParty, joinParty } from "@/net/connection";
 import { IntroScreen } from "./components/IntroScreen";
 import { MenuScreen } from "./components/MenuScreen";
@@ -34,6 +35,7 @@ export function HomeScreen() {
     try {
       await action(p);
     } catch (err) {
+      playSfx("error");
       toast.error(err instanceof Error ? err.message : t("connection.failed"));
     } finally {
       setBusy(false);

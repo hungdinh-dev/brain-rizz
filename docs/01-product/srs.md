@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Phân tích yêu cầu |
-| Phiên bản tài liệu | 1.3 · 2026-10-12 — cân bằng điểm theo [CR-006](../00-tracking/change-requests.md#cr-006) |
+| Phiên bản tài liệu | 1.5 · 2026-10-14 — âm thanh hiệu ứng khi bấm nút theo [CR-008](../00-tracking/change-requests.md#cr-008) |
 | Đầu vào | [Yêu cầu nghiệp vụ](brd.md) |
 | Đầu ra cho | [Thiết kế game](game-design.md), [UI/UX](ui-ux.md), [Kiến trúc](../02-architecture/overview.md), [Kiểm thử](../03-guides/testing.md) |
 | Cập nhật khi | Thêm/đổi use case hoặc yêu cầu — tăng phiên bản tài liệu và ghi vào [Lịch sử thay đổi](#9-lịch-sử-thay-đổi-tài-liệu) |
@@ -74,7 +74,7 @@ flowchart LR
   K([Khách]) --- UC01[UC-01 Thiết lập hồ sơ]
   K --- UC02[UC-02 Tạo phòng]
   K --- UC03[UC-03 Vào phòng]
-  K --- UC11[UC-11 Đổi giao diện, ngôn ngữ]
+  K --- UC11[UC-11 Đổi giao diện, ngôn ngữ, nhạc nền]
   N([Người chơi]) --- UC04[UC-04 Mời bạn]
   N --- UC05[UC-05 Chuẩn bị ở phòng chờ]
   N --- UC21[UC-21 Xem hướng dẫn, chọn độ khó]
@@ -106,7 +106,7 @@ flowchart LR
 | UC-08 | Xem kết quả vòng, cộng điểm trận, vinh danh chung cuộc | Người chơi | BR-05, BR-11 | M | 0–1 |
 | UC-09 | Chơi lại / đưa cả phòng về sảnh | Chủ phòng | BR-07 | M | 0 |
 | UC-10 | Nối lại sau khi mất kết nối | Người chơi, Server | BR-06 | M | 0 |
-| UC-11 | Đổi giao diện sáng/tối và ngôn ngữ | Khách, Người chơi | BR-08 | M | 0 |
+| UC-11 | Đổi giao diện sáng/tối, ngôn ngữ và nhạc nền | Khách, Người chơi | BR-08 | M | 0–1 |
 | UC-12 | Rời phòng | Người chơi | BR-01 | M | 0 |
 | UC-13 | Luyện tập một minigame | Khách | BR-10 | S | 3 |
 | UC-14 | Kiểm tra não (chơi một mình 5 game) | Khách | BR-10 | S | 3 |
@@ -288,11 +288,14 @@ flowchart TD
   - 3a. Quá 45 giây → server xoá người chơi; nếu là chủ phòng thì chuyển quyền (RULE-04).
 - **FR:** FR-PH-07, FR-PH-08.
 
-#### UC-11 — Đổi giao diện và ngôn ngữ
+#### UC-11 — Đổi giao diện, ngôn ngữ và nhạc nền
 
 - **Luồng chính:** bấm nút ngôn ngữ (vi/en) hoặc nút giao diện (Sáng/Tối/Theo hệ thống) → toàn bộ chữ/màu đổi ngay, lựa chọn được nhớ cho lần sau.
-- **Ràng buộc:** lúc đang chơi minigame, hai nút này ẩn để nhường chỗ.
-- **FR:** FR-GD-01, FR-GD-02.
+- **Luồng rẽ:**
+  - 1a. Bấm phát/dừng, bài kế hoặc kéo âm lượng trên thanh nhạc nền → nhạc đổi ngay, lựa chọn được nhớ cho lần sau (CR-007).
+  - 1b. Bấm nút bật/tắt âm thanh hiệu ứng → tiếng bấm nút, đếm ngược, đúng/sai bật hoặc tắt ngay, độc lập với nhạc nền, lựa chọn được nhớ (CR-008).
+- **Ràng buộc:** lúc đếm ngược và đang chơi minigame, các nút này ẩn để nhường chỗ; nhạc vẫn phát nhưng nhỏ lại.
+- **FR:** FR-GD-01, FR-GD-02, FR-GD-07, FR-GD-10.
 
 #### UC-12 — Rời phòng
 
@@ -387,9 +390,11 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-GD-04 | Menu chính hiển thị các chế độ chưa làm với nhãn "Sắp có" và thông báo khi bấm | — | S | 0 |
 | FR-GD-05 | ~~Sân khấu 3D ở sảnh, avatar low-poly~~ — **Huỷ** (CR-005, ADR 0010), thay bằng FR-PH-12 | — | — | — |
 | FR-GD-06 | Vinh danh chung cuộc kiểu Kahoot bằng 2D: lần lượt hiện hạng 3, 2, 1 trên bục, nhân vật biểu cảm thắng, pháo giấy, danh sách hạng còn lại | UC-08 | M | 1 |
-| FR-GD-07 | Âm thanh, nhạc nền, rung phản hồi; giữ màn hình sáng khi chơi (Wake Lock) | UC-07 | S | 2 |
+| FR-GD-07 | Âm thanh hiệu ứng: tiếng bấm nút theo loại (thường, bật/tắt, xác nhận, quay lại), báo lỗi, tích tắc đếm ngược, trả lời đúng/sai; nút bật/tắt riêng, nhớ lựa chọn, mặc định bật. Tiếng lấy từ file trong thư mục âm thanh nếu có, không có thì tạo bằng Web Audio. Nhạc nền ở FR-GD-10, rung và Wake Lock ở FR-GD-11 ([CR-008](../00-tracking/change-requests.md#cr-008)) | UC-07, UC-11 | S | 1 |
 | FR-GD-08 | Cài lên màn hình chính, cache asset (PWA) | — | S | 2 |
 | FR-GD-09 | Lỗi từ server hiện thành thông báo ngắn theo mã (`not-host`, `bad-phase`, `invalid`, `rate-limited`, `not-ready`) | — | M | 0 |
+| FR-GD-10 | Nhạc nền nhiều bài: thanh nhạc trên header (phát/dừng, bài kế; máy tính thêm tên bài và âm lượng); phát lần lượt, hết danh sách thì lặp lại; mặc định bật, bắt đầu phát ở lần chạm đầu; nhớ bật/tắt, âm lượng, bài đang nghe; nhỏ còn một nửa khi đếm ngược và đang chơi; tạm dừng khi tab ẩn; danh sách bài lấy tự động từ thư mục nhạc, thêm bài không cần sửa code ([CR-007](../00-tracking/change-requests.md#cr-007)) | UC-11 | S | 1 |
+| FR-GD-11 | Rung phản hồi khi trả lời; giữ màn hình sáng khi chơi (Wake Lock) — tách từ FR-GD-07 (CR-008) | UC-07 | S | 2 |
 
 ### 4.6 Chế độ mở rộng & tài khoản (MR)
 
@@ -418,13 +423,13 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | NFR-SEC-02 | Chống gian lận | Chỉ server tính điểm; giới hạn 10 đáp án/giây; bỏ đáp án ngoài giờ. Hạn chế đã biết: client biết seed nên người rành code có thể tự giải — chấp nhận ở mức chơi với bạn bè | Test `PartyRoom` |
 | NFR-COMP-01 | Tương thích | Chạy trên ma trận thiết bị ở [Kiểm thử](../03-guides/testing.md#5-ma-trận-thiết-bị) | Kiểm thủ công trước mỗi bản phát hành |
 | NFR-UX-01 | Trải nghiệm | Minigame thiết kế khung dọc 720×1280, scale `FIT`; vùng chạm ≥ 48×48 px; tôn trọng safe-area; chặn kéo-để-tải-lại và zoom chạm đôi | Kiểm trên điện thoại |
-| NFR-UX-02 | Trải nghiệm | iOS: mở khoá âm thanh ở lần chạm đầu (GĐ 2) | Kiểm trên iPhone |
+| NFR-UX-02 | Trải nghiệm | iOS: mở khoá âm thanh ở lần chạm đầu; nhạc nền và âm thanh hiệu ứng dùng chung một AudioContext (CR-007, CR-008) | Kiểm trên iPhone |
 | NFR-A11Y-01 | Truy cập | Chữ tương phản ≥ 4,5:1; nút chỉ có icon phải có `aria-label`; thông tin không chỉ phân biệt bằng màu; bảng màu thân thiện người mù màu ở mức Khó | Soát UI |
 | NFR-I18N-01 | Đa ngôn ngữ | `vi.ts` là nguồn chuẩn; `en.ts` bị TypeScript ép đủ khoá; không chữ cứng trong JSX/scene | `pnpm typecheck` |
 | NFR-COST-01 | Chi phí | Hosting ≤ 1 USD/tháng khi chơi vài chục giờ; tối đa khoảng 6 USD nếu chạy 24/7 | Hoá đơn Fly.io |
 | NFR-PRIV-01 | Riêng tư | Trước GĐ 3 không thu thập dữ liệu cá nhân; hồ sơ chỉ lưu trên máy người chơi | Soát code |
 | NFR-MAINT-01 | Bảo trì | `pnpm check` xanh trước mọi commit; quyết định kỹ thuật lớn có ADR; cây thư mục luôn cập nhật | CI GitHub Actions |
-| NFR-LEGAL-01 | Pháp lý | Asset bên ngoài chỉ CC0 hoặc giấy phép tương thích, ghi ở `assets/LICENSES.md`; không dùng tài sản Nintendo | Soát trước phát hành |
+| NFR-LEGAL-01 | Pháp lý | Asset bên ngoài chỉ CC0 hoặc giấy phép tương thích, ghi ở `assets/LICENSES.md`; không dùng tài sản Nintendo. Ngoại lệ chủ dự án đã chấp nhận: nhạc nền "no copyright" chưa xác minh giấy phép, vẫn ghi nguồn vào sổ (rủi ro [R-12](vision.md#10-rủi-ro-risk-register), CR-007) | Soát trước phát hành |
 
 ## 6. Giao diện ngoài
 
@@ -440,6 +445,8 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | Giờ hiện câu, thời điểm hết khoá, bộ đếm chống spam | RAM của `PartyRoom` (không đồng bộ xuống client) | Tới khi người chơi rời |
 | Hồ sơ người chơi | `localStorage` `brain-rizz:profile` | Lâu dài trên máy |
 | Giao diện, ngôn ngữ | `localStorage` `brain-rizz:theme`, `brain-rizz:lang` | Lâu dài trên máy |
+| Nhạc nền: bật/tắt, âm lượng, bài đang nghe | `localStorage` `brain-rizz:music` | Lâu dài trên máy |
+| Âm thanh hiệu ứng: bật/tắt | `localStorage` `brain-rizz:sfx` | Lâu dài trên máy |
 | Token nối lại | `sessionStorage` `brain-rizz:reconnect` | Tới khi đóng tab |
 | Tài khoản, lịch sử điểm, lượt chơi bóng ma (GĐ 3) | Supabase Postgres | Lâu dài |
 
@@ -455,7 +462,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | BR-06 | UC-10 | FR-PH-08 | `PartyRoom.test.ts` (tải lại trang ở game-select, game-intro, playing, round-results); `apps/web/src/stores/game.store.test.ts`. Còn thiếu rớt mạng giữ chỗ / quá 45 giây (T-01) |
 | BR-07 | UC-06, UC-20, UC-08, UC-09 | FR-VC-01, FR-VC-09, FR-VC-10, FR-VC-13, FR-VC-20 | `PartyRoom.test.ts` (bắt đầu trận, hoà điểm, điểm trận cộng dồn, vòng cuối → podium, chơi lại, về phòng chờ) |
 | BR-15 | UC-20, UC-21 | FR-VC-12 → FR-VC-16, FR-VC-19 | `PartyRoom.test.ts` nhóm "chọn game" (5 test) và "hướng dẫn + độ khó" (6 test) |
-| BR-08 | UC-11 | FR-GD-01, FR-GD-02 | `pnpm typecheck` (khoá i18n) |
+| BR-08 | UC-11 | FR-GD-01, FR-GD-02, FR-GD-07, FR-GD-10 | `pnpm typecheck` (khoá i18n); test logic trong `apps/web/src/features/music/` và `features/sfx/` |
 | BR-10 | UC-13→16 | FR-MR-01→05 | — (GĐ 3) |
 | BR-11 | UC-05, UC-08 | FR-PH-12, FR-GD-06→08 | — |
 | BR-12 | — | NFR-COST-01 | — |
@@ -468,5 +475,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | 1.1 | 2026-10-10 | Luồng trận mới: viết lại UC-05, UC-06, UC-07, UC-08, UC-09; thêm UC-20, UC-21, FR-PH-12/13, FR-VC-14→20; sửa FR-VC-01/02/12/13, FR-GD-06; huỷ FR-GD-05 | [CR-005](../00-tracking/change-requests.md#cr-005) |
 | 1.2 | 2026-10-12 | Chốt giả định PM khi code CR-005: UC-09 tách "Chơi lại" (→ `game-select` vòng 1, cần ≥ 2 người) và "Về phòng chờ" (→ `lobby`); sửa FR-VC-10, FR-PH-11; cập nhật các dòng "Hiện trạng code", FR-VC-02, FR-GD-09 (`not-ready`), NFR-PERF-01 và ma trận truy vết | [CR-005](../00-tracking/change-requests.md#cr-005) |
 | 1.3 | 2026-10-12 | Cân bằng điểm: sửa FR-VC-05 (hiện đáp án đúng khi sai), FR-VC-06 (hệ số theo game, miễn trừ thời gian, trần combo), FR-MG-01 (thời lượng vòng theo game) | [CR-006](../00-tracking/change-requests.md#cr-006) |
+| 1.4 | 2026-10-14 | Nhạc nền nhiều bài: thêm FR-GD-10 (GĐ 1), tách nhạc nền khỏi FR-GD-07; sửa UC-11, NFR-UX-02, NFR-LEGAL-01 (ngoại lệ nhạc "no copyright"), mục Dữ liệu và ma trận truy vết | [CR-007](../00-tracking/change-requests.md#cr-007) |
+| 1.5 | 2026-10-14 | Âm thanh hiệu ứng: viết lại FR-GD-07 (chỉ còn âm thanh hiệu ứng, dời sang GĐ 1), thêm FR-GD-11 (rung, Wake Lock, GĐ 2); sửa UC-11 (1b), NFR-UX-02, mục Dữ liệu, ma trận truy vết | [CR-008](../00-tracking/change-requests.md#cr-008) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

@@ -6,6 +6,8 @@ import { Character, type Mood } from "@/components/characters";
 import { LanguageToggle } from "@/components/common/LanguageToggle";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui/button";
+import { MusicBar } from "@/features/music";
+import { SfxToggle } from "@/features/sfx";
 import { SkillChips } from "./SkillChips";
 
 /* Hình phấn quanh mép bảng; hình ở giữa ẩn trên điện thoại để khỏi đè logo. */
@@ -74,7 +76,7 @@ export function IntroScreen({ onStart }: { onStart(): void }) {
   const { t } = useTranslation();
 
   return (
-    <main className="relative flex min-h-full flex-1 flex-col items-center justify-center overflow-hidden pt-6 pb-32 md:pb-36">
+    <main className="relative flex min-h-full flex-1 flex-col items-center justify-center overflow-hidden pt-16 pb-32 md:pt-6 md:pb-36">
       {DOODLES.map((d) => (
         <span
           key={d.shape}
@@ -86,7 +88,10 @@ export function IntroScreen({ onStart }: { onStart(): void }) {
         </span>
       ))}
 
-      <div className="absolute top-0 right-0 z-20 flex gap-2">
+      {/* Điện thoại: pt-16 của main chừa chỗ cho hàng nút này, khỏi đè nhãn trên logo */}
+      <div className="absolute top-0 right-0 z-20 flex max-w-full flex-wrap justify-end gap-2">
+        <MusicBar />
+        <SfxToggle />
         <LanguageToggle />
         <ThemeToggle />
       </div>
@@ -116,6 +121,7 @@ export function IntroScreen({ onStart }: { onStart(): void }) {
           size="lg"
           className="fx-pulse mt-2 h-auto rounded-full px-8 py-3 text-2xl md:px-11 md:text-3xl [&_svg:not([class*='size-'])]:size-6"
           onClick={onStart}
+          data-sfx="confirm"
         >
           <PlayIcon className="fill-current" />
           {t("home.intro.start")}

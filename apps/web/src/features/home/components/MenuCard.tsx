@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { ArrowRightIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import type { SfxAttr } from "@/features/sfx";
 import { cn } from "@/lib/utils";
 
 interface MenuCardProps {
@@ -17,6 +18,8 @@ interface MenuCardProps {
   children?: ReactNode;
   /** Nghiêng nhẹ trái/phải cho cảm giác giấy dán */
   tilt?: "left" | "right";
+  /** Tiếng khi bấm (mặc định click), vd. "confirm" cho Tạo phòng */
+  sfx?: SfxAttr;
 }
 
 const TONE = {
@@ -37,6 +40,7 @@ export function MenuCard({
   onClick,
   children,
   tilt,
+  sfx,
 }: MenuCardProps) {
   const body = (
     <>
@@ -81,6 +85,7 @@ export function MenuCard({
     <button
       type="button"
       onClick={onClick}
+      data-sfx={sfx}
       className={cn(
         className,
         "cursor-pointer transition-[translate,box-shadow] hover:-translate-y-1 hover:shadow-[0_10px_0_var(--color-ink)] focus-visible:ring-4 focus-visible:ring-ring active:translate-y-1 active:shadow-[0_2px_0_var(--color-ink)]",

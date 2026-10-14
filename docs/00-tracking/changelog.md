@@ -17,8 +17,22 @@ Luồng trận mới theo [CR-005](change-requests.md#cr-005), 4 minigame MVP v�
   - **Cân não** (Phân tích): nhìn các cân, tìm vật nặng nhất.
   - **Bóng bay số** (Tính toán): nổ bóng từ số nhỏ đến lớn; mức cao có số âm và phép tính.
   - **Xoay hình** (Hình dung): tìm hình giống mẫu sau khi xoay, cẩn thận bản lật gương.
+- 8 minigame tiếp theo (2026-10-14, chờ chơi thử để chốt hệ số điểm), mỗi game 4 mức độ khó, màn hướng dẫn có hình minh hoạ (FR-MG-05, mục tiêu GĐ 2):
+  - **Ai vừa biến mất** (Ghi nhớ): xem khay đồ vật 3 giây, rèm che, chọn món vừa biến mất; Siêu khó các món còn lại đổi chỗ.
+  - **Lật cặp** (Ghi nhớ): xem trước cả bàn rồi thẻ úp lại; mỗi câu game lật sẵn một thẻ, chạm thẻ úp giống nó.
+  - **Đếm khối** (Phân tích): đếm mọi khối trong mô hình, kể cả khối bị che.
+  - **Bi rơi đâu** (Phân tích): lần theo cần gạt mũi tên, chạm cốc bi rơi vào; từ mức Khó có công tắc tự lật và nhiều bi.
+  - **Chạm đích** (Tính toán): chạm 2–3 thẻ số có tổng bằng số đích.
+  - **Đếm tiền nhanh** (Tính toán): cộng các tờ tiền, chọn đúng tổng; Siêu khó tính tiền thối lại.
+  - **Nhìn từ trên** (Hình dung): chọn hình chiếu nhìn thẳng từ trên xuống của mô hình khối, cẩn thận bản lật gương.
+  - **Gấp hộp** (Hình dung): chọn lưới trải phẳng gấp được đúng khối hộp mẫu.
+  - Kỹ thuật: mỗi game có bộ sinh câu đố tất định trong `packages/shared/src/games/<id>/` với test 10.000 seed (tất định, đúng một đáp án, độ khó tăng dần đo được) và hệ số điểm theo độ khó riêng (CR-006); test server "không lặp game" chạy được khi số game nhiều hơn số vòng tối đa.
 - Trả lời sai thì thấy ngay đáp án đúng trong lúc bị khoá, ở mọi game kể cả Kẻ lạc đàn (CR-006).
 - Câu nhắc riêng theo độ khó ở màn đếm ngược và màn hướng dẫn (vd. "Nhớ đèn, chạm ngược lại!").
+- Nhạc nền nhiều bài (2026-10-14): thanh nhạc cạnh nút ngôn ngữ/giao diện để phát/dừng, chuyển bài, chỉnh âm lượng (máy tính); nhạc tự phát ở lần chạm đầu, nhỏ lại một nửa khi đếm ngược và đang chơi, dừng khi chuyển tab, nhớ lựa chọn (FR-GD-10, [CR-007](change-requests.md#cr-007)).
+  - Kỹ thuật: feature `apps/web/src/features/music/`; bài nhạc lấy tự động từ `apps/web/src/assets/music/` (chỉ tải khi phát); âm lượng qua Web Audio GainNode để chạy được trên iPhone, không có thì dùng `audio.volume`.
+- Âm thanh hiệu ứng (2026-10-14): tiếng khi bấm nút (thường, bật/tắt, xác nhận, quay lại), báo lỗi, tích tắc đếm ngược, trả lời đúng/sai; nút chuông bật/tắt riêng, độc lập với nhạc nền (FR-GD-07, [CR-008](change-requests.md#cr-008)).
+  - Kỹ thuật: feature `apps/web/src/features/sfx/`; tiếng mặc định tạo bằng Web Audio, có file `apps/web/src/assets/sfx/<loại>.mp3` thì dùng file; một AudioContext dùng chung với nhạc nền (`lib/audio-context.ts`); gắn tiếng bằng một listener chung, nút đặc biệt khai báo `data-sfx`.
 
 - Phòng chờ 2D: 8 ô người chơi, đếm "Sẵn sàng y/x", ẩn/hiện và sao chép mã phòng, đổi nhân vật ngay trong phòng (UC-05, FR-PH-12, FR-PH-13).
 - Chọn game mỗi vòng: vòng quay may mắn (server quyết định, mọi máy quay đồng bộ) hoặc chủ phòng chọn, người chơi bình chọn để gợi ý; game đã chơi không lặp lại trong trận (UC-20).

@@ -140,6 +140,7 @@ export function GameCard(props: GameCardProps) {
           variant="secondary"
           className="min-h-11 rounded-[14px]"
           disabled={playPending}
+          data-sfx="confirm"
           onClick={onPlay}
         >
           {t("gameSelect.playThis")}
