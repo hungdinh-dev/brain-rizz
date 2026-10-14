@@ -17,6 +17,16 @@ Luồng trận mới theo [CR-005](change-requests.md#cr-005), 4 minigame MVP v�
   - **Cân não** (Phân tích): nhìn các cân, tìm vật nặng nhất.
   - **Bóng bay số** (Tính toán): nổ bóng từ số nhỏ đến lớn; mức cao có số âm và phép tính.
   - **Xoay hình** (Hình dung): tìm hình giống mẫu sau khi xoay, cẩn thận bản lật gương.
+- 8 minigame tiếp theo (2026-10-14, chờ chơi thử để chốt hệ số điểm), mỗi game 4 mức độ khó, màn hướng dẫn có hình minh hoạ (FR-MG-05, mục tiêu GĐ 2):
+  - **Ai vừa biến mất** (Ghi nhớ): xem khay đồ vật 3 giây, rèm che, chọn món vừa biến mất; Siêu khó các món còn lại đổi chỗ.
+  - **Lật cặp** (Ghi nhớ): xem trước cả bàn rồi thẻ úp lại; mỗi câu game lật sẵn một thẻ, chạm thẻ úp giống nó.
+  - **Đếm khối** (Phân tích): đếm mọi khối trong mô hình, kể cả khối bị che.
+  - **Bi rơi đâu** (Phân tích): lần theo cần gạt mũi tên, chạm cốc bi rơi vào; từ mức Khó có công tắc tự lật và nhiều bi.
+  - **Chạm đích** (Tính toán): chạm 2–3 thẻ số có tổng bằng số đích.
+  - **Đếm tiền nhanh** (Tính toán): cộng các tờ tiền, chọn đúng tổng; Siêu khó tính tiền thối lại.
+  - **Nhìn từ trên** (Hình dung): chọn hình chiếu nhìn thẳng từ trên xuống của mô hình khối, cẩn thận bản lật gương.
+  - **Gấp hộp** (Hình dung): chọn lưới trải phẳng gấp được đúng khối hộp mẫu.
+  - Kỹ thuật: mỗi game có bộ sinh câu đố tất định trong `packages/shared/src/games/<id>/` với test 10.000 seed (tất định, đúng một đáp án, độ khó tăng dần đo được) và hệ số điểm theo độ khó riêng (CR-006); test server "không lặp game" chạy được khi số game nhiều hơn số vòng tối đa.
 - Trả lời sai thì thấy ngay đáp án đúng trong lúc bị khoá, ở mọi game kể cả Kẻ lạc đàn (CR-006).
 - Câu nhắc riêng theo độ khó ở màn đếm ngược và màn hướng dẫn (vd. "Nhớ đèn, chạm ngược lại!").
 

@@ -2,7 +2,7 @@
 
 Bảng theo dõi **cái gì đã xong, cái gì chưa** ở mức người dùng nhìn thấy. Mỗi dòng trỏ về use case (UC) hoặc yêu cầu (FR) trong [SRS](../01-product/srs.md); muốn biết chi tiết hành vi thì mở SRS, muốn biết tiến độ thì xem ở đây.
 
-Cập nhật lần cuối: **2026-10-12** · Phiên bản code: 0.1.0 (chưa gắn tag)
+Cập nhật lần cuối: **2026-10-14** · Phiên bản code: 0.1.0 (chưa gắn tag)
 
 ## Tổng quan
 
@@ -11,7 +11,7 @@ Cập nhật lần cuối: **2026-10-12** · Phiên bản code: 0.1.0 (chưa g�
 | E1 Hồ sơ & vào game | 1 | 0 | 0 | 0 |
 | E2 Phòng chơi | 8 | 1 | 0 | 0 |
 | E3 Vòng chơi & chấm điểm | 6 | 0 | 0 | 0 |
-| E4 Minigame | 5 game | — | 10 game | 0 |
+| E4 Minigame | 5 game | 8 game (🚧 chờ chơi thử) | 2 game | 0 |
 | E5 Giao diện & trải nghiệm | 5 | 0 | 2 | 0 (+1 huỷ) |
 | E6 Vận hành & chất lượng | 3 | 1 | 3 | 0 |
 | E7 Chế độ mở rộng & tài khoản | 0 | 0 | 4 | 3 |
@@ -58,8 +58,8 @@ Trạng thái từng game theo dõi ở **[Danh mục minigame](../04-minigames/
 | Mục tiêu | Cần | Đã có | Trạng thái |
 | --- | --- | --- | --- |
 | MVP (GĐ 1) | 5 game, mỗi nhóm một game | **5/5** (2026-10-12): Kẻ lạc đàn, Theo dấu ánh đèn, Cân não, Bóng bay số, Xoay hình · test 10.000 seed mỗi game, `PartyRoom.test.ts` "5 minigame MVP trên server" · cân bằng điểm [CR-006](change-requests.md#cr-006) đã có cơ chế, con số chốt sau chơi thử · **chưa chơi thử trên máy thật** | ✅ |
-| Beta (GĐ 2) | 10 game | 5 | ⏳ |
-| Release (GĐ 3) | 15 game | 5 | ⏳ |
+| Beta (GĐ 2) | 10 game | 5 ✅ + 8 🚧 (2026-10-14): Ai vừa biến mất, Lật cặp, Đếm khối, Bi rơi đâu, Chạm đích, Đếm tiền nhanh, Nhìn từ trên, Gấp hộp · đủ bộ sinh câu đố + test 10.000 seed, scene, màn hướng dẫn, chữ vi/en, đã đăng ký · chờ QA và chơi thử để chốt hệ số điểm | 🚧 |
+| Release (GĐ 3) | 15 game | 5 ✅ + 8 🚧 · còn thiếu Bóng của ai, Đập đúng hình | ⏳ |
 
 ## E5 — Giao diện & trải nghiệm
 

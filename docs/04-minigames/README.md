@@ -18,6 +18,6 @@
 | Hình dung | `top-view` | Nhìn từ trên | | 🚧 Đang làm, chờ chơi thử | [top-view.md](top-view.md) |
 | Hình dung | `fold-box` | Gấp hộp | | 🚧 Đang làm, chờ chơi thử | [fold-box.md](fold-box.md) |
 
-Trạng thái: Chưa làm → 📝 Có đặc tả (chưa có code) → 🚧 Đang làm → ✅ Đã làm. ID là gợi ý, chốt khi viết đặc tả (4 game MVP đã chốt). Mẫu đặc tả: [_template.md](_template.md). Quy trình thêm game: [Hướng dẫn phát triển](../03-guides/development.md#thêm-một-minigame).
+Trạng thái: Chưa làm → 📝 Có đặc tả (chưa có code) → 🚧 Đang làm → ✅ Đã làm. ID là gợi ý, chốt khi viết đặc tả (đã chốt 5 game MVP và 8 game đợt 2026-10-14). **🚧 Đang làm, chờ chơi thử:** đã có bộ sinh câu đố + test 10.000 seed, scene, màn hướng dẫn, chữ hiển thị, đã đăng ký và chơi được trong phòng; còn chờ QA và buổi chơi thử trên máy thật để chốt hệ số điểm và thời gian giải, xong thì đổi sang ✅. Mẫu đặc tả: [_template.md](_template.md). Quy trình thêm game: [Hướng dẫn phát triển](../03-guides/development.md#thêm-một-minigame).
 
 [← Mục lục tài liệu](../README.md)

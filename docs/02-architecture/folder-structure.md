@@ -29,7 +29,15 @@ brain-rizz/
 │  │  ├─ light-trail/          Theo dấu ánh đèn: <id>.ts (+ lightTrailRevealMs dùng chung scene/server) + test
 │  │  ├─ balance/              Cân não: <id>.ts (+ BALANCE_ITEMS: mã các vật) + test
 │  │  ├─ number-balloons/      Bóng bay số: <id>.ts + test
-│  │  └─ rotate-match/         Xoay hình: <id>.ts, shapes.ts (kho hình, chỉ dùng trong game) + test
+│  │  ├─ rotate-match/         Xoay hình: <id>.ts, shapes.ts (kho hình, chỉ dùng trong game) + test
+│  │  ├─ who-vanished/         Ai vừa biến mất: <id>.ts + test
+│  │  ├─ pair-flip/            Lật cặp: <id>.ts (+ PAIR_FLIP_TIMING, lịch xem/úp cho scene) + test
+│  │  ├─ cube-count/           Đếm khối: <id>.ts, model.ts (mô hình bậc thang) + test
+│  │  ├─ marble-drop/          Bi rơi đâu: <id>.ts (+ simulateMarbleDrop cho scene) + test
+│  │  ├─ hit-target/           Chạm đích: <id>.ts + test
+│  │  ├─ cash-count/           Đếm tiền nhanh: <id>.ts (+ CASH_DENOMINATIONS) + test
+│  │  ├─ top-view/             Nhìn từ trên: <id>.ts, iso.ts (hình học isometric), patterns.ts (kho hình chiếu) + test
+│  │  └─ fold-box/             Gấp hộp: <id>.ts, cube.ts (gấp lưới lập phương, 24 phép quay) + test
 │  │                           Game mới khai báo durationMs 60 giây, difficultyMultiplier và (nếu cần) speedAllowanceMs (CR-006)
 │  ├─ protocol.ts              Tên tin nhắn client ↔ server, kiểm tra dữ liệu (zod), hình dạng state
 │  ├─ scoring.ts               Công thức điểm: điểm gốc, thưởng tốc độ, combo (có trần), hệ số và
@@ -91,10 +99,12 @@ brain-rizz/
 │  │  │  │  ├─ OddOneOutHowTo.tsx Hình minh hoạ SVG cho màn Hướng dẫn và thẻ game
 │  │  │  │  ├─ locales.ts      Chữ màn hướng dẫn (vi, en): tên, mô tả, 3 bước, điều khiển, câu nhắc, 4 mức
 │  │  │  │  └─ index.ts        GameClient: scene (tải lười) + locales + Illustration
-│  │  │  ├─ light-trail/, balance/, number-balloons/, rotate-match/
+│  │  │  ├─ light-trail/, balance/, number-balloons/, rotate-match/, who-vanished/, pair-flip/,
+│  │  │  │  cube-count/, marble-drop/, hit-target/, cash-count/, top-view/, fold-box/
 │  │  │  │                     Cùng khuôn: <Name>Scene.ts, <Name>HowTo.tsx, locales.ts, index.ts;
 │  │  │  │                     balance/ có thêm items.ts (hình 8 vật), light-trail/ có thêm shapes.ts (bóng đèn,
-│  │  │  │                     mắt, bàn tay, tua ngược) — đều dùng chung cho scene và hình minh hoạ
+│  │  │  │                     mắt, bàn tay, tua ngược) — đều dùng chung cho scene và hình minh hoạ;
+│  │  │  │                     cube-count/ có art.ts, who-vanished/ có items.ts + shapes.ts
 │  │  │  ├─ registry.ts        Nối mã game → GameClient — `pnpm new-game` tự đăng ký vào đây
 │  │  │  ├─ locales.test.ts    Test chữ các game: câu nhắc theo mức đủ ở mọi ngôn ngữ, danh mục i18n khớp tên + summary
 │  │  │  ├─ PhaserHost.tsx     Tạo/huỷ game Phaser, báo trạng thái tải, preloadGame (tải trước lúc đếm ngược)
