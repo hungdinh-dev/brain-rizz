@@ -5,6 +5,7 @@ import { hitTarget } from "./hit-target/hit-target";
 import { lightTrail } from "./light-trail/light-trail";
 import { numberBalloons } from "./number-balloons/number-balloons";
 import { oddOneOut } from "./odd-one-out/odd-one-out";
+import { pairFlip } from "./pair-flip/pair-flip";
 import { rotateMatch } from "./rotate-match/rotate-match";
 import { topView } from "./top-view/top-view";
 import type { AnyMinigame } from "./types";
@@ -26,6 +27,7 @@ export const GAMES = {
   "top-view": topView,
   "fold-box": foldBox,
   "who-vanished": whoVanished,
+  "pair-flip": pairFlip,
   // @new-game:entry
 } as const satisfies Record<string, AnyMinigame>;
 
@@ -48,6 +50,7 @@ export * from "./hit-target/hit-target";
 export * from "./light-trail/light-trail";
 export * from "./number-balloons/number-balloons";
 export * from "./odd-one-out/odd-one-out";
+export * from "./pair-flip/pair-flip";
 export * from "./rotate-match/rotate-match";
 export * from "./top-view/top-view";
 export * from "./types";

@@ -6,6 +6,7 @@ import { hitTargetClient } from "./hit-target";
 import { lightTrailClient } from "./light-trail";
 import { numberBalloonsClient } from "./number-balloons";
 import { oddOneOutClient } from "./odd-one-out";
+import { pairFlipClient } from "./pair-flip";
 import { rotateMatchClient } from "./rotate-match";
 import { topViewClient } from "./top-view";
 import type { GameClient } from "./types";
@@ -26,5 +27,6 @@ export const GAME_CLIENTS = {
   "top-view": topViewClient,
   "fold-box": foldBoxClient,
   "who-vanished": whoVanishedClient,
+  "pair-flip": pairFlipClient,
   // @new-game:entry
 } satisfies Record<GameId, GameClient>;

@@ -7,7 +7,7 @@
 | Nhận diện | `whack-right` | Đập đúng hình | | Chưa làm | |
 | Ghi nhớ | `light-trail` | Theo dấu ánh đèn | Có | ✅ Đã làm | [light-trail.md](light-trail.md) |
 | Ghi nhớ | `who-vanished` | Ai vừa biến mất | | 🚧 Đang làm, chờ chơi thử | [who-vanished.md](who-vanished.md) |
-| Ghi nhớ | `pair-flip` | Lật cặp | | Chưa làm | |
+| Ghi nhớ | `pair-flip` | Lật cặp | | 🚧 Đang làm, chờ chơi thử | [pair-flip.md](pair-flip.md) |
 | Phân tích | `balance` | Cân não | Có | ✅ Đã làm | [balance.md](balance.md) |
 | Phân tích | `cube-count` | Đếm khối | | Chưa làm | |
 | Phân tích | `marble-drop` | Bi rơi đâu | | Chưa làm | |

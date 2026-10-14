@@ -1147,6 +1147,7 @@ describe("PartyRoom", () => {
         "top-view": (s, i, d) => GAMES["top-view"].generate(s, i, d).answerIndex,
         "fold-box": (s, i, d) => GAMES["fold-box"].generate(s, i, d).answerIndex,
         "who-vanished": (s, i, d) => GAMES["who-vanished"].generate(s, i, d).answerIndex,
+        "pair-flip": (s, i, d) => GAMES["pair-flip"].generate(s, i, d).answer,
       };
 
     /** Miễn trừ của câu đầu (ms): hằng số, hoặc tính theo câu 0 của seed vòng khi đặc tả cho công thức. */
@@ -1191,6 +1192,8 @@ describe("PartyRoom", () => {
       { id: "top-view", durationMs: 60_000, seedling: [0, 125], expert: [0, 340] },
       { id: "fold-box", durationMs: 60_000, seedling: [0, 135], expert: [0, 375] },
       { id: "who-vanished", durationMs: 60_000, seedling: [3_400, 150], expert: [3_400, 275] },
+      // Câu đầu của bàn đầu: chia + xem + úp + lật thẻ đề = 4 000 ms (Mầm), 5 000 ms (Siêu khó).
+      { id: "pair-flip", durationMs: 60_000, seedling: [4_000, 150], expert: [5_000, 245] },
     ];
 
     /** Đáp án rác client sửa đổi có thể gửi (msgpack giữ nguyên NaN, vô cực, số thực). */
