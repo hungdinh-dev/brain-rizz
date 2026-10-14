@@ -173,6 +173,7 @@ brain-rizz/
 │  │  ├─ overview.md           Kiến trúc, luồng phòng chơi, giao thức tin nhắn
 │  │  ├─ tech-stack.md         Công nghệ, phiên bản, dịch vụ, làm quen cho dev mới
 │  │  ├─ folder-structure.md   (file này)
+│  │  ├─ server-fallback.md    Kế hoạch dự phòng game server, rủi ro khi bỏ Colyseus
 │  │  └─ decisions/            Quyết định kỹ thuật: README.md, ADR 0001–0010, _template.md
 │  ├─ 03-guides/               HƯỚNG DẪN
 │  │  ├─ README.md             Mục lục thư mục

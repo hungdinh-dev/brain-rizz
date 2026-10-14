@@ -32,6 +32,7 @@ docs/
 | | [Thiết kế UI/UX](01-product/ui-ux.md) | Có những màn hình nào, trông thế nào? Link bản mẫu canvas |
 | | [Tổng quan kiến trúc](02-architecture/overview.md) | Các phần nói chuyện với nhau thế nào, tin nhắn nào đi đâu? |
 | | [Tech stack](02-architecture/tech-stack.md) | Dùng công nghệ gì, phiên bản nào, dịch vụ nào? |
+| | [Kế hoạch dự phòng game server](02-architecture/server-fallback.md) | Fly.io đắt thì chuyển đi đâu, bỏ Colyseus sang Cloudflare có rủi ro gì? |
 | | [Quyết định kỹ thuật (ADR)](02-architecture/decisions/README.md) | Vì sao chọn Colyseus, seed, hosting, shadcn…? |
 | | [Đặc tả minigame](04-minigames/README.md) | Từng game chơi thế nào, sinh câu đố ra sao? |
 | Kế hoạch | [Lộ trình & mốc thời gian](01-product/roadmap.md) | Khi nào xong, cổng kiểm tra là gì? |
