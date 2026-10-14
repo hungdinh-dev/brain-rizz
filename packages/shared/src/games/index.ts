@@ -4,6 +4,7 @@ import { cubeCount } from "./cube-count/cube-count";
 import { foldBox } from "./fold-box/fold-box";
 import { hitTarget } from "./hit-target/hit-target";
 import { lightTrail } from "./light-trail/light-trail";
+import { marbleDrop } from "./marble-drop/marble-drop";
 import { numberBalloons } from "./number-balloons/number-balloons";
 import { oddOneOut } from "./odd-one-out/odd-one-out";
 import { pairFlip } from "./pair-flip/pair-flip";
@@ -30,6 +31,7 @@ export const GAMES = {
   "who-vanished": whoVanished,
   "pair-flip": pairFlip,
   "cube-count": cubeCount,
+  "marble-drop": marbleDrop,
   // @new-game:entry
 } as const satisfies Record<string, AnyMinigame>;
 
@@ -51,6 +53,7 @@ export * from "./cube-count/cube-count";
 export * from "./fold-box/fold-box";
 export * from "./hit-target/hit-target";
 export * from "./light-trail/light-trail";
+export * from "./marble-drop/marble-drop";
 export * from "./number-balloons/number-balloons";
 export * from "./odd-one-out/odd-one-out";
 export * from "./pair-flip/pair-flip";

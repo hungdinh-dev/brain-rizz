@@ -10,7 +10,7 @@
 | Ghi nhớ | `pair-flip` | Lật cặp | | 🚧 Đang làm, chờ chơi thử | [pair-flip.md](pair-flip.md) |
 | Phân tích | `balance` | Cân não | Có | ✅ Đã làm | [balance.md](balance.md) |
 | Phân tích | `cube-count` | Đếm khối | | 🚧 Đang làm, chờ chơi thử | [cube-count.md](cube-count.md) |
-| Phân tích | `marble-drop` | Bi rơi đâu | | Chưa làm | |
+| Phân tích | `marble-drop` | Bi rơi đâu | | 🚧 Đang làm, chờ chơi thử | [marble-drop.md](marble-drop.md) |
 | Tính toán | `number-balloons` | Bóng bay số | Có | ✅ Đã làm | [number-balloons.md](number-balloons.md) |
 | Tính toán | `hit-target` | Chạm đích | | 🚧 Đang làm, chờ chơi thử | [hit-target.md](hit-target.md) |
 | Tính toán | `cash-count` | Đếm tiền nhanh | | 🚧 Đang làm, chờ chơi thử | [cash-count.md](cash-count.md) |
