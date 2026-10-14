@@ -1143,6 +1143,7 @@ describe("PartyRoom", () => {
         "number-balloons": (s, i, d) => GAMES["number-balloons"].generate(s, i, d).order,
         "rotate-match": (s, i, d) => GAMES["rotate-match"].generate(s, i, d).answerIndex,
         "hit-target": (s, i, d) => GAMES["hit-target"].generate(s, i, d).answer,
+        "cash-count": (s, i, d) => GAMES["cash-count"].generate(s, i, d).answerIndex,
       };
 
     /** Miễn trừ của câu đầu (ms): hằng số, hoặc tính theo câu 0 của seed vòng khi đặc tả cho công thức. */
@@ -1169,9 +1170,21 @@ describe("PartyRoom", () => {
       { id: "rotate-match", durationMs: 60_000, seedling: [0, 135], expert: [0, 380] },
     ];
 
+    /** Đếm tiền nhanh (đặc tả, mục Miễn trừ): 500 ms mỗi tờ từ tờ thứ 3, thêm 2 000 ms nếu là câu tiền thối. */
+    const cashAllowance = (seed: number, d: Difficulty) => {
+      const p = GAMES["cash-count"].generate(seed, 0, d);
+      return 500 * Math.max(0, p.bills.length - 2) + (p.mode === "change" ? 2_000 : 0);
+    };
+
     /** 8 game GĐ 2–3, số liệu chép từ bảng hệ số + miễn trừ trong đặc tả từng game (CR-006). */
     const NEW_CASES: ServerCase[] = [
       { id: "hit-target", durationMs: 60_000, seedling: [500, 150], expert: [1_000, 225] },
+      {
+        id: "cash-count",
+        durationMs: 60_000,
+        seedling: [cashAllowance, 150],
+        expert: [cashAllowance, 230],
+      },
     ];
 
     /** Đáp án rác client sửa đổi có thể gửi (msgpack giữ nguyên NaN, vô cực, số thực). */

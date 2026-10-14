@@ -1,4 +1,5 @@
 import { balance } from "./balance/balance";
+import { cashCount } from "./cash-count/cash-count";
 import { hitTarget } from "./hit-target/hit-target";
 import { lightTrail } from "./light-trail/light-trail";
 import { numberBalloons } from "./number-balloons/number-balloons";
@@ -18,6 +19,7 @@ export const GAMES = {
   "number-balloons": numberBalloons,
   "rotate-match": rotateMatch,
   "hit-target": hitTarget,
+  "cash-count": cashCount,
   // @new-game:entry
 } as const satisfies Record<string, AnyMinigame>;
 
@@ -34,6 +36,7 @@ export function getGame(id: GameId): AnyMinigame {
 }
 
 export * from "./balance/balance";
+export * from "./cash-count/cash-count";
 export * from "./hit-target/hit-target";
 export * from "./light-trail/light-trail";
 export * from "./number-balloons/number-balloons";
