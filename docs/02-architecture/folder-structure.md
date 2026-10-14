@@ -174,7 +174,8 @@ brain-rizz/
 │  │  ├─ status.md             Báo cáo tình trạng hằng tuần
 │  │  ├─ features.md           Danh sách tính năng & use case, trạng thái
 │  │  ├─ changelog.md          Nhật ký phát hành theo phiên bản
-│  │  └─ change-requests.md    Yêu cầu thay đổi phạm vi (CR)
+│  │  ├─ change-requests.md    Yêu cầu thay đổi phạm vi (CR)
+│  │  └─ reports/              Báo cáo ngày: README.md (danh sách + quy chuẩn), _template.md, YYYY-MM-DD.md
 │  ├─ 01-product/              SẢN PHẨM
 │  │  ├─ README.md             Mục lục thư mục
 │  │  ├─ vision.md             Tầm nhìn & phạm vi, mục tiêu, rủi ro, câu hỏi mở

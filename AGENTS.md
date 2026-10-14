@@ -44,4 +44,5 @@ Chạy `pnpm new-game <id> <nhóm>` rồi làm theo checklist ở `docs/03-guide
 - Ghi lại quyết định kỹ thuật lớn thành ADR mới trong `docs/02-architecture/decisions/` (copy `_template.md`).
 - Turborepo: cấu hình theo đúng phiên bản đã cài (`node_modules/turbo/docs/`), không theo trí nhớ.
 - Xong một tính năng/use case: đổi trạng thái trong `docs/00-tracking/features.md` và thêm một dòng vào mục `[Chưa phát hành]` của `docs/00-tracking/changelog.md`. Tính năng chưa có trong `docs/01-product/srs.md` thì phải có yêu cầu thay đổi (`docs/00-tracking/change-requests.md`) được duyệt trước khi làm. Chi tiết: `docs/03-guides/sdlc.md`.
+- Cuối mỗi ngày làm việc (hoặc cuối phiên), phiên điều phối viết/bổ sung báo cáo ngày `docs/00-tracking/reports/YYYY-MM-DD.md` theo `_template.md`: việc theo giờ, ai làm (chủ dự án/điều phối/agent), link file đã sửa, lỗi QA tìm ra và cách sửa, commit. Quy chuẩn: `docs/00-tracking/reports/README.md`.
 - Tài liệu mới đặt theo bảng "Thêm tài liệu mới vào đâu" trong `docs/README.md`. Thêm/xoá/đổi tên thư mục hoặc file code thì cập nhật `docs/02-architecture/folder-structure.md`.
