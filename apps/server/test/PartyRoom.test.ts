@@ -1144,6 +1144,7 @@ describe("PartyRoom", () => {
         "rotate-match": (s, i, d) => GAMES["rotate-match"].generate(s, i, d).answerIndex,
         "hit-target": (s, i, d) => GAMES["hit-target"].generate(s, i, d).answer,
         "cash-count": (s, i, d) => GAMES["cash-count"].generate(s, i, d).answerIndex,
+        "top-view": (s, i, d) => GAMES["top-view"].generate(s, i, d).answerIndex,
       };
 
     /** Miễn trừ của câu đầu (ms): hằng số, hoặc tính theo câu 0 của seed vòng khi đặc tả cho công thức. */
@@ -1185,6 +1186,7 @@ describe("PartyRoom", () => {
         seedling: [cashAllowance, 150],
         expert: [cashAllowance, 230],
       },
+      { id: "top-view", durationMs: 60_000, seedling: [0, 125], expert: [0, 340] },
     ];
 
     /** Đáp án rác client sửa đổi có thể gửi (msgpack giữ nguyên NaN, vô cực, số thực). */

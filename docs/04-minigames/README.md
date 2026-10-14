@@ -15,7 +15,7 @@
 | Tính toán | `hit-target` | Chạm đích | | 🚧 Đang làm, chờ chơi thử | [hit-target.md](hit-target.md) |
 | Tính toán | `cash-count` | Đếm tiền nhanh | | 🚧 Đang làm, chờ chơi thử | [cash-count.md](cash-count.md) |
 | Hình dung | `rotate-match` | Xoay hình | Có | ✅ Đã làm | [rotate-match.md](rotate-match.md) |
-| Hình dung | `top-view` | Nhìn từ trên | | Chưa làm | |
+| Hình dung | `top-view` | Nhìn từ trên | | 🚧 Đang làm, chờ chơi thử | [top-view.md](top-view.md) |
 | Hình dung | `fold-box` | Gấp hộp | | Chưa làm | |
 
 Trạng thái: Chưa làm → 📝 Có đặc tả (chưa có code) → 🚧 Đang làm → ✅ Đã làm. ID là gợi ý, chốt khi viết đặc tả (4 game MVP đã chốt). Mẫu đặc tả: [_template.md](_template.md). Quy trình thêm game: [Hướng dẫn phát triển](../03-guides/development.md#thêm-một-minigame).
