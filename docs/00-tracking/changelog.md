@@ -29,6 +29,10 @@ Luồng trận mới theo [CR-005](change-requests.md#cr-005), 4 minigame MVP v�
   - Kỹ thuật: mỗi game có bộ sinh câu đố tất định trong `packages/shared/src/games/<id>/` với test 10.000 seed (tất định, đúng một đáp án, độ khó tăng dần đo được) và hệ số điểm theo độ khó riêng (CR-006); test server "không lặp game" chạy được khi số game nhiều hơn số vòng tối đa.
 - Trả lời sai thì thấy ngay đáp án đúng trong lúc bị khoá, ở mọi game kể cả Kẻ lạc đàn (CR-006).
 - Câu nhắc riêng theo độ khó ở màn đếm ngược và màn hướng dẫn (vd. "Nhớ đèn, chạm ngược lại!").
+- Nhạc nền nhiều bài (2026-10-14): thanh nhạc cạnh nút ngôn ngữ/giao diện để phát/dừng, chuyển bài, chỉnh âm lượng (máy tính); nhạc tự phát ở lần chạm đầu, nhỏ lại một nửa khi đếm ngược và đang chơi, dừng khi chuyển tab, nhớ lựa chọn (FR-GD-10, [CR-007](change-requests.md#cr-007)).
+  - Kỹ thuật: feature `apps/web/src/features/music/`; bài nhạc lấy tự động từ `apps/web/src/assets/music/` (chỉ tải khi phát); âm lượng qua Web Audio GainNode để chạy được trên iPhone, không có thì dùng `audio.volume`.
+- Âm thanh hiệu ứng (2026-10-14): tiếng khi bấm nút (thường, bật/tắt, xác nhận, quay lại), báo lỗi, tích tắc đếm ngược, trả lời đúng/sai; nút chuông bật/tắt riêng, độc lập với nhạc nền (FR-GD-07, [CR-008](change-requests.md#cr-008)).
+  - Kỹ thuật: feature `apps/web/src/features/sfx/`; tiếng mặc định tạo bằng Web Audio, có file `apps/web/src/assets/sfx/<loại>.mp3` thì dùng file; một AudioContext dùng chung với nhạc nền (`lib/audio-context.ts`); gắn tiếng bằng một listener chung, nút đặc biệt khai báo `data-sfx`.
 
 - Phòng chờ 2D: 8 ô người chơi, đếm "Sẵn sàng y/x", ẩn/hiện và sao chép mã phòng, đổi nhân vật ngay trong phòng (UC-05, FR-PH-12, FR-PH-13).
 - Chọn game mỗi vòng: vòng quay may mắn (server quyết định, mọi máy quay đồng bộ) hoặc chủ phòng chọn, người chơi bình chọn để gợi ý; game đã chơi không lặp lại trong trận (UC-20).

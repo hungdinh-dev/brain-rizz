@@ -32,6 +32,8 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 | [CR-004](#cr-004) | Tổ chức lại web theo feature + shadcn/ui | 2026-10-09 | Kỹ thuật | +1 ngày ở GĐ 0 | Đã làm |
 | [CR-005](#cr-005) | Luồng trận kiểu party game: phòng chờ 2D, chọn game (vòng quay / chủ phòng chọn + bình chọn), hướng dẫn + độ khó từng người, đếm ngược 5 giây, cộng điểm và vinh danh kiểu Kahoot, bỏ 3D | 2026-10-10 | Đổi luật + thay đổi thiết kế | +1,5–2 tuần ở GĐ 1; bớt việc ở GĐ 2 | Đã làm (2026-10-12) |
 | [CR-006](#cr-006) | Cân bằng điểm giữa các mức độ khó, thưởng tốc độ theo từng game, vòng 60 giây cho game mới | 2026-10-10 | Đổi luật (điểm) | +1–2 ngày, làm cùng đợt code 4 game | Đã làm (cơ chế, 2026-10-12) |
+| [CR-007](#cr-007) | Nhạc nền nhiều bài + thanh nhạc trên header, làm sớm ở GĐ 1 (tách khỏi FR-GD-07) | 2026-10-14 | Dời việc + thêm chi tiết | +1–2 ngày ở GĐ 1 | Đã làm (2026-10-14) |
+| [CR-008](#cr-008) | Âm thanh hiệu ứng khi bấm nút, làm sớm ở GĐ 1; tách rung + Wake Lock thành FR-GD-11 | 2026-10-14 | Dời việc + thêm chi tiết | +1 ngày ở GĐ 1 | Đã làm (2026-10-14) |
 
 ---
 
@@ -184,6 +186,44 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
   - Miễn trừ `Infinity`/NaN/số âm do game khai báo sai được coi là 0 (không miễn trừ).
   - Cân não giữ bộ vật đồ ăn như đặc tả; chỉ đổi sang bộ trung tính nếu chơi thử thấy trẻ bị nhiễu.
 - **Đã làm:** 2026-10-12, QA PASS. Cơ chế trong `scoring.ts` + `PartyRoom.ts`; 4 game mới khai báo hệ số/miễn trừ, vòng 60 giây; Kẻ lạc đàn hiện đáp án đúng khi sai. Còn lại: chốt con số sau buổi chơi thử đủ 5 game (chỉnh hằng, không sửa cơ chế). Cập nhật kèm: BRD 1.2, SRS 1.3, GDD 1.2, đặc tả 5 game, `_template.md`.
+
+### CR-007
+
+**Nhạc nền nhiều bài + thanh nhạc trên header, làm sớm ở GĐ 1**
+
+- **Ngày mở:** 2026-10-14 · **Loại:** Dời việc + thêm chi tiết · **Người đề xuất:** chủ dự án
+- **Mô tả:** nhạc nền gồm nhiều bài do chủ dự án tự chọn, chép vào thư mục `apps/web/src/assets/music/`. Trên header có thanh nhạc để phát/dừng và chuyển bài; máy tính có thêm tên bài và âm lượng.
+- **Lý do:** nhạc nền đã có trong phạm vi (FR-GD-07, GĐ 2), nhưng SRS chưa nói giao diện điều khiển; chủ dự án muốn có sớm để không khí phòng chờ sôi động hơn trước buổi chơi thử. Không đi ngược trụ cột nào; giữ trụ cột 4 "Nhẹ và rẻ" bằng cách chỉ tải nhạc khi phát và không thêm thư viện.
+- **Phân tích tác động:**
+  - *Kỹ thuật:* chỉ web (feature mới `features/music/`, một `HTMLAudioElement`, không thêm thư viện). Không đổi giao thức, seed hay server. Không thêm canvas WebGL.
+  - *Hiệu năng:* bài nhạc chỉ tải khi phát (`preload="none"`), không tăng gói JS ban đầu đáng kể (NFR-PERF-01). Mỗi bài nên ≤ 3 MB.
+  - *Pháp lý:* chủ dự án dùng nhạc "no copyright", có thể không được phép dùng trong game → ngoại lệ NFR-LEGAL-01, rủi ro [R-12](../01-product/vision.md#10-rủi-ro-risk-register). Cách giảm: chuyển repo sang private trước khi commit nhạc, ghi nguồn từng bài vào `assets/LICENSES.md`.
+  - *Lịch:* +1–2 ngày ở GĐ 1; GĐ 2 bớt tương ứng.
+- **Quyết định:** **Duyệt** (2026-10-14, chủ dự án). Giả định PM chốt theo đề xuất ban đầu, chủ dự án đồng ý "theo hướng nói ban đầu":
+  - Mặc định bật; phát ở lần chạm đầu (trình duyệt chặn tự phát, NFR-UX-02).
+  - Phát lần lượt theo tên file, hết danh sách thì lặp lại.
+  - Đếm ngược và đang chơi: nhạc nhỏ còn một nửa, thanh nhạc ẩn cùng nút ngôn ngữ/giao diện.
+  - Tab ẩn thì tạm dừng.
+- **Tài liệu kéo theo:** SRS 1.4 (thêm FR-GD-10, tách khỏi FR-GD-07; sửa UC-11, NFR-UX-02, NFR-LEGAL-01), vision.md (R-12), roadmap, `assets/LICENSES.md`, features.md, changelog.
+- **Kết quả:** đã làm 2026-10-14, QA PASS (Chrome headless, gồm cả vào pha chơi). Còn lại: chủ dự án chép file nhạc và ghi nguồn vào `assets/LICENSES.md`; thử trên iPhone thật (mở khoá âm thanh, giảm âm, khoá máy/cuộc gọi). Sẽ có trong bản 0.1.0 hoặc bản trung gian GĐ 1.
+
+### CR-008
+
+**Âm thanh hiệu ứng khi bấm nút, làm sớm ở GĐ 1**
+
+- **Ngày mở:** 2026-10-14 · **Loại:** Dời việc + thêm chi tiết · **Người đề xuất:** chủ dự án
+- **Mô tả:** tiếng click khi bấm nút trong toàn hệ thống, cùng tiếng báo lỗi, tích tắc đếm ngược và đúng/sai. Chủ dự án giao PM tự chọn tiếng, sẽ thay bằng file mong muốn sau khi thử.
+- **Lý do:** âm thanh hiệu ứng đã có trong phạm vi (FR-GD-07, GĐ 2); làm cùng đợt nhạc nền ([CR-007](#cr-007)) vì dùng chung phần mở khoá âm thanh. Giữ trụ cột 4 "Nhẹ và rẻ": tiếng mặc định tạo bằng Web Audio (0 KB, không vướng giấy phép), không thêm thư viện.
+- **Phân tích tác động:**
+  - *Kỹ thuật:* chỉ web (feature mới `features/sfx/`); một AudioContext dùng chung với nhạc nền; gắn tiếng bằng một listener chung cho mọi nút, nút đặc biệt khai báo `data-sfx`. Đúng/sai bắt từ `answerResult` ở tầng React, không sửa scene Phaser. Không đổi giao thức.
+  - *Pháp lý:* tiếng tạo bằng code không cần giấy phép; file thay thế sau này (gợi ý Kenney Interface Sounds, CC0) ghi vào `assets/LICENSES.md`.
+  - *Lịch:* +1 ngày ở GĐ 1.
+- **Quyết định:** **Duyệt** (2026-10-14, chủ dự án: "tự quyết định cho sound, triển khai luôn"). Giả định PM:
+  - 8 loại tiếng: click, toggle, confirm, back, error, tick, correct, wrong. Có file `apps/web/src/assets/sfx/<loại>.mp3` thì dùng file, không thì dùng tiếng tạo bằng code.
+  - Nút bật/tắt riêng, độc lập với nhạc nền; mặc định bật; âm lượng cố định.
+  - Tách rung + Wake Lock thành FR-GD-11, giữ ở GĐ 2.
+- **Tài liệu kéo theo:** SRS 1.5 (FR-GD-07 viết lại, thêm FR-GD-11; UC-11, NFR-UX-02, mục Dữ liệu), roadmap, features.md, changelog.
+- **Kết quả:** đã làm 2026-10-14, QA PASS (Chrome headless, chơi thật một vòng 2 tab). Nút bật/tắt dùng icon chuông để không nhầm với âm lượng nhạc. Còn lại: nghe thử bằng tai, thử iPhone thật; chủ dự án thay file tiếng mong muốn vào `apps/web/src/assets/sfx/` và ghi nguồn vào `assets/LICENSES.md`.
 
 ---
 
