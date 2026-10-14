@@ -6,7 +6,7 @@
 | Nhận diện | `shadow-match` | Bóng của ai | | Chưa làm | |
 | Nhận diện | `whack-right` | Đập đúng hình | | Chưa làm | |
 | Ghi nhớ | `light-trail` | Theo dấu ánh đèn | Có | ✅ Đã làm | [light-trail.md](light-trail.md) |
-| Ghi nhớ | `who-vanished` | Ai vừa biến mất | | Chưa làm | |
+| Ghi nhớ | `who-vanished` | Ai vừa biến mất | | 🚧 Đang làm, chờ chơi thử | [who-vanished.md](who-vanished.md) |
 | Ghi nhớ | `pair-flip` | Lật cặp | | Chưa làm | |
 | Phân tích | `balance` | Cân não | Có | ✅ Đã làm | [balance.md](balance.md) |
 | Phân tích | `cube-count` | Đếm khối | | Chưa làm | |

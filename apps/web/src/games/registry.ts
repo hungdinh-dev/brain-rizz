@@ -9,6 +9,7 @@ import { oddOneOutClient } from "./odd-one-out";
 import { rotateMatchClient } from "./rotate-match";
 import { topViewClient } from "./top-view";
 import type { GameClient } from "./types";
+import { whoVanishedClient } from "./who-vanished";
 
 /**
  * Nối mã game → phần web của game (scene Phaser + chữ hiển thị).
@@ -24,5 +25,6 @@ export const GAME_CLIENTS = {
   "cash-count": cashCountClient,
   "top-view": topViewClient,
   "fold-box": foldBoxClient,
+  "who-vanished": whoVanishedClient,
   // @new-game:entry
 } satisfies Record<GameId, GameClient>;

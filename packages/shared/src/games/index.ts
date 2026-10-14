@@ -8,6 +8,7 @@ import { oddOneOut } from "./odd-one-out/odd-one-out";
 import { rotateMatch } from "./rotate-match/rotate-match";
 import { topView } from "./top-view/top-view";
 import type { AnyMinigame } from "./types";
+import { whoVanished } from "./who-vanished/who-vanished";
 
 /**
  * Danh mục minigame. Mỗi game là một thư mục `src/games/<id>/` (bộ sinh câu đố + test).
@@ -24,6 +25,7 @@ export const GAMES = {
   "cash-count": cashCount,
   "top-view": topView,
   "fold-box": foldBox,
+  "who-vanished": whoVanished,
   // @new-game:entry
 } as const satisfies Record<string, AnyMinigame>;
 
@@ -49,3 +51,4 @@ export * from "./odd-one-out/odd-one-out";
 export * from "./rotate-match/rotate-match";
 export * from "./top-view/top-view";
 export * from "./types";
+export * from "./who-vanished/who-vanished";
