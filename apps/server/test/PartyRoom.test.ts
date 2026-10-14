@@ -13,6 +13,7 @@ import {
   INTRO_AUTO_START_MS,
   type JoinOptions,
   LATE_ANSWER_GRACE_MS,
+  MAX_TOTAL_ROUNDS,
   MIN_PLAYERS_TO_START,
   NUDGE_COOLDOWN_MS,
   type NudgePayload,
@@ -423,14 +424,18 @@ describe("PartyRoom", () => {
     it("không chọn/bầu game đã chơi; chơi hết game thì danh sách được làm mới", async () => {
       const { room, clients, host } = await setup(["An", "Bình"]);
       const guest = clients[1] as TestClient;
-      // Đủ vòng để chơi hết mọi game rồi sang thêm một vòng (đúng với bất kỳ số game nào).
-      const rounds = GAME_IDS.length + 1;
+      // Số game có thể nhiều hơn số vòng tối đa của một trận: đánh dấu sẵn vài game là đã chơi, phần
+      // còn lại chơi thật, rồi sang thêm một vòng (đúng với bất kỳ số game nào).
+      const playable = Math.min(GAME_IDS.length, MAX_TOTAL_ROUNDS - 1);
+      const preplayed = GAME_IDS.slice(0, GAME_IDS.length - playable);
+      const rounds = playable + 1;
       host.send(ClientMessage.SetRounds, { totalRounds: rounds });
       await until(() => room.state.totalRounds === rounds);
       await toGameSelect(room, clients);
+      for (const g of preplayed) room.state.playedGames.push(g);
 
-      const seen: string[] = [];
-      for (let i = 0; i < GAME_IDS.length; i++) {
+      const seen: string[] = [...preplayed];
+      for (let i = 0; i < playable; i++) {
         expect(room.state.round).toBe(i + 1);
         const played = [...room.state.playedGames];
         expect(played).toEqual(seen);
@@ -456,7 +461,7 @@ describe("PartyRoom", () => {
 
       // Đã chơi đủ mọi game, không game nào lặp → vào vòng kế tiếp thì danh sách được làm mới.
       expect(new Set(seen).size).toBe(GAME_IDS.length);
-      expect(room.state.round).toBe(GAME_IDS.length + 1);
+      expect(room.state.round).toBe(playable + 1);
       expect([...room.state.playedGames]).toEqual([]);
 
       // Giả lập game đã chơi trong trận (khi có nhiều game) → server từ chối chọn và bầu.
@@ -1139,12 +1144,23 @@ describe("PartyRoom", () => {
         "rotate-match": (s, i, d) => GAMES["rotate-match"].generate(s, i, d).answerIndex,
       };
 
+    /** Miễn trừ của câu đầu (ms): hằng số, hoặc tính theo câu 0 của seed vòng khi đặc tả cho công thức. */
+    type Allowance = number | ((seed: number, d: Difficulty) => number);
+    interface ServerCase {
+      id: GameId;
+      durationMs: number;
+      /** [miễn trừ câu đầu, điểm câu đầu] ở Mầm. */
+      seedling: [Allowance, number];
+      /** [miễn trừ câu đầu, điểm câu đầu] ở Siêu khó. */
+      expert: [Allowance, number];
+    }
+
     /**
      * Số liệu chép từ đặc tả (độc lập với code): thời lượng vòng, rồi [miễn trừ của câu đầu, điểm câu
      * đầu] ở Mầm và Siêu khó khi trả lời đúng 1 giây sau mốc miễn trừ (trọn thưởng tốc độ 50):
      * điểm = 100 × hệ số của game + 50. Kẻ lạc đàn không khai báo gì nên giữ hệ số chung 0,8 / 1,5.
      */
-    const CASES: { id: GameId; durationMs: number; seedling: number[]; expert: number[] }[] = [
+    const CASES: ServerCase[] = [
       { id: "odd-one-out", durationMs: 45_000, seedling: [0, 130], expert: [0, 200] },
       { id: "light-trail", durationMs: 60_000, seedling: [2_900, 150], expert: [3_100, 270] },
       { id: "balance", durationMs: 60_000, seedling: [0, 150], expert: [3_000, 335] },
@@ -1203,20 +1219,24 @@ describe("PartyRoom", () => {
       await pong;
     }
 
-    it("mỗi game: thời lượng vòng riêng, điểm theo hệ số + miễn trừ của game, chặn đáp án rác, không lặp game", async () => {
+    /**
+     * Chơi lần lượt từng game trong `cases` (mỗi game một vòng): kiểm thời lượng vòng, điểm câu đầu
+     * ở Mầm và Siêu khó, chặn đáp án rác, không lặp game. Số game ≤ MAX_TOTAL_ROUNDS.
+     */
+    async function playCases(cases: ServerCase[]) {
       const { room, clients, host } = await setup(
         ["An", "Bình"],
         [{ difficulty: 3 }, { difficulty: 0 }],
       );
       const guest = clients[1] as TestClient;
-      host.send(ClientMessage.SetRounds, { totalRounds: CASES.length });
-      await until(() => room.state.totalRounds === CASES.length);
+      host.send(ClientMessage.SetRounds, { totalRounds: cases.length });
+      await until(() => room.state.totalRounds === cases.length);
       await toGameSelect(room, clients);
 
       const clock = freezeNow();
       try {
         const played: GameId[] = [];
-        for (const c of CASES) {
+        for (const c of cases) {
           const solve = SOLVE[c.id];
           if (!solve) throw new Error(`Thiếu cách giải ${c.id}`);
           host.send(ClientMessage.PickGame, { gameId: c.id });
@@ -1241,7 +1261,8 @@ describe("PartyRoom", () => {
             [guest, 0, c.seedling],
             [host, 3, c.expert],
           ] as const) {
-            clock.set(startAt + (allowance ?? 0) + 1_000);
+            const ms = typeof allowance === "function" ? allowance(seed, d) : allowance;
+            clock.set(startAt + ms + 1_000);
             const result = nextMessage<AnswerResultPayload>(client, ServerMessage.AnswerResult);
             client.send(ClientMessage.Answer, { round, index: 0, answer: solve(seed, 0, d) });
             expect(await result, `${c.id} mức ${d}`).toEqual({ index: 0, correct: true, points });
@@ -1284,7 +1305,7 @@ describe("PartyRoom", () => {
           advance(room, 200);
           expect(room.state.phase, c.id).toBe("round-results");
 
-          if (played.length < CASES.length) {
+          if (played.length < cases.length) {
             host.send(ClientMessage.NextRound, {});
             await until(() => room.state.phase === "game-select");
           }
@@ -1292,6 +1313,10 @@ describe("PartyRoom", () => {
       } finally {
         clock.restore();
       }
+    }
+
+    it("mỗi game: thời lượng vòng riêng, điểm theo hệ số + miễn trừ của game, chặn đáp án rác, không lặp game", async () => {
+      await playCases(CASES);
     }, 30_000);
 
     it("combo có trần × 1,5 khi chấm thật trên server: câu đúng liên tiếp thứ 7, 8 cùng × 1,5", async () => {
