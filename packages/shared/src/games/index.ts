@@ -1,5 +1,6 @@
 import { balance } from "./balance/balance";
 import { cashCount } from "./cash-count/cash-count";
+import { cubeCount } from "./cube-count/cube-count";
 import { foldBox } from "./fold-box/fold-box";
 import { hitTarget } from "./hit-target/hit-target";
 import { lightTrail } from "./light-trail/light-trail";
@@ -28,6 +29,7 @@ export const GAMES = {
   "fold-box": foldBox,
   "who-vanished": whoVanished,
   "pair-flip": pairFlip,
+  "cube-count": cubeCount,
   // @new-game:entry
 } as const satisfies Record<string, AnyMinigame>;
 
@@ -45,6 +47,7 @@ export function getGame(id: GameId): AnyMinigame {
 
 export * from "./balance/balance";
 export * from "./cash-count/cash-count";
+export * from "./cube-count/cube-count";
 export * from "./fold-box/fold-box";
 export * from "./hit-target/hit-target";
 export * from "./light-trail/light-trail";

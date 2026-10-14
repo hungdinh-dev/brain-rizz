@@ -1,6 +1,7 @@
 import type { GameId } from "@brain-rizz/shared";
 import { balanceClient } from "./balance";
 import { cashCountClient } from "./cash-count";
+import { cubeCountClient } from "./cube-count";
 import { foldBoxClient } from "./fold-box";
 import { hitTargetClient } from "./hit-target";
 import { lightTrailClient } from "./light-trail";
@@ -28,5 +29,6 @@ export const GAME_CLIENTS = {
   "fold-box": foldBoxClient,
   "who-vanished": whoVanishedClient,
   "pair-flip": pairFlipClient,
+  "cube-count": cubeCountClient,
   // @new-game:entry
 } satisfies Record<GameId, GameClient>;
