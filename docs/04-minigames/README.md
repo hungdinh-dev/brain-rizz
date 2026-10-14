@@ -12,7 +12,7 @@
 | Phân tích | `cube-count` | Đếm khối | | Chưa làm | |
 | Phân tích | `marble-drop` | Bi rơi đâu | | Chưa làm | |
 | Tính toán | `number-balloons` | Bóng bay số | Có | ✅ Đã làm | [number-balloons.md](number-balloons.md) |
-| Tính toán | `hit-target` | Chạm đích | | Chưa làm | |
+| Tính toán | `hit-target` | Chạm đích | | 🚧 Đang làm, chờ chơi thử | [hit-target.md](hit-target.md) |
 | Tính toán | `cash-count` | Đếm tiền nhanh | | Chưa làm | |
 | Hình dung | `rotate-match` | Xoay hình | Có | ✅ Đã làm | [rotate-match.md](rotate-match.md) |
 | Hình dung | `top-view` | Nhìn từ trên | | Chưa làm | |

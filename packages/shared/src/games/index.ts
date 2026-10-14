@@ -1,4 +1,5 @@
 import { balance } from "./balance/balance";
+import { hitTarget } from "./hit-target/hit-target";
 import { lightTrail } from "./light-trail/light-trail";
 import { numberBalloons } from "./number-balloons/number-balloons";
 import { oddOneOut } from "./odd-one-out/odd-one-out";
@@ -16,6 +17,7 @@ export const GAMES = {
   balance: balance,
   "number-balloons": numberBalloons,
   "rotate-match": rotateMatch,
+  "hit-target": hitTarget,
   // @new-game:entry
 } as const satisfies Record<string, AnyMinigame>;
 
@@ -32,6 +34,7 @@ export function getGame(id: GameId): AnyMinigame {
 }
 
 export * from "./balance/balance";
+export * from "./hit-target/hit-target";
 export * from "./light-trail/light-trail";
 export * from "./number-balloons/number-balloons";
 export * from "./odd-one-out/odd-one-out";

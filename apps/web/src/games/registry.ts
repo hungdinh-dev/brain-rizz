@@ -1,5 +1,6 @@
 import type { GameId } from "@brain-rizz/shared";
 import { balanceClient } from "./balance";
+import { hitTargetClient } from "./hit-target";
 import { lightTrailClient } from "./light-trail";
 import { numberBalloonsClient } from "./number-balloons";
 import { oddOneOutClient } from "./odd-one-out";
@@ -16,5 +17,6 @@ export const GAME_CLIENTS = {
   balance: balanceClient,
   "number-balloons": numberBalloonsClient,
   "rotate-match": rotateMatchClient,
+  "hit-target": hitTargetClient,
   // @new-game:entry
 } satisfies Record<GameId, GameClient>;

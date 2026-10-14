@@ -1142,6 +1142,7 @@ describe("PartyRoom", () => {
         balance: (s, i, d) => GAMES.balance.generate(s, i, d).answer,
         "number-balloons": (s, i, d) => GAMES["number-balloons"].generate(s, i, d).order,
         "rotate-match": (s, i, d) => GAMES["rotate-match"].generate(s, i, d).answerIndex,
+        "hit-target": (s, i, d) => GAMES["hit-target"].generate(s, i, d).answer,
       };
 
     /** Miễn trừ của câu đầu (ms): hằng số, hoặc tính theo câu 0 của seed vòng khi đặc tả cho công thức. */
@@ -1166,6 +1167,11 @@ describe("PartyRoom", () => {
       { id: "balance", durationMs: 60_000, seedling: [0, 150], expert: [3_000, 335] },
       { id: "number-balloons", durationMs: 60_000, seedling: [1_000, 150], expert: [4_000, 250] },
       { id: "rotate-match", durationMs: 60_000, seedling: [0, 135], expert: [0, 380] },
+    ];
+
+    /** 8 game GĐ 2–3, số liệu chép từ bảng hệ số + miễn trừ trong đặc tả từng game (CR-006). */
+    const NEW_CASES: ServerCase[] = [
+      { id: "hit-target", durationMs: 60_000, seedling: [500, 150], expert: [1_000, 225] },
     ];
 
     /** Đáp án rác client sửa đổi có thể gửi (msgpack giữ nguyên NaN, vô cực, số thực). */
@@ -1276,6 +1282,11 @@ describe("PartyRoom", () => {
             const order = solve(seed, 1, 3) as number[];
             junk.push([order[0], order[0]], [...order, order[0]]);
           }
+          if (c.id === "hit-target") {
+            // Chọn trùng thẻ, thẻ ngoài lưới 3×3, quá 3 thẻ: đều là rác.
+            const [a, b] = solve(seed, 1, 3) as number[];
+            junk.push([a, a, b], [a, b, 9], [0, 1, 2, 3]);
+          }
           const results: AnswerResultPayload[] = [];
           const off = host.onMessage(ServerMessage.AnswerResult, (r: AnswerResultPayload) => {
             results.push(r);
@@ -1318,6 +1329,17 @@ describe("PartyRoom", () => {
     it("mỗi game: thời lượng vòng riêng, điểm theo hệ số + miễn trừ của game, chặn đáp án rác, không lặp game", async () => {
       await playCases(CASES);
     }, 30_000);
+
+    it("8 game GĐ 2–3: thời lượng vòng, điểm theo hệ số + miễn trừ trong đặc tả, chặn đáp án rác", async () => {
+      expect(NEW_CASES.length).toBeLessThanOrEqual(MAX_TOTAL_ROUNDS);
+      await playCases(NEW_CASES);
+    }, 45_000);
+
+    it("mọi game trong danh mục đều có cách giải và số liệu kiểm trên server", () => {
+      const covered = [...CASES, ...NEW_CASES].map((c) => c.id).sort();
+      expect(covered).toEqual([...GAME_IDS].sort());
+      for (const id of GAME_IDS) expect(SOLVE[id], id).toBeTypeOf("function");
+    });
 
     it("combo có trần × 1,5 khi chấm thật trên server: câu đúng liên tiếp thứ 7, 8 cùng × 1,5", async () => {
       const { room, clients, host } = await setup(["An", "Bình"], [{ difficulty: 1 }]);
