@@ -361,6 +361,13 @@ export const vi = {
     system: "Theo hệ thống",
     language: "Ngôn ngữ",
   },
+  music: {
+    label: "Nhạc nền",
+    play: "Phát nhạc",
+    pause: "Dừng nhạc",
+    next: "Bài kế",
+    volume: "Âm lượng",
+  },
 };
 
 export type LocaleMessages = typeof vi;

@@ -37,4 +37,6 @@ export const STORAGE_KEYS = {
   reconnect: "brain-rizz:reconnect",
   theme: "brain-rizz:theme",
   language: "brain-rizz:lang",
+  /** Nhạc nền: bật/tắt, âm lượng, bài đang nghe (JSON). */
+  music: "brain-rizz:music",
 } as const;
