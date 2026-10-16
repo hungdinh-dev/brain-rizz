@@ -15,6 +15,7 @@
   "dependencies": {
     "@brain-rizz/shared": "workspace:*",
     "@colyseus/sdk": "^0.18.5",
+    "@supabase/supabase-js": "^2.118.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "i18next": "^26.4.2",
