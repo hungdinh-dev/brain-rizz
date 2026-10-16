@@ -34,6 +34,7 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 | [CR-006](#cr-006) | Cân bằng điểm giữa các mức độ khó, thưởng tốc độ theo từng game, vòng 60 giây cho game mới | 2026-10-10 | Đổi luật (điểm) | +1–2 ngày, làm cùng đợt code 4 game | Đã làm (cơ chế, 2026-10-12) |
 | [CR-007](#cr-007) | Nhạc nền nhiều bài + thanh nhạc trên header, làm sớm ở GĐ 1 (tách khỏi FR-GD-07) | 2026-10-14 | Dời việc + thêm chi tiết | +1–2 ngày ở GĐ 1 | Đã làm (2026-10-14) |
 | [CR-008](#cr-008) | Âm thanh hiệu ứng khi bấm nút, làm sớm ở GĐ 1; tách rung + Wake Lock thành FR-GD-11 | 2026-10-14 | Dời việc + thêm chi tiết | +1 ngày ở GĐ 1 | Đã làm (2026-10-14) |
+| [CR-009](#cr-009) | Đưa Luyện tập, Kiểm tra não, Tài khoản (Supabase) và Bảng xếp hạng lên làm trước | 2026-10-16 | Dời việc + thêm tính năng | +2–3 tuần, chen trước Cổng 1 | Duyệt (2026-10-16) |
 
 ---
 
@@ -70,6 +71,7 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
   - *Lịch:* ước lượng thô 3–5 tuần cho cả ba.
 - **Đề xuất:** Hoãn tới sau 1.0. Khi xem lại, ưu tiên **Thử thách hôm nay** (rẻ nhất, hợp trụ cột) → Bảng xếp hạng bạn bè → Tìm trận cuối cùng. Phụ thuộc câu hỏi mở Q2 trong [Tầm nhìn](../01-product/vision.md#11-câu-hỏi-mở).
 - **Quyết định:** Hoãn (2026-10-10) · **Xem lại:** Cổng 3.
+- **Cập nhật 2026-10-16:** riêng **Bảng xếp hạng (UC-19)** được duyệt sớm theo [CR-009](#cr-009): bảng Điểm Não toàn cầu + bảng từng minigame; phần bạn bè chờ tính năng kết bạn. Tìm trận và Thử thách hôm nay vẫn Hoãn.
 - **Tài liệu kéo theo (khi duyệt):** BRD (BR-14 đổi từ W), SRS (chi tiết UC-17 → UC-19), [Danh sách tính năng](features.md#e7--chế-độ-mở-rộng--tài-khoản), Lộ trình.
 
 ### CR-004
@@ -224,6 +226,26 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
   - Tách rung + Wake Lock thành FR-GD-11, giữ ở GĐ 2.
 - **Tài liệu kéo theo:** SRS 1.5 (FR-GD-07 viết lại, thêm FR-GD-11; UC-11, NFR-UX-02, mục Dữ liệu), roadmap, features.md, changelog.
 - **Kết quả:** đã làm 2026-10-14, QA PASS (Chrome headless, chơi thật một vòng 2 tab). Nút bật/tắt dùng icon chuông để không nhầm với âm lượng nhạc. Còn lại: nghe thử bằng tai, thử iPhone thật; chủ dự án thay file tiếng mong muốn vào `apps/web/src/assets/sfx/` và ghi nguồn vào `assets/LICENSES.md`.
+
+### CR-009
+
+**Đưa Luyện tập, Kiểm tra não, Tài khoản và Bảng xếp hạng lên làm trước**
+
+- **Ngày mở:** 2026-10-16 · **Loại:** Dời việc + thêm tính năng · **Người đề xuất:** chủ dự án
+- **Mô tả:** làm ngay UC-13 Luyện tập, UC-14 Kiểm tra não, UC-16 Tài khoản (khách ẩn danh + Google, Supabase) và UC-19 Bảng xếp hạng, thay vì chờ GĐ 3 / sau 1.0. Bảng xếp hạng gồm bảng Điểm Não chung và bảng từng minigame; bảng bạn bè làm sau khi có tính năng kết bạn. Lịch sử lưu cả kết quả Kiểm tra não, kết quả trận party và kỷ lục luyện tập.
+- **Lý do:** BR-10 (có lý do quay lại khi không có bạn chơi cùng); repo đã lên GitHub, luồng party đã chạy, muốn có chế độ chơi một mình.
+- **Phân tích tác động:**
+  - *Trụ cột:* hỗ trợ "giữ chân"; giữ "Nhẹ và rẻ" vì Supabase Free 0 đồng và app vẫn chơi được khi thiếu Supabase.
+  - *Kỹ thuật:* [ADR 0011](../02-architecture/decisions/0011-supabase-accounts-and-solo-modes.md). Shared: thêm `brain-test.ts` (chọn 5 game, tính Điểm Não), schema tin nhắn và `BrainStateView`. Server: phòng solo `BrainTestRoom`, tách logic chấm câu khỏi `PartyRoom` để dùng chung, xác thực token Supabase khi vào phòng, ghi kết quả trận. Web: 4 màn mới (Luyện tập, Kiểm tra não, Tài khoản & lịch sử, Bảng xếp hạng). Thêm migration SQL cho Supabase. **Không đổi seed hay bộ sinh câu đố.** Join options của phòng party thêm `accessToken` (tuỳ chọn), tương thích ngược.
+  - *Chi phí:* Supabase Free 0 đồng; chủ dự án tự tạo project, bật Anonymous sign-in và Manual linking, tạo OAuth client Google.
+  - *Riêng tư:* bắt đầu lưu tên hiển thị và email Google → sửa NFR-PRIV-01, thêm chức năng "Xoá dữ liệu của tôi".
+  - *Lịch:* ước lượng 2–3 tuần; chen trước các việc còn lại của GĐ 1 (QR, deploy, Playwright, chơi thử). Cổng 1 lùi tương ứng.
+- **Quyết định:** **Duyệt** (2026-10-16, chủ dự án). Chốt cùng chủ dự án: server chấm điểm Kiểm tra não; đăng nhập khách ẩn danh + Google; lịch sử gồm 3 loại; bảng xếp hạng chung + từng minigame. Giả định PM:
+  - Kiểm tra não chơi ở **một độ khó cố định** cho mọi người để so sánh được; bảng từng minigame lấy điểm game đó trong các lượt Kiểm tra não. Luyện tập do client tự chấm nên không lên bảng xếp hạng.
+  - Mũ phần thưởng (FR-MR-05) và Đấu bóng ma (UC-15) chưa làm trong đợt này.
+  - Phiên khách tạo lười (chỉ khi cần lưu), không tạo ngay khi mở trang.
+- **Tài liệu kéo theo:** SRS 1.6 (chi tiết UC-13, UC-14, UC-16, UC-19; FR-MR; NFR-PRIV-01; Dữ liệu), BRD (BR-14), GDD (Kiểm tra não, Điểm Não), UI-UX (4 màn mới), ADR 0011, tổng quan kiến trúc, tech stack, `.env.example`, features.md, roadmap.
+- **Kết quả:** đang làm trên nhánh `feat/accounts-solo-modes`.
 
 ---
 

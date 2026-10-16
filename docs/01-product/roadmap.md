@@ -62,7 +62,8 @@ Mã trong ngoặc trỏ tới [SRS](srs.md).
 - [x] Giao diện shadcn/ui + token sáng/tối, i18n vi/en ([ADR 0006](../02-architecture/decisions/0006-ui-shadcn-and-theme-tokens.md), [ADR 0007](../02-architecture/decisions/0007-i18n-inline-resources.md))
 - [x] Phong cách bảng phấn, màn giới thiệu, menu chính, chọn bạn đồng hành, 6 nhân vật ([ADR 0009](../02-architecture/decisions/0009-chalkboard-style-and-characters.md))
 - [x] Bộ tài liệu SDLC
-- [ ] Commit toàn bộ thay đổi, đưa repo lên GitHub, CI chạy xanh
+- [x] Commit toàn bộ thay đổi, đưa repo lên GitHub (`hungdinh-dev/brain-rizz`)
+- [ ] CI chạy xanh trên GitHub Actions (chưa xác nhận kết quả lần chạy đầu)
 - [ ] Thử trên điện thoại thật qua Wi-Fi nhà
 
 **Cổng 0:** hai máy thật vào cùng phòng và thấy cùng một câu đố. _(Đã qua trên trình duyệt giả lập máy tính + iPhone; còn thiếu máy thật.)_
@@ -85,8 +86,13 @@ Mã trong ngoặc trỏ tới [SRS](srs.md).
   - [x] Bộ sinh câu đố + test 10.000 seed, scene Phaser
 - [x] Hiển thị điểm cộng và trạng thái khoá từ `answerResult` (FR-VC-11)
 - [ ] Mã QR mời bạn trên máy tính (FR-PH-09)
-- [ ] Nhạc nền nhiều bài + thanh nhạc trên header (FR-GD-10, dời từ GĐ 2 theo [CR-007](../00-tracking/change-requests.md#cr-007))
-- [ ] Âm thanh hiệu ứng khi bấm nút, đếm ngược, đúng/sai (FR-GD-07, dời từ GĐ 2 theo [CR-008](../00-tracking/change-requests.md#cr-008))
+- [x] Nhạc nền nhiều bài + thanh nhạc trên header (FR-GD-10, dời từ GĐ 2 theo [CR-007](../00-tracking/change-requests.md#cr-007)), xong 2026-10-14
+- [x] Âm thanh hiệu ứng khi bấm nút, đếm ngược, đúng/sai (FR-GD-07, dời từ GĐ 2 theo [CR-008](../00-tracking/change-requests.md#cr-008)), xong 2026-10-14
+- [ ] **Chế độ chơi một mình + tài khoản — [CR-009](../00-tracking/change-requests.md#cr-009)** (dời từ GĐ 3, chen trước deploy; Cổng 1 lùi khoảng 2–3 tuần):
+  - [ ] Tài khoản Supabase khách + Google, lịch sử 3 loại (UC-16)
+  - [ ] Luyện tập (UC-13)
+  - [ ] Kiểm tra não, Điểm Não, biểu đồ 5 kỹ năng (UC-14)
+  - [ ] Bảng xếp hạng Điểm Não + từng minigame (UC-19; bảng bạn bè chờ tính năng kết bạn)
 - [ ] Test nối lại phòng trong `PartyRoom.test.ts` (đã có tải lại trang ở từng pha; còn rớt mạng giữ chỗ / quá 45 giây) ([Kiểm thử](../03-guides/testing.md#6-lỗ-hổng-test-cần-bù))
 - [ ] Deploy: web lên Cloudflare Pages, server lên Fly.io (hoặc Render Free)
 - [ ] Test Playwright 4 trình duyệt chơi trọn một trận
@@ -105,9 +111,7 @@ Mã trong ngoặc trỏ tới [SRS](srs.md).
 
 ### Giai đoạn 3 — Giữ chân (Release 1.0)
 
-- [ ] Tài khoản Supabase (khách + Google), lưu lịch sử điểm (UC-16)
-- [ ] Chế độ Luyện tập (UC-13)
-- [ ] Chế độ Kiểm tra não, biểu đồ 5 kỹ năng (UC-14)
+- [ ] ~~Tài khoản, Luyện tập, Kiểm tra não~~ — dời lên GĐ 1 theo [CR-009](../00-tracking/change-requests.md#cr-009)
 - [ ] Đấu bóng ma (UC-15)
 - [ ] Mũ phần thưởng khi lập kỷ lục (FR-MR-05)
 - [ ] Đủ 15 minigame

@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Phân tích yêu cầu |
-| Phiên bản tài liệu | 1.5 · 2026-10-14 — âm thanh hiệu ứng khi bấm nút theo [CR-008](../00-tracking/change-requests.md#cr-008) |
+| Phiên bản tài liệu | 1.6 · 2026-10-16 — Luyện tập, Kiểm tra não, Tài khoản, Bảng xếp hạng theo [CR-009](../00-tracking/change-requests.md#cr-009) |
 | Đầu vào | [Yêu cầu nghiệp vụ](brd.md) |
 | Đầu ra cho | [Thiết kế game](game-design.md), [UI/UX](ui-ux.md), [Kiến trúc](../02-architecture/overview.md), [Kiểm thử](../03-guides/testing.md) |
 | Cập nhật khi | Thêm/đổi use case hoặc yêu cầu — tăng phiên bản tài liệu và ghi vào [Lịch sử thay đổi](#9-lịch-sử-thay-đổi-tài-liệu) |
@@ -34,6 +34,9 @@ Web client (trình duyệt), game server (Colyseus) và gói logic dùng chung. 
 | Điểm vòng | Điểm cộng từ các câu đúng trong một vòng |
 | Điểm trận | Điểm quy đổi từ thứ hạng mỗi vòng, cộng dồn cả trận |
 | Độ khó | 0 Mầm · 1 Thường · 2 Khó · 3 Siêu khó, mỗi người chọn riêng |
+| Kiểm tra não | Chế độ chơi một mình 5 game (mỗi nhóm kỹ năng một game) liên tiếp, server chấm, kết quả lên bảng xếp hạng |
+| Điểm Não | Điểm tổng của một lượt Kiểm tra não, tính từ điểm 5 kỹ năng; công thức ở [Thiết kế game](game-design.md) |
+| Phiên khách | Tài khoản Supabase ẩn danh gắn với trình duyệt; liên kết Google để giữ lịch sử khi đổi máy |
 
 ### 1.4 Quy ước mã
 
@@ -108,15 +111,15 @@ flowchart LR
 | UC-10 | Nối lại sau khi mất kết nối | Người chơi, Server | BR-06 | M | 0 |
 | UC-11 | Đổi giao diện sáng/tối, ngôn ngữ và nhạc nền | Khách, Người chơi | BR-08 | M | 0–1 |
 | UC-12 | Rời phòng | Người chơi | BR-01 | M | 0 |
-| UC-13 | Luyện tập một minigame | Khách | BR-10 | S | 3 |
-| UC-14 | Kiểm tra não (chơi một mình 5 game) | Khách | BR-10 | S | 3 |
+| UC-13 | Luyện tập một minigame | Khách | BR-10 | S | 1–2 ([CR-009](../00-tracking/change-requests.md#cr-009)) |
+| UC-14 | Kiểm tra não (chơi một mình 5 game) | Khách, Server | BR-10 | S | 1–2 (CR-009) |
 | UC-15 | Đấu bóng ma | Khách | BR-10 | S | 3 |
-| UC-16 | Đăng nhập và xem lịch sử điểm | Khách | BR-10 | S | 3 |
+| UC-16 | Đăng nhập và xem lịch sử điểm | Khách | BR-10 | S | 1–2 (CR-009) |
 | UC-17 | Thử thách hôm nay | Khách | BR-14 | Chờ [CR-003](../00-tracking/change-requests.md#cr-003) | — |
 | UC-18 | Tìm trận với người lạ | Khách | BR-14 | Chờ CR-003 | — |
-| UC-19 | Xem bảng xếp hạng | Khách | BR-14 | Chờ CR-003 | — |
+| UC-19 | Xem bảng xếp hạng | Khách | BR-14 | S | 1–2 (CR-009) |
 
-UC-13 → UC-19 mới ở mức mô tả ngắn; phải viết chi tiết như UC-01 → UC-12 trước khi bắt đầu làm (Definition of Ready, xem [Quy trình phát triển](../03-guides/sdlc.md#3-definition-of-ready--done)).
+UC-15, UC-17, UC-18 mới ở mức mô tả ngắn; phải viết chi tiết như UC-01 → UC-12 trước khi bắt đầu làm (Definition of Ready, xem [Quy trình phát triển](../03-guides/sdlc.md#3-definition-of-ready--done)).
 
 ### 3.3 Đặc tả use case
 
@@ -302,17 +305,87 @@ flowchart TD
 - **Luồng chính:** bấm **Thoát** (sảnh) hoặc **Rời phòng** (màn kết quả) → rời phòng, về menu; các máy còn lại thấy người đó biến mất; nếu là chủ phòng thì chuyển quyền.
 - **FR:** FR-PH-07, FR-PH-10.
 
-#### UC-13 → UC-19 — mô tả ngắn (chưa chi tiết)
+#### Chế độ chơi một mình và tài khoản (CR-009)
+
+Kỹ thuật chung: [ADR 0011](../02-architecture/decisions/0011-supabase-accounts-and-solo-modes.md). Khi Supabase chưa cấu hình hoặc không truy cập được, mọi chế độ vẫn chơi được, chỉ không lưu và không xem được bảng xếp hạng (luồng rẽ "Không có máy chủ dữ liệu" dưới đây).
+
+#### UC-13 — Luyện tập một minigame
+
+- **Tác nhân:** khách. **Tiền điều kiện:** đã có hồ sơ (nếu chưa → UC-01).
+- **Luồng chính:**
+  1. Khách bấm **Luyện tập** ở menu → lưới mọi minigame đã có, nhóm theo 5 kỹ năng, mỗi thẻ hiện kỷ lục của mình (nếu có).
+  2. Khách chọn một game → màn hướng dẫn của game đó (cùng nội dung với UC-21) với ô chọn độ khó, mặc định mức lần trước.
+  3. Khách bấm **Bắt đầu** → đếm ngược 3 giây → chơi một lượt đúng thời lượng của game. Máy tự sinh seed, tự chấm bằng chính `generate()`/`check()` và công thức điểm trong shared (cùng luật khoá khi sai, combo, thưởng tốc độ như UC-07). **Không cần server.**
+  4. Hết giờ → bảng kết quả: điểm, số câu đúng, kỷ lục của game ở độ khó này, nhãn "Kỷ lục mới!" nếu vượt.
+  5. Khách bấm **Chơi lại** (cùng game, cùng độ khó, seed mới), **Đổi độ khó** (về bước 2) hoặc **Chọn game khác** (về bước 1). Số lượt không giới hạn.
+- **Luồng rẽ:**
+  - 3a. Khách bấm **Thoát** giữa lượt → hỏi xác nhận, bỏ lượt, không lưu.
+  - 4a. Đã có Supabase → tạo phiên khách nếu chưa có, gửi kết quả lên `practice_bests` (giữ điểm cao nhất). Lỗi mạng → vẫn hiện kết quả, kỷ lục vẫn lưu trên máy.
+  - 4b. Không có máy chủ dữ liệu → kỷ lục chỉ lưu trên máy (`localStorage`).
+- **Quy tắc:** điểm luyện tập do client tự chấm nên **không** lên bảng xếp hạng.
+- **FR:** FR-MR-01, FR-MR-07.
+
+#### UC-14 — Kiểm tra não
+
+- **Tác nhân:** khách, server. **Tiền điều kiện:** đã có hồ sơ; kết nối được game server.
+- **Luồng chính:**
+  1. Khách bấm **Kiểm tra não** ở menu → màn giới thiệu: 5 game, mỗi nhóm kỹ năng một game, độ khó cố định, tổng thời gian dự kiến, kết quả lên bảng xếp hạng nếu đã có phiên.
+  2. Khách bấm **Bắt đầu** → hệ thống tạo phiên khách nếu cần, vào phòng Kiểm tra não riêng trên server kèm token. Server chọn ngẫu nhiên 5 game (mỗi nhóm một game) và hiện danh sách 5 game theo thứ tự.
+  3. Với từng game: màn hướng dẫn ngắn → khách bấm **Sẵn sàng** → đếm ngược 3 giây theo giờ server → chơi. Server phát seed, giữ đồng hồ, chấm từng câu như UC-07.
+  4. Hết giờ game → server chốt điểm game đó; màn tạm "Game i/5 · điểm, số câu đúng", rồi sang game kế (bước 3).
+  5. Xong game thứ 5 → server tính điểm 5 kỹ năng và **Điểm Não**, lưu vào tài khoản. Màn kết quả: Điểm Não, biểu đồ 5 cạnh, điểm từng game, so với lần trước và kỷ lục của mình, hạng tuần này (nếu đã lưu).
+  6. Khách bấm **Xem bảng xếp hạng** (UC-19), **Làm lại** (bước 2, bộ 5 game mới) hoặc **Về menu**.
+- **Luồng rẽ:**
+  - 2a. Không kết nối được game server → thông báo "Không kết nối được tới server", ở lại màn giới thiệu.
+  - 3a. Rớt mạng giữa lượt → giữ chỗ như UC-10; quá thời gian giữ chỗ → lượt bị huỷ, không lưu.
+  - 3b. Khách bấm **Thoát** → hỏi xác nhận, rời phòng, lượt bị huỷ, không lưu.
+  - 5a. Không có phiên hợp lệ hoặc không có máy chủ dữ liệu → vẫn hiện kết quả, ghi "Kết quả chưa được lưu" kèm lý do; không có hạng.
+  - 5b. Ghi dữ liệu lỗi → như 5a, ghi "Lưu thất bại".
+- **Quy tắc:** độ khó, số game, thời lượng mỗi game và công thức Điểm Não theo [Thiết kế game › Kiểm tra não](game-design.md); mọi người cùng một luật để bảng xếp hạng so sánh được.
+- **FR:** FR-MR-02, FR-MR-08.
+
+#### UC-16 — Đăng nhập và xem lịch sử điểm
+
+- **Tác nhân:** khách.
+- **Luồng chính:**
+  1. Khách bấm nút **Tài khoản** (header hoặc menu) → màn Tài khoản: nhân vật, tên, trạng thái "Khách (chỉ trên máy này)" hoặc "Đã liên kết Google · <email>".
+  2. Hệ thống tạo phiên khách nếu chưa có và tải lịch sử, chia 3 tab:
+     - **Kiểm tra não:** lượt gần nhất (biểu đồ 5 cạnh), Điểm Não cao nhất, danh sách các lượt (ngày, Điểm Não, 5 game đã chơi), đường tiến bộ theo thời gian.
+     - **Trận party:** danh sách trận (ngày, mã phòng, hạng/số người, điểm trận, số vòng, game đã chơi).
+     - **Luyện tập:** bảng kỷ lục theo game và độ khó, số lượt đã chơi.
+  3. Khách là phiên khách bấm **Liên kết Google** → đăng nhập Google → quay lại màn Tài khoản, trạng thái đổi thành "Đã liên kết Google", lịch sử giữ nguyên.
+- **Luồng rẽ:**
+  - 3a. Tài khoản Google đã gắn với người khác/phiên khác → thông báo "Tài khoản Google này đã có dữ liệu" và đề nghị **Đăng nhập bằng Google** để chuyển sang tài khoản đó; lịch sử của phiên khách hiện tại không gộp.
+  - 3b. Khách huỷ đăng nhập Google → giữ phiên khách, không báo lỗi.
+  - 4a. Bấm **Đăng xuất** → về trạng thái chưa có phiên; hồ sơ trên máy giữ nguyên.
+  - 4b. Bấm **Xoá dữ liệu của tôi** → hỏi xác nhận → xoá mọi lịch sử và hồ sơ trên máy chủ dữ liệu, đăng xuất.
+  - 2a. Không có máy chủ dữ liệu → màn Tài khoản ghi "Chưa kết nối máy chủ dữ liệu", chỉ hiện kỷ lục luyện tập lưu trên máy.
+  - 2b. Lịch sử trống → mỗi tab có trạng thái trống kèm nút dẫn tới chế độ tương ứng.
+- **Ghi dữ liệu:** kết quả trận party do server ghi khi trận vào `podium`, cho người chơi vào phòng với phiên hợp lệ (UC-02, UC-03 gửi kèm token). Tên và nhân vật trong hồ sơ được đồng bộ lên tài khoản để hiện trên bảng xếp hạng.
+- **FR:** FR-MR-04, FR-MR-09, FR-MR-10, FR-MR-11.
+
+#### UC-19 — Xem bảng xếp hạng
+
+- **Tác nhân:** khách (không cần đăng nhập để xem).
+- **Luồng chính:**
+  1. Khách bấm **Bảng xếp hạng** ở menu (hoặc từ kết quả Kiểm tra não).
+  2. Màn hiện tab **Điểm Não** (mặc định) và **Theo minigame**; công tắc **Tuần này** / **Mọi thời đại** (mặc định Tuần này).
+  3. Bảng hiện tối đa 50 người: hạng, nhân vật, tên, điểm cao nhất của người đó trong kỳ, ngày đạt. Top 3 nổi bật.
+  4. Nếu khách đã có phiên và có điểm trong kỳ → dòng của mình được tô nổi bật; nếu ngoài top 50 → ghim một dòng "Bạn · hạng n" ở cuối.
+  5. Tab **Theo minigame**: chọn một game (lưới theo nhóm kỹ năng) → bảng điểm cao nhất của game đó trong các lượt Kiểm tra não.
+- **Luồng rẽ:**
+  - 3a. Bảng trống → "Chưa có ai trong tuần này. Làm Kiểm tra não để mở hàng!" kèm nút.
+  - 3b. Không có máy chủ dữ liệu hoặc lỗi mạng → thông báo kèm nút **Thử lại**.
+- **Quy tắc:** chỉ điểm do server chấm (Kiểm tra não) được xếp hạng; bằng điểm thì cùng hạng; tuần bắt đầu thứ Hai 00:00 giờ Việt Nam. Bảng **bạn bè** chưa làm, chờ tính năng kết bạn (CR mới).
+- **FR:** FR-MR-12, FR-MR-13.
+
+#### UC-15, UC-17, UC-18 — mô tả ngắn (chưa chi tiết)
 
 | UC | Mô tả ngắn |
 | --- | --- |
-| UC-13 Luyện tập | Chơi một minigame bất kỳ, tự chọn độ khó, không giới hạn số vòng, không cần server |
-| UC-14 Kiểm tra não | 5 game (mỗi nhóm một game) liên tiếp → "Điểm Não" + biểu đồ 5 cạnh |
 | UC-15 Đấu bóng ma | Lưu lượt chơi (seed + mốc thời gian từng đáp án); bạn bè mở link để đấu lại bất cứ lúc nào |
-| UC-16 Tài khoản | Đăng nhập khách hoặc Google (Supabase); xem lịch sử điểm; nhận mũ khi lập kỷ lục |
 | UC-17 Thử thách hôm nay | Mỗi ngày 3 minigame, mọi người cùng một đề (seed theo ngày) |
 | UC-18 Tìm trận | Ghép ngẫu nhiên với người chơi khác |
-| UC-19 Bảng xếp hạng | Xếp hạng bạn bè và toàn cầu |
 
 ## 4. Yêu cầu chức năng
 
@@ -400,12 +473,21 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 
 | ID | Yêu cầu | UC | Ưu tiên | GĐ |
 | --- | --- | --- | --- | --- |
-| FR-MR-01 | Luyện tập: chơi từng minigame, chọn độ khó | UC-13 | S | 3 |
-| FR-MR-02 | Kiểm tra não: 5 game, "Điểm Não", biểu đồ 5 kỹ năng | UC-14 | S | 3 |
+| FR-MR-01 | Luyện tập: chọn bất kỳ minigame đã có và độ khó, chơi từng lượt đúng thời lượng game, chơi lại không giới hạn; chạy hoàn toàn trên máy (seed do client tạo, chấm bằng code shared, cùng luật điểm với UC-07) | UC-13 | S | 1–2 |
+| FR-MR-02 | Kiểm tra não: phòng solo trên game server; server chọn 5 game (mỗi nhóm một game), độ khó cố định, phát seed, giữ đồng hồ, chấm từng câu bằng cùng logic với phòng party | UC-14 | S | 1–2 |
 | FR-MR-03 | Đấu bóng ma: lưu và phát lại lượt chơi | UC-15 | S | 3 |
-| FR-MR-04 | Tài khoản khách + Google, lưu lịch sử điểm | UC-16 | S | 3 |
+| FR-MR-04 | Tài khoản Supabase: phiên khách ẩn danh tạo khi cần lưu; liên kết Google giữ nguyên lịch sử; đăng nhập Google trên máy khác; đăng xuất | UC-16 | S | 1–2 |
 | FR-MR-05 | Mũ phần thưởng khi lập kỷ lục | UC-16 | C | 3 |
-| FR-MR-06 | Thử thách hôm nay, Tìm trận, Bảng xếp hạng | UC-17 → UC-19 | Chờ CR-003 | — |
+| FR-MR-06 | Thử thách hôm nay, Tìm trận | UC-17, UC-18 | Chờ CR-003 | — |
+| FR-MR-07 | Kỷ lục luyện tập theo game + độ khó: lưu trên máy, đồng bộ lên tài khoản khi có phiên (giữ điểm cao nhất, đếm số lượt); nhãn "Kỷ lục mới!" | UC-13 | S | 1–2 |
+| FR-MR-08 | Kết quả Kiểm tra não: Điểm Não, điểm 5 kỹ năng, biểu đồ 5 cạnh (SVG), điểm từng game, so với lần trước; server ghi vào tài khoản nếu token hợp lệ, không thì báo "chưa được lưu" | UC-14 | S | 1–2 |
+| FR-MR-09 | Lịch sử 3 tab: Kiểm tra não (danh sách + tiến bộ), Trận party, Luyện tập; trạng thái trống và trạng thái chưa kết nối | UC-16 | S | 1–2 |
+| FR-MR-10 | Phòng party nhận `accessToken` tuỳ chọn khi vào; server xác thực, giữ `user_id` riêng (không đồng bộ xuống client), ghi kết quả trận khi vào `podium`; token sai vẫn cho chơi | UC-16 | S | 1–2 |
+| FR-MR-11 | Đồng bộ tên + nhân vật lên tài khoản; "Xoá dữ liệu của tôi" xoá mọi dữ liệu trên máy chủ dữ liệu | UC-16 | S | 1–2 |
+| FR-MR-12 | Bảng xếp hạng Điểm Não và theo từng minigame; kỳ Tuần này / Mọi thời đại; top 50, điểm cao nhất mỗi người, bằng điểm cùng hạng; xem được khi chưa đăng nhập | UC-19 | S | 1–2 |
+| FR-MR-13 | Hiện hạng của mình (tô nổi bật trong top hoặc ghim dòng riêng khi ngoài top) | UC-19 | S | 1–2 |
+| FR-MR-14 | Bảng xếp hạng bạn bè — chờ tính năng kết bạn (CR mới) | UC-19 | C | — |
+| FR-MR-15 | Thiếu biến môi trường Supabase hoặc Supabase không truy cập được: mọi chế độ vẫn chơi được, phần lưu/bảng xếp hạng báo "Chưa kết nối máy chủ dữ liệu" | UC-13, UC-14, UC-16, UC-19 | M | 1–2 |
 
 ## 5. Yêu cầu phi chức năng
 
@@ -427,7 +509,8 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | NFR-A11Y-01 | Truy cập | Chữ tương phản ≥ 4,5:1; nút chỉ có icon phải có `aria-label`; thông tin không chỉ phân biệt bằng màu; bảng màu thân thiện người mù màu ở mức Khó | Soát UI |
 | NFR-I18N-01 | Đa ngôn ngữ | `vi.ts` là nguồn chuẩn; `en.ts` bị TypeScript ép đủ khoá; không chữ cứng trong JSX/scene | `pnpm typecheck` |
 | NFR-COST-01 | Chi phí | Hosting ≤ 1 USD/tháng khi chơi vài chục giờ; tối đa khoảng 6 USD nếu chạy 24/7 | Hoá đơn Fly.io |
-| NFR-PRIV-01 | Riêng tư | Trước GĐ 3 không thu thập dữ liệu cá nhân; hồ sơ chỉ lưu trên máy người chơi | Soát code |
+| NFR-PRIV-01 | Riêng tư | Chỉ lưu lên máy chủ dữ liệu khi người chơi dùng chế độ cần lưu (phiên khách tạo lười); dữ liệu cá nhân chỉ gồm tên hiển thị, nhân vật và email Google (nếu liên kết); bảng xếp hạng chỉ lộ tên + nhân vật (kèm mã người dùng ngẫu nhiên, không gắn email); hồ sơ của người khác không đọc trực tiếp được; người chơi tự xoá được dữ liệu của mình, xoá luôn tài khoản (FR-MR-11); RLS chặn đọc lịch sử của người khác (CR-009) | Soát code + soát chính sách RLS |
+| NFR-SEC-03 | Bảo mật | Khoá secret Supabase chỉ nằm trên game server; client chỉ có khoá publishable; điểm xếp hạng chỉ do server ghi | Soát code + test RLS |
 | NFR-MAINT-01 | Bảo trì | `pnpm check` xanh trước mọi commit; quyết định kỹ thuật lớn có ADR; cây thư mục luôn cập nhật | CI GitHub Actions |
 | NFR-LEGAL-01 | Pháp lý | Asset bên ngoài chỉ CC0 hoặc giấy phép tương thích, ghi ở `assets/LICENSES.md`; không dùng tài sản Nintendo. Ngoại lệ chủ dự án đã chấp nhận: nhạc nền "no copyright" chưa xác minh giấy phép, vẫn ghi nguồn vào sổ (rủi ro [R-12](vision.md#10-rủi-ro-risk-register), CR-007) | Soát trước phát hành |
 
@@ -435,7 +518,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 
 - **Giao diện người dùng:** danh mục màn hình và bản mẫu ở [UI/UX](ui-ux.md).
 - **Giao thức client ↔ server:** bảng tin nhắn ở [Tổng quan kiến trúc › Giao thức tin nhắn](../02-architecture/overview.md#giao-thức-tin-nhắn); định nghĩa chuẩn là `packages/shared/src/protocol.ts`.
-- **Dịch vụ ngoài:** Cloudflare Pages (web), Fly.io (server); Supabase (GĐ 3); Sentry (GĐ 2).
+- **Dịch vụ ngoài:** Cloudflare Pages (web), Fly.io (server); Supabase Auth + Postgres (tài khoản, lịch sử, bảng xếp hạng — [ADR 0011](../02-architecture/decisions/0011-supabase-accounts-and-solo-modes.md)); Sentry (GĐ 2).
 
 ## 7. Dữ liệu
 
@@ -448,7 +531,11 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | Nhạc nền: bật/tắt, âm lượng, bài đang nghe | `localStorage` `brain-rizz:music` | Lâu dài trên máy |
 | Âm thanh hiệu ứng: bật/tắt | `localStorage` `brain-rizz:sfx` | Lâu dài trên máy |
 | Token nối lại | `sessionStorage` `brain-rizz:reconnect` | Tới khi đóng tab |
-| Tài khoản, lịch sử điểm, lượt chơi bóng ma (GĐ 3) | Supabase Postgres | Lâu dài |
+| Kỷ lục luyện tập trên máy | `localStorage` `brain-rizz:practice` | Lâu dài trên máy |
+| Phiên Supabase (khách hoặc Google) | `localStorage` (do supabase-js quản lý) | Tới khi đăng xuất |
+| Trạng thái phòng Kiểm tra não, `user_id` của người chơi trong phòng | RAM của game server | Tới khi rời phòng |
+| Hồ sơ tài khoản, kết quả Kiểm tra não, kết quả trận party, kỷ lục luyện tập | Supabase Postgres (`profiles`, `brain_tests`, `brain_test_games`, `match_results`, `practice_bests`) | Lâu dài, tới khi người chơi xoá |
+| Lượt chơi bóng ma (GĐ 3) | Supabase Postgres | Lâu dài |
 
 ## 8. Ma trận truy vết
 
@@ -463,7 +550,8 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | BR-07 | UC-06, UC-20, UC-08, UC-09 | FR-VC-01, FR-VC-09, FR-VC-10, FR-VC-13, FR-VC-20 | `PartyRoom.test.ts` (bắt đầu trận, hoà điểm, điểm trận cộng dồn, vòng cuối → podium, chơi lại, về phòng chờ) |
 | BR-15 | UC-20, UC-21 | FR-VC-12 → FR-VC-16, FR-VC-19 | `PartyRoom.test.ts` nhóm "chọn game" (5 test) và "hướng dẫn + độ khó" (6 test) |
 | BR-08 | UC-11 | FR-GD-01, FR-GD-02, FR-GD-07, FR-GD-10 | `pnpm typecheck` (khoá i18n); test logic trong `apps/web/src/features/music/` và `features/sfx/` |
-| BR-10 | UC-13→16 | FR-MR-01→05 | — (GĐ 3) |
+| BR-10 | UC-13→16 | FR-MR-01→05, FR-MR-07→11, FR-MR-15 | — (đang làm, CR-009) |
+| BR-14 | UC-19 | FR-MR-12→14 | — (đang làm, CR-009) |
 | BR-11 | UC-05, UC-08 | FR-PH-12, FR-GD-06→08 | — |
 | BR-12 | — | NFR-COST-01 | — |
 
@@ -477,5 +565,6 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | 1.3 | 2026-10-12 | Cân bằng điểm: sửa FR-VC-05 (hiện đáp án đúng khi sai), FR-VC-06 (hệ số theo game, miễn trừ thời gian, trần combo), FR-MG-01 (thời lượng vòng theo game) | [CR-006](../00-tracking/change-requests.md#cr-006) |
 | 1.4 | 2026-10-14 | Nhạc nền nhiều bài: thêm FR-GD-10 (GĐ 1), tách nhạc nền khỏi FR-GD-07; sửa UC-11, NFR-UX-02, NFR-LEGAL-01 (ngoại lệ nhạc "no copyright"), mục Dữ liệu và ma trận truy vết | [CR-007](../00-tracking/change-requests.md#cr-007) |
 | 1.5 | 2026-10-14 | Âm thanh hiệu ứng: viết lại FR-GD-07 (chỉ còn âm thanh hiệu ứng, dời sang GĐ 1), thêm FR-GD-11 (rung, Wake Lock, GĐ 2); sửa UC-11 (1b), NFR-UX-02, mục Dữ liệu, ma trận truy vết | [CR-008](../00-tracking/change-requests.md#cr-008) |
+| 1.6 | 2026-10-16 | Viết chi tiết UC-13, UC-14, UC-16, UC-19 và đưa lên GĐ 1–2; viết lại FR-MR-01, 02, 04, 06; thêm FR-MR-07 → 15, NFR-SEC-03; sửa NFR-PRIV-01, thuật ngữ, Dịch vụ ngoài, Dữ liệu, ma trận truy vết | [CR-009](../00-tracking/change-requests.md#cr-009) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

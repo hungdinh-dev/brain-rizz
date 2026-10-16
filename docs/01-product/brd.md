@@ -87,7 +87,7 @@ Mức ưu tiên theo MoSCoW cho bản 1.0: **M** = bắt buộc, **S** = nên c�
 | BR-11 | Cảm giác "game thật": phòng chờ sinh động, vinh danh người thắng kiểu Kahoot, âm thanh, cài lên màn hình chính — nhẹ, không 3D | Trải nghiệm đáng nhớ | S | P1 | UC-05, UC-08, NFR-UX |
 | BR-12 | Chi phí vận hành gần 0 | Dự án cá nhân, không có doanh thu | M | Chủ dự án | NFR-COST |
 | BR-13 | Không vi phạm sở hữu trí tuệ | Có thể công khai mà không bị gỡ | M | Chủ dự án | NFR-LEGAL |
-| BR-14 | Chơi với người lạ, thử thách hằng ngày, bảng xếp hạng | Mở rộng cộng đồng | W (xét ở [CR-003](../00-tracking/change-requests.md#cr-003)) | P1, P3 | UC-17 → UC-19 |
+| BR-14 | Chơi với người lạ, thử thách hằng ngày, bảng xếp hạng | Mở rộng cộng đồng | W (xét ở [CR-003](../00-tracking/change-requests.md#cr-003)); riêng bảng xếp hạng là S từ [CR-009](../00-tracking/change-requests.md#cr-009) | P1, P3 | UC-17 → UC-19 |
 | BR-15 | Mỗi vòng có nghi thức rõ ràng kiểu party game: chọn game (vòng quay hoặc chủ phòng chọn theo gợi ý cả phòng), hướng dẫn trước khi chơi, đếm ngược, cộng điểm sau mỗi vòng | Ai cũng hiểu game trước khi chơi; hồi hộp, vui hơn ([CR-005](../00-tracking/change-requests.md#cr-005)) | M | P1, P2 | UC-20, UC-21, UC-08 |
 
 ## 5. Quy tắc nghiệp vụ

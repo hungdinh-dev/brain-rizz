@@ -47,7 +47,7 @@ flowchart LR
 | lucide-react | 1.54 | Icon | |
 | Font Baloo 2, Be Vietnam Pro | Google Fonts | Tiêu đề / chữ thường | Đủ dấu tiếng Việt ([ADR 0009](decisions/0009-chalkboard-style-and-characters.md)) |
 
-Dự kiến thêm: Howler.js (nhạc nền, GĐ 2), vite-plugin-pwa (GĐ 2), Sentry (GĐ 2), Supabase JS (GĐ 3).
+Dự kiến thêm: Howler.js (nhạc nền, GĐ 2), vite-plugin-pwa (GĐ 2), Sentry (GĐ 2). `@supabase/supabase-js` 2.118 đã cài cho web và server (CR-009, [ADR 0011](decisions/0011-supabase-accounts-and-solo-modes.md)).
 
 ## 3. Server — `apps/server`
 
@@ -57,6 +57,7 @@ Dự kiến thêm: Howler.js (nhạc nền, GĐ 2), vite-plugin-pwa (GĐ 2), Sen
 | Colyseus (+ `@colyseus/schema`, `@colyseus/tools`) | 0.18 / 5.0 | Phòng, ghép theo mã, đồng bộ state nhị phân dạng delta, reconnect; kèm `/monitor`, `/playground` ([ADR 0002](decisions/0002-game-server-colyseus-vs-supabase-realtime.md)) |
 | Express | 5.2 | HTTP cho Colyseus tools |
 | zod | 4.6 | Validate mọi tin nhắn client |
+| @supabase/supabase-js | 2.118 | Xác thực token người chơi (`auth.getClaims`), ghi kết quả Kiểm tra não + trận party bằng khoá secret (`src/store/`, [ADR 0011](decisions/0011-supabase-accounts-and-solo-modes.md)) |
 | tsdown | 0.23 | Đóng gói server (gộp luôn `shared`) thành một file |
 | tsx | 4.23 | Chạy dev có hot reload |
 | @colyseus/testing, @colyseus/loadtest | 0.18 | Test phòng với server thật; tải thử 8 người |
@@ -87,7 +88,7 @@ Chỉ phụ thuộc `zod`. Chứa: PRNG có seed (`rng.ts`, mulberry32), giao th
 | Fly.io (region `sin`) | Game server Docker, tự tắt khi không ai chơi | < 1 USD/tháng | Chủ dự án (cần thẻ) | GĐ 1 |
 | Render Free | Dự phòng game server 0 đồng | 0 | — | Khi cần |
 | Sentry | Bắt lỗi JavaScript | 0 (gói Free) | — | GĐ 2 |
-| Supabase | Đăng nhập, Postgres | 0 (gói Free) | — | GĐ 3 |
+| Supabase (region Singapore) | Đăng nhập khách + Google, lịch sử điểm, bảng xếp hạng (Postgres + RLS) | 0 (gói Free) | Chủ dự án ([cài đặt](../03-guides/supabase-setup.md)) | GĐ 1–2 (CR-009) |
 
 Chi tiết và so sánh: [Triển khai](../03-guides/deployment.md), [ADR 0004](decisions/0004-hosting-strategy.md).
 
@@ -98,6 +99,12 @@ Chi tiết và so sánh: [Triển khai](../03-guides/deployment.md), [ADR 0004](
 | `VITE_SERVER_URL` | `apps/web/.env` | Địa chỉ game server; để trống khi dev (tự dùng `http://<host>:2567`) |
 | `PORT` | `apps/server/.env` | Cổng server (mặc định 2567; Fly/Render tự đặt) |
 | `NODE_ENV` | `apps/server/.env` | `production` tắt `/monitor` và `/playground` |
+| `VITE_SUPABASE_URL` | `apps/web/.env` | URL dự án Supabase (`https://<ref>.supabase.co`); trống → ẩn đăng nhập, lịch sử, bảng xếp hạng |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | `apps/web/.env` | Khoá publishable (`sb_publishable_…` hoặc anon key kiểu cũ), công khai được |
+| `SUPABASE_URL` | `apps/server/.env` (production: Fly secrets) | URL dự án Supabase; trống → server không xác thực token, không lưu kết quả |
+| `SUPABASE_SECRET_KEY` | `apps/server/.env` (production: Fly secrets) | Khoá secret (`sb_secret_…` hoặc service_role kiểu cũ), bỏ qua RLS; **chỉ** nằm trên game server (NFR-SEC-03) |
+
+Cách tạo project và lấy khoá: [Cài đặt Supabase](../03-guides/supabase-setup.md). Bối cảnh: [ADR 0011](decisions/0011-supabase-accounts-and-solo-modes.md).
 
 Thêm biến mới thì cập nhật `.env.example` tương ứng và bảng này. Không commit file `.env`.
 

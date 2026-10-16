@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Thiết kế — phần luật chơi và cảm giác chơi |
-| Phiên bản tài liệu | 1.2 · 2026-10-12 — cân bằng điểm theo [CR-006](../00-tracking/change-requests.md#cr-006) |
+| Phiên bản tài liệu | 1.3 · 2026-10-16 — luật Kiểm tra não và Điểm Não theo [CR-009](../00-tracking/change-requests.md#cr-009) |
 | Liên quan | [SRS](srs.md) (yêu cầu), [UI/UX](ui-ux.md) (màn hình), [Minigame](../04-minigames/README.md) (đặc tả từng game) |
 | Cập nhật khi | Đổi luật, điểm, độ khó, chế độ chơi — đổi luật nào cũng phải ghi [CR](../00-tracking/change-requests.md) |
 
@@ -43,10 +43,107 @@ Một trận mặc định 3 vòng; mỗi vòng khoảng 1,5 phút kể cả ch�
 | Chế độ | Mô tả | Số người | Giai đoạn |
 | --- | --- | --- | --- |
 | **Đấu nhóm** (chính) | Chủ phòng chọn 1–10 vòng (mặc định 3), mỗi vòng một minigame chọn bằng vòng quay hoặc chủ phòng chọn | 2–8, cùng lúc | GĐ 0–1 |
-| **Luyện tập** | Chơi tự do từng minigame, chọn độ khó | 1 | GĐ 3 |
-| **Kiểm tra não** | 5 game, mỗi nhóm kỹ năng một game → "Điểm Não" + biểu đồ 5 cạnh | 1 | GĐ 3 |
+| **Luyện tập** | Chơi tự do từng minigame, chọn độ khó; client tự chấm nên không lên bảng xếp hạng | 1 | GĐ 1–2 ([CR-009](../00-tracking/change-requests.md#cr-009)) |
+| **Kiểm tra não** | 5 game, mỗi nhóm kỹ năng một game, độ khó cố định, server chấm → "Điểm Não" + biểu đồ 5 cạnh. Luật: [mục dưới](#kiểm-tra-não) | 1 | GĐ 1–2 (CR-009) |
 | **Đấu bóng ma** | Lưu lượt chơi; bạn bè đấu lại bất cứ lúc nào, không cần online cùng lúc | 1 vs bản ghi | GĐ 3 |
-| Thử thách hôm nay, Tìm trận, Bảng xếp hạng | Có trong bản thiết kế menu, chưa nằm trong phạm vi 1.0 | — | Chờ [CR-003](../00-tracking/change-requests.md#cr-003) |
+| **Bảng xếp hạng** | Điểm Não toàn cầu và từng minigame, lấy từ các lượt Kiểm tra não | — | GĐ 1–2 (CR-009) |
+| Thử thách hôm nay, Tìm trận | Có trong bản thiết kế menu, chưa nằm trong phạm vi 1.0 | — | Chờ [CR-003](../00-tracking/change-requests.md#cr-003) |
+
+### Kiểm tra não
+
+Chế độ chơi một mình (UC-14, [CR-009](../00-tracking/change-requests.md#cr-009)), ra **Điểm Não** và điểm 5 kỹ năng, lên bảng xếp hạng. Mọi người chơi cùng một luật để điểm so được với nhau. Cài đặt: `packages/shared/src/brain-test.ts`; server (`BrainTestRoom`) và web dùng chung.
+
+**Luật một lượt**
+
+- 5 game, mỗi nhóm kỹ năng một game, luôn theo thứ tự Nhận diện → Ghi nhớ → Phân tích → Tính toán → Hình dung (`CATEGORIES`).
+- Mỗi game: hướng dẫn ngắn → người chơi bấm **Sẵn sàng** → đếm ngược 3 giây → chơi → màn kết quả game giữ 3 giây → sang game kế.
+- Server phát seed, giữ đồng hồ và chấm từng câu **y như vòng party** ([§7](#7-tính-điểm)): điểm câu đúng theo `pointsForCorrect`, hệ số và miễn trừ thời gian của từng game, combo trần × 1,5, sai thì khoá 1,5 giây. Chuỗi đúng tính lại từ 0 ở đầu mỗi game.
+- **Điểm game** = tổng điểm các câu đúng trong game đó (điểm thô). Server lưu điểm game cùng số câu đúng. Bảng xếp hạng từng minigame dùng thẳng điểm thô này, vì mọi lượt chơi game đó cùng độ khó, cùng thời lượng.
+
+**Độ khó cố định: Thường (`BRAIN_TEST_DIFFICULTY = 1`)**
+
+- Thường là mốc so sánh của CR-006: hệ số × 1 ở mọi game và là mức dành cho người lớn chơi đúng sức, nên điểm chuẩn ở dưới tính thẳng được từ bảng Cân bằng của từng đặc tả.
+- Không cho tự chọn độ khó: hệ số độ khó cân điểm *trung bình* giữa các mức, không làm điểm từng người so được với nhau trên bảng xếp hạng.
+- Trẻ em vẫn chơi được nhưng điểm thấp hơn người lớn. Bảng xếp hạng không chia theo lứa tuổi; muốn chơi vừa sức thì dùng Luyện tập hoặc phòng party.
+
+**Thời lượng (`BRAIN_TEST_DURATION_MS_BY_CATEGORY`)**
+
+Thời lượng đặt theo nhóm, không theo game. Mỗi nhóm có đúng một game nên lượt nào cũng dài như nhau, dù bốc trúng game nào. Game không bao giờ dài hơn vòng party của nó.
+
+| Nhóm | Thời lượng | Vì sao |
+| --- | --- | --- |
+| Nhận diện | 30 s | Kẻ lạc đàn ~1,5 s mỗi câu, 30 s vẫn được ~17 câu |
+| Ghi nhớ | 45 s | Mỗi câu có 3–3,4 s trình chiếu không bấm được; 45 s còn 7–12 câu |
+| Phân tích | 40 s | 2,5–3,7 s mỗi câu → 9–13 câu |
+| Tính toán | 45 s | ~5 s mỗi câu; 45 s còn ~8 câu |
+| Hình dung | 40 s | 2,7–3,3 s mỗi câu → 10–12 câu |
+
+Tổng **200 giây chơi**. Cộng 5 × (≈ 12 s đọc hướng dẫn + 3 s đếm ngược + 3 s kết quả) ra khoảng **4 phút 50 giây** một lượt (`BRAIN_TEST_ESTIMATED_TOTAL_MS`, để hiện ở màn giới thiệu). Vòng party 45–60 s thì 5 game đã hết 5 phút chỉ riêng phần chơi, vượt mục tiêu 4–5 phút.
+
+**Cách chọn game (`pickBrainTestGames(seed, available?)`)**
+
+- Server tạo `seed` cho lượt. Nhóm thứ `i` bốc **đều** một game trong các game đã đăng ký của nhóm, bằng luồng ngẫu nhiên riêng `createRng(deriveSeed(seed, i))`. Cùng seed → cùng 5 game, trên mọi máy.
+- Mọi game đã đăng ký đều được vào, kể cả game còn chờ chơi thử. Hiện tại: Nhận diện chỉ có Kẻ lạc đàn nên lượt nào cũng có game này; bốn nhóm còn lại mỗi game có xác suất 1/3.
+- `available` (tuỳ chọn) giới hạn danh sách game. Id lạ, id trùng và thứ tự trong `available` không ảnh hưởng kết quả. Nhóm không còn game nào trong `available` thì bốc từ mọi game của nhóm đó, để lượt luôn đủ 5 game. Mỗi nhóm có luồng riêng nên giới hạn một nhóm không làm đổi game được bốc ở nhóm khác.
+
+**Quy điểm game về điểm kỹ năng (`skillScore`)**
+
+Các game ăn điểm rất khác nhau: ở cùng mức Thường, người chơi bình thường được ~3 350 điểm Kẻ lạc đàn trong 30 s nhưng chỉ ~1 050 điểm Theo dấu ánh đèn trong 45 s. Cộng thẳng điểm thô thì Điểm Não phụ thuộc vào việc bốc trúng game nào. Vì vậy mỗi game có một **điểm chuẩn** (bảng dưới), và với `r = điểm game / điểm chuẩn`:
+
+- `r ≤ 1`: **kỹ năng = 100 × r** (đạt đúng điểm chuẩn = 100).
+- `r > 1`: **kỹ năng = 200 − 100 / r**, tăng chậm dần và không vượt 200.
+- Làm tròn số nguyên, kẹp trong 0–200. Điểm âm, NaN hay vô cực coi như 0.
+
+| r (so với điểm chuẩn) | 0 | 0,5 | 0,8 | 1 | 1,25 | 1,5 | 2 | 3 | 5 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Kỹ năng | 0 | 50 | 80 | 100 | 120 | 133 | 150 | 167 | 180 |
+
+Hai nhánh nối trơn tại `r = 1` (cùng độ dốc). Nhánh trên giảm dần vì ba lẽ: một game điểm chuẩn ước sai không kéo lệch cả Điểm Não; một game xuất sắc không lấn át bốn game còn lại; bot giải câu đố (hạn chế NFR-SEC-02) không vượt quá 200 mỗi kỹ năng. Chỉ dùng phép cộng, nhân, chia nên server và trình duyệt ra cùng một số.
+
+**Điểm Não (`computeBrainResult`)**
+
+- **Điểm Não = tổng 5 kỹ năng**, thang **0–1 000** (`BRAIN_SCORE_MAX`). Người lớn chơi bình thường ở cả 5 game được khoảng 500.
+- Nhóm không có kết quả (thiếu game) thì kỹ năng đó = 0. Lượt bị huỷ thì không tính (UC-14).
+- Kết quả có id game lạ thì bỏ qua. Một nhóm có nhiều kết quả (không xảy ra khi chơi đúng luồng) thì lấy kỹ năng cao nhất.
+
+**Điểm chuẩn từng game (`BRAIN_TEST_REFERENCE_SCORE`) — SỐ TẠM, chốt sau buổi chơi thử**
+
+Điểm chuẩn là điểm kỳ vọng của người lớn chơi đúng sức ở Thường, trong thời lượng Kiểm tra não của game đó. Cách tính: mô phỏng 4 000 lượt mỗi game bằng chính `generate()`, `speedAllowanceMs` và `pointsForCorrect`. Thời gian thao tác mỗi câu dao động đều ±20 % quanh giả định; câu sai tốn thời gian như câu đúng cộng khoá 1,5 s; câu chưa xong khi hết giờ không tính; giữa hai câu có 0,25–0,35 s hiệu ứng (Lật cặp: 0). Kết quả làm tròn tới 50. Hai cột cuối là điểm của người nhanh hơn 30 % và chậm hơn 40 % so với giả định, chia cho điểm chuẩn.
+
+| Nhóm | Game | Thời lượng | Giả định ở Thường (theo đặc tả): thời gian mỗi câu · tỉ lệ sai | Câu · đúng | **Điểm chuẩn** | Nhanh hơn 30 % | Chậm hơn 40 % |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Nhận diện | Kẻ lạc đàn | 30 s | 1,3 s · 4 % (ước; đặc tả chưa có bảng Cân bằng) | 17,4 · 16,7 | **3 350** | × 1,33 | × 0,73 |
+| Ghi nhớ | Theo dấu ánh đèn | 45 s | trình chiếu ~3,0 s + nhập 2,3 s · 10 % | 7,2 · 6,4 | **1 050** | × 1,23 | × 0,78 |
+| Ghi nhớ | Ai vừa biến mất | 45 s | xem + che 3,4 s + chọn 1,5 s · 10 % | 8,0 · 7,2 | **1 250** | × 1,15 | × 0,84 |
+| Ghi nhớ | Lật cặp | 45 s | phần xem của bàn + chạm 1,5 s · 12 % | 12,2 · 10,8 | **1 950** | × 1,22 | × 0,84 |
+| Phân tích | Cân não | 40 s | 3,0 s · 8 % | 11,6 · 10,6 | **1 850** | × 1,48 | × 0,65 |
+| Phân tích | Đếm khối | 40 s | 3,7 s · 8 % | 9,3 · 8,5 | **1 400** | × 1,53 | × 0,63 |
+| Phân tích | Bi rơi đâu | 40 s | 2,5 s · 10 % | 13,2 · 11,9 | **2 100** | × 1,43 | × 0,68 |
+| Tính toán | Bóng bay số | 45 s | 4,9 s · 6 % | 8,0 · 7,6 | **1 250** | × 1,57 | × 0,61 |
+| Tính toán | Chạm đích | 45 s | 5,2 s · 6 % | 7,6 · 7,2 | **1 100** | × 1,61 | × 0,58 |
+| Tính toán | Đếm tiền nhanh | 45 s | 5,0 s · 7 % | 7,9 · 7,4 | **1 200** | × 1,59 | × 0,60 |
+| Hình dung | Xoay hình | 40 s | 2,75 s · 10 % | 12,1 · 10,9 | **1 900** | × 1,45 | × 0,67 |
+| Hình dung | Nhìn từ trên | 40 s | 3,25 s · 10 % | 10,4 · 9,4 | **1 550** | × 1,49 | × 0,66 |
+| Hình dung | Gấp hộp | 40 s | 3,05 s · 10 % | 11,0 · 9,9 | **1 700** | × 1,48 | × 0,66 |
+
+Đối chiếu: các con số này khớp điểm vòng 60 s đã ghi trong đặc tả sau khi quy về thời lượng mới (vd. Bi rơi đâu ~3 220 điểm / 60 s ≈ 2 150 / 40 s; Theo dấu ánh đèn ~1 550 / 60 s ≈ 1 160 / 45 s, thấp hơn một chút vì 45 s mất trọn phần câu dở cuối vòng).
+
+- **Thêm game mới:** `pnpm new-game` chèn số giữ chỗ 1 500 kèm `TODO`; game designer mô phỏng lại theo cách trên và thay số trước khi đổi trạng thái game sang ✅. Bỏ sót thì TypeScript báo lỗi (bảng có kiểu `Record<GameId, number>`), test kiểm mọi game đều có điểm chuẩn dương.
+- **Chốt sau chơi thử:** đo trung vị điểm game của người lớn ở Thường trong Kiểm tra não, lấy làm điểm chuẩn mới (làm tròn tới 50).
+- **Đổi số sau khi đã có người chơi:** đổi điểm chuẩn làm Điểm Não cũ và mới không còn so được; đổi thời lượng, độ khó hay luật chấm thì cả điểm từng game cũng lệch. Mọi thay đổi loại này phải có CR và **tăng `BRAIN_TEST_RULES_VERSION`**. Cả bảng Điểm Não lẫn bảng từng minigame chỉ xếp các lượt cùng phiên bản luật, nên tăng phiên bản là làm mới cả hai bảng (để đơn giản, kể cả khi chỉ đổi điểm chuẩn); lịch sử cá nhân vẫn giữ.
+
+**Hạn chế đã biết**
+
+- Game Ghi nhớ có pha trình chiếu cố định nên người nhanh kéo điểm lên ít hơn (× 1,15–1,23 so với × 1,43–1,61 ở game khác). Kỹ năng Ghi nhớ vì thế dồn quanh 100 hơn các kỹ năng khác. Chấp nhận ở bản này; xem lại khi có số đo thật.
+- Nhóm Nhận diện mới có một game, nên kỹ năng Nhận diện luôn đo bằng Kẻ lạc đàn.
+
+**Biểu đồ 5 cạnh (màn kết quả)**
+
+- 5 trục theo thứ tự `CATEGORIES`: Nhận diện ở đỉnh trên, rồi theo chiều kim đồng hồ Ghi nhớ, Phân tích, Tính toán, Hình dung. Đầu trục ghi tên nhóm (màu nhóm, §4) và điểm kỹ năng.
+- Bán kính **tuyến tính 0 → 200** (`BRAIN_SKILL_MAX`), lưới đồng tâm ở 50, 100, 150, 200. Vòng **100 = chuẩn** vẽ nét đứt, đậm hơn các vòng khác.
+- Đa giác lượt này tô màu trong mờ, viền đậm. Có lượt trước thì vẽ thêm đa giác lượt trước chỉ bằng viền nét đứt để so.
+- Điểm Não hiện to ở giữa hoặc trên biểu đồ, kèm "/ 1 000".
+- Biểu đồ vẽ bằng React + SVG (bất biến 4, ADR 0010), không dùng canvas.
 
 ## 4. Năm nhóm kỹ năng
 
@@ -185,5 +282,6 @@ Mỗi nhân vật có 7 biểu cảm dùng chung (`idle` bình thường, `happy
 | 1.0 | 2026-10-10 | Tách từ kế hoạch dự án; thêm quy tắc thiết kế minigame, ví dụ tính điểm, nhân vật | — |
 | 1.1 | 2026-10-10 | Vòng lặp chơi 9 bước, chọn game mỗi vòng, độ khó chọn theo từng game + chủ phòng giám sát, bỏ 3D | [CR-005](../00-tracking/change-requests.md#cr-005) |
 | 1.2 | 2026-10-12 | Hệ số điểm theo từng game, miễn trừ thời gian cho thưởng tốc độ, trần combo × 1,5, vòng 60 giây cho game mới, hiện đáp án đúng khi sai | [CR-006](../00-tracking/change-requests.md#cr-006) |
+| 1.3 | 2026-10-16 | Luật Kiểm tra não: độ khó cố định Thường, thời lượng theo nhóm, cách chọn game, điểm chuẩn từng game, thang kỹ năng 0–200 và Điểm Não 0–1 000, biểu đồ 5 cạnh; Luyện tập và Bảng xếp hạng lên GĐ 1–2 | [CR-009](../00-tracking/change-requests.md#cr-009) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)
