@@ -50,6 +50,7 @@ const camel = pascal[0].toLowerCase() + pascal.slice(1);
 const paths = {
   sharedDir: join(ROOT, "packages/shared/src/games", id),
   sharedIndex: join(ROOT, "packages/shared/src/games/index.ts"),
+  brainTest: join(ROOT, "packages/shared/src/brain-test.ts"),
   webDir: join(ROOT, "apps/web/src/games", id),
   webRegistry: join(ROOT, "apps/web/src/games/registry.ts"),
   docTemplate: join(ROOT, "docs/04-minigames/_template.md"),
@@ -202,6 +203,18 @@ sharedIndex = insertBefore(
 );
 writeFileSync(paths.sharedIndex, sharedIndex);
 written.push(paths.sharedIndex);
+
+// Kiểm tra não: mọi game phải có điểm chuẩn. Chèn số giữ chỗ để `pnpm check` vẫn xanh;
+// game designer tính lại theo docs/01-product/game-design.md mục "Kiểm tra não".
+let brainTest = readFileSync(paths.brainTest, "utf8");
+brainTest = insertBefore(
+  brainTest,
+  "// @new-game:brain-reference",
+  `  "${id}": 1500, // TODO: điểm chuẩn giữ chỗ, mô phỏng lại ở độ khó Thường`,
+  paths.brainTest,
+);
+writeFileSync(paths.brainTest, brainTest);
+written.push(paths.brainTest);
 
 // ---------------------------------------------------------------- web: scene + chữ hiển thị
 
@@ -445,6 +458,7 @@ for (const f of written) console.log(`  ${relative(ROOT, f).replaceAll("\\", "/"
 console.log(`
 Tiếp theo:
   1. Viết đặc tả: docs/04-minigames/${id}.md
-  2. Thay câu đố mẫu bằng logic thật + sửa test (pnpm --filter @brain-rizz/shared test:watch)
+  2. Thay câu đố mẫu bằng logic thật + sửa test (pnpm --filter @brain-rizz/shared test:watch);
+     tính điểm chuẩn Kiểm tra não thay số giữ chỗ trong packages/shared/src/brain-test.ts
   3. Vẽ scene: apps/web/src/games/${id}/${pascal}Scene.ts; đặt tên ở locales.ts
   4. pnpm check, rồi pnpm dev và chơi thử 2 tab`);

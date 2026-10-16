@@ -1,5 +1,16 @@
 /** Tên room đăng ký trên Colyseus server. */
 export const ROOM_NAME = "party" as const;
+/** Tên room Kiểm tra não (UC-14, ADR 0011): phòng solo, tạo bằng `client.create`, không có mã phòng. */
+export const BRAIN_TEST_ROOM_NAME = "brain-test" as const;
+/** Độ dài tối đa của `accessToken` (JWT Supabase) trong join options; dài hơn thì bị bỏ qua như không gửi. */
+export const MAX_ACCESS_TOKEN_LENGTH = 4_096;
+/**
+ * Phòng Kiểm tra não: ở màn hướng dẫn (pha `intro`) quá ngần này ms mà chưa bấm Sẵn sàng thì
+ * server huỷ lượt (không lưu) và đóng phòng, để máy chủ không bị giữ thức vô ích.
+ */
+export const BRAIN_TEST_INTRO_IDLE_MS = 5 * 60_000;
+/** Mã đóng kết nối (WebSocket close code) khi phòng Kiểm tra não bị đóng vì chờ quá lâu ở `intro`. */
+export const BRAIN_TEST_IDLE_CLOSE_CODE = 4_100;
 
 export const MAX_PLAYERS = 8;
 /** Số người tối thiểu để chủ phòng bắt đầu trận (FR-PH-11). */

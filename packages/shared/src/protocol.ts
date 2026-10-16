@@ -3,16 +3,21 @@ import {
   AVATAR_COLORS,
   CHARACTER_IDS,
   type CharacterId,
+  MAX_ACCESS_TOKEN_LENGTH,
   MAX_NAME_LENGTH,
   MAX_TOTAL_ROUNDS,
   MIN_TOTAL_ROUNDS,
 } from "./constants";
 import type { Difficulty } from "./difficulty";
 import { GAME_IDS, type GameId } from "./games";
+import type { Category } from "./games/types";
 
 /**
  * Giao thức tin nhắn giữa client và server.
  * Server luôn validate bằng các schema zod dưới đây trước khi xử lý.
+ *
+ * Phòng Kiểm tra não (`BRAIN_TEST_ROOM_NAME`, UC-14) dùng chung `answer`, `ping` và các tin S → C;
+ * riêng phần cuối file (`BrainJoinOptionsSchema`, `BrainClientMessage`, `BrainStateView`).
  *
  * Vòng đời một trận (CR-005):
  * lobby → game-select → game-intro → countdown → playing → round-results
@@ -83,11 +88,18 @@ const profileFields = {
   avatar: z.enum(CHARACTER_IDS),
 };
 
+/**
+ * JWT phiên Supabase (ADR 0011), tuỳ chọn. Sai kiểu hoặc dài quá giới hạn thì bị bỏ (coi như không gửi),
+ * không làm hỏng việc vào phòng. Server chỉ dùng để lấy `user_id`, **không** đưa vào state.
+ */
+const accessTokenField = z.string().min(1).max(MAX_ACCESS_TOKEN_LENGTH).optional().catch(undefined);
+
 export const JoinOptionsSchema = z.object({
   name: profileFields.name,
   colorIndex: profileFields.colorIndex.default(0),
   difficulty: profileFields.difficulty.default(1),
   avatar: profileFields.avatar.default("khoi"),
+  accessToken: accessTokenField,
 });
 export type JoinOptions = z.input<typeof JoinOptionsSchema>;
 
@@ -257,4 +269,84 @@ export interface PartyStateView {
   /** Hạn tự bắt đầu vòng ở pha `game-intro` theo giờ server (0 ở pha khác). */
   introEndsAt: number;
   players: Record<string, PlayerView>;
+}
+
+// ---------- Phòng Kiểm tra não (UC-14, ADR 0011) ----------
+
+/**
+ * Vòng đời một lượt Kiểm tra não (một người, 5 game):
+ * intro (game i) → countdown → playing → game-result → intro (game i + 1) … → finished
+ */
+export type BrainPhase = "intro" | "countdown" | "playing" | "game-result" | "finished";
+
+/**
+ * Trạng thái lưu kết quả lên tài khoản:
+ * - `pending`: chưa xong lượt, đang xác thực token hoặc đang ghi.
+ * - `saved`: đã ghi vào tài khoản.
+ * - `guest`: không có phiên hợp lệ (không gửi token, token sai/hết hạn) → không lưu.
+ * - `no-db`: server chưa cấu hình Supabase → không lưu.
+ * - `failed`: ghi lỗi (Supabase tạm dừng, mạng…).
+ * `guest` và `no-db` có thể hiện ngay từ đầu lượt; `saved`/`failed` chỉ có sau `finished`.
+ */
+export const BRAIN_SAVE_STATUSES = ["pending", "saved", "guest", "no-db", "failed"] as const;
+export type BrainSaveStatus = (typeof BRAIN_SAVE_STATUSES)[number];
+
+/** Join options của phòng Kiểm tra não (tạo bằng `client.create(BRAIN_TEST_ROOM_NAME, …)`). */
+export const BrainJoinOptionsSchema = z.object({
+  name: profileFields.name,
+  avatar: profileFields.avatar.default("khoi"),
+  accessToken: accessTokenField,
+});
+export type BrainJoinOptions = z.input<typeof BrainJoinOptionsSchema>;
+
+/** Tin client → server của phòng Kiểm tra não. */
+export const BrainClientMessage = {
+  /** Pha `intro`: bắt đầu đếm ngược game hiện tại ("Sẵn sàng"). Nội dung `{}`. */
+  Ready: "brainReady",
+  /** Pha `playing`: `{ round, index, answer }` như phòng party, `round` = thứ tự game (1–5). */
+  Answer: ClientMessage.Answer,
+  /** Bất cứ lúc nào (đồng bộ giờ). */
+  Ping: ClientMessage.Ping,
+} as const;
+
+export const BrainReadySchema = EmptyPayloadSchema;
+
+/** Một game trong lượt Kiểm tra não. */
+export interface BrainGameView {
+  gameId: GameId;
+  category: Category;
+  /** Điểm của game này (cập nhật trực tiếp khi đang chơi). */
+  score: number;
+  /** Số câu đúng của game này. */
+  correct: number;
+}
+
+export interface BrainStateView {
+  phase: BrainPhase;
+  name: string;
+  avatar: CharacterId;
+  /** Độ khó cố định của Kiểm tra não (`BRAIN_TEST_DIFFICULTY`). */
+  difficulty: Difficulty;
+  /** 5 game theo thứ tự chơi, mỗi nhóm kỹ năng một game; chọn sẵn khi tạo phòng. */
+  games: BrainGameView[];
+  /** Thứ tự game hiện tại, 1–5. Gửi đúng số này trong `answer.round`. */
+  round: number;
+  /** Game hiện tại (= `games[round - 1].gameId`). */
+  gameId: string;
+  /** Seed của game hiện tại (0 ở pha `intro`). */
+  seed: number;
+  /** Mốc bắt đầu chơi / hết giờ của game hiện tại theo giờ server (0 ở pha `intro`). */
+  startAt: number;
+  endsAt: number;
+  /** Pha `game-result`: thời điểm server tự sang game kế / `finished` (0 ở pha khác). */
+  resultEndsAt: number;
+  /** Số câu đã trả lời trong game hiện tại, đúng hoặc sai (cũng là index câu đang làm). */
+  progress: number;
+  /** Số câu đúng liên tiếp hiện tại. */
+  streak: number;
+  /** Điểm Não; 0 tới khi `finished`. */
+  brainScore: number;
+  /** Điểm 5 kỹ năng; rỗng tới khi `finished`. */
+  skills: Partial<Record<Category, number>>;
+  saveStatus: BrainSaveStatus;
 }
