@@ -30,6 +30,7 @@ import { boot, type ColyseusTestServer } from "@colyseus/testing";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import appConfig from "../src/app.config";
 import type { PartyRoom } from "../src/rooms/PartyRoom";
+import { SOLVE } from "./helpers";
 
 let colyseus: ColyseusTestServer<typeof appConfig>;
 
@@ -1134,24 +1135,6 @@ describe("PartyRoom", () => {
   });
 
   describe("5 minigame MVP trên server (QA đợt 3, CR-006)", () => {
-    /** Đáp án đúng câu `index`: client sinh lại câu đố bằng chính bộ sinh shared rồi giải. */
-    const SOLVE: Partial<Record<GameId, (seed: number, index: number, d: Difficulty) => unknown>> =
-      {
-        "odd-one-out": (s, i, d) => GAMES["odd-one-out"].generate(s, i, d).oddIndex,
-        "light-trail": (s, i, d) => GAMES["light-trail"].generate(s, i, d).expected,
-        balance: (s, i, d) => GAMES.balance.generate(s, i, d).answer,
-        "number-balloons": (s, i, d) => GAMES["number-balloons"].generate(s, i, d).order,
-        "rotate-match": (s, i, d) => GAMES["rotate-match"].generate(s, i, d).answerIndex,
-        "hit-target": (s, i, d) => GAMES["hit-target"].generate(s, i, d).answer,
-        "cash-count": (s, i, d) => GAMES["cash-count"].generate(s, i, d).answerIndex,
-        "top-view": (s, i, d) => GAMES["top-view"].generate(s, i, d).answerIndex,
-        "fold-box": (s, i, d) => GAMES["fold-box"].generate(s, i, d).answerIndex,
-        "who-vanished": (s, i, d) => GAMES["who-vanished"].generate(s, i, d).answerIndex,
-        "pair-flip": (s, i, d) => GAMES["pair-flip"].generate(s, i, d).answer,
-        "cube-count": (s, i, d) => GAMES["cube-count"].generate(s, i, d).answerIndex,
-        "marble-drop": (s, i, d) => GAMES["marble-drop"].generate(s, i, d).answer,
-      };
-
     /** Miễn trừ của câu đầu (ms): hằng số, hoặc tính theo câu 0 của seed vòng khi đặc tả cho công thức. */
     type Allowance = number | ((seed: number, d: Difficulty) => number);
     interface ServerCase {
