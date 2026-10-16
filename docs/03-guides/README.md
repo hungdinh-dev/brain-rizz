@@ -6,6 +6,7 @@
 | [testing.md](testing.md) | Kế hoạch kiểm thử: các tầng test, kịch bản kiểm tay, ma trận thiết bị, checklist phát hành, mức độ lỗi |
 | [development.md](development.md) | Cài đặt, chạy dự án, quy ước code, thêm minigame, test, xử lý sự cố |
 | [deployment.md](deployment.md) | Deploy web và game server, so sánh hosting miễn phí/giá rẻ |
+| [supabase-setup.md](supabase-setup.md) | Cài Supabase cho tài khoản, lịch sử, bảng xếp hạng: migration, đăng nhập khách + Google, biến môi trường |
 | [assets.md](assets.md) | Nguồn model/hình/âm thanh, giấy phép, pipeline tối ưu |
 | [ai-agents.md](ai-agents.md) | Đội 5 AI agent theo phòng ban, workflow chạy song song, cách tiết kiệm token |
 

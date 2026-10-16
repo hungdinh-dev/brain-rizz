@@ -31,7 +31,7 @@ Vì server được đóng gói Docker (`apps/server/Dockerfile`), chuyển gi�
 3. Cấu hình build:
    - Build command: `pnpm install --frozen-lockfile && pnpm --filter @brain-rizz/web build`
    - Output directory: `apps/web/dist`
-   - Biến môi trường: `VITE_SERVER_URL=https://<tên-app>.fly.dev`, `NODE_VERSION=22`
+   - Biến môi trường: `VITE_SERVER_URL=https://<tên-app>.fly.dev`, `NODE_VERSION=22`, và (nếu dùng tài khoản) `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`. Biến `VITE_*` gắn vào lúc build: đổi biến thì phải build lại.
 4. `apps/web/public/_redirects` đã cấu hình để link `/r/ABCD` mở đúng app.
 
 ## Deploy game server lên Fly.io
@@ -44,6 +44,15 @@ fly deploy --ha=false                  # build apps/server/Dockerfile, deploy đ
 fly scale count 1                      # chắc chắn chỉ còn 1 máy (nếu lỡ deploy không có --ha=false)
 fly logs                               # xem log
 ```
+
+**Biến bí mật Supabase** (ADR 0011) đặt bằng Fly secrets, không ghi vào `fly.toml`:
+
+```bash
+fly secrets set SUPABASE_URL=https://<project-ref>.supabase.co SUPABASE_SECRET_KEY=sb_secret_xxx
+fly secrets list   # chỉ hiện tên + mã băm
+```
+
+`fly secrets set` tự khởi động lại máy để nhận biến. Không đặt thì server vẫn chạy, chỉ không lưu kết quả (log một dòng lúc khởi động). Cách tạo project và lấy khoá: [Cài đặt Supabase](supabase-setup.md).
 
 `fly.toml` đã bật `auto_stop_machines = "stop"`, `min_machines_running = 0` và health check `/healthz`. Khi có người mở game, Fly tự bật máy.
 
@@ -69,9 +78,12 @@ Người đầu tiên mở game sau khi server ngủ sẽ phải chờ khoảng 
 | `PORT` | server | Cổng lắng nghe (mặc định 2567; Fly/Render tự đặt) |
 | `NODE_ENV` | server | `production` tắt `/monitor` và `/playground` |
 | `VITE_SERVER_URL` | web (lúc build) | Địa chỉ game server, ví dụ `https://brain-rizz-server.fly.dev` |
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | web (lúc build) | Supabase cho đăng nhập, lịch sử, bảng xếp hạng; khoá publishable công khai được. Trống → ẩn tài khoản |
+| `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | server (Fly secrets) | Xác thực token người chơi, ghi kết quả Kiểm tra não + trận party. Khoá secret bỏ qua RLS: chỉ đặt trên server. Trống → không lưu |
 
 ## Kiểm tra sau khi deploy
 
 - [ ] `https://<server>/healthz` trả `{"ok":true}`.
 - [ ] Mở web trên điện thoại 4G (không dùng Wi-Fi), tạo phòng, gửi link cho một người khác vào được.
 - [ ] Chơi trọn một trận 3 vòng; khoá màn hình 10 giây giữa trận rồi mở lại vẫn ở trong phòng.
+- [ ] Nếu đã cấu hình Supabase: `fly logs` không có dòng `[store] Chưa đặt SUPABASE_URL`; làm một lượt Kiểm tra não thấy "đã lưu" và có dòng mới trong `brain_tests` (xem [mục Kiểm tra nhanh](supabase-setup.md#7-kiểm-tra-nhanh)).
