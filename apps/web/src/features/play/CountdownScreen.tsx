@@ -1,6 +1,13 @@
-import { COUNTDOWN_MS, GAMES, type GameId, isGameId } from "@brain-rizz/shared";
+import {
+  COUNTDOWN_MS,
+  type Difficulty,
+  GAMES,
+  type GameId,
+  isGameId,
+  type PlayerView,
+} from "@brain-rizz/shared";
 import { HandIcon, MousePointerClickIcon } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { BrainMascot } from "@/components/brand";
 import { AvatarStrip } from "@/components/common/AvatarStrip";
@@ -12,8 +19,6 @@ import { TOUCH_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { useServerClock } from "@/hooks/use-server-clock";
 import { useGame, useMe } from "@/stores/game.store";
 
-const TOTAL_SECONDS = Math.round(COUNTDOWN_MS / 1000);
-const SEG = 360 / TOTAL_SECONDS;
 const GAP = 10;
 const RING_R = 132;
 
@@ -33,21 +38,60 @@ const arc = (from: number, to: number) => {
  */
 export function CountdownScreen() {
   const party = useGame((s) => s.party)!;
+  const me = useMe();
+  const { t } = useTranslation();
   if (!isGameId(party.gameId)) return null;
-  return <CountdownView gameId={party.gameId} />;
+  const players = Object.values(party.players);
+  return (
+    <CountdownStage
+      gameId={party.gameId}
+      startAt={party.startAt}
+      totalMs={COUNTDOWN_MS}
+      difficulty={me?.difficulty}
+      chip={<RoundChip round={party.round} total={party.totalRounds} size="lg" />}
+      footer={
+        <AvatarStrip
+          players={players}
+          sub={(p: PlayerView) => t(`difficulty.${p.difficulty}`)}
+          className="gap-x-4.5 lg:gap-x-7"
+        />
+      }
+    />
+  );
 }
 
-function CountdownView({ gameId }: { gameId: GameId }) {
+interface CountdownStageProps {
+  gameId: GameId;
+  /** Mốc bắt đầu chơi (giờ server; Luyện tập dùng đồng hồ máy với độ lệch 0). */
+  startAt: number;
+  /** Tổng thời gian đếm (party 5 giây, Luyện tập / Kiểm tra não 3 giây). */
+  totalMs: number;
+  /** Độ khó của mình (chọn câu nhắc theo mức). */
+  difficulty?: Difficulty;
+  /** Nhãn góc trái (vd. "Vòng 2/3", "Luyện tập", "Game 2/5"). */
+  chip: ReactNode;
+  /** Phần dưới cùng (hàng nhân vật cả phòng / tiến trình Kiểm tra não). */
+  footer?: ReactNode;
+}
+
+/** Màn đếm ngược dùng chung cho party, Luyện tập, Kiểm tra não (khu 8). */
+export function CountdownStage({
+  gameId,
+  startAt,
+  totalMs,
+  difficulty,
+  chip,
+  footer,
+}: CountdownStageProps) {
   const { t } = useTranslation();
-  const party = useGame((s) => s.party)!;
-  const me = useMe();
   const game = useGameText(gameId);
   const touch = useMediaQuery(TOUCH_QUERY);
   const now = useServerClock(100);
-  const seconds = Math.min(TOTAL_SECONDS, Math.max(1, Math.ceil((party.startAt - now) / 1000)));
-  const players = Object.values(party.players);
+  const totalSeconds = Math.max(1, Math.round(totalMs / 1000));
+  const seg = 360 / totalSeconds;
+  const seconds = Math.min(totalSeconds, Math.max(1, Math.ceil((startAt - now) / 1000)));
   // Câu nhắc theo độ khó của mình (vd. Siêu khó Theo dấu ánh đèn: chạm ngược).
-  const hint = countdownHint(game, me?.difficulty, touch);
+  const hint = countdownHint(game, difficulty, touch);
 
   useEffect(() => preloadGame(gameId), [gameId]);
   // Mỗi giây một tiếng tick, giây cuối cao hơn (đổi số mới kêu, không kêu lại khi re-render).
@@ -61,21 +105,16 @@ function CountdownView({ gameId }: { gameId: GameId }) {
 
   return (
     <main className="relative flex flex-1 flex-col items-center justify-between gap-4 text-center">
-      <RoundChip
-        round={party.round}
-        total={party.totalRounds}
-        size="lg"
-        className="self-start lg:absolute lg:top-0 lg:left-0"
-      />
+      <div className="self-start lg:absolute lg:top-0 lg:left-0">{chip}</div>
       <div className="flex flex-col items-center gap-2.5">
         <h1 className="font-display text-[40px] leading-none font-extrabold text-chalk lg:sticker-text lg:text-[54px] lg:text-paper lg:[--stroke:8px]">
           {game.title}
         </h1>
         <div className="flex flex-wrap justify-center gap-2.5">
           <CategoryChip category={GAMES[gameId].category} className="lg:h-7 lg:text-[15px]" />
-          {me && (
+          {difficulty !== undefined && (
             <span className="inline-flex h-7 items-center rounded-full border-[2.5px] border-sticker bg-secondary px-3 text-[13px] font-bold text-secondary-foreground lg:text-[15px]">
-              {t("play.yourDifficulty", { level: t(`difficulty.${me.difficulty}`) })}
+              {t("play.yourDifficulty", { level: t(`difficulty.${difficulty}`) })}
             </span>
           )}
         </div>
@@ -90,14 +129,14 @@ function CountdownView({ gameId }: { gameId: GameId }) {
           {/* Đoạn sáng gom chung một nhóm để vùng filter phấn đủ rộng, không cắt mất nét. */}
           {[false, true].map((lit) => (
             <g key={String(lit)} className={lit ? "filter-[url(#chalk)]" : undefined}>
-              {Array.from({ length: TOTAL_SECONDS }, (_, i) => i)
+              {Array.from({ length: totalSeconds }, (_, i) => i)
                 .filter((i) => i < seconds === lit)
                 .map((i) => {
-                  const from = -90 + i * SEG + GAP / 2;
+                  const from = -90 + i * seg + GAP / 2;
                   return (
                     <path
                       key={i}
-                      d={arc(from, from + SEG - GAP)}
+                      d={arc(from, from + seg - GAP)}
                       fill="none"
                       strokeWidth={16}
                       strokeLinecap="round"
@@ -128,11 +167,7 @@ function CountdownView({ gameId }: { gameId: GameId }) {
         </span>
       </div>
 
-      <AvatarStrip
-        players={players}
-        sub={(p) => t(`difficulty.${p.difficulty}`)}
-        className="gap-x-4.5 lg:gap-x-7"
-      />
+      {footer ?? <span />}
 
       <div aria-hidden className="absolute right-2 bottom-2 hidden items-end gap-1.5 lg:flex">
         <span className="mb-17 -rotate-4 rounded-[18px] border-[2.5px] border-chalk px-3.5 py-2 font-display text-[19px] font-bold text-chalk">

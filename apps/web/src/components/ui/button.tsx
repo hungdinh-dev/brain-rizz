@@ -24,8 +24,9 @@ const buttonVariants = cva(
         chalk:
           "rounded-full border-[2.5px] border-chalk/70 bg-board-shade text-chalk hover:border-chalk aria-expanded:border-chalk",
         ghost: "hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent",
+        /** Thao tác không hoàn tác được (Xoá dữ liệu của tôi): nền đỏ đặc, vẫn kiểu nhãn dán */
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30",
+          "border-[3px] border-sticker bg-destructive text-destructive-foreground shadow-sticker-sm hover:-translate-y-0.5 focus-visible:ring-destructive/30 active:translate-y-1 active:shadow-none",
         link: "text-highlight underline-offset-4 hover:underline",
       },
       size: {

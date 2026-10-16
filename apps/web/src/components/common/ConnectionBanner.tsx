@@ -9,7 +9,8 @@ import { useGame } from "@/stores/game.store";
 export function ConnectionBanner() {
   const { t } = useTranslation();
   const connection = useGame((s) => s.connection);
-  const inParty = useGame((s) => s.party !== null);
+  // Phòng party hoặc phòng Kiểm tra não (UC-14 luồng rẽ 3a: rớt mạng giữ chỗ như party).
+  const inParty = useGame((s) => s.party !== null || s.brain !== null);
   if (!inParty || connection !== "reconnecting") return null;
   return (
     <div

@@ -52,6 +52,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  /* Chữ trên nền destructive (nút xoá đặc) */
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -88,6 +90,7 @@
   --accent: #efe4d6;
   --accent-foreground: #1f1b3a;
   --destructive: #c93a55;
+  --destructive-foreground: #fff8ef;
   --border: #1f1b3a;
   --input: #1f1b3a;
   --ring: #4d9de0;
@@ -118,6 +121,7 @@
   --accent: #3a3560;
   --accent-foreground: #fff8ef;
   --destructive: #f07a90;
+  --destructive-foreground: #1f1b3a;
   --border: #0e0c1e;
   --input: #0e0c1e;
   --ring: #8ec5ff;

@@ -13,6 +13,8 @@ interface RoundInfoProps {
   levelHint?: string;
   round: number;
   totalRounds: number;
+  /** Thay nhãn "Vòng x/y" (vd. "Luyện tập", "Game 2/5"). */
+  chip?: React.ReactNode;
   difficulty: Difficulty;
   startAt: number;
   endsAt: number;
@@ -31,7 +33,7 @@ export function RoundInfo(props: RoundInfoProps) {
   return (
     <div className={cn("flex min-w-0 flex-col gap-3.5", props.className)}>
       <div className="flex flex-wrap items-center gap-2.5">
-        <RoundChip round={round} total={totalRounds} size="lg" />
+        {props.chip ?? <RoundChip round={round} total={totalRounds} size="lg" />}
         <CategoryChip category={GAMES[gameId].category} className="h-7.5 px-3 text-sm" />
       </div>
       <h1 className="sticker-text font-display text-5xl leading-none font-extrabold text-paper [--stroke:8px]">

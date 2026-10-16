@@ -1,12 +1,20 @@
-import type { AnswerResultPayload, PartyStateView } from "@brain-rizz/shared";
+import type { AnswerResultPayload, BrainStateView, PartyStateView } from "@brain-rizz/shared";
 import { create } from "zustand";
 
 export type ConnectionStatus = "offline" | "online" | "reconnecting";
 
+/**
+ * State phiên chơi đang mở. Mỗi lúc chỉ một: phòng party (`party`), phòng Kiểm tra não (`brain`),
+ * hoặc lượt Luyện tập chạy trên máy (cả hai `null`; chỉ dùng `lastAnswer`).
+ * `lastAnswer`, `clockOffset`, `connection`, `errorSeq` dùng chung cho cả ba để khung chơi
+ * (khoá sau câu sai, +điểm, âm thanh đúng/sai, nút chờ phản hồi) chạy giống nhau.
+ */
 interface GameStore {
   sessionId: string;
   /** State đồng bộ từ server: nguồn chính cho vòng, seed, đồng hồ, tiến độ. */
   party: PartyStateView | null;
+  /** State phòng Kiểm tra não (UC-14). */
+  brain: BrainStateView | null;
   /**
    * Kết quả câu vừa trả lời (tin một lần). Bỏ khi sang vòng mới: tin `roundStart` tới,
    * hoặc seed trong state đổi (phòng khi tin đó mất lúc SDK tự nối lại).
@@ -20,9 +28,10 @@ interface GameStore {
 
   setSession(id: string): void;
   setParty(party: PartyStateView): void;
+  setBrain(brain: BrainStateView): void;
   /** Tin `roundStart` tới: bỏ kết quả câu của vòng trước. */
   onRoundStart(): void;
-  pushAnswerResult(result: AnswerResultPayload): void;
+  pushAnswerResult(result: AnswerResultPayload | null): void;
   pushError(): void;
   setClockOffset(offset: number): void;
   setConnection(status: ConnectionStatus): void;
@@ -32,6 +41,7 @@ interface GameStore {
 const initial = {
   sessionId: "",
   party: null,
+  brain: null,
   lastAnswer: null,
   errorSeq: 0,
   clockOffset: 0,
@@ -45,6 +55,8 @@ export const useGame = create<GameStore>((set) => ({
   // bị mất lúc SDK tự nối lại) thì bỏ kết quả câu trả lời của vòng cũ.
   setParty: (party) =>
     set((s) => (s.party?.seed === party.seed ? { party } : { party, lastAnswer: null })),
+  setBrain: (brain) =>
+    set((s) => (s.brain?.seed === brain.seed ? { brain } : { brain, lastAnswer: null })),
   onRoundStart: () => set({ lastAnswer: null }),
   pushAnswerResult: (lastAnswer) => set({ lastAnswer }),
   pushError: () => set((s) => ({ errorSeq: s.errorSeq + 1 })),
@@ -53,7 +65,7 @@ export const useGame = create<GameStore>((set) => ({
   reset: () => set(initial),
 }));
 
-/** Giờ server ước tính (ms epoch). */
+/** Giờ server ước tính (ms epoch). Luyện tập cũng dùng đồng hồ này (lúc đó độ lệch = 0). */
 export function serverNow() {
   return Date.now() + useGame.getState().clockOffset;
 }

@@ -1,21 +1,18 @@
+import { GAME_IDS, isValidRoomCode, MAX_PLAYERS, normalizeRoomCode } from "@brain-rizz/shared";
 import {
-  CATEGORIES,
-  GAME_IDS,
-  isValidRoomCode,
-  MAX_PLAYERS,
-  normalizeRoomCode,
-} from "@brain-rizz/shared";
-import {
+  BrainIcon,
   CalendarDaysIcon,
   ChevronRightIcon,
   CircleHelpIcon,
   DoorOpenIcon,
+  GhostIcon,
   GlobeIcon,
   HousePlusIcon,
   LayoutGridIcon,
   PencilIcon,
   TargetIcon,
   TrophyIcon,
+  UserRoundIcon,
 } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -27,6 +24,11 @@ import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { MusicBar } from "@/features/music";
 import { SfxToggle } from "@/features/sfx";
+import { useData } from "@/hooks/use-data";
+import { useNumberFormat } from "@/hooks/use-number-format";
+import { hasStoredSession } from "@/lib/supabase";
+import { fetchBrainHistory } from "@/net/data-api";
+import { useAuth } from "@/stores/auth.store";
 import type { Profile } from "../profile";
 import { MenuCard } from "./MenuCard";
 
@@ -42,6 +44,10 @@ interface MenuScreenProps {
   onEditProfile(): void;
   onCreate(): void;
   onJoin(code: string): void;
+  onPractice(): void;
+  onBrainTest(): void;
+  onLeaderboard(): void;
+  onAccount(): void;
 }
 
 /** Menu chính: tạo/vào phòng, các chế độ chơi, thử thách hằng ngày. */
@@ -52,12 +58,28 @@ export function MenuScreen({
   onEditProfile,
   onCreate,
   onJoin,
+  onPractice,
+  onBrainTest,
+  onLeaderboard,
+  onAccount,
 }: MenuScreenProps) {
   const { t } = useTranslation();
+  const fmt = useNumberFormat();
+  const authStatus = useAuth((s) => s.status);
+  // "Cao nhất 742" trên thẻ Kiểm tra não: chỉ hỏi khi máy đã có phiên (không tạo phiên mới).
+  const history = useData(() => fetchBrainHistory(50), [authStatus], hasStoredSession());
+  const brainBest =
+    history.status === "ok" && history.data.length > 0
+      ? Math.max(...history.data.map((r) => r.brainScore))
+      : null;
+  const accountStatus =
+    authStatus === "not-configured"
+      ? t("home.menu.accountOffline")
+      : authStatus === "google"
+        ? t("home.menu.accountLinked")
+        : t("home.menu.accountGuest");
   const [code, setCode] = useState(initialCode);
   const soon = () => toast(t("home.menu.soonToast"));
-  // Gợi ý nhóm kỹ năng đổi theo ngày trong tuần
-  const tipCategory = CATEGORIES[new Date().getDay() % CATEGORIES.length] ?? "identify";
 
   function submitJoin(e: FormEvent) {
     e.preventDefault();
@@ -160,23 +182,12 @@ export function MenuScreen({
           </MenuCard>
 
           <MenuCard
-            tone="pink"
-            tilt="right"
-            icon={GlobeIcon}
-            badge={t("home.menu.soon")}
-            title={t("home.menu.matchTitle")}
-            description={t("home.menu.matchDesc")}
-            onClick={soon}
-          />
-
-          <MenuCard
             tone="sun"
-            tilt="left"
+            tilt="right"
             icon={TargetIcon}
-            badge={t("home.menu.soon")}
             title={t("home.menu.practiceTitle")}
             description={t("home.menu.practiceDesc")}
-            onClick={soon}
+            onClick={onPractice}
           >
             <span className="hidden items-center gap-1.5 md:flex">
               {SKILL_DOTS.map((dot) => (
@@ -186,8 +197,26 @@ export function MenuScreen({
                   className={`size-5 rounded-full border-[3px] border-ink ${dot}`}
                 />
               ))}
-              <span className="ml-1 text-[13px] font-bold">{t("home.menu.skillGroups")}</span>
+              <span className="ml-1 text-[13px] font-bold">
+                {t("home.menu.practiceMeta", { count: GAME_IDS.length })}
+              </span>
             </span>
+          </MenuCard>
+
+          <MenuCard
+            tone="pink"
+            tilt="left"
+            icon={BrainIcon}
+            title={t("home.menu.brainTitle")}
+            description={t("home.menu.brainDesc")}
+            onClick={onBrainTest}
+            sfx="confirm"
+          >
+            <Chip>
+              {brainBest !== null
+                ? t("home.menu.brainBest", { score: fmt(brainBest) })
+                : t("home.menu.brainNone")}
+            </Chip>
           </MenuCard>
         </div>
 
@@ -227,7 +256,14 @@ export function MenuScreen({
             tone="bg-sun"
             title={t("home.menu.leaderboard")}
             description={t("home.menu.leaderboardDesc")}
-            onClick={soon}
+            onClick={onLeaderboard}
+          />
+          <MenuRow
+            icon={UserRoundIcon}
+            tone="bg-mint"
+            title={t("home.menu.account")}
+            description={accountStatus}
+            onClick={onAccount}
           />
           <MenuRow
             icon={LayoutGridIcon}
@@ -239,12 +275,9 @@ export function MenuScreen({
             })}
             onClick={soon}
           />
-
-          <div className="mt-auto hidden items-end justify-end gap-2 lg:flex">
-            <p className="mb-14 max-w-48 -rotate-3 rounded-2xl border-[2.5px] border-chalk px-4 py-2 font-display text-lg leading-tight font-bold text-chalk">
-              {t("home.menu.mascotTip", { category: t(`category.${tipCategory}`) })}
-            </p>
-            <BrainMascot size={140} mood="grin" className="char-idle" />
+          <div className="grid grid-cols-2 gap-2.5">
+            <SoonTile icon={GlobeIcon} title={t("home.menu.matchTitle")} onClick={soon} />
+            <SoonTile icon={GhostIcon} title={t("home.menu.ghostTitle")} onClick={soon} />
           </div>
         </aside>
       </div>
@@ -287,6 +320,32 @@ function MenuRow({
         <span className="truncate text-[13px] text-muted-foreground">{description}</span>
       </span>
       <ChevronRightIcon aria-hidden className="size-5 shrink-0" strokeWidth={2.6} />
+    </button>
+  );
+}
+
+/** Ô nhỏ viền nét đứt cho tính năng chưa có (Tìm trận, Đấu bóng ma) — bấm hiện toast "Sắp có". */
+function SoonTile({
+  icon: Icon,
+  title,
+  onClick,
+}: {
+  icon: typeof TrophyIcon;
+  title: string;
+  onClick(): void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex min-h-14 cursor-pointer items-center gap-2 rounded-2xl border-[2.5px] border-dashed border-chalk/70 px-3 text-left text-chalk transition-colors hover:border-chalk"
+    >
+      <Icon aria-hidden className="size-5 shrink-0" strokeWidth={2.3} />
+      <span className="flex min-w-0 flex-col leading-tight">
+        <span className="truncate font-display text-base font-extrabold">{title}</span>
+        <span className="text-xs text-chalk-muted">{t("home.menu.soon")}</span>
+      </span>
     </button>
   );
 }

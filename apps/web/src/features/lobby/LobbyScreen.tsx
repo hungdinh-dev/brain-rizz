@@ -12,6 +12,7 @@ import { loadProfile, saveProfile } from "@/features/home";
 import { usePendingAction } from "@/hooks/use-pending-action";
 import { cn } from "@/lib/utils";
 import { leaveParty, send } from "@/net/connection";
+import { useAuth } from "@/stores/auth.store";
 import { useGame, useMe } from "@/stores/game.store";
 import { CharacterPicker } from "./components/CharacterPicker";
 import { HostStatusCard, MatchSetupCard } from "./components/MatchSetupCard";
@@ -58,8 +59,10 @@ export function LobbyScreen() {
 
   function pickCharacter(avatar: CharacterId) {
     send(ClientMessage.SetProfile, { avatar });
-    // Nhớ cho lần sau vào phòng (hồ sơ lưu ở máy).
-    saveProfile({ ...loadProfile(), avatar });
+    // Nhớ cho lần sau vào phòng (hồ sơ lưu ở máy) và đồng bộ lên tài khoản nếu có phiên.
+    const next = { ...loadProfile(), avatar };
+    saveProfile(next);
+    void useAuth.getState().syncProfile(next);
   }
 
   const inviteButton = (className?: string) => (
