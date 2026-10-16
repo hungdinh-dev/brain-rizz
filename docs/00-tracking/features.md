@@ -2,7 +2,7 @@
 
 Bảng theo dõi **cái gì đã xong, cái gì chưa** ở mức người dùng nhìn thấy. Mỗi dòng trỏ về use case (UC) hoặc yêu cầu (FR) trong [SRS](../01-product/srs.md); muốn biết chi tiết hành vi thì mở SRS, muốn biết tiến độ thì xem ở đây.
 
-Cập nhật lần cuối: **2026-10-14** · Phiên bản code: 0.1.0 (chưa gắn tag)
+Cập nhật lần cuối: **2026-10-16** · Phiên bản code: 0.1.0 (chưa gắn tag)
 
 ## Tổng quan
 
@@ -14,7 +14,7 @@ Cập nhật lần cuối: **2026-10-14** · Phiên bản code: 0.1.0 (chưa g�
 | E4 Minigame | 5 game | 8 game (🚧 chờ chơi thử) | 2 game | 0 |
 | E5 Giao diện & trải nghiệm | 7 | 0 | 2 | 0 (+1 huỷ) |
 | E6 Vận hành & chất lượng | 3 | 1 | 3 | 0 |
-| E7 Chế độ mở rộng & tài khoản | 0 | 0 | 4 | 3 |
+| E7 Chế độ mở rộng & tài khoản | 0 | 4 (CR-009, chờ Supabase thật) | 2 | 3 |
 
 **Chú thích trạng thái:** ✅ Xong (chạy được, có test hoặc đã kiểm tay) · 🟡 Một phần · 🚧 Đang làm · ⏳ Chưa làm (đã có trong kế hoạch) · 💡 Ý tưởng, chờ [yêu cầu thay đổi](change-requests.md) được duyệt · ❌ Huỷ
 
@@ -71,7 +71,7 @@ Trạng thái từng game theo dõi ở **[Danh mục minigame](../04-minigames/
 | FR-GD-09 | Lỗi server hiện thành thông báo theo mã | 0 | ✅ | 0.1.0 | |
 | FR-GD-05 | Sân khấu 3D ở sảnh | — | ❌ Huỷ | | Thay bằng FR-PH-12 (ADR 0010); đã gỡ khỏi code 2026-10-12 |
 | FR-GD-06 | Vinh danh top 3 kiểu Kahoot, 2D | 1 | ✅ | 0.1.0 | Kiểm tay (CR-005) |
-| FR-GD-10 | Nhạc nền nhiều bài + thanh nhạc trên header: phát/dừng, bài kế, âm lượng (máy tính); tự phát ở lần chạm đầu, nhỏ lại khi chơi, nhớ lựa chọn | 1 | ✅ | 0.1.0 | `features/music/*.test.ts` (tên bài, cài đặt lưu, store); kiểm Chrome headless 360/800/1280 px + vào pha chơi ([CR-007](change-requests.md#cr-007)) · **chưa có file nhạc thật, chưa thử iPhone** |
+| FR-GD-10 | Nhạc nền nhiều bài + thanh nhạc trên header: phát/dừng, bài kế, âm lượng (máy tính); tự phát ở lần chạm đầu, nhỏ lại khi chơi, nhớ lựa chọn | 1 | ✅ | 0.1.0 | `features/music/*.test.ts` (tên bài, cài đặt lưu, store); kiểm Chrome headless 360/800/1280 px + vào pha chơi ([CR-007](change-requests.md#cr-007)) · đã có 2 bài nhạc (`8c2bfcf`, ghi ở `assets/LICENSES.md`) · **chưa thử iPhone** |
 | FR-GD-07 | Âm thanh hiệu ứng: bấm nút, lỗi, đếm ngược, đúng/sai; nút bật/tắt riêng | 1 | ✅ | 0.1.0 | `features/sfx/sfx.test.ts`; kiểm Chrome headless chơi thật một vòng 2 tab (đúng/sai, lỗi server, 5 tiếng tick) ([CR-008](change-requests.md#cr-008)) · tiếng mặc định tạo bằng code, **chưa nghe thử bằng tai, chưa thử iPhone** |
 | FR-GD-11 | Rung phản hồi, Wake Lock | 2 | ⏳ | | Tách từ FR-GD-07 (CR-008) |
 | FR-GD-08 | PWA cài lên màn hình chính | 2 | ⏳ | | |
@@ -80,7 +80,7 @@ Trạng thái từng game theo dõi ở **[Danh mục minigame](../04-minigames/
 
 | Hạng mục | GĐ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- |
-| CI GitHub Actions (lint, typecheck, test, build) | 0 | 🟡 | File `ci.yml` có sẵn; chưa chạy vì repo chưa lên GitHub |
+| CI GitHub Actions (lint, typecheck, test, build) | 0 | 🟡 | Repo đã lên GitHub (`hungdinh-dev/brain-rizz`); chưa xác nhận lần chạy CI đầu xanh |
 | Docker + `fly.toml` cho game server | 0 | ✅ | Chưa deploy thật |
 | Script tải thử (`loadtest`) 8 người | 0 | ✅ | |
 | Test 10.000 seed cho bộ sinh câu đố | 0 | ✅ | Bắt buộc với mọi minigame mới |
@@ -92,13 +92,15 @@ Trạng thái từng game theo dõi ở **[Danh mục minigame](../04-minigames/
 
 | ID | Tính năng | GĐ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
-| UC-13 | Luyện tập | 3 | ⏳ | Đã có mục "Sắp có" ở menu |
-| UC-14 | Kiểm tra não | 3 | ⏳ | |
+| UC-13 | Luyện tập: chọn game + độ khó, chơi trên máy, kỷ lục | 1–2 | 🟡 Code xong, chờ kiểm với Supabase thật | [CR-009](change-requests.md#cr-009) · FR-MR-01, FR-MR-07 |
+| UC-14 | Kiểm tra não: 5 game server chấm, Điểm Não, biểu đồ 5 kỹ năng | 1–2 | 🟡 Code xong, chờ kiểm với Supabase thật | CR-009 · FR-MR-02, FR-MR-08 · phòng `BrainTestRoom` |
 | UC-15 | Đấu bóng ma | 3 | ⏳ | |
-| UC-16 | Tài khoản, lịch sử điểm, mũ phần thưởng | 3 | ⏳ | |
+| UC-16 | Tài khoản Supabase (khách + Google), lịch sử 3 loại, xoá dữ liệu | 1–2 | 🟡 Code xong, chờ kiểm với Supabase thật + Google | CR-009 · FR-MR-04, FR-MR-09 → 11, FR-MR-15 · [ADR 0011](../02-architecture/decisions/0011-supabase-accounts-and-solo-modes.md) |
+| FR-MR-05 | Mũ phần thưởng khi lập kỷ lục | 3 | ⏳ | Tách khỏi UC-16 đợt CR-009 |
 | UC-17 | Thử thách hôm nay | — | 💡 | [CR-003](change-requests.md#cr-003) |
 | UC-18 | Tìm trận với người lạ | — | 💡 | CR-003 |
-| UC-19 | Bảng xếp hạng | — | 💡 | CR-003 |
+| UC-19 | Bảng xếp hạng Điểm Não + từng minigame, tuần / mọi thời đại | 1–2 | 🟡 Code xong, chờ kiểm với Supabase thật | CR-009 (tách khỏi CR-003) · FR-MR-12, FR-MR-13 |
+| FR-MR-14 | Bảng xếp hạng bạn bè | — | 💡 | Chờ tính năng kết bạn (CR mới) |
 
 ## Cách cập nhật
 

@@ -20,6 +20,7 @@ Khác với các tài liệu theo dõi khác:
 | [2026-10-12](2026-10-12.md) | DR-20261012 | GĐ 0 (làm sớm GĐ 1) | Luồng trận mới CR-005 (phòng chờ 2D, chọn game, vinh danh, gỡ 3D), cân bằng điểm CR-006, đủ 5 minigame MVP, QA 4 vòng, 6 commit + push nhánh `feat/match-flow-and-mvp-games` |
 | [2026-10-13](2026-10-13.md) | DR-20261013 | GĐ 0 | Merge PR #1, làm rõ CI/deploy và hosting real-time, kế hoạch dự phòng game server, chặn lỗi cấu hình Fly, bản mẫu UI 4 minigame |
 | [2026-10-14](2026-10-14.md) | DR-20261014 | GĐ 1–2 | Bản mẫu 4 game cuối, 8 minigame mới qua `/new-minigame` (3 vòng QA), 12 commit nhánh `feat/beta-minigames`, nhạc nền (CR-007) + 2 bài nhạc, âm thanh hiệu ứng (CR-008), lập bộ báo cáo ngày, merge vào `main` |
+| [2026-10-16](2026-10-16.md) | DR-20261016 | GĐ 1 | CR-009: Luyện tập, Kiểm tra não, Tài khoản Supabase, Bảng xếp hạng (ADR 0011, 0012); QA PASS, chờ kiểm với Supabase thật; chưa commit |
 
 Ngày 2026-10-11 không có phiên làm việc.
 

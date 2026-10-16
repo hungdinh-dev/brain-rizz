@@ -68,6 +68,7 @@ Script tạo đủ các file trên + đặc tả `docs/04-minigames/<id>.md`, **
    - `check(puzzle, answer)` và `isAnswer(value)` (kiểm tra kiểu đáp án client gửi).
    - Ưu tiên số nguyên; tránh phép toán số thực có thể lệch giữa các máy. Không chứa chữ hiển thị.
 3. **Test** `<id>.test.ts`: tất định, ≥ 10.000 seed đều có đúng một đáp án, độ khó tăng dần. Viết song song bằng `pnpm --filter @brain-rizz/shared test:watch`.
+   - **Điểm chuẩn Kiểm tra não:** script đã chèn số giữ chỗ `1500` vào `BRAIN_TEST_REFERENCE_SCORE` trong `packages/shared/src/brain-test.ts`. Thay bằng điểm mô phỏng của người lớn ở Thường trong thời lượng Kiểm tra não của nhóm, theo [Thiết kế game › Kiểm tra não](../01-product/game-design.md#kiểm-tra-não), và bỏ dòng TODO.
 4. **Scene Phaser** `<Name>Scene.ts`:
    - `init({ bridge })` nhận `MinigameBridge`; câu đầu là `bridge.startIndex`.
    - Khi người chơi trả lời: chấm ngay ở client để phản hồi tức thì, gọi `bridge.submit(index, answer)`, sang câu tiếp.

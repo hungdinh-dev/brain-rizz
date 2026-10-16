@@ -12,6 +12,17 @@ Luồng trận mới theo [CR-005](change-requests.md#cr-005), 4 minigame MVP v�
 
 ### Thêm
 
+- **Chơi một mình và tài khoản** ([CR-009](change-requests.md#cr-009), [ADR 0011](../02-architecture/decisions/0011-supabase-accounts-and-solo-modes.md)):
+  - **Luyện tập** (UC-13): chọn bất kỳ minigame và độ khó, chơi không giới hạn lượt, lưu kỷ lục, có nhãn "Kỷ lục mới!".
+  - **Kiểm tra não** (UC-14): 5 game, mỗi nhóm kỹ năng một game, khoảng 5 phút, server chấm; ra Điểm Não (0–1000) và biểu đồ 5 kỹ năng.
+  - **Tài khoản & lịch sử** (UC-16): tự lưu bằng phiên khách, liên kết Google để giữ lịch sử khi đổi máy; xem lịch sử Kiểm tra não, trận party, kỷ lục luyện tập; xoá dữ liệu của mình.
+  - **Bảng xếp hạng** (UC-19): Điểm Não và từng minigame, Tuần này / Mọi thời đại, hiện hạng của mình.
+  - Kỹ thuật:
+    - Phòng solo `BrainTestRoom`; luật chấm một câu dùng chung `judgeAnswer` trong shared.
+    - Migration Supabase có RLS và RPC.
+    - Party nhận `accessToken` tuỳ chọn và ghi kết quả trận.
+    - Thiếu Supabase thì mọi chế độ vẫn chơi được.
+    - Chữ màn một mình và minigame tải lười ([ADR 0012](../02-architecture/decisions/0012-i18n-lazy-chunks.md)); JS ban đầu 248 KB gzip.
 - 4 minigame mới, đủ 5 game MVP (mỗi nhóm kỹ năng một game), mỗi game 4 mức độ khó, màn hướng dẫn có hình minh hoạ (FR-MG-05):
   - **Theo dấu ánh đèn** (Ghi nhớ): nhớ thứ tự đèn sáng rồi chạm lại; Siêu khó chạm ngược.
   - **Cân não** (Phân tích): nhìn các cân, tìm vật nặng nhất.
