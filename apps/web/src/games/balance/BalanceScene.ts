@@ -5,6 +5,7 @@ import {
   balance,
 } from "@brain-rizz/shared";
 import Phaser from "phaser";
+import { prefersReducedMotion } from "@/features/motion";
 import { DESIGN_WIDTH, type MinigameBridge } from "../types";
 import { type ArtPart, ITEM_ART, ITEM_BOX } from "./items";
 
@@ -449,7 +450,7 @@ export default class BalanceScene extends Phaser.Scene {
   }
 
   create() {
-    this.reducedMotion = mediaMatches("(prefers-reduced-motion: reduce)");
+    this.reducedMotion = prefersReducedMotion();
     this.canHover = mediaMatches("(hover: hover)");
     // Hết vòng hoặc rời màn: dừng hẳn mọi tween và hẹn giờ của câu đang dở.
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.cleanup());

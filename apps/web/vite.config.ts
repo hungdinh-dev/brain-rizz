@@ -2,6 +2,10 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+// Vite chặn Host lạ. Cho phép link Cloudflare Quick Tunnel (`pnpm share`, scripts/share.mjs)
+// để bạn bè mở được bản preview/dev qua Internet.
+const TUNNEL_HOSTS = [".trycloudflare.com"];
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
@@ -10,6 +14,10 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    allowedHosts: TUNNEL_HOSTS,
+  },
+  preview: {
+    allowedHosts: TUNNEL_HOSTS,
   },
   build: {
     target: "es2022",

@@ -10,10 +10,12 @@ Mỗi file ghi một quyết định kỹ thuật: bối cảnh, lựa chọn, l
 | [0004](0004-hosting-strategy.md) | Hosting: Cloudflare Pages + Fly.io tự tắt, Render Free dự phòng | Đã chấp nhận |
 | [0005](0005-web-vite-spa-vs-nextjs.md) | Web client là SPA Vite + React, không dùng Next.js | Đã chấp nhận |
 | [0006](0006-ui-shadcn-and-theme-tokens.md) | Component UI theo shadcn/ui, màu qua token ngữ nghĩa (sáng/tối) | Đã chấp nhận (phần 3D thay bởi 0010) |
-| [0007](0007-i18n-inline-resources.md) | Đa ngôn ngữ bằng i18next, bản dịch viết trong code | Đã chấp nhận |
+| [0007](0007-i18n-inline-resources.md) | Đa ngôn ngữ bằng i18next, bản dịch viết trong code | Đã chấp nhận (thời điểm tải bổ sung bởi 0012) |
 | [0008](0008-web-feature-folders-and-game-modules.md) | Web tổ chức theo feature, mỗi minigame một thư mục | Đã chấp nhận (phần 3D thay bởi 0010) |
 | [0009](0009-chalkboard-style-and-characters.md) | Phong cách bảng phấn, thẻ nhãn dán và nhân vật SVG thay chấm màu avatar | Đã chấp nhận (phần 3D thay bởi 0010) |
 | [0010](0010-drop-3d-2d-lobby-and-podium.md) | Bỏ 3D: phòng chờ và vinh danh chung cuộc bằng 2D | Đã chấp nhận (đã làm 2026-10-12) |
+| [0011](0011-supabase-accounts-and-solo-modes.md) | Tài khoản, lịch sử, bảng xếp hạng trên Supabase; Kiểm tra não chấm trên game server | Đã chấp nhận |
+| [0012](0012-i18n-lazy-chunks.md) | Tải lười chữ của màn một mình và minigame (bổ sung 0007) | Đã chấp nhận |
 
 Mẫu cho ADR mới: [_template.md](_template.md).
 

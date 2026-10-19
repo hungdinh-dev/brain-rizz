@@ -41,4 +41,12 @@ export const STORAGE_KEYS = {
   music: "brain-rizz:music",
   /** Âm thanh hiệu ứng khi bấm nút: "on" | "off". */
   sfx: "brain-rizz:sfx",
+  /** Hiệu ứng chuyển động: "system" | "on" (CR-010). */
+  motion: "brain-rizz:motion",
+  /** Kỷ lục luyện tập trên máy + độ khó lần trước của từng game (JSON, UC-13). */
+  practice: "brain-rizz:practice",
+  /** Phiên Supabase (supabase-js tự đọc/ghi; app chỉ xem có hay không để khỏi tải thư viện sớm). */
+  auth: "brain-rizz:auth",
+  /** sessionStorage: đang đi đăng nhập Google, quay về thì mở lại màn Tài khoản. */
+  oauthReturn: "brain-rizz:oauth-return",
 } as const;

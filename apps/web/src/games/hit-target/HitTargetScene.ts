@@ -1,5 +1,6 @@
 import { type HitTargetPuzzle, hitTarget } from "@brain-rizz/shared";
 import Phaser from "phaser";
+import { prefersReducedMotion } from "@/features/motion";
 import { DESIGN_WIDTH, type MinigameBridge } from "../types";
 
 // ── Màu riêng của game (bản mẫu M6 trên canvas Brain Rizz, trang Minigame) ────────────────────
@@ -145,10 +146,6 @@ const cssColor = (color: number) => `#${color.toString(16).padStart(6, "0")}`;
 /** Số âm vẽ bằng "−" dài; `String(-8)` ra gạch ngắn. */
 function formatNumber(n: number): string {
   return n < 0 ? `${MINUS}${-n}` : String(n);
-}
-
-function prefersReducedMotion(): boolean {
-  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }
 
 /** Đọc token màu CSS (tự đổi theo sáng/tối) tại canvas; thiếu token thì dùng màu giao diện sáng. */

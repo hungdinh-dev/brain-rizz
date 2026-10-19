@@ -8,6 +8,7 @@ import {
   WRONG_ANSWER_LOCK_MS,
 } from "@brain-rizz/shared";
 import Phaser from "phaser";
+import { prefersReducedMotion } from "@/features/motion";
 import { type ArtPart, ITEM_ART } from "../balance/items";
 import { EYE_PATH, HAND_PATH } from "../light-trail/shapes";
 import type { MinigameBridge } from "../types";
@@ -183,12 +184,7 @@ function readPalette(el: Element): Palette {
 /** Màu CSS → số màu của Phaser. */
 const toColor = (css: string) => Phaser.Display.Color.ValueToColor(css).color;
 
-/** Đọc `prefers-reduced-motion`: bỏ bay vào, lắc, nảy, phóng to; lật thẻ thành đổi mặt tức thì. */
-function prefersReducedMotion() {
-  return typeof window.matchMedia === "function"
-    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    : false;
-}
+// Giảm chuyển động (`prefersReducedMotion` dùng chung, theo nút Hiệu ứng): bỏ bay vào, lắc, nảy, phóng to; lật thẻ thành đổi mặt tức thì.
 
 // ---------------------------------------------------------------- vẽ texture bằng canvas 2D
 

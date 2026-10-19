@@ -26,6 +26,7 @@ Mở <http://localhost:5173>, tạo phòng, rồi mở thêm một tab (hoặc �
 | `pnpm lint` / `pnpm format` | Kiểm tra / tự sửa định dạng bằng Biome |
 | `pnpm check` | lint + typecheck + test (chạy trước khi commit) |
 | `pnpm new-game <id> <nhóm>` | Tạo khung minigame mới (shared + web + đặc tả), tự đăng ký |
+| `pnpm share` | Cho bạn bè ở xa chơi thử qua Cloudflare Quick Tunnel ([hướng dẫn](docs/03-guides/development.md#chia-sẻ-cho-bạn-bè-qua-internet-pnpm-share)) |
 
 Công cụ dev của server: <http://localhost:2567/monitor> (xem phòng đang mở) và <http://localhost:2567/playground> (gửi tin nhắn thử).
 

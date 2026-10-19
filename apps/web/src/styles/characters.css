@@ -279,10 +279,102 @@
   }
 }
 
-/* Đặt cuối file: cùng độ ưu tiên với các class ở trên nên khối này thắng, không cần !important. */
+/*
+ * Vinh danh hồi hộp (CR-010, ui-ux 6.2; features/results/PodiumScreen.tsx). Đang giảm chuyển động
+ * thì màn đó dùng mờ dần (`animate-in fade-in`) thay cho các lớp dưới đây.
+ */
+.fx-row-in {
+  animation: fx-row-in 320ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+.fx-card-in {
+  animation: fx-card-in 400ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+.fx-step-rise {
+  animation: fx-step-rise 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.fx-win-pop {
+  animation: fx-win-pop 760ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.fx-crown-drop {
+  animation: fx-crown-drop 480ms cubic-bezier(0.34, 1.56, 0.64, 1) 200ms both;
+}
+.fx-step-flash {
+  animation: fx-step-flash 600ms ease-out both;
+}
+.fx-breathe {
+  animation: fx-breathe 400ms ease-in-out infinite alternate;
+}
+.fx-tag-pop {
+  animation: fx-tag-pop 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes fx-row-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+@keyframes fx-card-in {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+@keyframes fx-step-rise {
+  from {
+    transform: translateY(40px) scale(0.8);
+    opacity: 0;
+  }
+}
+@keyframes fx-win-pop {
+  0% {
+    transform: translateY(60px) scale(0.6);
+    opacity: 0;
+  }
+  55% {
+    transform: translateY(-18px) scale(1.12);
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(0) scale(0.96);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes fx-crown-drop {
+  from {
+    transform: translateY(-48px) rotate(-25deg);
+    opacity: 0;
+  }
+}
+@keyframes fx-step-flash {
+  from {
+    outline: 10px solid var(--color-primary);
+  }
+  to {
+    outline: 0 solid var(--color-primary);
+  }
+}
+@keyframes fx-breathe {
+  to {
+    transform: scale(1.08);
+  }
+}
+/* Nhãn đã có `-rotate-2` (thuộc tính rotate riêng): cộng thêm −4° → tổng −6° → −2°. */
+@keyframes fx-tag-pop {
+  from {
+    transform: rotate(-4deg) scale(0.85);
+    opacity: 0;
+  }
+}
+
+/*
+ * Đặt cuối file, độ ưu tiên cao hơn các class ở trên nên khối này thắng, không cần !important.
+ * Nút Hiệu ứng "Luôn bật" (`data-motion="on"` trên <html>, CR-010) thì bỏ qua cài đặt của máy.
+ */
 @media (prefers-reduced-motion: reduce) {
-  [class*="char-"],
-  [class*="fx-"] {
+  :root:not([data-motion="on"]) :is([class*="char-"], [class*="fx-"]) {
     animation: none;
   }
 }

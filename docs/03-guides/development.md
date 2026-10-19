@@ -18,6 +18,24 @@ pnpm dev            # web http://localhost:5173 + server http://localhost:2567
 - **Thử nhiều người trên một máy:** mở thêm tab ẩn danh (mỗi tab giữ phiên riêng).
 - **Xem phòng đang mở:** <http://localhost:2567/monitor>.
 
+### Chia sẻ cho bạn bè qua Internet (`pnpm share`)
+
+Cho bạn bè ở xa chơi thử ngay từ máy mình, không cần deploy. Máy chạy lệnh làm host; dùng [Cloudflare Quick Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/do-more-with-tunnels/trycloudflare/), **không cần tài khoản**.
+
+1. Cài một lần: `winget install --id Cloudflare.cloudflared` (macOS: `brew install cloudflared`). Script tự tìm cả khi chưa có trong PATH (`C:\Program Files (x86)\cloudflared\`, thư mục link của winget).
+2. Chạy `pnpm share` rồi gửi link `https://….trycloudflare.com` in ra cho bạn bè.
+
+Script (`scripts/share.mjs`) chạy game server (nạp `apps/server/.env`, đặt `NODE_ENV=production` để tắt `/monitor`) — hoặc dùng lại server đang chạy ở cổng 2567 nếu bạn đang `pnpm dev` — mở 2 tunnel (server + web), build web với `VITE_SERVER_URL` = link tunnel server ra thư mục riêng `apps/web/dist-share` (không đụng `apps/web/dist` hay `apps/web/.env`), rồi chạy `vite preview` cho bản build đó. Ctrl+C dừng và dọn mọi tiến trình con.
+
+Giới hạn:
+
+- Máy phải bật và giữ cửa sổ mở suốt lúc chơi; link **đổi mỗi lần chạy**.
+- Đăng nhập Google qua link tunnel cần thêm `https://*.trycloudflare.com/**` vào Supabase › Authentication › URL Configuration › Redirect URLs. Chế độ khách, luyện tập và chơi party không bị ảnh hưởng.
+- Nếu đang `pnpm dev` thì `/monitor` và `/playground` của server đó cũng ra Internet qua link server; muốn tắt thì dừng `pnpm dev` trước khi chạy `pnpm share`.
+- Chỉ để chơi thử; không thay cho deploy thật trên Fly.io ([Triển khai](deployment.md)).
+
+Khác chơi cùng Wi-Fi: cùng Wi-Fi chỉ cần `pnpm dev` và mở `http://<IP-máy-tính>:5173`, nhanh hơn và không qua Internet; `pnpm share` dành cho người ở mạng khác (4G, nhà khác).
+
 ## Quy ước
 
 | Chủ đề | Quy ước |
@@ -68,6 +86,7 @@ Script tạo đủ các file trên + đặc tả `docs/04-minigames/<id>.md`, **
    - `check(puzzle, answer)` và `isAnswer(value)` (kiểm tra kiểu đáp án client gửi).
    - Ưu tiên số nguyên; tránh phép toán số thực có thể lệch giữa các máy. Không chứa chữ hiển thị.
 3. **Test** `<id>.test.ts`: tất định, ≥ 10.000 seed đều có đúng một đáp án, độ khó tăng dần. Viết song song bằng `pnpm --filter @brain-rizz/shared test:watch`.
+   - **Điểm chuẩn Kiểm tra não:** script đã chèn số giữ chỗ `1500` vào `BRAIN_TEST_REFERENCE_SCORE` trong `packages/shared/src/brain-test.ts`. Thay bằng điểm mô phỏng của người lớn ở Thường trong thời lượng Kiểm tra não của nhóm, theo [Thiết kế game › Kiểm tra não](../01-product/game-design.md#kiểm-tra-não), và bỏ dòng TODO.
 4. **Scene Phaser** `<Name>Scene.ts`:
    - `init({ bridge })` nhận `MinigameBridge`; câu đầu là `bridge.startIndex`.
    - Khi người chơi trả lời: chấm ngay ở client để phản hồi tức thì, gọi `bridge.submit(index, answer)`, sang câu tiếp.
@@ -97,6 +116,8 @@ pnpm --filter @brain-rizz/server loadtest  # cần server đang chạy (pnpm dev
 | Triệu chứng | Cách xử lý |
 | --- | --- |
 | Điện thoại không vào được phòng | Kiểm tra cùng Wi-Fi, tường lửa cho cổng 2567 và 5173 |
+| `pnpm share` in link nhưng máy mình báo không tìm thấy trang | DNS của quick tunnel chậm: chờ ít phút hoặc `ipconfig /flushdns`; vẫn mở được link local script in ra (thường `http://127.0.0.1:4173`) |
+| `pnpm share` không mở được tunnel | Mạng chặn Cloudflare (thử 4G/mạng khác); tạm đổi tên `~/.cloudflared/config.yml` nếu có |
 | `ERR_PNPM_…` khi cài | `corepack enable` rồi cài lại; xoá `node_modules` nếu đổi phiên bản Node |
 | Hai máy thấy câu đố khác nhau | Có `Math.random()`/`Date.now()` lọt vào bộ sinh câu đố, hoặc khác độ khó |
 | Lỗi CRLF trên Windows | Repo đã có `.gitattributes`; chạy `git add --renormalize .` |

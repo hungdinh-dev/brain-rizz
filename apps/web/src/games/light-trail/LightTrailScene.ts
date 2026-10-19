@@ -6,6 +6,7 @@ import {
   WRONG_ANSWER_LOCK_MS,
 } from "@brain-rizz/shared";
 import Phaser from "phaser";
+import { prefersReducedMotion } from "@/features/motion";
 import type { MinigameBridge } from "../types";
 import { BULB_BASE_PATH, BULB_PATH, EYE_PATH, HAND_PATH, REWIND_PATH } from "./shapes";
 
@@ -212,12 +213,7 @@ function drawDigit(ctx: Ctx, n: number, size: number, color: string) {
   ctx.fillText(String(n), 0, Math.round(size * 0.36));
 }
 
-/** Đọc `prefers-reduced-motion`: bỏ phóng to, nảy, lắc; giữ đổi độ sáng, viền, huy hiệu, dấu X. */
-function prefersReducedMotion() {
-  return typeof window.matchMedia === "function"
-    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    : false;
-}
+// Giảm chuyển động (`prefersReducedMotion` dùng chung, theo nút Hiệu ứng): bỏ phóng to, nảy, lắc; giữ đổi độ sáng, viền, huy hiệu, dấu X.
 
 // ---------------------------------------------------------------- scene
 

@@ -7,6 +7,29 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
+ * Giảm chuyển động (CR-010): nút Hiệu ứng "Luôn bật" gắn `data-motion="on"` lên <html>
+ * (src/features/motion). Khi đó `motion-safe:` luôn áp dụng, `motion-reduce:` không bao giờ áp dụng,
+ * dù máy báo `prefers-reduced-motion: reduce`. Viết đè hai biến thể có sẵn của Tailwind.
+ * CSS thuần cần tắt hoạt ảnh thì dùng `@variant motion-reduce` hoặc
+ * `@media (prefers-reduced-motion: reduce) { :root:not([data-motion="on"]) … }`.
+ */
+@custom-variant motion-safe {
+  @media (prefers-reduced-motion: no-preference) {
+    @slot;
+  }
+  &:where([data-motion="on"], [data-motion="on"] *) {
+    @slot;
+  }
+}
+@custom-variant motion-reduce {
+  @media (prefers-reduced-motion: reduce) {
+    &:where(:not([data-motion="on"], [data-motion="on"] *)) {
+      @slot;
+    }
+  }
+}
+
+/*
  * Phong cách "bảng phấn lớp học" (ADR 0009): nền là bảng phấn trong khung gỗ, nội dung đặt trên
  * thẻ "giấy dán" viền mực. Chế độ sáng = bảng xanh lá, chế độ tối = bảng tím than.
  *
@@ -52,6 +75,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  /* Chữ trên nền destructive (nút xoá đặc) */
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -88,6 +113,7 @@
   --accent: #efe4d6;
   --accent-foreground: #1f1b3a;
   --destructive: #c93a55;
+  --destructive-foreground: #fff8ef;
   --border: #1f1b3a;
   --input: #1f1b3a;
   --ring: #4d9de0;
@@ -118,6 +144,7 @@
   --accent: #3a3560;
   --accent-foreground: #fff8ef;
   --destructive: #f07a90;
+  --destructive-foreground: #1f1b3a;
   --border: #0e0c1e;
   --input: #0e0c1e;
   --ring: #8ec5ff;

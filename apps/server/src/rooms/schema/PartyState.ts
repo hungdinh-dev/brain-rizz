@@ -24,6 +24,11 @@ export const Player = schema(
     lastPoints: t.uint8().default(0),
     /** Tổng điểm vòng cả trận (phá hoà chung cuộc). */
     totalScore: t.uint32().default(0),
+    /**
+     * Category → tổng điểm vòng cả trận ở thể loại đó (CR-010). Chỉ thể loại đã chơi mới có
+     * khoá (kể cả 0 điểm); xoá sạch khi Chơi lại / Về phòng chờ.
+     */
+    categoryScores: t.map("uint32"),
     roundScore: t.uint32().default(0),
     roundCorrect: t.uint16().default(0),
     progress: t.uint16().default(0),

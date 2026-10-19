@@ -11,6 +11,10 @@ export const SFX_KINDS = [
   "tick",
   "correct",
   "wrong",
+  // Vinh danh hồi hộp (CR-010): lật hạng 3/2, trống dồn chờ hạng nhất, kèn lúc lật hạng nhất.
+  "reveal",
+  "drumroll",
+  "fanfare",
 ] as const;
 
 export type SfxKind = (typeof SFX_KINDS)[number];

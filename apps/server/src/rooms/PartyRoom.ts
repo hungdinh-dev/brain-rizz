@@ -1,16 +1,14 @@
 import {
-  type AnswerResultPayload,
   AnswerSchema,
   AVATAR_COLORS,
   availableGames,
   BackToLobbySchema,
+  type Category,
   ClientMessage,
   COUNTDOWN_MS,
-  type Difficulty,
+  categoryLeaders,
   type ErrorPayload,
   type GameId,
-  gameMultiplier,
-  gameSpeedAllowanceMs,
   generateRoomCode,
   getGame,
   INTRO_AUTO_START_MS,
@@ -18,7 +16,6 @@ import {
   isGameId,
   JoinOptionsSchema,
   LATE_ANSWER_GRACE_MS,
-  MAX_ANSWERS_PER_SECOND,
   MAX_PLAYERS,
   MIN_PLAYERS_TO_START,
   majorityDifficulty,
@@ -28,15 +25,14 @@ import {
   type NudgePayload,
   type Phase,
   PickGameSchema,
-  PingSchema,
   PlayAgainSchema,
-  type PongPayload,
   placementPoints,
-  pointsForCorrect,
+  playedCategories,
   RECONNECT_WINDOW_S,
   ReadySchema,
   type RoundStartPayload,
   randomSeed,
+  rankByMatch,
   rankByRound,
   ServerMessage,
   SetDifficultySchema,
@@ -50,10 +46,12 @@ import {
   WHEEL_RESULT_HOLD_MS,
   WHEEL_SPIN_LEAD_MS,
   WHEEL_SPIN_MS,
-  WRONG_ANSWER_LOCK_MS,
 } from "@brain-rizz/shared";
 import { type Client, type Delayed, matchMaker, Room } from "colyseus";
 import type { z } from "zod";
+import { getResultStore, type MatchResultRecord } from "../store/ResultStore";
+import { AnswerJudge } from "./AnswerJudge";
+import { parseMessage, replyPong, sendError } from "./messages";
 import { PartyState, Player } from "./schema/PartyState";
 
 /**
@@ -74,13 +72,22 @@ export class PartyRoom extends Room<{ state: PartyState }> {
   override maxClients = MAX_PLAYERS;
   override state = new PartyState();
 
-  /** Thời điểm câu hiện tại của từng người bắt đầu (giờ server). */
-  private questionShownAt = new Map<string, number>();
-  private lockedUntil = new Map<string, number>();
-  private recentAnswers = new Map<string, number[]>();
+  /** Chấm từng câu (giờ hiện câu, khoá khi sai, chống spam), dùng chung với BrainTestRoom. */
+  private judge = new AnswerJudge();
   /** Lần cuối chủ phòng nhắc độ khó từng người (giờ server). */
   private lastNudgeAt = new Map<string, number>();
   private timers: Delayed[] = [];
+
+  /** Nơi ghi kết quả trận (ADR 0011). */
+  private store = getResultStore();
+  /** sessionId → user_id Supabase đã xác thực. Không đồng bộ xuống client; giữ qua nối lại. */
+  private userIds = new Map<string, string>();
+  /** Xác thực token đang chạy (ghi kết quả trận chờ các lượt này xong). */
+  private pendingAuth = new Map<string, Promise<void>>();
+  /** Game đã chơi trong trận này, theo thứ tự (ghi vào match_results). */
+  private matchGames: string[] = [];
+  /** Đã ghi kết quả trận hiện tại chưa (mỗi trận đúng một lần). */
+  private matchRecorded = false;
 
   override messages = {
     // ------------------------------------------------------------ phòng chờ
@@ -220,12 +227,7 @@ export class PartyRoom extends Room<{ state: PartyState }> {
       this.resetMatch();
     },
 
-    [ClientMessage.Ping]: (client: Client, raw: unknown) => {
-      const msg = PingSchema.safeParse(raw);
-      if (!msg.success) return;
-      const pong: PongPayload = { clientTime: msg.data.clientTime, serverTime: Date.now() };
-      client.send(ServerMessage.Pong, pong);
-    },
+    [ClientMessage.Ping]: (client: Client, raw: unknown) => replyPong(client, raw),
   };
 
   // ---------------------------------------------------------------- lifecycle
@@ -250,6 +252,7 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     player.difficulty = opts.difficulty;
     this.state.players.set(client.sessionId, player);
     if (!this.state.hostId) this.setHost(client.sessionId);
+    if (opts.accessToken) this.authenticate(client.sessionId, opts.accessToken);
   }
 
   override async onDrop(client: Client) {
@@ -268,10 +271,10 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     const id = client.sessionId;
     this.state.players.delete(id);
     this.state.votes.delete(id);
-    this.questionShownAt.delete(id);
-    this.lockedUntil.delete(id);
-    this.recentAnswers.delete(id);
+    this.judge.forget(id);
     this.lastNudgeAt.delete(id);
+    this.userIds.delete(id);
+    this.pendingAuth.delete(id);
     // Hẹn giờ của pha hiện tại (vòng quay, tự bắt đầu, hết giờ) vẫn chạy tiếp,
     // nên phòng không bị kẹt khi chủ phòng rời giữa chừng.
     if (this.state.hostId === id) {
@@ -295,6 +298,8 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     this.state.endsAt = 0;
     this.state.pickMode = "wheel";
     this.state.playedGames.clear();
+    this.matchGames = [];
+    this.matchRecorded = false;
     for (const p of this.state.players.values()) this.resetPlayerScores(p);
     this.enterGameSelect();
   }
@@ -348,6 +353,7 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     this.state.endsAt = this.state.startAt + game.durationMs;
     this.state.introEndsAt = 0;
     if (!this.state.playedGames.includes(gameId)) this.state.playedGames.push(gameId);
+    this.matchGames.push(gameId);
     this.state.votes.clear();
     this.clearWheel();
 
@@ -358,8 +364,7 @@ export class PartyRoom extends Room<{ state: PartyState }> {
       p.streak = 0;
       p.lastPoints = 0;
     }
-    this.questionShownAt.clear();
-    this.lockedUntil.clear();
+    this.judge.resetRound();
     this.state.phase = "countdown";
 
     const payload: RoundStartPayload = {
@@ -374,62 +379,48 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     this.schedule(COUNTDOWN_MS, () => {
       if (this.state.phase !== "countdown") return;
       this.state.phase = "playing";
-      for (const id of this.state.players.keys()) this.questionShownAt.set(id, this.state.startAt);
       this.schedule(game.durationMs + LATE_ANSWER_GRACE_MS, () => this.endRound());
     });
   }
 
   private handleAnswer(client: Client, msg: z.infer<typeof AnswerSchema>) {
-    const now = Date.now();
-    const id = client.sessionId;
-    const p = this.state.players.get(id);
-    if (!p || this.state.phase !== "playing" || !isGameId(this.state.gameId)) return;
-    if (msg.round !== this.state.round || msg.index !== p.progress) return;
-    if (now > this.state.endsAt + LATE_ANSWER_GRACE_MS) return;
-    if ((this.lockedUntil.get(id) ?? 0) > now) return;
-    if (this.isRateLimited(id, now)) return;
-
-    const game = getGame(this.state.gameId);
-    if (!game.isAnswer(msg.answer)) return;
-
-    const difficulty = p.difficulty as Difficulty;
-    const puzzle = game.generate(this.state.seed, msg.index, difficulty);
-    const correct = game.check(puzzle, msg.answer);
-    const shownAt = this.questionShownAt.get(id) ?? this.state.startAt;
-
-    const result: AnswerResultPayload = { index: msg.index, correct, points: 0 };
-    if (correct) {
-      // Hệ số và miễn trừ thời gian riêng của game (CR-006), tính trên câu server vừa sinh lại;
-      // giá trị game khai báo sai bị kẹp về mặc định trong gameMultiplier/gameSpeedAllowanceMs.
-      result.points = pointsForCorrect({
-        difficulty,
-        answerMs: now - shownAt,
-        streak: p.streak,
-        multiplier: gameMultiplier(game, difficulty),
-        allowanceMs: gameSpeedAllowanceMs(game, puzzle, difficulty),
-      });
-      p.roundScore += result.points;
+    const p = this.state.players.get(client.sessionId);
+    if (!p) return;
+    const outcome = this.judge.judge(
+      client.sessionId,
+      p,
+      {
+        playing: this.state.phase === "playing",
+        round: this.state.round,
+        gameId: this.state.gameId,
+        seed: this.state.seed,
+        startAt: this.state.startAt,
+        endsAt: this.state.endsAt,
+      },
+      msg,
+    );
+    if (!outcome) return;
+    if (outcome.correct) {
+      p.roundScore += outcome.points;
       p.roundCorrect += 1;
-      p.streak += 1;
-    } else {
-      p.streak = 0;
-      result.lockedUntil = now + WRONG_ANSWER_LOCK_MS;
-      this.lockedUntil.set(id, result.lockedUntil);
     }
-    // Đúng hay sai đều sang câu tiếp theo.
-    p.progress += 1;
-    this.questionShownAt.set(id, correct ? now : now + WRONG_ANSWER_LOCK_MS);
-    client.send(ServerMessage.AnswerResult, result);
+    client.send(ServerMessage.AnswerResult, outcome.result);
   }
 
   /** Hết giờ: xếp hạng có hoà, cộng điểm trận, luôn sang bảng điểm vòng (kể cả vòng cuối). */
   private endRound() {
     if (this.state.phase !== "playing") return;
     this.clearTimers();
+    const category = isGameId(this.state.gameId) ? getGame(this.state.gameId).category : null;
     for (const { player, rank } of rankByRound([...this.state.players.values()])) {
       player.lastPoints = placementPoints(rank);
       player.matchPoints += player.lastPoints;
       player.totalScore += player.roundScore;
+      // Tạo khoá cả khi 0 điểm: có khoá = đã chơi thể loại này (PlayerView.categoryScores).
+      if (category) {
+        const prev = player.categoryScores.get(category) ?? 0;
+        player.categoryScores.set(category, prev + player.roundScore);
+      }
     }
     this.state.phase = "round-results";
   }
@@ -438,6 +429,7 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     if (this.state.round >= this.state.totalRounds) {
       this.clearTimers();
       this.state.phase = "podium";
+      this.recordMatch();
       return;
     }
     this.state.round += 1;
@@ -487,12 +479,75 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     this.clients.getById(targetId)?.send(ServerMessage.Nudge, payload);
   }
 
+  // ---------------------------------------------------------------- tài khoản (ADR 0011)
+
+  /** Xác thực token chạy nền: không chặn vào phòng; token sai vẫn chơi, chỉ không ghi kết quả. */
+  private authenticate(id: string, token: string) {
+    if (!this.store.enabled) return;
+    const task: Promise<void> = this.store.verifyToken(token).then((userId) => {
+      // Người chơi đã rời trong lúc chờ thì bỏ.
+      if (userId && this.state.players.has(id)) this.userIds.set(id, userId);
+      if (this.pendingAuth.get(id) === task) this.pendingAuth.delete(id);
+    });
+    this.pendingAuth.set(id, task);
+  }
+
+  /** Vào `podium`: ghi `match_results` cho người đã xác thực, chạy nền, lỗi chỉ log. */
+  private recordMatch() {
+    if (this.matchRecorded || !this.store.enabled) return;
+    this.matchRecorded = true;
+    const roomCode = this.state.code;
+    const rounds = this.state.round;
+    const games = [...this.matchGames];
+    // Chốt bảng xếp hạng ngay lúc vào podium (người rời sau đó vẫn được ghi đúng hạng).
+    const ranked = rankByMatch([...this.state.players.values()]).map(({ player, rank }) => ({
+      id: player.id,
+      placement: rank,
+      matchPoints: player.matchPoints,
+      totalScore: player.totalScore,
+      categoryScores: Object.fromEntries(player.categoryScores.entries()) as Partial<
+        Record<Category, number>
+      >,
+    }));
+    // Danh hiệu "giỏi nhất mỗi thể loại" (CR-010): id người → các thể loại người đó giành.
+    const titles = new Map<string, Category[]>();
+    for (const { category, leaderIds } of categoryLeaders(ranked, playedCategories(games))) {
+      for (const id of leaderIds) titles.set(id, [...(titles.get(id) ?? []), category]);
+    }
+    const userIds = this.userIds;
+    void Promise.all(this.pendingAuth.values())
+      .then(() => {
+        const rows: MatchResultRecord[] = [];
+        for (const r of ranked) {
+          const userId = userIds.get(r.id);
+          if (!userId) continue;
+          rows.push({
+            userId,
+            roomCode,
+            placement: r.placement,
+            players: ranked.length,
+            matchPoints: r.matchPoints,
+            totalScore: r.totalScore,
+            rounds,
+            games,
+            categoryScores: r.categoryScores,
+            categoryTitles: titles.get(r.id) ?? [],
+          });
+        }
+        return rows.length > 0 ? this.store.saveMatchResults(rows) : undefined;
+      })
+      .catch((err: unknown) => {
+        console.error(`[PartyRoom ${roomCode}] Không ghi được kết quả trận:`, err);
+      });
+  }
+
   // ---------------------------------------------------------------- helpers
 
   private resetPlayerScores(p: Player) {
     p.matchPoints = 0;
     p.lastPoints = 0;
     p.totalScore = 0;
+    p.categoryScores.clear();
     p.roundScore = 0;
     p.roundCorrect = 0;
     p.progress = 0;
@@ -530,13 +585,6 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     this.timers = [];
   }
 
-  private isRateLimited(id: string, now: number) {
-    const recent = (this.recentAnswers.get(id) ?? []).filter((t) => now - t < 1_000);
-    recent.push(now);
-    this.recentAnswers.set(id, recent);
-    return recent.length > MAX_ANSWERS_PER_SECOND;
-  }
-
   private async uniqueRoomCode(): Promise<string> {
     for (let attempt = 0; attempt < 20; attempt++) {
       const code = generateRoomCode();
@@ -547,10 +595,7 @@ export class PartyRoom extends Room<{ state: PartyState }> {
   }
 
   private parse<S extends z.ZodType>(client: Client, schema: S, raw: unknown) {
-    const result = schema.safeParse(raw);
-    if (result.success) return result.data as z.infer<S>;
-    this.sendError(client, { code: "invalid", message: "Dữ liệu không hợp lệ." });
-    return null;
+    return parseMessage(client, schema, raw);
   }
 
   private requireHost(client: Client) {
@@ -590,6 +635,6 @@ export class PartyRoom extends Room<{ state: PartyState }> {
   }
 
   private sendError(client: Client, error: ErrorPayload) {
-    client.send(ServerMessage.Error, error);
+    sendError(client, error);
   }
 }

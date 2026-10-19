@@ -33,17 +33,26 @@ export const vi = {
       matchTitle: "Tìm trận",
       matchDesc: "Ghép ngẫu nhiên với người chơi khắp nơi.",
       practiceTitle: "Luyện tập",
-      practiceDesc: "Chơi một mình, tự chọn nhóm kỹ năng và độ khó.",
+      practiceDesc: "Chơi một mình, chọn game và độ khó, phá kỷ lục của chính bạn.",
+      practiceMeta: "{{count}} minigame · 5 nhóm kỹ năng",
       skillGroups: "5 nhóm kỹ năng",
+      brainTitle: "Kiểm tra não",
+      brainDesc: "5 game, 5 kỹ năng, khoảng 5 phút. Ra Điểm Não và lên bảng xếp hạng.",
+      brainBest: "Cao nhất {{score}}",
+      brainNone: "Chưa có Điểm Não",
+      ghostTitle: "Đấu bóng ma",
       dailyTitle: "Thử thách hôm nay",
       dailyDesc: "Mỗi ngày 3 minigame, mọi người cùng một đề.",
       leaderboard: "Bảng xếp hạng",
-      leaderboardDesc: "Bạn bè và toàn cầu",
+      leaderboardDesc: "Điểm Não toàn cầu · tuần này",
+      account: "Tài khoản & lịch sử",
+      accountGuest: "Khách · chỉ trên máy này",
+      accountLinked: "Đã liên kết Google",
+      accountOffline: "Chưa kết nối máy chủ dữ liệu",
       collection: "Bộ sưu tập minigame",
       collectionDesc: "{{count}}/{{total}} minigame đã có",
       soon: "Sắp có",
       soonToast: "Tính năng này đang được làm, sắp ra mắt!",
-      mascotTip: "Hôm nay thử nhóm {{category}} nhé!",
       howToToast:
         "Mỗi vòng là một minigame ngắn: trả lời đúng và nhanh để ghi điểm, sai sẽ bị khoá vài giây.",
     },
@@ -299,6 +308,19 @@ export const vi = {
     playAgainNote: "Chơi lại: giữ phòng và người chơi, vào luôn vòng 1",
     playAgainNeedPlayers: "Cần ít nhất {{min}} người mới chơi lại được · về phòng chờ để mời thêm",
     waitPodium: "Chờ chủ phòng chọn chơi lại hoặc về phòng chờ…",
+    /** Vinh danh hồi hộp (CR-010, ui-ux 6.2–6.3). */
+    drumroll: "Và hạng nhất là…",
+    /** Vòng phấn "?" trên bục chưa lật. */
+    unknown: "?",
+    revealLive_one: "Hạng {{rank}}: {{name}}, {{count}} điểm",
+    revealLive_other: "Hạng {{rank}}: {{name}}, {{count}} điểm",
+    bestTitle: "Giỏi nhất mỗi thể loại",
+    bestSub: "Tổng điểm vòng theo thể loại trong trận",
+    bestPending: "Lật sau hạng nhất…",
+    bestYou: "{{name}} (bạn)",
+    bestTwo: "{{a}} & {{b}}",
+    bestMany: "{{a}}, {{b}} +{{count}}",
+    bestRowLabel: "{{category}}: {{names}}, {{score}} điểm vòng",
   },
   /** Thứ hạng đọc thành chữ: "Bạn về nhì". Từ hạng 5 dùng `other`. */
   ordinal: {
@@ -371,6 +393,36 @@ export const vi = {
   sfx: {
     turnOn: "Bật âm thanh hiệu ứng",
     turnOff: "Tắt âm thanh hiệu ứng",
+  },
+  /** Nút Hiệu ứng: theo cài đặt giảm chuyển động của máy hoặc luôn bật (CR-010). */
+  motion: {
+    toggle: "Luôn bật hiệu ứng",
+    titleSystem: "Hiệu ứng: theo cài đặt của máy",
+    titleReduced: "Máy đang giảm chuyển động — bấm để luôn bật hiệu ứng",
+    titleOn: "Hiệu ứng: luôn bật — bấm để theo cài đặt của máy",
+    toastOn: "Đã luôn bật hiệu ứng",
+    toastSystem: "Hiệu ứng theo cài đặt của máy",
+  },
+  /** Dùng chung cho các màn một mình và tài khoản (CR-009, khu 17). */
+  common: {
+    backToMenu: "Về menu",
+    quit: "Thoát",
+    retry: "Thử lại",
+    cancel: "Huỷ",
+    loading: "Đang tải…",
+    loadError: "Không tải được",
+    loadErrorHint: "Kiểm tra mạng của bạn rồi thử lại nhé.",
+    noDataServer: "Chưa kết nối máy chủ dữ liệu",
+    noDataServerHint:
+      "Bạn vẫn chơi được mọi chế độ, chỉ chưa lưu điểm và chưa xem được bảng xếp hạng.",
+    quitTitle: "Bỏ lượt này?",
+    quitBrain: "Lượt Kiểm tra não đang chơi sẽ bị huỷ và không được lưu.",
+    quitPractice: "Lượt này sẽ không tính kỷ lục.",
+    keepPlaying: "Chơi tiếp",
+    quitConfirm: "Bỏ lượt",
+    /** Tên dự phòng khi người chơi trên bảng xếp hạng chưa có hồ sơ. */
+    anonymous: "Người chơi ẩn danh",
+    none: "—",
   },
 };
 

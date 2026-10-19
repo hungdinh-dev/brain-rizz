@@ -2,6 +2,8 @@
 
 Server làm trọng tài, client tự chơi: server phát **seed**, giữ **đồng hồ** và **chấm điểm**; mỗi máy tự sinh câu đố từ seed bằng cùng một đoạn code (`packages/shared`) và chỉ gửi đáp án lên.
 
+Tài khoản, lịch sử điểm và bảng xếp hạng nằm trên **Supabase** (Auth + Postgres, [ADR 0011](decisions/0011-supabase-accounts-and-solo-modes.md)). Điểm được xếp hạng (Kiểm tra não, kết quả trận party) chỉ do **game server** ghi bằng khoá secret; client chỉ ghi hồ sơ của mình và kỷ lục luyện tập. Thiếu Supabase thì mọi chế độ vẫn chơi được, chỉ không lưu.
+
 ## Thành phần
 
 ```mermaid
@@ -17,11 +19,19 @@ flowchart LR
     PROTO["protocol.ts — tin nhắn + zod"]
     RNG["rng.ts — PRNG có seed"]
     SCORE["scoring.ts"]
+    SJUDGE["answer-judge.ts — judgeAnswer<br/>luật chấm một câu (hàm thuần)"]
     MATCH["match.ts — xếp hạng có hoà,<br/>game khả dụng, độ khó đa số"]
   end
   subgraph server["apps/server"]
     ROOM["rooms/PartyRoom.ts"]
-    STATE["rooms/schema/PartyState.ts"]
+    BRAIN["rooms/BrainTestRoom.ts<br/>(Kiểm tra não, 1 người)"]
+    JUDGE["rooms/AnswerJudge.ts<br/>giữ giờ hiện câu, khoá, chống spam<br/>từng người"]
+    STATE["rooms/schema/PartyState.ts<br/>BrainState.ts"]
+    RSTORE["store/ResultStore.ts<br/>(Supabase | rỗng | RAM)"]
+  end
+  subgraph supa["Supabase (tuỳ chọn)"]
+    AUTH["Auth: khách ẩn danh + Google"]
+    DB["Postgres + RLS<br/>profiles, brain_tests, brain_test_games,<br/>match_results, practice_bests, RPC xếp hạng"]
   end
   UI --> STORE
   NET --> STORE
@@ -29,6 +39,20 @@ flowchart LR
   UI --> PH
   PH --> GEN
   NET <-->|WebSocket| ROOM
+  NET <-->|WebSocket| BRAIN
+  ROOM --> JUDGE
+  BRAIN --> JUDGE
+  JUDGE --> SJUDGE
+  SJUDGE --> GEN
+  SJUDGE --> SCORE
+  UI -->|"Luyện tập: features/practice/judge.ts"| SJUDGE
+  BRAIN --> STATE
+  ROOM --> RSTORE
+  BRAIN --> RSTORE
+  RSTORE -->|"khoá secret: getClaims, ghi kết quả"| AUTH
+  RSTORE -->|khoá secret| DB
+  UI -->|"khoá publishable: đăng nhập,<br/>hồ sơ, lịch sử, bảng xếp hạng"| AUTH
+  UI -->|RPC + RLS| DB
   ROOM --> STATE
   ROOM --> GEN
   ROOM --> PROTO
@@ -39,7 +63,7 @@ flowchart LR
   GEN --> RNG
 ```
 
-Quy tắc phụ thuộc: `web` và `server` được import `shared`; `shared` không import gì từ hai app. Scene Phaser không biết mạng là gì — nó chỉ nhận `MinigameBridge` (seed, độ khó, hàm `submit`, và `unlockDelay` để biết khi nào server hết khoá sau câu sai).
+Quy tắc phụ thuộc: `web` và `server` được import `shared`; `shared` không import gì từ hai app. Phòng chơi không gọi Supabase trực tiếp mà qua `ResultStore` (`verifyToken`, `saveBrainTest`, `saveMatchResults`): bản thật dùng `SUPABASE_URL` + `SUPABASE_SECRET_KEY`, thiếu biến thì là bản rỗng (log một lần), test dùng bản trong RAM (không gọi mạng). Scene Phaser không biết mạng là gì — nó chỉ nhận `MinigameBridge` (seed, độ khó, hàm `submit`, và `unlockDelay` để biết khi nào server hết khoá sau câu sai).
 
 ## Vòng đời một phòng
 
@@ -105,9 +129,9 @@ sequenceDiagram
   A->>S: nextRound {} → game-select vòng sau, hoặc podium sau vòng cuối
 ```
 
-**Chấm một câu** (`handleAnswer` trong `PartyRoom`, công thức ở `packages/shared/src/scoring.ts`):
+**Chấm một câu** (`judgeAnswer` trong `packages/shared/src/answer-judge.ts`: hàm thuần, nhận `now`, không đọc đồng hồ. Server bọc trong `apps/server/src/rooms/AnswerJudge.ts` cho `PartyRoom` và `BrainTestRoom`; Luyện tập trên web gọi thẳng qua `features/practice/judge.ts`, nên ba chế độ cùng một luật. Công thức điểm ở `packages/shared/src/scoring.ts`):
 
-1. Bỏ qua nếu sai pha, sai vòng, `index` khác câu đang làm, quá `endsAt + LATE_ANSWER_GRACE_MS`, đang bị khoá, hoặc gửi quá `MAX_ANSWERS_PER_SECOND`.
+1. Bỏ qua nếu sai pha, sai vòng, `index` khác câu đang làm, quá `endsAt + LATE_ANSWER_GRACE_MS`, đang bị khoá, gửi quá `MAX_ANSWERS_PER_SECOND` (đáp án sai kiểu cũng bị đếm), hoặc đáp án sai kiểu (`isAnswer`).
 2. Server sinh lại câu bằng `generate(seed, index, độ khó)` rồi `check()`. Sai thì điểm 0, chuỗi về 0 và bị khoá `WRONG_ANSWER_LOCK_MS`.
 3. Đúng thì tính `pointsForCorrect`: điểm = (`BASE_POINTS` × hệ số độ khó + thưởng tốc độ) × hệ số combo, làm tròn.
    - **Hệ số độ khó** = `gameMultiplier(game, độ khó)`: lấy `difficultyMultiplier` game khai báo; game không khai báo, hoặc khai báo số không dương / không hữu hạn, thì dùng `DIFFICULTY_MULTIPLIER` chung (CR-006).
@@ -128,7 +152,7 @@ Game không khai báo hai trường CR-006 (như Kẻ lạc đàn) được ch�
 
 | Chiều | Tin nhắn | Nội dung | Ai được gửi, khi nào |
 | --- | --- | --- | --- |
-| C → S | join options | `name`, `colorIndex`, `difficulty`, `avatar` (mặc định `khoi`) | Khi tạo/vào phòng, chỉ ở pha `lobby` |
+| C → S | join options | `name`, `colorIndex`, `difficulty`, `avatar` (mặc định `khoi`), `accessToken?` (JWT Supabase, ≤ 4 096 ký tự; sai kiểu/quá dài thì bị bỏ) | Khi tạo/vào phòng, chỉ ở pha `lobby` |
 | C → S | `ready` | `{ ready }` | Mọi người, ở `lobby` |
 | C → S | `setProfile` | tên, màu, độ khó, nhân vật (tuỳ chọn; trường không gửi giữ nguyên) | Mọi người, ở `lobby`; không làm mất trạng thái sẵn sàng |
 | C → S | `setRounds` | `{ totalRounds }` (1–10) | Chủ phòng, ở `lobby` |
@@ -155,6 +179,51 @@ Game không khai báo hai trường CR-006 (như Kẻ lạc đàn) được ch�
 
 Tin không có nội dung (`{}`) chấp nhận cả `undefined`/`null`; trường lạ bị bỏ.
 
+## Phòng Kiểm tra não
+
+`BrainTestRoom` (tên room `brain-test`, UC-14): phòng riêng **một người** (`maxClients = 1`), không mã phòng, tạo bằng `client.create("brain-test", options)`. "Làm lại" là rời phòng và tạo phòng mới.
+
+```mermaid
+stateDiagram-v2
+  [*] --> intro: vào phòng — server chọn 5 game (pickBrainTestGames), round = 1
+  intro --> countdown: brainReady (seed mới, startAt = now + 3 s)
+  countdown --> playing: sau BRAIN_TEST_COUNTDOWN_MS
+  playing --> game_result: hết giờ (brainTestDurationMs + 0,4 s dung sai)
+  game_result --> intro: sau BRAIN_TEST_GAME_RESULT_MS, còn game — round + 1
+  game_result --> finished: sau game thứ 5 — computeBrainResult, lưu nếu có user_id
+```
+
+- Độ khó cố định `BRAIN_TEST_DIFFICULTY` cho mọi người; chấm từng câu bằng `AnswerJudge` như party (khoá khi sai, chống spam, dung sai hết giờ). Tiến độ và chuỗi đúng về 0 ở đầu mỗi game.
+- Pha `intro` chờ người chơi bấm Sẵn sàng; quá `BRAIN_TEST_INTRO_IDLE_MS` (5 phút) thì huỷ lượt, không lưu, đóng phòng với close code `BRAIN_TEST_IDLE_CLOSE_CODE` (4100).
+- Rớt mạng: giữ chỗ `RECONNECT_WINDOW_S` như party, đồng hồ game vẫn chạy. Thoát hoặc hết giờ giữ chỗ trước `finished` → huỷ lượt, không lưu. Lượt xong trong lúc đang rớt mạng thì chỉ lưu khi nối lại kịp.
+- **Lưu kết quả**: token trong join options được xác thực nền (`verifyToken`), không chặn việc chơi. Xong lượt → `saveBrainTest` ghi `brain_tests` (kèm `rules_version = BRAIN_TEST_RULES_VERSION`) + 5 dòng `brain_test_games`. Kết quả báo qua `saveStatus`:
+
+| `saveStatus` | Nghĩa |
+| --- | --- |
+| `pending` | Chưa xong lượt, đang xác thực token, hoặc đang ghi |
+| `saved` | Đã ghi vào tài khoản |
+| `guest` | Không gửi token, hoặc token sai/hết hạn → không lưu (có thể hiện ngay từ đầu lượt) |
+| `no-db` | Server chưa cấu hình Supabase → không lưu (hiện ngay từ đầu lượt) |
+| `failed` | Ghi lỗi (Supabase tạm dừng, mạng…) |
+
+**Tin nhắn** (`BrainClientMessage` trong `protocol.ts`; `answer` và `ping` dùng chung tên và schema với party):
+
+| Chiều | Tin nhắn | Nội dung | Khi nào |
+| --- | --- | --- | --- |
+| C → S | join options | `name`, `avatar` (mặc định `khoi`), `accessToken?` (`BrainJoinOptionsSchema`) | `client.create("brain-test", …)` |
+| C → S | `brainReady` | `{}` | Pha `intro`: bắt đầu đếm ngược game hiện tại; sai pha → `bad-phase` |
+| C → S | `answer` | `{ round, index, answer }`, `round` = thứ tự game (1–5) | Pha `playing` |
+| C → S | `ping` | `{ clientTime }` | Bất cứ lúc nào |
+| S → C | patch state | `BrainStateView` | Liên tục |
+| S → C | `roundStart` | `{ round, gameId, seed, startAt, durationMs }` | Đầu mỗi game (vào `countdown`) |
+| S → C | `answerResult`, `pong`, `error` | như party | |
+
+**State** (`apps/server/src/rooms/schema/BrainState.ts`, khớp `BrainStateView`; test so khoá trong `test/BrainTestRoom.test.ts`): `phase`, `name`, `avatar`, `difficulty`, `games` (5 × `{ gameId, category, score, correct }`, điểm cập nhật trực tiếp khi chơi), `round` (1–5), `gameId`, `seed`, `startAt`, `endsAt` (0 ở `intro`), `resultEndsAt` (pha `game-result`: lúc tự sang game kế), `progress`, `streak`, `brainScore` và `skills` (nhóm → điểm; 0/rỗng tới khi `finished`), `saveStatus`. Token và `user_id` **không bao giờ** nằm trong state.
+
+## Kết quả trận party
+
+Join options của party nhận `accessToken?`. `PartyRoom` xác thực nền khi vào phòng (token sai vẫn cho chơi), giữ `user_id` trong `Map` riêng theo `sessionId` (giữ qua nối lại, xoá khi rời hẳn). Khi trận vào `podium`, phòng ghi `match_results` **một lần mỗi trận** (chơi lại là trận mới) cho mỗi người còn trong phòng có `user_id`: `placement` theo `rankByMatch` (0 = nhất), `players` (số người lúc vào podium), `match_points`, `total_score`, `rounds`, `games` (game đã chơi theo thứ tự), `category_scores` (tổng điểm vòng theo thể loại, chỉ thể loại đã chơi) và `category_titles` (thể loại người đó giành danh hiệu theo `categoryLeaders`, CR-010). Việc ghi chạy nền, lỗi chỉ log.
+
 ## State đồng bộ
 
 `apps/server/src/rooms/schema/PartyState.ts` (Colyseus schema) — hình dạng khớp `PartyStateView` trong shared:
@@ -166,7 +235,7 @@ Tin không có nội dung (`{}`) chấp nhận cả `undefined`/`null`; trườn
 
 Test "state khớp hình dạng PartyStateView" trong `apps/server/test/PartyRoom.test.ts` so khoá của `state.toJSON()` với `PartyStateView`/`PlayerView`, nên thêm trường ở một bên mà quên bên kia sẽ báo lỗi.
 
-Thông tin chỉ server cần (giờ hiện câu của từng người, thời điểm hết khoá, bộ đếm chống spam, lần nhắc độ khó gần nhất) giữ trong `Map` riêng của `PartyRoom`, không đồng bộ xuống client.
+Thông tin chỉ server cần (giờ hiện câu của từng người, thời điểm hết khoá, bộ đếm chống spam — trong `AnswerJudge`; lần nhắc độ khó gần nhất, `user_id` Supabase) giữ trong `Map` riêng của phòng, không đồng bộ xuống client.
 
 ## Đồng bộ giờ
 
@@ -185,7 +254,9 @@ Client gửi 5 `ping` cách nhau 150 ms khi vào phòng (và 3 lần mỗi khi t
 | Minigame mới | `pnpm new-game <id> <nhóm>` → `packages/shared/src/games/<id>/` + `apps/web/src/games/<id>/` (xem [hướng dẫn](../03-guides/development.md#thêm-một-minigame)) |
 | Luật chơi, tính điểm | `packages/shared/src/scoring.ts`, `constants.ts` |
 | Xếp hạng, game còn chơi được, độ khó đa số | `packages/shared/src/match.ts` (server và web dùng chung) |
-| Tin nhắn mới | `packages/shared/src/protocol.ts` → handler trong `PartyRoom.messages` → gọi từ `apps/web/src/net/connection.ts` |
+| Tin nhắn mới | `packages/shared/src/protocol.ts` → handler trong `PartyRoom.messages` (hoặc `BrainTestRoom.messages`) → gọi từ `apps/web/src/net/connection.ts` |
+| Luật Kiểm tra não (chọn game, thời lượng, Điểm Não) | `packages/shared/src/brain-test.ts`; luồng phòng ở `apps/server/src/rooms/BrainTestRoom.ts` |
+| Bảng, RLS, RPC bảng xếp hạng | Migration mới trong `supabase/migrations/` ([cài đặt](../03-guides/supabase-setup.md)) |
 | Màn hình mới | `apps/web/src/features/<tên>/` + rẽ nhánh trong `app/App.tsx` |
 | Hình minh hoạ, hoạt ảnh | SVG + CSS trong React (`components/characters`, `styles/characters.css`); không dùng 3D ([ADR 0010](decisions/0010-drop-3d-2d-lobby-and-podium.md)) |
 | Chữ hiển thị, ngôn ngữ | `apps/web/src/i18n/locales/` ([ADR 0007](decisions/0007-i18n-inline-resources.md)) |

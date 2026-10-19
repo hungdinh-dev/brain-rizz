@@ -17,6 +17,9 @@ Tên file **đúng bằng tên loại**, vd. `click.mp3`.
 | `tick` | Mỗi giây lúc đếm ngược 5 giây (giây cuối phát cao hơn) | `tick_001` |
 | `correct` | Câu trả lời của mình đúng | `confirmation_002` |
 | `wrong` | Câu trả lời của mình sai | `error_006` |
+| `reveal` | Vinh danh: lật hạng 3, hạng 2 (≤ ~250 ms) | — (tiếng tổng hợp) |
+| `drumroll` | Vinh danh: trống dồn đúng 2 giây chờ hạng nhất | — (tiếng tổng hợp) |
+| `fanfare` | Vinh danh: lật hạng nhất (≤ ~1,6 s) | — (tiếng tổng hợp) |
 
 Bộ Kenney "Interface Sounds": https://kenney.nl/assets/interface-sounds (CC0).
 

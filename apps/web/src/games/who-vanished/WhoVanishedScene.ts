@@ -6,6 +6,7 @@ import {
   whoVanishedRevealMs,
 } from "@brain-rizz/shared";
 import Phaser from "phaser";
+import { prefersReducedMotion } from "@/features/motion";
 import type { MinigameBridge } from "../types";
 import { ITEM_ART, ITEM_BOX, type ItemPart } from "./items";
 import {
@@ -261,12 +262,7 @@ function paintItem(ctx: Ctx, item: WhoVanishedItem, outline: string) {
   ctx.globalAlpha = 1;
 }
 
-/** Đọc `prefers-reduced-motion`: rèm mờ dần thay vì hạ; bỏ bay, nảy, rung, nhấc thẻ. */
-function prefersReducedMotion() {
-  return typeof window.matchMedia === "function"
-    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    : false;
-}
+// Giảm chuyển động (`prefersReducedMotion` dùng chung, theo nút Hiệu ứng): rèm mờ dần thay vì hạ; bỏ bay, nảy, rung, nhấc thẻ.
 
 // ---------------------------------------------------------------- scene
 

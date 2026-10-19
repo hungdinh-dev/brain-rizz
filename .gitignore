@@ -4,6 +4,7 @@ node_modules/
 
 # Build output
 dist/
+dist-share/
 build/
 .turbo/
 *.tsbuildinfo
@@ -12,6 +13,10 @@ build/
 .env
 .env.*
 !.env.example
+
+# Supabase CLI (ref project, phiên bản CLI, nhánh cục bộ)
+supabase/.temp/
+supabase/.branches/
 
 # Logs
 *.log
