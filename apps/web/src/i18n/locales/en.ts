@@ -63,8 +63,8 @@ export const en: LocaleMessages = {
     },
   },
   characters: {
-    khoi: { name: "Smokey", species: "Fold-ear cat" },
-    bo: { name: "Butter", species: "Fluffy-ear pup" },
+    khoi: { name: "Si", species: "Chibi cat" },
+    bo: { name: "Fen", species: "Ken dog" },
     mochi: { name: "Mochi", species: "White bunny" },
     bap: { name: "Corny", species: "Chick" },
     cam: { name: "Ember", species: "Fire fox" },
