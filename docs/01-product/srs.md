@@ -266,8 +266,11 @@ flowchart TD
   2. **Bảng điểm vòng** (bước 8): "Vòng n/N · <tên game> — Kết quả": hạng, nhân vật, tên, điểm vòng, số câu đúng, độ khó; người nhất vòng nổi bật.
   3. **Cộng điểm trận** (bước 9): bảng tổng điểm trận kiểu Kahoot, mỗi người có số "+10 / +8…" vừa cộng bay vào thanh điểm và mũi tên lên/xuống hạng so với vòng trước.
   4. Chưa phải vòng cuối → chủ phòng bấm **Vòng tiếp theo** → pha `game-select` (UC-20). Người khác thấy "Chờ chủ phòng…".
-  5. Vòng cuối → chủ phòng bấm **Xem người thắng** → pha `podium`: **vinh danh kiểu Kahoot bằng 2D**, lần lượt hiện hạng 3, hạng 2, hạng 1 trên bục, nhân vật biểu cảm chiến thắng, pháo giấy; bên dưới là hạng 4 trở đi.
-- **FR:** FR-VC-09, FR-VC-10, FR-VC-20, FR-GD-06.
+  5. Vòng cuối → chủ phòng bấm **Xem người thắng** → pha `podium`: **vinh danh hồi hộp kiểu Kahoot bằng 2D** (CR-010): bục và danh sách đứng sẵn, lật lần lượt hạng 4 trở đi (từ dưới lên) → hạng 3 → hạng 2 → chờ 2 giây có tiếng trống dồn và chữ "Và hạng nhất là…" → hạng 1 bung lên với vương miện, pháo giấy và tiếng kèn; sau đó thẻ **Giỏi nhất mỗi thể loại** (FR-VC-21). Nhãn "Bạn về …" chỉ hiện sau khi chỗ của mình lật. Nút của chủ phòng bấm được ngay từ đầu.
+- **Luồng rẽ:**
+  - 5a. Đang giảm chuyển động (FR-GD-12): giữ nguyên nhịp lật, chỉ thay trượt/nảy bằng mờ dần, không pháo giấy.
+  - 5b. Mở màn khi pha `podium` đã chạy (tải lại trang, vào lại phòng): hiện hết ngay, không phát trống/kèn.
+- **FR:** FR-VC-09, FR-VC-10, FR-VC-20, FR-VC-21, FR-GD-06.
 - **Hiện trạng code (2026-10-12):** đã có bảng điểm vòng, bảng cộng điểm trận (số "+điểm", mũi tên lên/xuống hạng) và vinh danh top 3 bằng 2D. Hoà điểm vòng thì cùng hạng, cùng điểm trận; hoà điểm trận ở cuối thì xét tổng điểm vòng.
 
 #### UC-09 — Chơi lại / về phòng chờ
@@ -297,8 +300,9 @@ flowchart TD
 - **Luồng rẽ:**
   - 1a. Bấm phát/dừng, bài kế hoặc kéo âm lượng trên thanh nhạc nền → nhạc đổi ngay, lựa chọn được nhớ cho lần sau (CR-007).
   - 1b. Bấm nút bật/tắt âm thanh hiệu ứng → tiếng bấm nút, đếm ngược, đúng/sai bật hoặc tắt ngay, độc lập với nhạc nền, lựa chọn được nhớ (CR-008).
+  - 1c. Bấm nút **Hiệu ứng** → đổi giữa "Theo hệ thống" và "Luôn bật"; có thông báo ngắn, lựa chọn được nhớ (CR-010).
 - **Ràng buộc:** lúc đếm ngược và đang chơi minigame, các nút này ẩn để nhường chỗ; nhạc vẫn phát nhưng nhỏ lại.
-- **FR:** FR-GD-01, FR-GD-02, FR-GD-07, FR-GD-10.
+- **FR:** FR-GD-01, FR-GD-02, FR-GD-07, FR-GD-10, FR-GD-12.
 
 #### UC-12 — Rời phòng
 
@@ -442,6 +446,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-VC-18 | Chủ phòng xem độ khó và trạng thái "đã hiểu" của từng người; người lệch so với đa số được đánh dấu; chủ phòng bấm "Nhắc" gửi thông báo cho người đó (tối đa 1 lần/10 giây/người) | UC-21 | S | 1 |
 | FR-VC-19 | Người chơi bấm "Đã hiểu"; chủ phòng bắt đầu khi tất cả đã hiểu; server tự bắt đầu sau 20 giây | UC-21 | M | 1 |
 | FR-VC-20 | Sau bảng điểm vòng: bảng tổng điểm trận có hiệu ứng cộng điểm từng người và mũi tên đổi hạng; chủ phòng bấm "Vòng tiếp theo" hoặc "Xem người thắng" | UC-08 | M | 1 |
+| FR-VC-21 | Điểm theo thể loại (CR-010): lúc chốt vòng server cộng điểm vòng của mỗi người vào thể loại của game vòng đó (`PlayerView.categoryScores`, chỉ thể loại đã chơi mới có khoá, kể cả 0 điểm); xoá khi "Chơi lại" / "Về phòng chờ". Danh hiệu "Giỏi nhất mỗi thể loại" tính bằng hàm thuần `categoryLeaders` (shared): điểm cao nhất và > 0, hoà thì cùng nhận, thể loại mọi người 0 điểm thì không trao | UC-08, UC-09 | S | 1–2 |
 
 ### 4.4 Minigame (MG)
 
@@ -462,12 +467,13 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-GD-03 | Phong cách bảng phấn, thẻ nhãn dán, 6 nhân vật SVG có biểu cảm ([ADR 0009](../02-architecture/decisions/0009-chalkboard-style-and-characters.md)) | UC-01, UC-05 | S | 0 |
 | FR-GD-04 | Menu chính hiển thị các chế độ chưa làm với nhãn "Sắp có" và thông báo khi bấm | — | S | 0 |
 | FR-GD-05 | ~~Sân khấu 3D ở sảnh, avatar low-poly~~ — **Huỷ** (CR-005, ADR 0010), thay bằng FR-PH-12 | — | — | — |
-| FR-GD-06 | Vinh danh chung cuộc kiểu Kahoot bằng 2D: lần lượt hiện hạng 3, 2, 1 trên bục, nhân vật biểu cảm thắng, pháo giấy, danh sách hạng còn lại | UC-08 | M | 1 |
+| FR-GD-06 | Vinh danh chung cuộc kiểu Kahoot bằng 2D: lật lần lượt hạng 4 trở đi (từ dưới lên), hạng 3, hạng 2, chờ 2 giây có trống dồn rồi hạng 1 (vương miện, pháo giấy, kèn), sau đó thẻ Giỏi nhất mỗi thể loại; nhân vật biểu cảm thắng; nhãn hạng của mình chỉ hiện sau khi chỗ mình lật; nút chủ phòng bấm được ngay; lịch hiện là hàm thuần có test (CR-010) | UC-08 | M | 1 |
 | FR-GD-07 | Âm thanh hiệu ứng: tiếng bấm nút theo loại (thường, bật/tắt, xác nhận, quay lại), báo lỗi, tích tắc đếm ngược, trả lời đúng/sai; nút bật/tắt riêng, nhớ lựa chọn, mặc định bật. Tiếng lấy từ file trong thư mục âm thanh nếu có, không có thì tạo bằng Web Audio. Nhạc nền ở FR-GD-10, rung và Wake Lock ở FR-GD-11 ([CR-008](../00-tracking/change-requests.md#cr-008)) | UC-07, UC-11 | S | 1 |
 | FR-GD-08 | Cài lên màn hình chính, cache asset (PWA) | — | S | 2 |
 | FR-GD-09 | Lỗi từ server hiện thành thông báo ngắn theo mã (`not-host`, `bad-phase`, `invalid`, `rate-limited`, `not-ready`) | — | M | 0 |
 | FR-GD-10 | Nhạc nền nhiều bài: thanh nhạc trên header (phát/dừng, bài kế; máy tính thêm tên bài và âm lượng); phát lần lượt, hết danh sách thì lặp lại; mặc định bật, bắt đầu phát ở lần chạm đầu; nhớ bật/tắt, âm lượng, bài đang nghe; nhỏ còn một nửa khi đếm ngược và đang chơi; tạm dừng khi tab ẩn; danh sách bài lấy tự động từ thư mục nhạc, thêm bài không cần sửa code ([CR-007](../00-tracking/change-requests.md#cr-007)) | UC-11 | S | 1 |
 | FR-GD-11 | Rung phản hồi khi trả lời; giữ màn hình sáng khi chơi (Wake Lock) — tách từ FR-GD-07 (CR-008) | UC-07 | S | 2 |
+| FR-GD-12 | Nút **Hiệu ứng** trên hàng nút: "Theo hệ thống" (mặc định, giảm chuyển động khi máy báo `prefers-reduced-motion: reduce`) / "Luôn bật"; nhớ trên máy. Một nguồn "giảm chuyển động" cho cả giao diện React, CSS và scene minigame. Giảm chuyển động giữ nguyên nhịp hiện, chỉ thay trượt/nảy bằng mờ dần, bỏ pháo giấy; vòng quay dừng ngay ở kết quả ([CR-010](../00-tracking/change-requests.md#cr-010)) | UC-11, UC-08, UC-20 | S | 1 |
 
 ### 4.6 Chế độ mở rộng & tài khoản (MR)
 
@@ -488,6 +494,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-MR-13 | Hiện hạng của mình (tô nổi bật trong top hoặc ghim dòng riêng khi ngoài top) | UC-19 | S | 1–2 |
 | FR-MR-14 | Bảng xếp hạng bạn bè — chờ tính năng kết bạn (CR mới) | UC-19 | C | — |
 | FR-MR-15 | Thiếu biến môi trường Supabase hoặc Supabase không truy cập được: mọi chế độ vẫn chơi được, phần lưu/bảng xếp hạng báo "Chưa kết nối máy chủ dữ liệu" | UC-13, UC-14, UC-16, UC-19 | M | 1–2 |
+| FR-MR-16 | Kết quả trận party ghi thêm điểm theo thể loại (`match_results.category_scores`) và các thể loại người đó giành danh hiệu (`category_titles`) theo FR-VC-21; màn Tài khoản hiện thế mạnh party theo thể loại (số danh hiệu, điểm trung bình trên các trận có chơi thể loại đó) — CR-010 | UC-16 | S | 1–2 |
 
 ## 5. Yêu cầu phi chức năng
 
@@ -535,6 +542,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | Phiên Supabase (khách hoặc Google) | `localStorage` (do supabase-js quản lý) | Tới khi đăng xuất |
 | Trạng thái phòng Kiểm tra não, `user_id` của người chơi trong phòng | RAM của game server | Tới khi rời phòng |
 | Hồ sơ tài khoản, kết quả Kiểm tra não, kết quả trận party, kỷ lục luyện tập | Supabase Postgres (`profiles`, `brain_tests`, `brain_test_games`, `match_results`, `practice_bests`) | Lâu dài, tới khi người chơi xoá |
+| Điểm theo thể loại và danh hiệu thể loại của mỗi trận party (CR-010) | Supabase Postgres, cột `match_results.category_scores` (jsonb, chỉ thể loại đã chơi) và `match_results.category_titles` (text[]) — migration `20261019000000_match_category_scores.sql`; trong trận: RAM game server (`PlayerView.categoryScores`) | Lâu dài, tới khi người chơi xoá; trong trận thì tới khi Chơi lại / Về phòng chờ |
 | Lượt chơi bóng ma (GĐ 3) | Supabase Postgres | Lâu dài |
 
 ## 8. Ma trận truy vết
@@ -549,7 +557,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | BR-06 | UC-10 | FR-PH-08 | `PartyRoom.test.ts` (tải lại trang ở game-select, game-intro, playing, round-results); `apps/web/src/stores/game.store.test.ts`. Còn thiếu rớt mạng giữ chỗ / quá 45 giây (T-01) |
 | BR-07 | UC-06, UC-20, UC-08, UC-09 | FR-VC-01, FR-VC-09, FR-VC-10, FR-VC-13, FR-VC-20 | `PartyRoom.test.ts` (bắt đầu trận, hoà điểm, điểm trận cộng dồn, vòng cuối → podium, chơi lại, về phòng chờ) |
 | BR-15 | UC-20, UC-21 | FR-VC-12 → FR-VC-16, FR-VC-19 | `PartyRoom.test.ts` nhóm "chọn game" (5 test) và "hướng dẫn + độ khó" (6 test) |
-| BR-08 | UC-11 | FR-GD-01, FR-GD-02, FR-GD-07, FR-GD-10 | `pnpm typecheck` (khoá i18n); test logic trong `apps/web/src/features/music/` và `features/sfx/` |
+| BR-08 | UC-11 | FR-GD-01, FR-GD-02, FR-GD-07, FR-GD-10, FR-GD-12 | `pnpm typecheck` (khoá i18n); test logic trong `apps/web/src/features/music/`, `features/sfx/` và `features/motion/` |
 | BR-10 | UC-13→16 | FR-MR-01→05, FR-MR-07→11, FR-MR-15 | — (đang làm, CR-009) |
 | BR-14 | UC-19 | FR-MR-12→14 | — (đang làm, CR-009) |
 | BR-11 | UC-05, UC-08 | FR-PH-12, FR-GD-06→08 | — |
@@ -566,5 +574,6 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | 1.4 | 2026-10-14 | Nhạc nền nhiều bài: thêm FR-GD-10 (GĐ 1), tách nhạc nền khỏi FR-GD-07; sửa UC-11, NFR-UX-02, NFR-LEGAL-01 (ngoại lệ nhạc "no copyright"), mục Dữ liệu và ma trận truy vết | [CR-007](../00-tracking/change-requests.md#cr-007) |
 | 1.5 | 2026-10-14 | Âm thanh hiệu ứng: viết lại FR-GD-07 (chỉ còn âm thanh hiệu ứng, dời sang GĐ 1), thêm FR-GD-11 (rung, Wake Lock, GĐ 2); sửa UC-11 (1b), NFR-UX-02, mục Dữ liệu, ma trận truy vết | [CR-008](../00-tracking/change-requests.md#cr-008) |
 | 1.6 | 2026-10-16 | Viết chi tiết UC-13, UC-14, UC-16, UC-19 và đưa lên GĐ 1–2; viết lại FR-MR-01, 02, 04, 06; thêm FR-MR-07 → 15, NFR-SEC-03; sửa NFR-PRIV-01, thuật ngữ, Dịch vụ ngoài, Dữ liệu, ma trận truy vết | [CR-009](../00-tracking/change-requests.md#cr-009) |
+| 1.7 | 2026-10-19 | Điểm và danh hiệu theo thể loại trong trận party: thêm FR-VC-21, FR-MR-16, dòng Dữ liệu `match_results.category_scores` / `category_titles`. Vinh danh hồi hộp và nút Hiệu ứng: viết lại UC-08 bước 5 (thêm 5a, 5b), FR-GD-06; thêm FR-GD-12, UC-11 luồng rẽ 1c | [CR-010](../00-tracking/change-requests.md#cr-010) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

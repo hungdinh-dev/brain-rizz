@@ -12,6 +12,12 @@ Luồng trận mới theo [CR-005](change-requests.md#cr-005), 4 minigame MVP v�
 
 ### Thêm
 
+- **Vinh danh hồi hộp, nút Hiệu ứng, danh hiệu theo thể loại** ([CR-010](change-requests.md#cr-010)):
+  - Màn vinh danh lật lần lượt hạng 4 trở đi (từ dưới lên), hạng 3, hạng 2, rồi chờ 2 giây có tiếng trống dồn và chữ "Và hạng nhất là…" trước khi hạng 1 bung lên với vương miện, pháo giấy và tiếng kèn. Nhãn "Bạn về …" chỉ hiện sau khi chỗ của mình lật. Vào lại phòng giữa lúc vinh danh thì hiện hết ngay (FR-GD-06).
+  - Thẻ **Giỏi nhất mỗi thể loại** hiện sau hạng 1: mỗi thể loại đã chơi có người điểm cao nhất (hoà thì cùng nhận) (FR-VC-21).
+  - Nút **Hiệu ứng** trên hàng nút: "Theo hệ thống" hoặc "Luôn bật" hiệu ứng chuyển động, kể cả khi máy đang tắt hoạt ảnh; có chấm cam khi máy đang giảm chuyển động (FR-GD-12).
+  - Tài khoản › Trận party có thẻ **Thế mạnh trong trận party**: số danh hiệu và điểm trung bình theo từng thể loại (FR-MR-16).
+  - Kỹ thuật: `features/motion` là nguồn "giảm chuyển động" duy nhất (`useReducedMotion`, `prefersReducedMotion` cho 12 scene Phaser); biến thể Tailwind `motion-safe`/`motion-reduce` viết lại theo `data-motion="on"` trên <html>; lịch hiện vinh danh là hàm thuần `podiumTimeline` có test; 3 tiếng Web Audio mới `reveal`, `drumroll`, `fanfare` (không thêm file âm thanh), `playSfx` trả hàm dừng sớm và nhận `volume`. Server cộng điểm vòng theo thể loại, ghi `match_results.category_scores` / `category_titles` (migration mới).
 - **Chơi một mình và tài khoản** ([CR-009](change-requests.md#cr-009), [ADR 0011](../02-architecture/decisions/0011-supabase-accounts-and-solo-modes.md)):
   - **Luyện tập** (UC-13): chọn bất kỳ minigame và độ khó, chơi không giới hạn lượt, lưu kỷ lục, có nhãn "Kỷ lục mới!".
   - **Kiểm tra não** (UC-14): 5 game, mỗi nhóm kỹ năng một game, khoảng 5 phút, server chấm; ra Điểm Não (0–1000) và biểu đồ 5 kỹ năng.
@@ -52,6 +58,7 @@ Luồng trận mới theo [CR-005](change-requests.md#cr-005), 4 minigame MVP v�
 - Bảng điểm vòng → bảng cộng điểm trận (+10/+8/…, mũi tên lên/xuống hạng) → vinh danh top 3 kiểu Kahoot bằng 2D (UC-08, FR-VC-20, FR-GD-06).
 - "Chơi lại" vào thẳng chọn game vòng 1, giữ người chơi và số vòng; "Về phòng chờ" để đổi nhân vật hoặc chờ thêm người (UC-09).
 - Kỹ thuật: tin nhắn mới `setPickMode`, `voteGame`, `spinWheel`, `pickGame`, `introReady`, `nudgeDifficulty`; mã lỗi `not-ready`; test server phủ các luồng mới, luồng dễ sai và tải lại trang ở từng pha (tổng 39 test server); thêm test cho store phía web.
+- Công cụ dev: `pnpm share` cho bạn bè ở xa chơi thử qua Cloudflare Quick Tunnel (không cần tài khoản, máy mình làm host); build riêng ra `apps/web/dist-share`, Vite cho phép host `.trycloudflare.com`.
 
 ### Thay đổi
 
@@ -60,6 +67,10 @@ Luồng trận mới theo [CR-005](change-requests.md#cr-005), 4 minigame MVP v�
 - Độ khó chọn theo từng game ở màn hướng dẫn thay vì ở sảnh (FR-VC-12).
 - Cân bằng điểm (CR-006): mỗi game có hệ số điểm theo độ khó riêng để chọn mức cao không bị thiệt; thời gian không thao tác được (trình chiếu, nhiều lần chạm) không bị trừ vào thưởng tốc độ; combo tối đa × 1,5; game mới chơi 60 giây mỗi vòng (Kẻ lạc đàn giữ 45 giây). Con số sẽ chỉnh sau buổi chơi thử.
 - Kỹ thuật: `MinigameDef` thêm `difficultyMultiplier`, `speedAllowanceMs`; `MinigameBridge` thêm `unlockDelay`; `GameLocale` thêm `levelHints`; `pnpm new-game` sinh khung theo khuôn mới (60 giây, hiện đáp án khi sai). Gói tải đầu khoảng 255 KB JS gzip, mỗi minigame là chunk riêng.
+
+### Sửa lỗi
+
+- Máy tắt "Animation effects" của Windows (trình duyệt báo giảm chuyển động) không thấy vòng quay, bục hiện cùng lúc và mất pháo giấy, khác hẳn người chơi khác. Giờ giảm chuyển động vẫn giữ nhịp hiện lần lượt (chỉ đổi trượt thành mờ dần), và nút Hiệu ứng "Luôn bật" bật lại đủ hiệu ứng ([CR-010](change-requests.md#cr-010)).
 
 ### Gỡ bỏ
 

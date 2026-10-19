@@ -97,7 +97,8 @@ brain-rizz/
 │  │  │                        tài khoản, quay về từ Google → màn Tài khoản; tải trước chunk màn trong phòng; Toaster
 │  │  ├─ app/party-screens.tsx Các màn trong phòng party theo pha (lobby → podium), tải lười cùng registry minigame
 │  │  ├─ assets/music/         File nhạc nền (.mp3/.ogg/.m4a) — thả vào là tự nhận; README.md: cách đặt tên, dung lượng
-│  │  ├─ assets/sfx/           File âm thanh hiệu ứng `<loại>.mp3` (click, toggle, confirm, back, error, tick, correct, wrong) —
+│  │  ├─ assets/sfx/           File âm thanh hiệu ứng `<loại>.mp3` (click, toggle, confirm, back, error, tick, correct, wrong,
+│  │  │                        reveal, drumroll, fanfare) —
 │  │  │                        thiếu thì dùng tiếng tổng hợp; README.md: bảng tên file ↔ lúc phát, gợi ý bộ Kenney (CC0)
 │  │  ├─ features/             ★ MỖI MÀN HÌNH MỘT FEATURE — feature khác chỉ import qua index.ts
 │  │  │  ├─ home/              HomeScreen (giới thiệu → menu ⇄ chọn bạn đồng hành; bước lưu ở nav.store), profile.ts
@@ -114,10 +115,14 @@ brain-rizz/
 │  │  │  │                     thao tác đầu tiên, dừng khi ẩn tab), gesture.ts (thao tác nào thì phát/bỏ qua/thôi chờ)
 │  │  │  │                     + test, components/MusicBar (đặt cạnh nút ngôn ngữ/theme)
 │  │  │  ├─ sfx/               Âm thanh hiệu ứng (FR-GD-07): player.ts (playSfx: file đã giải mã hoặc tiếng tổng hợp, gain
-│  │  │  │                     riêng), kinds.ts (8 loại, chọn tiếng theo data-sfx / aria-pressed / role), recipes.ts (nốt
-│  │  │  │                     tổng hợp), sources.ts + sfx-files.ts (import.meta.glob src/assets/sfx), settings.ts + sfx.store.ts
+│  │  │  │                     riêng, trả hàm dừng sớm), kinds.ts (11 loại, chọn tiếng theo data-sfx / aria-pressed / role),
+│  │  │  │                     recipes.ts (nốt + nhiễu qua bộ lọc; trống dồn, kèn vinh danh), sources.ts + sfx-files.ts (import.meta.glob src/assets/sfx), settings.ts + sfx.store.ts
 │  │  │  │                     (bật/tắt, nhớ trên máy), sfx.test.ts + player.test.ts, use-sfx-effects.ts (listener click uỷ quyền, tải trước file khi mở khoá, lỗi server,
 │  │  │  │                     đúng/sai), components/SfxToggle
+│  │  │  ├─ motion/            Hiệu ứng chuyển động (FR-GD-12, CR-010): motion.store.ts (nguồn "giảm chuyển động" duy nhất:
+│  │  │  │                     useReducedMotion cho React, prefersReducedMotion() cho scene Phaser, gắn data-motion="on"
+│  │  │  │                     lên <html> cho biến thể CSS motion-safe/motion-reduce), settings.ts ("system" | "on", nhớ
+│  │  │  │                     trên máy) + motion.test.ts, components/MotionToggle (đặt sau SfxToggle)
 │  │  │  ├─ game-select/       GameSelectScreen — chọn game mỗi vòng: vòng quay đồng bộ / chủ phòng chọn + bình chọn;
 │  │  │  │                     catalog.ts (danh mục 15 game, gom phiếu, lát vòng quay) + test,
 │  │  │  │                     components/ModeSwitch, LuckyWheel, WheelView, PickView, GameCard, GameThumb,
@@ -131,9 +136,10 @@ brain-rizz/
 │  │  │  │                     theo lockedUntil của server, cho MinigameBridge) + test, components/GameFrame (thẻ giấy chứa
 │  │  │  │                     Phaser), FrameOverlays (khoá, +điểm, hết giờ, mất kết nối, tải/lỗi), RoundTimer,
 │  │  │  │                     ScoreStrip, Scoreboard, MyScore, RoundInfo, ComboChip
-│  │  │  ├─ results/           ResultsScreen (bảng điểm vòng → cộng điểm trận), PodiumScreen (vinh danh top 3),
-│  │  │  │                     standings.ts (hạng trước/sau vòng, bục) + test, components/RoundResults,
-│  │  │  │                     MatchTotals, Confetti (export qua index cho Luyện tập)
+│  │  │  ├─ results/           ResultsScreen (bảng điểm vòng → cộng điểm trận), PodiumScreen (vinh danh hồi hộp: hạng 4+ →
+│  │  │  │                     3 → 2 → trống → 1), podium-timeline.ts (lịch hiện, hàm thuần) + test, standings.ts (hạng
+│  │  │  │                     trước/sau vòng, bục) + test, components/RoundResults, MatchTotals, CategoryBest (thẻ
+│  │  │  │                     Giỏi nhất mỗi thể loại), Confetti (export qua index cho Luyện tập)
 │  │  │  ├─ practice/          Luyện tập (UC-13, chạy trên máy): PracticeScreen (chọn game → hướng dẫn → đếm ngược → chơi →
 │  │  │  │                     kết quả), practice.store.ts (lượt, hẹn giờ, lưu + đồng bộ kỷ lục), judge.ts (gọi judgeAnswer
 │  │  │  │                     của shared — cùng luật với server, cộng dồn điểm/đúng/sai; seed crypto) + test, records.ts (kỷ lục `brain-rizz:practice`, gộp với
@@ -143,7 +149,8 @@ brain-rizz/
 │  │  │  │                     (màn tạm 3 s), BrainResult (Điểm Não, biểu đồ, so lần trước, hạng tuần, trạng thái lưu)
 │  │  │  ├─ account/           Tài khoản & lịch sử (UC-16): AccountScreen (phiên khách/Google, liên kết, đăng xuất, xoá dữ
 │  │  │  │                     liệu, hộp "Google đã có dữ liệu"), components/HistoryTabs (3 tab + bảng kỷ lục luyện tập),
-│  │  │  │                     ScoreTrend (đường tiến bộ SVG)
+│  │  │  │                     ScoreTrend (đường tiến bộ SVG), PartyStrengths (thẻ Thế mạnh trong trận party, CR-010);
+│  │  │  │                     strengths.ts (danh hiệu, TB điểm theo thể loại) + test
 │  │  │  └─ leaderboard/       Bảng xếp hạng (UC-19): LeaderboardScreen (tab Điểm Não / Theo minigame, kỳ, chọn game),
 │  │  │                        components/BoardView (top 3, danh sách 50, dòng của mình), week.ts (đầu tuần giờ VN,
 │  │  │                        màu avatar theo user_id) + test
@@ -225,8 +232,10 @@ brain-rizz/
 │  └─ LICENSES.md              Sổ ghi giấy phép asset (bắt buộc cập nhật)
 │
 ├─ supabase/migrations/       SQL tạo bảng, RLS, RPC bảng xếp hạng (chạy theo docs/03-guides/supabase-setup.md)
-│  └─ 20261016000000_accounts.sql  5 bảng (profiles, brain_tests, brain_test_games, match_results,
-│                              practice_bests), index, RLS, 6 RPC
+│  ├─ 20261016000000_accounts.sql  5 bảng (profiles, brain_tests, brain_test_games, match_results,
+│  │                           practice_bests), index, RLS, 6 RPC
+│  └─ 20261019000000_match_category_scores.sql  match_results thêm category_scores (jsonb),
+│                              category_titles (text[]) — CR-010
 │
 ├─ docs/                       Tài liệu, chia theo chủ đề — mục lục: docs/README.md
 │  ├─ README.md                Mục lục tài liệu, bản đồ SDLC, quy ước đặt tài liệu mới
@@ -271,8 +280,9 @@ brain-rizz/
 │     └─ rotate-match.md       Đặc tả Xoay hình (MVP)
 │
 └─ (cấu hình ở thư mục gốc — hiếm khi đụng)
-   ├─ package.json             Lệnh chung: pnpm dev / build / test / check / new-game
+   ├─ package.json             Lệnh chung: pnpm dev / build / test / check / new-game / share
    ├─ scripts/new-game.mjs     Tạo khung minigame mới (`pnpm new-game <id> <nhóm>`)
+   ├─ scripts/share.mjs        Chia sẻ cho bạn bè qua Cloudflare Quick Tunnel (`pnpm share`; build ra apps/web/dist-share)
    ├─ pnpm-workspace.yaml      Khai báo các package trong monorepo
    ├─ pnpm-lock.yaml           Khoá phiên bản thư viện (không sửa tay)
    ├─ turbo.json               Thứ tự chạy build/test giữa các package
@@ -310,7 +320,8 @@ brain-rizz/
 | Đổi kiểu nút, ô nhập, thẻ… | `apps/web/src/components/ui/<tên>.tsx` |
 | Thêm/sửa nhân vật, biểu cảm | Hình dạng: `apps/web/src/components/characters/specs.tsx`; biểu cảm chung: `Character.tsx`; id mới: `CHARACTER_IDS` trong `packages/shared/src/constants.ts` + tên trong i18n (`characters.<id>`). Xem [ADR 0009](decisions/0009-chalkboard-style-and-characters.md) |
 | Màn giới thiệu, menu chính, chọn nhân vật | `apps/web/src/features/home/components/{IntroScreen,MenuScreen,ProfileScreen}.tsx` |
-| Bục vinh danh, pháo giấy | `apps/web/src/features/results/PodiumScreen.tsx`, `components/Confetti.tsx` (2D, không 3D — ADR 0010) |
+| Bục vinh danh, pháo giấy, nhịp lật | `apps/web/src/features/results/PodiumScreen.tsx`, `podium-timeline.ts` (mốc ms), `components/Confetti.tsx`, `components/CategoryBest.tsx` (2D, không 3D — ADR 0010); keyframes `fx-*` trong `styles/characters.css` |
+| Bật/tắt hiệu ứng chuyển động, đọc "giảm chuyển động" | `apps/web/src/features/motion/` (không tự đọc `matchMedia`); biến thể `motion-safe`/`motion-reduce` trong `styles/globals.css` |
 | Hình minh hoạ cách chơi, nội dung màn Hướng dẫn của một game | `apps/web/src/games/<id>/locales.ts` + `…HowTo.tsx` (gán `Illustration` trong `index.ts`) |
 | Danh mục 15 game ở màn Chọn game (thẻ "Sắp có") | `apps/web/src/features/game-select/catalog.ts` + tên ở i18n `catalog.<id>` |
 | Đổi luật Kiểm tra não (chọn game, thời lượng, Điểm Não) | `packages/shared/src/brain-test.ts` (đổi điểm chuẩn thì tăng `BRAIN_TEST_RULES_VERSION`); luồng phòng: `apps/server/src/rooms/BrainTestRoom.ts` |

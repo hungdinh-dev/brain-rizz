@@ -19,7 +19,8 @@ Chưa làm các bước này thì app **vẫn chơi được** (party, Luyện t
 ## 1. Tạo project
 
 1. Vào [supabase.com/dashboard](https://supabase.com/dashboard) → **New project**.
-2. Tên: `brain-rizz`. Region: **Southeast Asia (Singapore)** (gần game server Fly `sin` và người chơi Việt Nam). Gói **Free**.
+2. Tên: `brain-rizz`. Region: **Southeast Asia (Singapore)** (`ap-southeast-1`, gần game server Fly `sin` và người chơi Việt Nam). Gói **Free**.
+   - Form mới có thể chỉ cho chọn vùng lớn (Americas / Europe / **Asia-Pacific**): chọn Asia-Pacific, tạo xong xem region thật ở **Project Settings → General**. Không ra Singapore vẫn dùng được (chơi realtime đi qua Fly, Supabase chỉ ghi điểm cuối trận và đọc bảng xếp hạng); region không đổi được sau khi tạo.
 3. Đặt mật khẩu database mạnh, lưu vào trình quản lý mật khẩu (chỉ cần khi dùng CLI).
 4. Chờ project tạo xong, mở **Project Settings → API Keys** và ghi lại:
    - **Project URL**: `https://<project-ref>.supabase.co` (ở Project Settings → Data API, hoặc nút **Connect**).
@@ -32,22 +33,33 @@ Gói Free tự tạm dừng sau khoảng 1 tuần không có truy cập (rủi r
 
 ## 2. Chạy migration
 
-File: [`supabase/migrations/20261016000000_accounts.sql`](../../supabase/migrations/20261016000000_accounts.sql). Chọn **một** trong hai cách.
+Chạy **mọi file** trong [`supabase/migrations/`](../../supabase/migrations/) theo thứ tự tên (hiện có `20261016000000_accounts.sql` và `20261019000000_match_category_scores.sql` của [CR-010](../00-tracking/change-requests.md#cr-010)). Chọn **một** trong hai cách, và đã chọn cách nào thì giữ cách đó cho các lần sau.
 
-**Cách A: SQL Editor (đơn giản nhất)**
+**Cách A: Supabase CLI với chuỗi kết nối (nên dùng, CLI tự nhớ file nào đã chạy)**
+
+1. Dashboard → nút **Connect** → tab **Connection String** → mục **Session pooler** (chạy trên IPv4; mục *Direct connection* `db.<ref>.supabase.co` chỉ có IPv6, nhiều mạng nhà ở Việt Nam không phân giải được).
+2. Tạo `supabase/.env` (bị gitignore) với một dòng, thay `[YOUR-PASSWORD]` bằng mật khẩu database:
+
+   ```bash
+   SUPABASE_DB_URL=postgresql://postgres.<project-ref>:<mật-khẩu>@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres
+   ```
+
+3. Chạy từ thư mục gốc repo (Git Bash):
+
+   ```bash
+   set -a; . supabase/.env; set +a
+   npx supabase@2.121.0 migration list --db-url "$SUPABASE_DB_URL"        # cột remote trống = chưa chạy
+   npx supabase@2.121.0 db push --db-url "$SUPABASE_DB_URL" --dry-run     # xem sẽ chạy file nào
+   npx supabase@2.121.0 db push --db-url "$SUPABASE_DB_URL"               # chạy thật
+   ```
+
+Quên mật khẩu database: **Project Settings → Database → Reset database password**, rồi sửa `supabase/.env`.
+
+**Cách B: SQL Editor (không cần cài gì)**
 
 1. Dashboard → **SQL Editor** → **New query**.
-2. Dán toàn bộ nội dung file migration → **Run**.
-3. Kết quả "Success. No rows returned" là xong. Chạy lại lần hai sẽ báo lỗi "already exists": bình thường, không cần chạy lại.
-
-**Cách B: Supabase CLI**
-
-```bash
-npx supabase login
-npx supabase init                       # chỉ lần đầu: tạo supabase/config.toml, giữ nguyên thư mục migrations
-npx supabase link --project-ref <project-ref>
-npx supabase db push                    # chạy các migration chưa có trên project
-```
+2. Dán toàn bộ nội dung từng file migration, lần lượt theo thứ tự tên → **Run**.
+3. Kết quả "Success. No rows returned" là xong. Chạy lại lần hai sẽ báo lỗi "already exists": bình thường. Cách này không ghi lịch sử cho CLI, nên đừng trộn với cách A (CLI sẽ tưởng chưa chạy và chạy lại).
 
 Thay đổi về sau (thêm cột, sửa hàm) luôn là **file migration mới** trong `supabase/migrations/`, không sửa file đã chạy.
 
@@ -101,6 +113,11 @@ Thiếu URL trong danh sách thì sau khi đăng nhập Google, Supabase đưa n
 | | `SUPABASE_SECRET_KEY` | `sb_secret_…` |
 | Fly.io (game server) | `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | như trên, đặt bằng `fly secrets` |
 | Cloudflare Pages (web) | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | như trên, ở mục Variables |
+| `supabase/.env` (chỉ máy chạy migration) | `SUPABASE_DB_URL` | chuỗi Session pooler, xem bước 2 |
+
+URL chỉ là gốc `https://<project-ref>.supabase.co`, **không** kèm `/rest/v1/` (URL ở trang Data API có đuôi này; thư viện tự thêm, để thừa sẽ lỗi 404 `PGRST125`). Giá trị thật chỉ đặt trong `.env`, không bao giờ trong `.env.example` (file mẫu được commit).
+
+Clone repo sang máy khác thì ba file `apps/web/.env`, `apps/server/.env`, `supabase/.env` không đi theo: lưu nội dung chúng trong trình quản lý mật khẩu.
 
 Dev: copy `apps/web/.env.example` → `apps/web/.env` và `apps/server/.env.example` → `apps/server/.env`, điền giá trị. File `.env` đã nằm trong `.gitignore`, không commit.
 

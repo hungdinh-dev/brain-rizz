@@ -35,6 +35,7 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 | [CR-007](#cr-007) | Nhạc nền nhiều bài + thanh nhạc trên header, làm sớm ở GĐ 1 (tách khỏi FR-GD-07) | 2026-10-14 | Dời việc + thêm chi tiết | +1–2 ngày ở GĐ 1 | Đã làm (2026-10-14) |
 | [CR-008](#cr-008) | Âm thanh hiệu ứng khi bấm nút, làm sớm ở GĐ 1; tách rung + Wake Lock thành FR-GD-11 | 2026-10-14 | Dời việc + thêm chi tiết | +1 ngày ở GĐ 1 | Đã làm (2026-10-14) |
 | [CR-009](#cr-009) | Đưa Luyện tập, Kiểm tra não, Tài khoản (Supabase) và Bảng xếp hạng lên làm trước | 2026-10-16 | Dời việc + thêm tính năng | +2–3 tuần, chen trước Cổng 1 | Duyệt (2026-10-16) |
+| [CR-010](#cr-010) | Vinh danh hồi hộp hơn, công tắc hiệu ứng chuyển động, danh hiệu và điểm theo thể loại trong trận party | 2026-10-19 | Thêm tính năng + thay đổi thiết kế | +1–2 ngày | Duyệt (2026-10-19) |
 
 ---
 
@@ -246,6 +247,32 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
   - Phiên khách tạo lười (chỉ khi cần lưu), không tạo ngay khi mở trang.
 - **Tài liệu kéo theo:** SRS 1.6 (chi tiết UC-13, UC-14, UC-16, UC-19; FR-MR; NFR-PRIV-01; Dữ liệu), BRD (BR-14), GDD (Kiểm tra não, Điểm Não), UI-UX (4 màn mới), ADR 0011, tổng quan kiến trúc, tech stack, `.env.example`, features.md, roadmap.
 - **Kết quả:** đang làm trên nhánh `feat/accounts-solo-modes`.
+
+---
+
+### CR-010
+
+**Vinh danh hồi hộp hơn, công tắc hiệu ứng chuyển động, danh hiệu và điểm theo thể loại**
+
+- **Ngày mở:** 2026-10-19 · **Loại:** Thêm tính năng + thay đổi thiết kế · **Người đề xuất:** chủ dự án
+- **Mô tả:**
+  1. Máy chủ phòng không thấy vòng quay quay, bục hiện cùng lúc, không có pháo giấy, trong khi người khác thấy đủ. Nguyên nhân: Windows tắt "Animation effects" → trình duyệt báo `prefers-reduced-motion: reduce` → app tự tắt hiệu ứng. Thêm công tắc **Hiệu ứng: Theo hệ thống / Luôn bật** (mặc định Theo hệ thống, lưu trên máy). Khi giảm chuyển động, bục vẫn hiện lần lượt (chỉ bỏ trượt, giữ mờ dần) vì nhịp hồi hộp không phải chuyển động.
+  2. Vinh danh hồi hộp hơn: hạng 4 trở xuống hiện trước, rồi hạng 3 → 2, chờ lâu hơn kèm tiếng trống dồn rồi mới tới hạng 1 (pháo giấy + hiệu ứng mạnh hơn). Nhãn "Bạn hạng …" chỉ hiện sau khi chỗ của mình được lật.
+  3. Điểm theo thể loại: server cộng điểm vòng của từng người theo thể loại game (Nhận diện, Ghi nhớ, Phân tích, Tính toán, Hình dung). Cuối trận hiện thẻ **"Giỏi nhất mỗi thể loại"** (chỉ các thể loại đã chơi trong trận). Lưu điểm theo thể loại và danh hiệu đạt được vào `match_results`; màn Tài khoản hiện thế mạnh party theo thể loại.
+- **Lý do:** trụ cột vui khi chơi chung (khoảnh khắc vinh danh); BR-10 (lý do quay lại: biết mình giỏi loại nào).
+- **Phân tích tác động:**
+  - *Trụ cột:* giữ "Nhẹ và rẻ" (tiếng trống bằng Web Audio, không thêm thư viện, thêm cột jsonb).
+  - *Kỹ thuật:* shared thêm hàm thuần tìm người giỏi nhất mỗi thể loại + trường điểm theo thể loại trong `PlayerView`; server cộng dồn khi chấm vòng, xoá khi chơi lại, ghi kèm `match_results`; migration Supabase mới. Web: một nguồn "giảm chuyển động" dùng chung thay cho đọc `matchMedia` rải rác (cả scene Phaser), biến thể Tailwind `motion-safe`/`motion-reduce` theo công tắc. **Không đổi seed hay bộ sinh câu đố.**
+  - *Chi phí:* 0 đồng.
+  - *Lịch:* ước lượng 1–2 ngày, làm trên nhánh `feat/accounts-solo-modes`.
+- **Quyết định:** **Duyệt** (2026-10-19, chủ dự án chọn qua câu hỏi). Giả định PM: so tổng điểm vòng thô trong cùng thể loại (CR-006 đã cân bằng điểm giữa các mức khó); hoà thì cùng nhận danh hiệu; thể loại mà mọi người đều 0 điểm thì không trao. Bảng xếp hạng toàn cầu theo thể loại **chưa làm**.
+- **Tài liệu kéo theo:** SRS (UC vinh danh, FR liên quan, mục Dữ liệu), UI-UX (màn vinh danh, cài đặt), features.md, changelog.
+- **Kết quả:** code xong 2026-10-19 trên nhánh `feat/accounts-solo-modes`, chưa phát hành:
+  - *Công tắc hiệu ứng* (FR-GD-12): `apps/web/src/features/motion/` là nguồn duy nhất; 12 scene Phaser, vòng quay, đếm số, vinh danh và CSS (`motion-safe`/`motion-reduce`, `characters.css`, `shadcn.css`) đều đọc theo nó. Đã kiểm Chrome headless có `--force-prefers-reduced-motion`.
+  - *Vinh danh hồi hộp* (FR-GD-06): lịch theo ui-ux 6.2 (`podium-timeline.ts` + test), 3 tiếng Web Audio mới. Giả định FE: bậc 2 trống (đồng hạng nhất) thì trống dồn bắt đầu đúng lúc lẽ ra hạng 2 lật; "vào lại giữa chừng" nhận biết bằng việc máy này không thấy pha đổi sang `podium` (không thêm trường vào giao thức).
+  - *Điểm theo thể loại* (FR-VC-21, FR-MR-16): shared + server + migration (xem changelog); thẻ Giỏi nhất mỗi thể loại, thẻ Thế mạnh trong trận party. Thể loại đã chơi ở web lấy từ khoá của `categoryScores`.
+  - **Migration:** `20261019000000_match_category_scores.sql` đã chạy trên project Supabase (2026-10-19, `supabase db push`). Project mới phải chạy nó **trước** khi deploy cả server lẫn web: server ghi hai cột mới (thiếu cột thì mọi lần ghi `match_results` lỗi, mất kết quả trận), web đọc hai cột (thiếu thì tab Trận party báo lỗi).
+  - **Còn lại:** thẻ Thế mạnh tính trên 50 trận gần nhất (`fetchMatchHistory(50)`), chưa tổng hợp toàn bộ lịch sử. Chưa xem trận thật 2 máy, chưa nghe trống/kèn bằng tai.
 
 ---
 

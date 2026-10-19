@@ -222,7 +222,7 @@ stateDiagram-v2
 
 ## Kết quả trận party
 
-Join options của party nhận `accessToken?`. `PartyRoom` xác thực nền khi vào phòng (token sai vẫn cho chơi), giữ `user_id` trong `Map` riêng theo `sessionId` (giữ qua nối lại, xoá khi rời hẳn). Khi trận vào `podium`, phòng ghi `match_results` **một lần mỗi trận** (chơi lại là trận mới) cho mỗi người còn trong phòng có `user_id`: `placement` theo `rankByMatch` (0 = nhất), `players` (số người lúc vào podium), `match_points`, `total_score`, `rounds`, `games` (game đã chơi theo thứ tự). Việc ghi chạy nền, lỗi chỉ log.
+Join options của party nhận `accessToken?`. `PartyRoom` xác thực nền khi vào phòng (token sai vẫn cho chơi), giữ `user_id` trong `Map` riêng theo `sessionId` (giữ qua nối lại, xoá khi rời hẳn). Khi trận vào `podium`, phòng ghi `match_results` **một lần mỗi trận** (chơi lại là trận mới) cho mỗi người còn trong phòng có `user_id`: `placement` theo `rankByMatch` (0 = nhất), `players` (số người lúc vào podium), `match_points`, `total_score`, `rounds`, `games` (game đã chơi theo thứ tự), `category_scores` (tổng điểm vòng theo thể loại, chỉ thể loại đã chơi) và `category_titles` (thể loại người đó giành danh hiệu theo `categoryLeaders`, CR-010). Việc ghi chạy nền, lỗi chỉ log.
 
 ## State đồng bộ
 
