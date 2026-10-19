@@ -10,7 +10,7 @@
     "preview": "vite preview --host",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run --passWithNoTests",
-    "clean": "rm -rf dist .turbo"
+    "clean": "rm -rf dist dist-share .turbo"
   },
   "dependencies": {
     "@brain-rizz/shared": "workspace:*",

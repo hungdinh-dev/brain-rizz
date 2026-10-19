@@ -24,6 +24,7 @@
 
 - Chọn **1** trước: không tốn công, chỉ đổi nơi chạy container. Các bước: [Triển khai › Render](../03-guides/deployment.md#deploy-game-server-lên-render-phương-án-0-đồng).
 - Chọn **2** khi chờ 1 phút của Render quá phiền, hoặc muốn 0 đồng lâu dài mà vẫn giữ trọng tài.
+- Chỉ cần chơi thử vài buổi với bạn bè: `pnpm share` mở Cloudflare Quick Tunnel tới server trên máy mình ([Hướng dẫn phát triển](../03-guides/development.md#chia-sẻ-cho-bạn-bè-qua-internet-pnpm-share)). Đây là cách tạm (máy phải bật, link đổi mỗi lần), **không** thay Fly.io hay các phương án trên.
 
 ## 3. Hạn mức Cloudflare gói Free so với nhu cầu
 
