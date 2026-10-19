@@ -15,7 +15,9 @@ async function loadModules() {
   return { supabase, api, useAuth };
 }
 
-describe("data-api khi chưa cấu hình Supabase (FR-MR-15)", () => {
+// Mỗi test nạp lại module từ đầu (kéo theo cả @brain-rizz/shared): chạy riêng < 1 s nhưng khi
+// `pnpm check` chạy song song test 10.000 seed của shared thì có lúc quá 5 s mặc định.
+describe("data-api khi chưa cấu hình Supabase (FR-MR-15)", { timeout: 30_000 }, () => {
   beforeEach(() => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
   });

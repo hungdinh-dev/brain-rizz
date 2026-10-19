@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { useReducedMotion } from "@/features/motion";
 import { serverNow } from "@/stores/game.store";
 
 export type WheelStatus = "idle" | "spinning" | "landed";
@@ -12,7 +12,7 @@ const easeOutCubic = (p: number) => 1 - (1 - p) ** 3;
  * Nối lại khi đã quay xong thì ra thẳng kết quả. Bật "giảm chuyển động": không quay, tới giờ thì nhảy tới kết quả.
  */
 export function useWheelSpin(spinAt: number, spinMs: number) {
-  const reduced = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const reduced = useReducedMotion();
   const [now, setNow] = useState(serverNow);
 
   useEffect(() => {

@@ -28,6 +28,7 @@ import {
   type MatchRow,
 } from "@/net/data-api";
 import type { Screen } from "@/stores/nav.store";
+import { PartyStrengths, PartyStrengthsLoading } from "./PartyStrengths";
 import { ScoreTrend } from "./ScoreTrend";
 
 interface HistoryTabsProps {
@@ -225,6 +226,14 @@ function PartyTab({ sessionKey, go }: { sessionKey: string; go(s: Screen): void 
       action={<Button onClick={() => go("menu")}>{t("account.emptyPartyCta")}</Button>}
     />
   );
+  if (data.status === "loading") {
+    return (
+      <div className="flex flex-col gap-4">
+        <PartyStrengthsLoading />
+        <TabLoading />
+      </div>
+    );
+  }
   const other = stateView(data.status, data.reload, empty);
   if (other) return other;
   const rows = (data as { data: MatchRow[] }).data;
@@ -237,55 +246,60 @@ function PartyTab({ sessionKey, go }: { sessionKey: string; go(s: Screen): void 
   };
 
   return (
-    <TableBox>
-      <table className="w-full border-collapse">
-        <thead>
-          <tr>
-            <th scope="col" className={TH}>
-              {t("account.colDate")}
-            </th>
-            <th scope="col" className={TH}>
-              {t("account.colRoom")}
-            </th>
-            <th scope="col" className={TH}>
-              {t("account.colRank")}
-            </th>
-            <th scope="col" className={TH}>
-              {t("account.colMatchPoints")}
-            </th>
-            <th scope="col" className={TH}>
-              {t("account.colRounds")}
-            </th>
-            <th scope="col" className={TH}>
-              {t("account.colPlayedGames")}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((m) => (
-            <tr key={m.id}>
-              <td className={TD}>{date.short(m.createdAt)}</td>
-              <td className={cn(TD, "font-display font-extrabold tracking-wider")}>{m.roomCode}</td>
-              <td className={TD}>
-                <span className="flex items-center gap-1.5">
-                  <RankBadge rank={m.placement + 1} size="md" />
-                  <span className="text-xs text-muted-foreground">
-                    {t("account.rankOf", { count: m.players })}
-                  </span>
-                </span>
-              </td>
-              <td className={cn(TD, "font-display text-lg font-extrabold")}>
-                {fmt(m.matchPoints)}
-              </td>
-              <td className={TD}>{m.rounds}</td>
-              <td className={cn(TD, "max-w-64 truncate text-[13px] text-muted-foreground")}>
-                {games(m)}
-              </td>
+    <div className="flex flex-col gap-4">
+      <PartyStrengths rows={rows} />
+      <TableBox>
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th scope="col" className={TH}>
+                {t("account.colDate")}
+              </th>
+              <th scope="col" className={TH}>
+                {t("account.colRoom")}
+              </th>
+              <th scope="col" className={TH}>
+                {t("account.colRank")}
+              </th>
+              <th scope="col" className={TH}>
+                {t("account.colMatchPoints")}
+              </th>
+              <th scope="col" className={TH}>
+                {t("account.colRounds")}
+              </th>
+              <th scope="col" className={TH}>
+                {t("account.colPlayedGames")}
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </TableBox>
+          </thead>
+          <tbody>
+            {rows.map((m) => (
+              <tr key={m.id}>
+                <td className={TD}>{date.short(m.createdAt)}</td>
+                <td className={cn(TD, "font-display font-extrabold tracking-wider")}>
+                  {m.roomCode}
+                </td>
+                <td className={TD}>
+                  <span className="flex items-center gap-1.5">
+                    <RankBadge rank={m.placement + 1} size="md" />
+                    <span className="text-xs text-muted-foreground">
+                      {t("account.rankOf", { count: m.players })}
+                    </span>
+                  </span>
+                </td>
+                <td className={cn(TD, "font-display text-lg font-extrabold")}>
+                  {fmt(m.matchPoints)}
+                </td>
+                <td className={TD}>{m.rounds}</td>
+                <td className={cn(TD, "max-w-64 truncate text-[13px] text-muted-foreground")}>
+                  {games(m)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </TableBox>
+    </div>
   );
 }
 

@@ -163,6 +163,22 @@ export const viSolo = {
     emptyPartyTitle: "Chưa có trận party nào",
     emptyPartyBody: "Trận chơi cùng bạn bè sẽ hiện ở đây sau khi kết thúc.",
     emptyPartyCta: "Tạo phòng",
+    /** Thẻ Thế mạnh trong trận party (CR-010, ui-ux 6.4). */
+    strengthsTitle: "Thế mạnh trong trận party",
+    strengthsNote:
+      "Danh hiệu = giỏi nhất thể loại đó trong một trận · TB = điểm vòng trung bình mỗi trận",
+    titles_one: "{{count}} danh hiệu",
+    titles_other: "{{count}} danh hiệu",
+    avgPoints: "TB {{n}} điểm",
+    avgShort: "TB {{n}}",
+    inMatches_one: "trong {{count}} trận",
+    inMatches_other: "trong {{count}} trận",
+    matchesShort_one: "{{count}} trận",
+    matchesShort_other: "{{count}} trận",
+    notPlayed: "Chưa chơi",
+    topSkill: "Mạnh nhất",
+    strengthsEmpty:
+      "Chơi thêm một trận party để biết bạn giỏi thể loại nào. Các trận cũ chưa có điểm theo thể loại.",
     emptyPracticeTitle: "Chưa có kỷ lục luyện tập",
     emptyPracticeBody: "Chơi một lượt Luyện tập để có kỷ lục đầu tiên.",
     emptyPracticeCta: "Luyện tập",

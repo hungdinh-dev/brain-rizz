@@ -9,6 +9,7 @@ import { LanguageToggle } from "@/components/common/LanguageToggle";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Toaster } from "@/components/ui/sonner";
 import { HomeScreen } from "@/features/home";
+import { MotionToggle } from "@/features/motion";
 import { MusicBar, useMusicAutoplay } from "@/features/music";
 import { SfxToggle, useSfxEffects } from "@/features/sfx";
 import { i18n } from "@/i18n";
@@ -117,6 +118,7 @@ export function App() {
             <div className="mb-3 flex flex-wrap justify-end gap-2">
               <MusicBar />
               <SfxToggle />
+              <MotionToggle />
               <LanguageToggle />
               <ThemeToggle />
             </div>

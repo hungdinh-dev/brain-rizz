@@ -1,5 +1,6 @@
 import { type CashCountPuzzle, cashCount } from "@brain-rizz/shared";
 import Phaser from "phaser";
+import { prefersReducedMotion } from "@/features/motion";
 import { DESIGN_WIDTH, type MinigameBridge } from "../types";
 
 // ── Bảng màu riêng của game ──────────────────────────────────────────────────────────────────
@@ -138,10 +139,6 @@ function formatMoney(n: number): string {
 
 function billLook(value: number) {
   return BILLS[value] ?? BILL_FALLBACK;
-}
-
-function prefersReducedMotion(): boolean {
-  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }
 
 /** Đọc token màu CSS (tự đổi theo sáng/tối) tại canvas; thiếu token thì dùng màu giao diện sáng. */

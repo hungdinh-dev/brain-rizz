@@ -22,6 +22,7 @@ import { LanguageToggle } from "@/components/common/LanguageToggle";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui/button";
+import { MotionToggle } from "@/features/motion";
 import { MusicBar } from "@/features/music";
 import { SfxToggle } from "@/features/sfx";
 import { useData } from "@/hooks/use-data";
@@ -122,6 +123,7 @@ export function MenuScreen({
           </Button>
           <MusicBar />
           <SfxToggle />
+          <MotionToggle />
           <LanguageToggle />
           <ThemeToggle />
         </div>

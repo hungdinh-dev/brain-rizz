@@ -7,6 +7,29 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
+ * Giảm chuyển động (CR-010): nút Hiệu ứng "Luôn bật" gắn `data-motion="on"` lên <html>
+ * (src/features/motion). Khi đó `motion-safe:` luôn áp dụng, `motion-reduce:` không bao giờ áp dụng,
+ * dù máy báo `prefers-reduced-motion: reduce`. Viết đè hai biến thể có sẵn của Tailwind.
+ * CSS thuần cần tắt hoạt ảnh thì dùng `@variant motion-reduce` hoặc
+ * `@media (prefers-reduced-motion: reduce) { :root:not([data-motion="on"]) … }`.
+ */
+@custom-variant motion-safe {
+  @media (prefers-reduced-motion: no-preference) {
+    @slot;
+  }
+  &:where([data-motion="on"], [data-motion="on"] *) {
+    @slot;
+  }
+}
+@custom-variant motion-reduce {
+  @media (prefers-reduced-motion: reduce) {
+    &:where(:not([data-motion="on"], [data-motion="on"] *)) {
+      @slot;
+    }
+  }
+}
+
+/*
  * Phong cách "bảng phấn lớp học" (ADR 0009): nền là bảng phấn trong khung gỗ, nội dung đặt trên
  * thẻ "giấy dán" viền mực. Chế độ sáng = bảng xanh lá, chế độ tối = bảng tím than.
  *

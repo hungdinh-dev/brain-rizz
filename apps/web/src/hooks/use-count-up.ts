@@ -1,18 +1,15 @@
 import { useEffect, useState } from "react";
-
-const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
-
-const reducedMotion = () =>
-  typeof window !== "undefined" && window.matchMedia(REDUCED_MOTION).matches;
+import { useReducedMotion } from "@/features/motion";
 
 /**
- * Số đếm dần từ 0 lên `target` trong `durationMs` (vd. Điểm Não 0,8 giây). Người dùng bật
- * giảm chuyển động → hiện ngay số cuối.
+ * Số đếm dần từ 0 lên `target` trong `durationMs` (vd. Điểm Não 0,8 giây). Đang giảm chuyển động
+ * (`useReducedMotion`, theo nút Hiệu ứng) → hiện ngay số cuối.
  */
 export function useCountUp(target: number, durationMs = 800): number {
-  const [value, setValue] = useState(() => (reducedMotion() ? target : 0));
+  const reduced = useReducedMotion();
+  const [value, setValue] = useState(() => (reduced ? target : 0));
   useEffect(() => {
-    if (reducedMotion() || durationMs <= 0) {
+    if (reduced || durationMs <= 0) {
       setValue(target);
       return;
     }
@@ -26,6 +23,6 @@ export function useCountUp(target: number, durationMs = 800): number {
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [target, durationMs]);
+  }, [target, durationMs, reduced]);
   return value;
 }

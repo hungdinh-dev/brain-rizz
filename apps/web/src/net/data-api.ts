@@ -74,6 +74,13 @@ export interface MatchRow {
   totalScore: number;
   rounds: number;
   games: GameId[];
+  /**
+   * Tổng điểm vòng theo thể loại trong trận (CR-010): chỉ thể loại đã chơi có khoá.
+   * Trận cũ (trước cột `category_scores`) là `{}` → coi như không có dữ liệu.
+   */
+  categoryScores: Partial<Record<Category, number>>;
+  /** Thể loại mình giành danh hiệu "giỏi nhất" trong trận (không trùng, thứ tự CATEGORIES). */
+  categoryTitles: Category[];
   createdAt: string;
 }
 
@@ -181,6 +188,7 @@ export function fetchMyRank(
   );
 }
 
+/** Object thể loại → số (điểm kỹ năng Kiểm tra não, điểm thể loại trận party); bỏ khoá/giá trị lạ. */
 function toSkills(v: unknown): Partial<Record<Category, number>> {
   const out: Partial<Record<Category, number>> = {};
   if (v && typeof v === "object") {
@@ -229,6 +237,12 @@ export function fetchBrainHistory(limit = 50): Promise<DataResult<BrainTestRow[]
   );
 }
 
+/** Mảng thể loại hợp lệ, bỏ phần tử lạ và trùng, theo thứ tự `CATEGORIES`. */
+function toCategories(v: unknown): Category[] {
+  const list = Array.isArray(v) ? v : [];
+  return CATEGORIES.filter((c) => list.includes(c));
+}
+
 /** Lịch sử trận party, mới nhất trước. */
 export function fetchMatchHistory(limit = 50): Promise<DataResult<MatchRow[]>> {
   return run(
@@ -236,7 +250,7 @@ export function fetchMatchHistory(limit = 50): Promise<DataResult<MatchRow[]>> {
       sb
         .from("match_results")
         .select(
-          "id, room_code, placement, players, match_points, total_score, rounds, games, created_at",
+          "id, room_code, placement, players, match_points, total_score, rounds, games, category_scores, category_titles, created_at",
         )
         .order("created_at", { ascending: false })
         .limit(limit),
@@ -250,6 +264,8 @@ export function fetchMatchHistory(limit = 50): Promise<DataResult<MatchRow[]>> {
         totalScore: num(r.total_score),
         rounds: num(r.rounds),
         games: (Array.isArray(r.games) ? r.games : []).filter(isGameId),
+        categoryScores: toSkills(r.category_scores),
+        categoryTitles: toCategories(r.category_titles),
         createdAt: str(r.created_at),
       })),
     true,

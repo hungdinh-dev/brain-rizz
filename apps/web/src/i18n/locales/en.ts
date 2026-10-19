@@ -307,6 +307,17 @@ export const en: LocaleMessages = {
     playAgainNeedPlayers:
       "Needs at least {{min}} players to play again · go back to the waiting room to invite more",
     waitPodium: "Waiting for the host to play again or go back to the waiting room…",
+    drumroll: "And the winner is…",
+    unknown: "?",
+    revealLive_one: "Place {{rank}}: {{name}}, {{count}} pt",
+    revealLive_other: "Place {{rank}}: {{name}}, {{count}} pts",
+    bestTitle: "Best in each category",
+    bestSub: "Total round points per category this match",
+    bestPending: "Revealed after 1st place…",
+    bestYou: "{{name}} (you)",
+    bestTwo: "{{a}} & {{b}}",
+    bestMany: "{{a}}, {{b}} +{{count}}",
+    bestRowLabel: "{{category}}: {{names}}, {{score}} round points",
   },
   ordinal: {
     "0": "1st",
@@ -373,6 +384,14 @@ export const en: LocaleMessages = {
   sfx: {
     turnOn: "Turn sound effects on",
     turnOff: "Turn sound effects off",
+  },
+  motion: {
+    toggle: "Always show effects",
+    titleSystem: "Effects: following your device",
+    titleReduced: "Your device reduces motion — tap to always show effects",
+    titleOn: "Effects: always on — tap to follow your device",
+    toastOn: "Effects always on",
+    toastSystem: "Effects follow your device",
   },
   common: {
     backToMenu: "Back to menu",

@@ -582,7 +582,8 @@
     animation-direction: reverse;
   }
 
-  @media (prefers-reduced-motion: reduce) {
+  /* Theo nút Hiệu ứng (CR-010): biến thể motion-reduce định nghĩa lại trong globals.css. */
+  @variant motion-reduce {
     animation: none;
     background-image: none;
     -webkit-text-fill-color: currentColor;
@@ -627,7 +628,7 @@
 /* Kept for backwards compatibility. Unlayered, so it still wins over other
    utilities on a plain .shimmer element. Variants are handled in the utility. */
 @media (prefers-reduced-motion: reduce) {
-  .shimmer {
+  :root:not([data-motion="on"]) .shimmer {
     animation: none;
     background-image: none;
     -webkit-text-fill-color: currentColor;

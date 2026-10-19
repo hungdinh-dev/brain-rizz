@@ -1,5 +1,6 @@
 import { type CubeCountPuzzle, cubeCount } from "@brain-rizz/shared";
 import Phaser from "phaser";
+import { prefersReducedMotion } from "@/features/motion";
 import type { MinigameBridge } from "../types";
 import {
   CUBE_DARK,
@@ -165,12 +166,7 @@ function readPalette(el: Element): Palette {
 /** Màu CSS → số màu của Phaser. */
 const toColor = (css: string) => Phaser.Display.Color.ValueToColor(css).color;
 
-/** Đọc `prefers-reduced-motion`: bỏ rung, co, phóng; giữ đổi viền, huy hiệu, mặt trên vàng và số. */
-function prefersReducedMotion() {
-  return typeof window.matchMedia === "function"
-    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    : false;
-}
+// Giảm chuyển động (`prefersReducedMotion` dùng chung, theo nút Hiệu ứng): bỏ rung, co, phóng; giữ đổi viền, huy hiệu, mặt trên vàng và số.
 
 // ---------------------------------------------------------------- vẽ canvas 2D
 

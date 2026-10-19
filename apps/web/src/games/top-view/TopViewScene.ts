@@ -6,6 +6,7 @@ import {
   topViewCubes,
 } from "@brain-rizz/shared";
 import Phaser from "phaser";
+import { prefersReducedMotion } from "@/features/motion";
 import { currentLanguage } from "@/i18n";
 import type { MinigameBridge } from "../types";
 import { locales } from "./locales";
@@ -246,12 +247,7 @@ function readPalette(el: Element): Palette {
 /** Màu CSS → số màu của Phaser. */
 const toColor = (css: string) => Phaser.Display.Color.ValueToColor(css).color;
 
-/** Đọc `prefers-reduced-motion`: bỏ rung, co, phóng, nhấp nháy; giữ đổi viền, huy hiệu, tô vàng tĩnh. */
-function prefersReducedMotion() {
-  return typeof window.matchMedia === "function"
-    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    : false;
-}
+// Giảm chuyển động (`prefersReducedMotion` dùng chung, theo nút Hiệu ứng): bỏ rung, co, phóng, nhấp nháy; giữ đổi viền, huy hiệu, tô vàng tĩnh.
 
 /** Nhãn mép trước theo ngôn ngữ đang dùng (khoá `front` trong locales của game). */
 function frontLabel() {

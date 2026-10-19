@@ -7,6 +7,7 @@ import {
   foldBox,
 } from "@brain-rizz/shared";
 import Phaser from "phaser";
+import { prefersReducedMotion } from "@/features/motion";
 import type { MinigameBridge } from "../types";
 
 /*
@@ -198,12 +199,7 @@ function readPalette(el: Element): Palette {
 /** Màu CSS → số màu của Phaser. */
 const toColor = (css: string) => Phaser.Display.Color.ValueToColor(css).color;
 
-/** Đọc `prefers-reduced-motion`: bỏ rung, co, phóng, nảy; giữ đổi viền, huy hiệu, làm mờ. */
-function prefersReducedMotion() {
-  return typeof window.matchMedia === "function"
-    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    : false;
-}
+// Giảm chuyển động (`prefersReducedMotion` dùng chung, theo nút Hiệu ứng): bỏ rung, co, phóng, nảy; giữ đổi viền, huy hiệu, làm mờ.
 
 // ---------------------------------------------------------------- vẽ bằng canvas 2D
 

@@ -308,6 +308,19 @@ export const vi = {
     playAgainNote: "Chơi lại: giữ phòng và người chơi, vào luôn vòng 1",
     playAgainNeedPlayers: "Cần ít nhất {{min}} người mới chơi lại được · về phòng chờ để mời thêm",
     waitPodium: "Chờ chủ phòng chọn chơi lại hoặc về phòng chờ…",
+    /** Vinh danh hồi hộp (CR-010, ui-ux 6.2–6.3). */
+    drumroll: "Và hạng nhất là…",
+    /** Vòng phấn "?" trên bục chưa lật. */
+    unknown: "?",
+    revealLive_one: "Hạng {{rank}}: {{name}}, {{count}} điểm",
+    revealLive_other: "Hạng {{rank}}: {{name}}, {{count}} điểm",
+    bestTitle: "Giỏi nhất mỗi thể loại",
+    bestSub: "Tổng điểm vòng theo thể loại trong trận",
+    bestPending: "Lật sau hạng nhất…",
+    bestYou: "{{name}} (bạn)",
+    bestTwo: "{{a}} & {{b}}",
+    bestMany: "{{a}}, {{b}} +{{count}}",
+    bestRowLabel: "{{category}}: {{names}}, {{score}} điểm vòng",
   },
   /** Thứ hạng đọc thành chữ: "Bạn về nhì". Từ hạng 5 dùng `other`. */
   ordinal: {
@@ -380,6 +393,15 @@ export const vi = {
   sfx: {
     turnOn: "Bật âm thanh hiệu ứng",
     turnOff: "Tắt âm thanh hiệu ứng",
+  },
+  /** Nút Hiệu ứng: theo cài đặt giảm chuyển động của máy hoặc luôn bật (CR-010). */
+  motion: {
+    toggle: "Luôn bật hiệu ứng",
+    titleSystem: "Hiệu ứng: theo cài đặt của máy",
+    titleReduced: "Máy đang giảm chuyển động — bấm để luôn bật hiệu ứng",
+    titleOn: "Hiệu ứng: luôn bật — bấm để theo cài đặt của máy",
+    toastOn: "Đã luôn bật hiệu ứng",
+    toastSystem: "Hiệu ứng theo cài đặt của máy",
   },
   /** Dùng chung cho các màn một mình và tài khoản (CR-009, khu 17). */
   common: {

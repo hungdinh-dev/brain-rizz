@@ -6,6 +6,7 @@ import { Character, type Mood } from "@/components/characters";
 import { LanguageToggle } from "@/components/common/LanguageToggle";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui/button";
+import { MotionToggle } from "@/features/motion";
 import { MusicBar } from "@/features/music";
 import { SfxToggle } from "@/features/sfx";
 import { SkillChips } from "./SkillChips";
@@ -92,6 +93,7 @@ export function IntroScreen({ onStart }: { onStart(): void }) {
       <div className="absolute top-0 right-0 z-20 flex max-w-full flex-wrap justify-end gap-2">
         <MusicBar />
         <SfxToggle />
+        <MotionToggle />
         <LanguageToggle />
         <ThemeToggle />
       </div>
