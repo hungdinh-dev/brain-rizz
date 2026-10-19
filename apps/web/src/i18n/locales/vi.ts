@@ -68,8 +68,8 @@ export const vi = {
     },
   },
   characters: {
-    khoi: { name: "Khói", species: "Mèo tai cụp" },
-    bo: { name: "Bơ", species: "Cún tai xù" },
+    khoi: { name: "Si", species: "Mèo nhà Chibi" },
+    bo: { name: "Fen", species: "Chó ngủ chung với Ken" },
     mochi: { name: "Mochi", species: "Thỏ trắng" },
     bap: { name: "Bắp", species: "Gà con" },
     cam: { name: "Cam", species: "Cáo lửa" },
