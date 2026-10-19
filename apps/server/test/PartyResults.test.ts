@@ -139,6 +139,10 @@ describe("PartyRoom — kết quả trận", () => {
     const rows = store.matchResults[0] ?? [];
     const pa = room.state.players.get(a.sessionId);
     const pc = room.state.players.get(c.sessionId);
+    const cats = (pl: typeof pa) => Object.fromEntries(pl?.categoryScores.entries() ?? []);
+    // Vòng 1 odd-one-out (identify): Chi 2 câu, An 1 câu; vòng 2 rotate-match (visualize): Chi 1 câu.
+    expect(Object.keys(cats(pa))).toEqual(["identify", "visualize"]);
+    expect(cats(pa).visualize).toBe(0);
     expect(rows).toEqual([
       {
         userId: USER_C,
@@ -149,6 +153,9 @@ describe("PartyRoom — kết quả trận", () => {
         totalScore: pc?.totalScore,
         rounds: 2,
         games: ["odd-one-out", "rotate-match"],
+        categoryScores: cats(pc),
+        // Chi dẫn đầu cả hai thể loại (CR-010).
+        categoryTitles: ["identify", "visualize"],
       },
       {
         userId: USER_A,
@@ -159,6 +166,8 @@ describe("PartyRoom — kết quả trận", () => {
         totalScore: pa?.totalScore,
         rounds: 2,
         games: ["odd-one-out", "rotate-match"],
+        categoryScores: cats(pa),
+        categoryTitles: [],
       },
     ]);
     await settle();
@@ -182,6 +191,14 @@ describe("PartyRoom — kết quả trận", () => {
       [USER_A, 0],
       [USER_C, 1],
     ]);
+    // Trận mới tính lại từ đầu: An giành identify; balance (analyze) không ai có điểm → không ai nhận.
+    expect(store.matchResults[1]?.map((r) => [r.categoryTitles, r.categoryScores.analyze])).toEqual(
+      [
+        [["identify"], 0],
+        [[], 0],
+      ],
+    );
+    expect(store.matchResults[1]?.[1]?.categoryScores.identify).toBe(0);
   }, 30_000);
 
   it("ghi lỗi chỉ log, trận vẫn chạy; không có máy chủ dữ liệu thì bỏ qua", async () => {

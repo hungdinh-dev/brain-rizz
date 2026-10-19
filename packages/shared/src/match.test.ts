@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { GameId } from "./games";
-import { availableGames, majorityDifficulty, rankByMatch, rankByRound } from "./match";
+import type { Category } from "./games/types";
+import {
+  availableGames,
+  categoryLeaders,
+  majorityDifficulty,
+  playedCategories,
+  rankByMatch,
+  rankByRound,
+} from "./match";
 import { placementPoints } from "./scoring";
 
 describe("rankByRound", () => {
@@ -107,5 +115,83 @@ describe("majorityDifficulty", () => {
 
   it("bỏ qua giá trị không phải độ khó", () => {
     expect(majorityDifficulty([7, 7, 7, 2])).toBe(2);
+  });
+});
+
+describe("playedCategories", () => {
+  it("theo thứ tự CATEGORIES, không trùng, bỏ id lạ", () => {
+    expect(
+      playedCategories(["rotate-match", "odd-one-out", "top-view", "khong-co", "balance"]),
+    ).toEqual(["identify", "analyze", "visualize"]);
+    expect(playedCategories([])).toEqual([]);
+  });
+});
+
+describe("categoryLeaders", () => {
+  const p = (id: string, categoryScores: Partial<Record<Category, number>>) => ({
+    id,
+    categoryScores,
+  });
+
+  it("người điểm cao nhất mỗi thể loại, kết quả theo thứ tự CATEGORIES", () => {
+    const players = [
+      p("a", { visualize: 300, identify: 100 }),
+      p("b", { visualize: 200, identify: 400 }),
+    ];
+    expect(categoryLeaders(players, ["visualize", "identify"])).toEqual([
+      { category: "identify", leaderIds: ["b"], score: 400 },
+      { category: "visualize", leaderIds: ["a"], score: 300 },
+    ]);
+  });
+
+  it("hoà điểm cao nhất thì cùng nhận, giữ thứ tự đầu vào", () => {
+    const players = [p("a", { compute: 50 }), p("b", { compute: 200 }), p("c", { compute: 200 })];
+    expect(categoryLeaders(players, ["compute"])).toEqual([
+      { category: "compute", leaderIds: ["b", "c"], score: 200 },
+    ]);
+  });
+
+  it("mọi người 0 điểm (hoặc thiếu khoá) thì không ai nhận, thể loại bị bỏ", () => {
+    const players = [p("a", { memorize: 0 }), p("b", {}), p("c", { memorize: 0, analyze: 10 })];
+    expect(categoryLeaders(players, ["memorize", "analyze"])).toEqual([
+      { category: "analyze", leaderIds: ["c"], score: 10 },
+    ]);
+  });
+
+  it("thể loại chưa chơi thì bỏ qua dù có điểm; played trùng không nhân đôi", () => {
+    const players = [p("a", { identify: 100, compute: 90 })];
+    expect(categoryLeaders(players, ["compute", "compute"])).toEqual([
+      { category: "compute", leaderIds: ["a"], score: 90 },
+    ]);
+    expect(categoryLeaders(players, [])).toEqual([]);
+  });
+
+  it("một người chơi có điểm thì nhận mọi thể loại đã chơi", () => {
+    const players = [p("solo", { identify: 1, analyze: 2 })];
+    expect(categoryLeaders(players, ["analyze", "identify"]).map((l) => l.leaderIds)).toEqual([
+      ["solo"],
+      ["solo"],
+    ]);
+    expect(categoryLeaders([], ["identify"])).toEqual([]);
+  });
+
+  it("8 người, đủ 5 thể loại", () => {
+    const players = Array.from({ length: 8 }, (_, i) =>
+      p(`p${i}`, {
+        identify: i * 10, // p7 nhất
+        memorize: (7 - i) * 10, // p0 nhất
+        analyze: i % 2 === 0 ? 500 : 100, // p0, p2, p4, p6 hoà
+        compute: i === 3 ? 999 : 0, // p3
+        visualize: 0, // không ai
+      }),
+    );
+    expect(
+      categoryLeaders(players, ["identify", "memorize", "analyze", "compute", "visualize"]),
+    ).toEqual([
+      { category: "identify", leaderIds: ["p7"], score: 70 },
+      { category: "memorize", leaderIds: ["p0"], score: 70 },
+      { category: "analyze", leaderIds: ["p0", "p2", "p4", "p6"], score: 500 },
+      { category: "compute", leaderIds: ["p3"], score: 999 },
+    ]);
   });
 });

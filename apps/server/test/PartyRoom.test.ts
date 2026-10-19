@@ -225,6 +225,7 @@ describe("PartyRoom", () => {
         matchPoints: true,
         lastPoints: true,
         totalScore: true,
+        categoryScores: true,
         roundScore: true,
         roundCorrect: true,
         progress: true,
@@ -751,6 +752,76 @@ describe("PartyRoom", () => {
       host.send(ClientMessage.BackToLobby, {});
       await until(() => room.state.phase === "lobby");
     });
+
+    it("điểm theo thể loại: cộng dồn qua các vòng, có khoá cả khi 0 điểm; chơi lại / về phòng chờ thì xoá (CR-010)", async () => {
+      const { room, clients, host } = await setup(["An", "Bình", "Cúc"]);
+      const [, b, c] = clients as [TestClient, TestClient, TestClient];
+      host.send(ClientMessage.SetRounds, { totalRounds: 3 });
+      await until(() => room.state.totalRounds === 3);
+      await toGameSelect(room, clients);
+
+      const scores = (cl: TestClient) =>
+        Object.fromEntries(player(room, cl).categoryScores.entries());
+      /** Chơi một vòng `gameId`; trả điểm vòng của từng người (theo thứ tự `clients`). */
+      const round = async (gameId: GameId, scorers: [TestClient, number][]) => {
+        host.send(ClientMessage.PickGame, { gameId });
+        await until(() => room.state.phase === "game-intro");
+        await introToPlaying(room, clients);
+        for (const [cl, n] of scorers) {
+          for (let i = 0; i < n; i++) {
+            const p = player(room, cl);
+            const result = nextMessage<AnswerResultPayload>(cl, ServerMessage.AnswerResult);
+            cl.send(ClientMessage.Answer, {
+              round: room.state.round,
+              index: p.progress,
+              answer: SOLVE[gameId](room.state.seed, p.progress, p.difficulty as Difficulty),
+            });
+            expect((await result).correct).toBe(true);
+          }
+        }
+        finishRound(room);
+        expect(room.state.phase).toBe("round-results");
+        return clients.map((cl) => player(room, cl).roundScore);
+      };
+
+      // Vòng 1 + 2 cùng thể loại visualize, vòng 3 identify.
+      const r1 = await round("rotate-match", [[b, 2]]);
+      expect(scores(b)).toEqual({ visualize: r1[1] });
+      expect(scores(host)).toEqual({ visualize: 0 });
+      host.send(ClientMessage.NextRound, {});
+      await until(() => room.state.phase === "game-select");
+      const r2 = await round("top-view", [
+        [b, 1],
+        [c, 1],
+      ]);
+      host.send(ClientMessage.NextRound, {});
+      await until(() => room.state.phase === "game-select");
+      const r3 = await round("odd-one-out", [[host, 1]]);
+
+      expect(scores(host)).toEqual({ visualize: 0, identify: r3[0] });
+      expect(scores(b)).toEqual({ visualize: (r1[1] ?? 0) + (r2[1] ?? 0), identify: 0 });
+      expect(scores(c)).toEqual({ visualize: r2[2], identify: 0 });
+      // Tổng các thể loại = tổng điểm vòng cả trận.
+      for (const cl of clients) {
+        const sum = Object.values(scores(cl)).reduce((a, v) => a + v, 0);
+        expect(sum).toBe(player(room, cl).totalScore);
+      }
+      // Đồng bộ xuống client đúng hình dạng PlayerView.categoryScores.
+      const json = room.state.toJSON() as unknown as PartyStateView;
+      expect(json.players[b.sessionId]?.categoryScores).toEqual(scores(b));
+
+      host.send(ClientMessage.NextRound, {});
+      await until(() => room.state.phase === "podium");
+      host.send(ClientMessage.PlayAgain, {});
+      await until(() => room.state.phase === "game-select");
+      for (const cl of clients) expect(scores(cl)).toEqual({});
+
+      await round("balance", [[c, 1]]);
+      expect(scores(c)).toEqual({ analyze: player(room, c).roundScore });
+      host.send(ClientMessage.BackToLobby, {});
+      await until(() => room.state.phase === "lobby");
+      for (const cl of clients) expect(scores(cl)).toEqual({});
+    }, 20_000);
 
     it("về phòng chờ từ podium: xoá điểm, sẵn sàng, game đã chơi", async () => {
       const { room, clients, host } = await setup(["An", "Bình"]);

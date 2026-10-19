@@ -83,6 +83,9 @@ export class SupabaseResultStore implements ResultStore {
         total_score: r.totalScore,
         rounds: r.rounds,
         games: r.games,
+        // Cột thêm ở migration 20261019000000_match_category_scores.sql (CR-010).
+        category_scores: r.categoryScores,
+        category_titles: r.categoryTitles,
       })),
     );
     if (error) throw new Error(`match_results: ${error.message}`);

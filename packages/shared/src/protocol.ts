@@ -234,6 +234,13 @@ export interface PlayerView {
   lastPoints: number;
   /** Tổng điểm vòng cả trận — để phá hoà điểm trận ở chung cuộc. */
   totalScore: number;
+  /**
+   * Tổng điểm vòng cả trận theo thể loại game (`GAMES[id].category`), CR-010.
+   * QUY ƯỚC: chỉ thể loại đã chơi trong trận mới có khoá — kể cả khi người này được 0 điểm ở
+   * thể loại đó (server tạo khoá cho mọi người còn trong phòng lúc chốt vòng). Thiếu khoá nghĩa
+   * là "chưa chơi", khác với "chơi được 0 điểm". Xoá về `{}` khi Chơi lại / Về phòng chờ.
+   */
+  categoryScores: Partial<Record<Category, number>>;
   /** Điểm trong vòng hiện tại. */
   roundScore: number;
   /** Số câu đúng trong vòng hiện tại. */

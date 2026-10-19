@@ -3,8 +3,10 @@ import {
   AVATAR_COLORS,
   availableGames,
   BackToLobbySchema,
+  type Category,
   ClientMessage,
   COUNTDOWN_MS,
+  categoryLeaders,
   type ErrorPayload,
   type GameId,
   generateRoomCode,
@@ -25,6 +27,7 @@ import {
   PickGameSchema,
   PlayAgainSchema,
   placementPoints,
+  playedCategories,
   RECONNECT_WINDOW_S,
   ReadySchema,
   type RoundStartPayload,
@@ -408,10 +411,16 @@ export class PartyRoom extends Room<{ state: PartyState }> {
   private endRound() {
     if (this.state.phase !== "playing") return;
     this.clearTimers();
+    const category = isGameId(this.state.gameId) ? getGame(this.state.gameId).category : null;
     for (const { player, rank } of rankByRound([...this.state.players.values()])) {
       player.lastPoints = placementPoints(rank);
       player.matchPoints += player.lastPoints;
       player.totalScore += player.roundScore;
+      // Tạo khoá cả khi 0 điểm: có khoá = đã chơi thể loại này (PlayerView.categoryScores).
+      if (category) {
+        const prev = player.categoryScores.get(category) ?? 0;
+        player.categoryScores.set(category, prev + player.roundScore);
+      }
     }
     this.state.phase = "round-results";
   }
@@ -496,7 +505,15 @@ export class PartyRoom extends Room<{ state: PartyState }> {
       placement: rank,
       matchPoints: player.matchPoints,
       totalScore: player.totalScore,
+      categoryScores: Object.fromEntries(player.categoryScores.entries()) as Partial<
+        Record<Category, number>
+      >,
     }));
+    // Danh hiệu "giỏi nhất mỗi thể loại" (CR-010): id người → các thể loại người đó giành.
+    const titles = new Map<string, Category[]>();
+    for (const { category, leaderIds } of categoryLeaders(ranked, playedCategories(games))) {
+      for (const id of leaderIds) titles.set(id, [...(titles.get(id) ?? []), category]);
+    }
     const userIds = this.userIds;
     void Promise.all(this.pendingAuth.values())
       .then(() => {
@@ -513,6 +530,8 @@ export class PartyRoom extends Room<{ state: PartyState }> {
             totalScore: r.totalScore,
             rounds,
             games,
+            categoryScores: r.categoryScores,
+            categoryTitles: titles.get(r.id) ?? [],
           });
         }
         return rows.length > 0 ? this.store.saveMatchResults(rows) : undefined;
@@ -528,6 +547,7 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     p.matchPoints = 0;
     p.lastPoints = 0;
     p.totalScore = 0;
+    p.categoryScores.clear();
     p.roundScore = 0;
     p.roundCorrect = 0;
     p.progress = 0;

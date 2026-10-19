@@ -46,6 +46,10 @@ export interface MatchResultRecord {
   totalScore: number;
   rounds: number;
   games: string[];
+  /** Tổng điểm vòng theo thể loại (CR-010); chỉ thể loại đã chơi có khoá, kể cả 0 điểm. */
+  categoryScores: Partial<Record<Category, number>>;
+  /** Thể loại người này giành danh hiệu "giỏi nhất" trong trận (`categoryLeaders`), thứ tự CATEGORIES. */
+  categoryTitles: Category[];
 }
 
 /** Bản rỗng khi thiếu `SUPABASE_URL` / `SUPABASE_SECRET_KEY`. */

@@ -1,5 +1,6 @@
 import { type Difficulty, isDifficulty } from "./difficulty";
-import { GAME_IDS, type GameId } from "./games";
+import { GAME_IDS, GAMES, type GameId, isGameId } from "./games";
+import { CATEGORIES, type Category } from "./games/types";
 
 /**
  * Luật một trận dùng chung cho server và web (CR-005): xếp hạng có hoà,
@@ -71,4 +72,53 @@ export function majorityDifficulty(difficulties: Iterable<number>): Difficulty |
     }
   }
   return tie ? null : best;
+}
+
+/**
+ * Thể loại của các game đã chơi trong trận (CR-010), theo thứ tự `CATEGORIES`, không trùng.
+ * Bỏ qua id không phải game hệ thống.
+ */
+export function playedCategories(gameIds: Iterable<string>): Category[] {
+  const seen = new Set<Category>();
+  for (const id of gameIds) if (isGameId(id)) seen.add(GAMES[id].category);
+  return CATEGORIES.filter((c) => seen.has(c));
+}
+
+export interface CategoryLeader {
+  category: Category;
+  /** Người có điểm cao nhất ở thể loại này; hoà thì cùng nhận, giữ thứ tự đầu vào. */
+  leaderIds: string[];
+  /** Điểm của (những) người dẫn đầu, luôn > 0. */
+  score: number;
+}
+
+/**
+ * Danh hiệu "giỏi nhất mỗi thể loại" của một trận (CR-010).
+ * Với mỗi thể loại trong `played` (kết quả theo thứ tự `CATEGORIES`, không trùng): người có
+ * `categoryScores[category]` cao nhất và > 0 nhận danh hiệu, hoà thì cùng nhận.
+ * Thể loại mà mọi người đều 0 điểm (hoặc thiếu khoá) thì KHÔNG có trong kết quả — không ai
+ * nhận danh hiệu. Thể loại không nằm trong `played` cũng bị bỏ qua.
+ */
+export function categoryLeaders<
+  T extends { id: string; categoryScores: Partial<Record<Category, number>> },
+>(players: readonly T[], played: Iterable<Category>): CategoryLeader[] {
+  const wanted = new Set(played);
+  const out: CategoryLeader[] = [];
+  for (const category of CATEGORIES) {
+    if (!wanted.has(category)) continue;
+    let score = 0;
+    let leaderIds: string[] = [];
+    for (const p of players) {
+      const s = p.categoryScores[category] ?? 0;
+      if (s <= 0) continue;
+      if (s > score) {
+        score = s;
+        leaderIds = [p.id];
+      } else if (s === score) {
+        leaderIds.push(p.id);
+      }
+    }
+    if (leaderIds.length > 0) out.push({ category, leaderIds, score });
+  }
+  return out;
 }
