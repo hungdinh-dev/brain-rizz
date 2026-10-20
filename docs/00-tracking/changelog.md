@@ -64,6 +64,7 @@ Luồng trận mới theo [CR-005](change-requests.md#cr-005), 4 minigame MVP v�
 ### Thay đổi
 
 - **Kẻ lạc đàn** mức Khó và Siêu khó: ô lạc giờ cùng hình, cùng màu nhưng sáng hơn hoặc tối hơn (Khó lệch 14–18 %, Siêu khó lệch 7–9 % độ sáng); bỏ kiểu khác hẳn màu và kiểu xoay vì quá dễ nhận. Mầm/Thường và Kiểm tra não không đổi ([đặc tả](../04-minigames/odd-one-out.md)).
+- Màn "Chọn bạn đồng hành" thành **Hồ sơ của bạn**: thẻ danh thiếp (nhân vật lớn, tên, trạng thái tài khoản kèm nút Tài khoản & lịch sử) bên cạnh lưới bạn đồng hành; bỏ chọn độ khó ở màn này (độ khó vẫn nhớ ở màn giới thiệu game). Luyện tập · chọn game: thẻ game dọc có hình minh hoạ lớn trên nền màu nhóm kỹ năng; chip lọc đang chọn không còn bị cắt bóng và không nhảy bố cục khi đổi chọn.
 - Bắt đầu trận cần ≥ 2 người và tất cả đã sẵn sàng; chơi lại cũng cần ≥ 2 người (FR-PH-11).
 - Đếm ngược trước khi chơi từ 3 giây lên 5 giây, hiện tên game và độ khó của mình (FR-VC-02).
 - Độ khó chọn theo từng game ở màn hướng dẫn thay vì ở sảnh (FR-VC-12).
