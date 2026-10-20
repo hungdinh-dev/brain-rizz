@@ -14,7 +14,7 @@ export const locales: Record<Language, GameLocale> = {
     ],
     controls: { touch: "Chạm vào hình", mouse: "Click chuột vào hình" },
     hint: { touch: "Chạm vào hình khác biệt!", mouse: "Click vào hình khác biệt!" },
-    levels: ["Lưới 3×3", "Lưới 4×4", "5×5 · chỉ khác màu", "6×6 · chỉ khác góc xoay"],
+    levels: ["Lưới 3×3", "Lưới 4×4", "5×5 · khác sắc độ", "6×6 · sắc độ rất gần"],
   },
   en: {
     title: "Odd One Out",
@@ -27,6 +27,6 @@ export const locales: Record<Language, GameLocale> = {
     ],
     controls: { touch: "Tap the shape", mouse: "Click the shape" },
     hint: { touch: "Tap the different shape!", mouse: "Click the different shape!" },
-    levels: ["3×3 grid", "4×4 grid", "5×5 · colour only", "6×6 · rotation only"],
+    levels: ["3×3 grid", "4×4 grid", "5×5 · lighter or darker shade", "6×6 · very close shade"],
   },
 };
