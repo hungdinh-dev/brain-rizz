@@ -36,6 +36,7 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 | [CR-008](#cr-008) | Âm thanh hiệu ứng khi bấm nút, làm sớm ở GĐ 1; tách rung + Wake Lock thành FR-GD-11 | 2026-10-14 | Dời việc + thêm chi tiết | +1 ngày ở GĐ 1 | Đã làm (2026-10-14) |
 | [CR-009](#cr-009) | Đưa Luyện tập, Kiểm tra não, Tài khoản (Supabase) và Bảng xếp hạng lên làm trước | 2026-10-16 | Dời việc + thêm tính năng | +2–3 tuần, chen trước Cổng 1 | Duyệt (2026-10-16) |
 | [CR-010](#cr-010) | Vinh danh hồi hộp hơn, công tắc hiệu ứng chuyển động, danh hiệu và điểm theo thể loại trong trận party | 2026-10-19 | Thêm tính năng + thay đổi thiết kế | +1–2 ngày | Duyệt (2026-10-19) |
+| [CR-011](#cr-011) | Chat real-time trong phòng party: chữ + biểu cảm nhanh, lọc từ tục, chủ phòng tắt chat, tắt tiếng từng người | 2026-10-20 | Thêm tính năng | +1–2 ngày | Duyệt (2026-10-20) |
 
 ---
 
@@ -273,6 +274,27 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
   - *Điểm theo thể loại* (FR-VC-21, FR-MR-16): shared + server + migration (xem changelog); thẻ Giỏi nhất mỗi thể loại, thẻ Thế mạnh trong trận party. Thể loại đã chơi ở web lấy từ khoá của `categoryScores`.
   - **Migration:** `20261019000000_match_category_scores.sql` đã chạy trên project Supabase (2026-10-19, `supabase db push`). Project mới phải chạy nó **trước** khi deploy cả server lẫn web: server ghi hai cột mới (thiếu cột thì mọi lần ghi `match_results` lỗi, mất kết quả trận), web đọc hai cột (thiếu thì tab Trận party báo lỗi).
   - **Còn lại:** thẻ Thế mạnh tính trên 50 trận gần nhất (`fetchMatchHistory(50)`), chưa tổng hợp toàn bộ lịch sử. Chưa xem trận thật 2 máy, chưa nghe trống/kèn bằng tai.
+
+### CR-011
+
+**Chat real-time trong phòng party**
+
+- **Ngày mở:** 2026-10-20 · **Loại:** Thêm tính năng · **Người đề xuất:** chủ dự án
+- **Mô tả:** người chơi trong cùng phòng party nhắn tin với nhau theo thời gian thực.
+  - **Pha:** chat hiện ở phòng chờ, chọn game, hướng dẫn, bảng điểm vòng và vinh danh. Lúc đếm ngược và đang chơi, khung chat ẩn; tin đến trong lúc đó được gom lại, hiện số chưa đọc sau vòng.
+  - **Loại tin:** chữ tự do (tối đa 120 ký tự) và một hàng biểu cảm/câu chọn sẵn bấm một chạm; biểu cảm hiện thành bong bóng ngắn trên avatar.
+  - **Kiểm soát:** server lọc từ tục (vi + en, thay bằng `***`); chủ phòng bật/tắt chat cả phòng; mỗi người tự tắt tiếng một người khác trên máy mình.
+  - **Lưu:** không lưu. Server giữ khoảng 30 tin gần nhất trong RAM của phòng để người vào sau hoặc nối lại thấy; phòng đóng là mất.
+- **Lý do:** trụ cột vui khi chơi chung — trò chuyện, chọc nhau giữa các vòng, nhất là khi chơi qua `pnpm share` với bạn ở xa không ngồi cạnh nhau.
+- **Phân tích tác động:**
+  - *Trụ cột:* giữ "Nhẹ và rẻ": tin đi qua kết nối Colyseus sẵn có dưới dạng tin nhắn một lần (không nằm trong state đồng bộ, trừ cờ bật/tắt chat), vài trăm byte mỗi tin, không thêm dịch vụ hay bảng Supabase. Khung chat là React DOM, không đụng canvas Phaser (bất biến 4), không ảnh hưởng FPS.
+  - *Kỹ thuật:* shared thêm schema zod cho tin chat + hành động bật/tắt chat (bất biến 3), danh sách từ cấm + hàm lọc thuần có test, hằng số giới hạn. Server: giới hạn tần suất mỗi người (khoảng 1 tin/giây, cụm tối đa vài tin), cắt độ dài, lọc, chặn khi chat tắt hoặc đang ở pha chơi, bộ đệm 30 tin gửi cho người vào/nối lại; cờ `chatEnabled` trong `PartyState` khớp `PartyStateView` (bất biến 5). Web: feature `chat` (khung chat, ô nhập, hàng biểu cảm, bong bóng trên avatar, số chưa đọc, tắt tiếng lưu trên máy), mọi chữ qua `t()`. **Không đổi seed hay bộ sinh câu đố.**
+  - *Riêng tư:* không lưu nội dung chat ở đâu ngoài RAM phòng; không đổi NFR-PRIV.
+  - *Chi phí:* 0 đồng.
+  - *Lịch:* ước lượng 1–2 ngày, làm sau đợt 2 minigame Nhận diện (cùng chạm `PartyRoom.ts`, `protocol.ts`, i18n).
+- **Quyết định:** **Duyệt** (2026-10-20, chủ dự án chọn qua câu hỏi). Giả định PM: tin hệ thống (vào/rời phòng) không cần; tên người gửi lấy từ hồ sơ trong phòng, server gắn chứ client không tự khai; tắt tiếng chỉ trên máy mình, không báo cho người bị tắt.
+- **Tài liệu kéo theo:** SRS (UC/FR mới nhóm Phòng chơi, NFR-SEC chống spam), UI-UX (khung chat các pha), overview (luồng tin), features.md, changelog.
+- **Kết quả:** chờ làm.
 
 ---
 

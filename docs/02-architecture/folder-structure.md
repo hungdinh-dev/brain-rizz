@@ -27,6 +27,7 @@ brain-rizz/
 │  │  ├─ odd-one-out/          ★ MỖI GAME MỘT THƯ MỤC (chỉ logic, không có chữ hiển thị)
 │  │  │  ├─ odd-one-out.ts     Kẻ lạc đàn: sinh câu đố theo độ khó, chấm đáp án
 │  │  │  └─ odd-one-out.test.ts  Test 10.000 seed
+│  │  ├─ shadow-match/         Bóng của ai: <id>.ts + items.ts (8 vật × 7 biến thể, phần hình L/R/C) + test
 │  │  ├─ light-trail/          Theo dấu ánh đèn: <id>.ts (+ lightTrailRevealMs dùng chung scene/server) + test
 │  │  ├─ balance/              Cân não: <id>.ts (+ BALANCE_ITEMS: mã các vật) + test
 │  │  ├─ number-balloons/      Bóng bay số: <id>.ts + test
@@ -160,6 +161,7 @@ brain-rizz/
 │  │  │  │  ├─ OddOneOutHowTo.tsx Hình minh hoạ SVG cho màn Hướng dẫn và thẻ game
 │  │  │  │  ├─ locales.ts      Chữ màn hướng dẫn (vi, en): tên, mô tả, 3 bước, điều khiển, câu nhắc, 4 mức
 │  │  │  │  └─ index.ts        GameClient: scene (tải lười) + locales + Illustration
+│  │  │  ├─ shadow-match/    Bóng của ai: ShadowMatchScene, art.ts (hàm vẽ phần hình) + art.test, HowTo, locales, index
 │  │  │  ├─ light-trail/, balance/, number-balloons/, rotate-match/, who-vanished/, pair-flip/,
 │  │  │  │  cube-count/, marble-drop/, hit-target/, cash-count/, top-view/, fold-box/
 │  │  │  │                     Cùng khuôn: <Name>Scene.ts, <Name>HowTo.tsx, locales.ts, index.ts;
@@ -274,6 +276,8 @@ brain-rizz/
 │     ├─ README.md             Danh mục 15 game và trạng thái
 │     ├─ _template.md          Mẫu đặc tả game mới
 │     ├─ odd-one-out.md        Đặc tả Kẻ lạc đàn
+│     ├─ shadow-match.md       Đặc tả Bóng của ai
+│     ├─ whack-right.md        Đặc tả Đập đúng hình (📝, code chưa đăng ký)
 │     ├─ light-trail.md        Đặc tả Theo dấu ánh đèn (MVP)
 │     ├─ balance.md            Đặc tả Cân não (MVP)
 │     ├─ number-balloons.md    Đặc tả Bóng bay số (MVP)
