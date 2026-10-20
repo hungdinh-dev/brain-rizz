@@ -12,6 +12,7 @@ Luồng trận mới theo [CR-005](change-requests.md#cr-005), 4 minigame MVP v�
 
 ### Thêm
 
+- **Minigame mới Bóng của ai** (nhóm Nhận diện, `shadow-match`): nhìn một đồ vật có màu, chạm vào bóng đen đúng hình dạng; bóng có thể bị xoay hoặc lật. 4 mức độ khó (3 → 6 bóng, mồi khác vật → mồi gần giống, thêm xoay và lật), vòng 60 giây, có màn hướng dẫn và chữ vi/en; chơi được trong phòng party, Luyện tập và Kiểm tra não (điểm chuẩn 2 050; phiên bản luật Kiểm tra não lên 2 nên bảng xếp hạng Điểm Não và từng minigame làm mới). Bộ sinh câu đố tất định, test 10.000 seed ([đặc tả](../04-minigames/shadow-match.md)).
 - **Vinh danh hồi hộp, nút Hiệu ứng, danh hiệu theo thể loại** ([CR-010](change-requests.md#cr-010)):
   - Màn vinh danh lật lần lượt hạng 4 trở đi (từ dưới lên), hạng 3, hạng 2, rồi chờ 2 giây có tiếng trống dồn và chữ "Và hạng nhất là…" trước khi hạng 1 bung lên với vương miện, pháo giấy và tiếng kèn. Nhãn "Bạn về …" chỉ hiện sau khi chỗ của mình lật. Vào lại phòng giữa lúc vinh danh thì hiện hết ngay (FR-GD-06).
   - Thẻ **Giỏi nhất mỗi thể loại** hiện sau hạng 1: mỗi thể loại đã chơi có người điểm cao nhất (hoà thì cùng nhận) (FR-VC-21).
@@ -62,6 +63,7 @@ Luồng trận mới theo [CR-005](change-requests.md#cr-005), 4 minigame MVP v�
 
 ### Thay đổi
 
+- **Kẻ lạc đàn** mức Khó và Siêu khó: ô lạc giờ cùng hình, cùng màu nhưng sáng hơn hoặc tối hơn (Khó lệch 14–18 %, Siêu khó lệch 7–9 % độ sáng); bỏ kiểu khác hẳn màu và kiểu xoay vì quá dễ nhận. Mầm/Thường và Kiểm tra não không đổi ([đặc tả](../04-minigames/odd-one-out.md)).
 - Bắt đầu trận cần ≥ 2 người và tất cả đã sẵn sàng; chơi lại cũng cần ≥ 2 người (FR-PH-11).
 - Đếm ngược trước khi chơi từ 3 giây lên 5 giây, hiện tên game và độ khó của mình (FR-VC-02).
 - Độ khó chọn theo từng game ở màn hướng dẫn thay vì ở sảnh (FR-VC-12).
