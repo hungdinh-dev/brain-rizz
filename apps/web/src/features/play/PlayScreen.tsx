@@ -14,8 +14,9 @@ import { RoundInfo } from "./components/RoundInfo";
 import { RoundTimer } from "./components/RoundTimer";
 import { Scoreboard } from "./components/Scoreboard";
 import { ScoreStrip } from "./components/ScoreStrip";
+import { connectionSync, partyProgress } from "./connection-sync";
 import { rankByRoundScore } from "./standings";
-import { waitUnlockDelay } from "./unlock-delay";
+import { waitAnswerOutcome, waitUnlockDelay } from "./unlock-delay";
 
 /** Bảng điểm đông hơn ngần này người thì ẩn linh vật cho đủ chỗ. */
 const MASCOT_MAX_PLAYERS = 5;
@@ -59,6 +60,8 @@ function PlayView({ gameId }: { gameId: GameId }) {
       startIndex: me?.progress ?? 0,
       submit: (index, answer) => send(ClientMessage.Answer, { round: roundNo, index, answer }),
       unlockDelay: waitUnlockDelay,
+      answerOutcome: waitAnswerOutcome,
+      ...connectionSync(partyProgress),
     }),
     [seed, roundNo, difficulty],
   );

@@ -132,13 +132,24 @@ sequenceDiagram
 **Chấm một câu** (`judgeAnswer` trong `packages/shared/src/answer-judge.ts`: hàm thuần, nhận `now`, không đọc đồng hồ. Server bọc trong `apps/server/src/rooms/AnswerJudge.ts` cho `PartyRoom` và `BrainTestRoom`; Luyện tập trên web gọi thẳng qua `features/practice/judge.ts`, nên ba chế độ cùng một luật. Công thức điểm ở `packages/shared/src/scoring.ts`):
 
 1. Bỏ qua nếu sai pha, sai vòng, `index` khác câu đang làm, quá `endsAt + LATE_ANSWER_GRACE_MS`, đang bị khoá, gửi quá `MAX_ANSWERS_PER_SECOND` (đáp án sai kiểu cũng bị đếm), hoặc đáp án sai kiểu (`isAnswer`).
-2. Server sinh lại câu bằng `generate(seed, index, độ khó)` rồi `check()`. Sai thì điểm 0, chuỗi về 0 và bị khoá `WRONG_ANSWER_LOCK_MS`.
+2. Server sinh lại câu bằng `generate(seed, index, độ khó)` rồi `check()`. Sai (kể cả đáp án tới sau **hạn trả lời** của game, xem dưới) thì điểm 0, chuỗi về 0 và bị khoá `WRONG_ANSWER_LOCK_MS`.
 3. Đúng thì tính `pointsForCorrect`: điểm = (`BASE_POINTS` × hệ số độ khó + thưởng tốc độ) × hệ số combo, làm tròn.
    - **Hệ số độ khó** = `gameMultiplier(game, độ khó)`: lấy `difficultyMultiplier` game khai báo; game không khai báo, hoặc khai báo số không dương / không hữu hạn, thì dùng `DIFFICULTY_MULTIPLIER` chung (CR-006).
    - **Thưởng tốc độ** (0–`MAX_SPEED_BONUS`) tính trên `max(0, thời gian trả lời − miễn trừ)`: trọn thưởng khi ≤ `FAST_ANSWER_MS`, hết khi ≥ `SLOW_ANSWER_MS`. Thời gian trả lời đo bằng giờ server, từ lúc câu hiện (hoặc lúc hết khoá) tới lúc nhận đáp án. Miễn trừ = `gameSpeedAllowanceMs(game, puzzle, độ khó)`: gọi `speedAllowanceMs` của game trên chính câu server vừa sinh lại, kẹp về số hữu hạn ≥ 0 (thiếu hoặc sai thì 0).
    - **Combo** = `comboMultiplier(streak)`: từ câu đúng liên tiếp thứ `STREAK_THRESHOLD` cộng `STREAK_BONUS_PER_STEP` mỗi câu, trần `MAX_COMBO_MULTIPLIER` (× 1,5).
 
 Game không khai báo hai trường CR-006 (như Kẻ lạc đàn) được chấm như trước, chỉ thêm trần combo.
+
+**Hạn trả lời** (`answerWindowMs`, [CR-012](../00-tracking/change-requests.md#cr-012)): cho game có vật biến mất, như bia Luyện ngắm, và sau này Đập đúng hình.
+
+- **Khai báo:** hook tuỳ chọn `answerWindowMs?(puzzle, difficulty)` trong `MinigameDef` (`packages/shared/src/games/types.ts`), tính trên câu server tự sinh lại. `gameAnswerWindowMs` kẹp kết quả: `undefined`, không hữu hạn hoặc ≤ 0 đều coi là **không giới hạn**. Game không khai báo hook chấm như trước.
+- **Luật:** `judgeAnswer` chấm **sai như bỏ lỡ**, dù `check()` đúng, khi `now − shownAt > hạn + LATE_ANSWER_GRACE_MS` (400 ms). Phép so là `>`, nên đáp án tới đúng mốc `hạn + 400 ms` vẫn được chấm bình thường. `shownAt` là giờ server lúc nhận đáp án câu trước, hoặc lúc hết khoá nếu câu trước sai; câu 0 lấy `startAt`. Kiểm `endsAt + LATE_ANSWER_GRACE_MS` vẫn chạy trước: quá hết vòng thì bỏ qua hẳn, không chấm sai.
+- **Phạm vi:** `judgeAnswer` dùng chung nên party, Kiểm tra não và Luyện tập cùng áp dụng. Không đổi tin nhắn hay schema; client tự gửi đáp án "bỏ lỡ" khi hết hạn (Luyện ngắm: `AIM_TRAINER_MISS`).
+- **Nối lại:** `PartyRoom` và `BrainTestRoom` gọi `AnswerJudge.resume()` trong `onReconnect`. Với game có hạn, câu đang làm được tính là hiện lại từ `max(lúc nối lại, lúc hết khoá, startAt)`, vì lúc rớt mạng người chơi không thấy vật. Game không có hạn giữ giờ cũ, để thời gian rớt mạng vẫn tính vào thưởng tốc độ. Phía client, scene có hạn dừng đồng hồ hạn khi mất kết nối (`bridge.watchConnection` báo `paused`); nối lại thì chờ state đầy đủ của server về (tối đa 1,5 s) rồi mới hiện câu theo `progress` server (`resumed`, `features/play/connection-sync.ts`; mẫu Luyện ngắm). Phòng đóng hẳn thì không báo `resumed`.
+- **Hạn chế đã biết:**
+  - `shownAt` theo giờ server nên lệch với lúc vật hiện trên máy bằng độ trễ hai chiều. Mạng chập chờn hoặc Phaser khởi động chậm (câu 0 tính từ `startAt`) có thể làm một cú trúng hợp lệ bị chấm muộn. Scene phải nghe `bridge.answerOutcome()` để quay về đúng câu server đang chờ (Luyện ngắm: `watchHit`).
+  - Cố ý rớt mạng rồi nối lại sẽ được làm mới hạn của câu đang dở. Chấp nhận vì lợi rất nhỏ, mỗi lần chỉ một câu.
+  - Client biết seed nên bot vẫn giải được (NFR-SEC-02). Hạn trả lời chỉ chặn đáp án muộn, không chặn bot.
 
 **Xếp hạng** (`packages/shared/src/match.ts`, server và web dùng chung):
 
@@ -170,14 +181,46 @@ Game không khai báo hai trường CR-006 (như Kẻ lạc đàn) được ch�
 | C → S | `playAgain` | `{}` | Chủ phòng, ở `podium`; cần ≥ `MIN_PLAYERS_TO_START` (2) người còn trong phòng, nếu không → `not-ready` (chỉ còn cách `backToLobby`). Giữ người + số vòng, xoá điểm, vòng 1, `game-select` |
 | C → S | `backToLobby` | `{}` | Chủ phòng, ở `podium` hoặc `round-results`: xoá điểm, sẵn sàng, game đã chơi |
 | C → S | `ping` | `{ clientTime }` | Bất cứ lúc nào (đồng bộ giờ) |
+| C → S | `chat` | `{ kind: "text", text }` (≤ 480 ký tự thô, server cắt còn 120) hoặc `{ kind: "quick", id }` (`CHAT_QUICK_IDS`) | Mọi người, ở pha trong `CHAT_PHASES` (không phải `countdown`/`playing` → `bad-phase`), khi `chatEnabled` (nếu không → `chat-disabled`); ~1 tin/giây, cụm 3 (`rate-limited`); chữ rỗng sau khi làm sạch → `invalid`. Xem [Chat trong phòng](#chat-trong-phòng) |
+| C → S | `setChatEnabled` | `{ enabled }` | Chủ phòng, mọi pha (người khác → `not-host`) |
 | S → C | patch state | `PartyStateView` (tự động, delta nhị phân) | Liên tục khi state đổi |
 | S → C | `roundStart` | `{ round, gameId, seed, startAt, durationMs }` | Đầu mỗi vòng. Web không dựa vào payload (seed, giờ lấy từ state, vì tin này mất được khi nối lại); chỉ dùng làm tín hiệu xoá kết quả câu cũ |
 | S → C | `answerResult` | `{ index, correct, points, lockedUntil? }` | Chỉ gửi người vừa trả lời |
 | S → C | `nudge` | `{ difficulty }` — mức nhiều người chọn nhất | Chỉ gửi người bị chủ phòng nhắc |
 | S → C | `pong` | `{ clientTime, serverTime }` | Trả lời `ping` |
-| S → C | `error` | `{ code, message }`; `code`: `not-host`, `bad-phase`, `invalid`, `rate-limited`, `not-ready` | Khi tin nhắn bị từ chối |
+| S → C | `chat` | `ChatMessagePayload`: `{ id, playerId, name, colorIndex, avatar, kind, text?, quickId?, at }` | Phát cho cả phòng (kể cả người gửi) khi một tin chat được nhận |
+| S → C | `chatHistory` | `{ messages: ChatMessagePayload[] }` (tối đa 30, cũ → mới) | Gửi riêng khi vào phòng và khi nối lại thành công; client gộp vào danh sách đang có theo `id` (bỏ trùng, cũ → mới, giữ tối đa 50 tin), không xoá tin cũ hơn bộ đệm server |
+| S → C | `error` | `{ code, message, source? }`; `code`: `not-host`, `bad-phase`, `invalid`, `rate-limited`, `not-ready`, `chat-disabled`; `source: "chat"` khi lỗi đến từ `chat` / `setChatEnabled` | Khi tin nhắn bị từ chối |
 
 Tin không có nội dung (`{}`) chấp nhận cả `undefined`/`null`; trường lạ bị bỏ.
+
+## Chat trong phòng
+
+[CR-011](../00-tracking/change-requests.md#cr-011), UC-22. Tin chat là **tin nhắn một lần**, không nằm trong state đồng bộ; thứ duy nhất trong state là cờ `chatEnabled`. Luật thuần ở `packages/shared/src/chat/` (hằng số, lọc từ tục, làm sạch, giới hạn tần suất), server ghép ở `apps/server/src/rooms/ChatRelay.ts`.
+
+```mermaid
+flowchart LR
+  C["client gửi chat"] --> Z{"zod ChatSendSchema"}
+  Z -- sai --> E1["error invalid"]
+  Z --> F{"chatEnabled?"}
+  F -- tắt --> E2["error chat-disabled"]
+  F --> P{"pha thuộc CHAT_PHASES?"}
+  P -- "countdown, playing" --> E3["error bad-phase"]
+  P --> R{"còn lượt? cụm 3, hồi 1 tin mỗi giây"}
+  R -- hết --> E4["error rate-limited"]
+  R --> S["sanitizeChatText: bỏ ký tự vô hình, gộp khoảng trắng, cắt 120, che từ tục"]
+  S -- rỗng --> E5["error invalid"]
+  S --> G["gắn id, tên, màu, nhân vật từ PlayerState, giờ server"]
+  G --> B[("bộ đệm 30 tin trong RAM")]
+  G --> X["broadcast chat cho cả phòng"]
+```
+
+- **Danh tính do server gắn**: `name`, `colorIndex`, `avatar` lấy từ `Player` của `client.sessionId` lúc gửi; mọi trường danh tính client gửi kèm bị zod bỏ.
+- **Lịch sử**: `ChatRelay` giữ 30 tin gần nhất (`CHAT_HISTORY_SIZE`) trong RAM phòng, không ghi DB. Gửi `chatHistory` trong `onJoin` (Colyseus giữ lại tới khi client xác nhận vào phòng) và trong `onReconnect`, nên người nối lại thấy cả tin gửi trong lúc mình mất kết nối. Phòng đóng là mất.
+- **Giới hạn tần suất**: token bucket mỗi người (`CHAT_RATE`: cụm 3 tin, hồi 1 tin/giây), tính bằng giờ server; tin bị từ chối không trừ lượt. Xoá khi người đó rời hẳn (`onLeave`).
+- **Lọc từ tục** (`filterProfanity`): danh sách vi + en; từ tiếng Việt dễ trùng khi bỏ dấu (cặc/các, lồn/lon…) chỉ khớp khi có dấu, viết tắt (vcl, đm…) và tiếng Anh khớp cả khi bỏ dấu; viết hoa, leet cơ bản (0 1 3 4 @ $), lách bằng `. _ - *` hoặc khoảng trắng giữa chữ đơn đều bị bắt; khớp nguyên từ nên "class", "các bạn" không bị che.
+- **Lỗi chat có nguồn**: mọi lỗi từ `chat` / `setChatEnabled` gắn `source: "chat"`. Web chỉ xử lý trong khung chat (rate-limited → dòng nhắc; bad-phase / invalid → bỏ qua) khi có nguồn này; lỗi không có nguồn luôn mở khoá nút đang chờ và hiện toast, kể cả khi vừa gửi chat.
+- **Bật/tắt**: chủ phòng gửi `setChatEnabled` ở mọi pha; cờ giữ qua Chơi lại / Về phòng chờ và khi đổi chủ phòng. Tắt tiếng một người là việc riêng của từng máy (web lưu `localStorage`), server không biết.
 
 ## Phòng Kiểm tra não
 
@@ -231,11 +274,12 @@ Join options của party nhận `accessToken?`. `PartyRoom` xác thực nền kh
 - Phòng: `code`, `phase`, `hostId`, `gameId` (game của vòng, đặt khi vào `game-intro`), `round`, `totalRounds`, `seed`, `startAt`, `endsAt`.
 - Chọn game: `pickMode` (`"wheel"` | `"pick"`), `votes` (`Map<sessionId, gameId>`), `playedGames` (game đã chơi trong trận; chơi hết thì làm mới khi vào `game-select`), `wheelGameId` (`""` khi chưa quay), `wheelSpinAt` (giờ server, 0 khi chưa quay), `wheelSpinMs`. Phiếu và thông tin vòng quay xoá khi bắt đầu vòng.
 - Hướng dẫn: `introEndsAt` (hạn tự bắt đầu ở `game-intro`, 0 ở pha khác).
+- Chat: `chatEnabled` (mặc định `true`, chủ phòng đổi). Nội dung chat **không** nằm trong state ([Chat trong phòng](#chat-trong-phòng)).
 - Người chơi (`players: Map<sessionId, Player>`): `name`, `colorIndex`, `avatar`, `difficulty` (của vòng hiện tại), `ready` (phòng chờ), `introReady` ("Đã hiểu"), `connected`, `isHost`, `matchPoints`, `lastPoints` (điểm trận vừa cộng ở vòng gần nhất), `totalScore` (tổng điểm vòng cả trận, phá hoà chung cuộc), `roundScore`, `roundCorrect` (số câu đúng trong vòng), `progress`, `streak`.
 
 Test "state khớp hình dạng PartyStateView" trong `apps/server/test/PartyRoom.test.ts` so khoá của `state.toJSON()` với `PartyStateView`/`PlayerView`, nên thêm trường ở một bên mà quên bên kia sẽ báo lỗi.
 
-Thông tin chỉ server cần (giờ hiện câu của từng người, thời điểm hết khoá, bộ đếm chống spam — trong `AnswerJudge`; lần nhắc độ khó gần nhất, `user_id` Supabase) giữ trong `Map` riêng của phòng, không đồng bộ xuống client.
+Thông tin chỉ server cần (giờ hiện câu của từng người, thời điểm hết khoá, bộ đếm chống spam — trong `AnswerJudge`; lần nhắc độ khó gần nhất, `user_id` Supabase, lượt chat còn lại và 30 tin chat gần nhất trong `ChatRelay`) giữ trong `Map` riêng của phòng, không đồng bộ xuống client.
 
 ## Đồng bộ giờ
 
@@ -245,6 +289,8 @@ Client gửi 5 `ping` cách nhau 150 ms khi vào phòng (và 3 lần mỗi khi t
 
 1. Mạng rớt → server gọi `onDrop`, đánh dấu `connected = false`, giữ chỗ 45 giây (`allowReconnection`).
 2. SDK tự nối lại; nếu người chơi tải lại trang, `resumeParty()` dùng token trong `sessionStorage`.
+   Nối lại thành công thì server gửi lại `chatHistory` (30 tin gần nhất, gồm cả tin trong lúc mất kết nối).
+   Game có hạn trả lời thì câu đang làm được tính lại giờ hiện (`AnswerJudge.resume`, xem **Hạn trả lời** ở trên).
 3. Quá 45 giây → `onLeave`, xoá người chơi; nếu là chủ phòng thì chuyển quyền cho người kế tiếp.
 
 ## Thêm tính năng ở đâu
@@ -254,6 +300,7 @@ Client gửi 5 `ping` cách nhau 150 ms khi vào phòng (và 3 lần mỗi khi t
 | Minigame mới | `pnpm new-game <id> <nhóm>` → `packages/shared/src/games/<id>/` + `apps/web/src/games/<id>/` (xem [hướng dẫn](../03-guides/development.md#thêm-một-minigame)) |
 | Luật chơi, tính điểm | `packages/shared/src/scoring.ts`, `constants.ts` |
 | Xếp hạng, game còn chơi được, độ khó đa số | `packages/shared/src/match.ts` (server và web dùng chung) |
+| Luật chat (giới hạn, từ cấm, biểu cảm chọn sẵn) | `packages/shared/src/chat/`; luồng phòng ở `apps/server/src/rooms/ChatRelay.ts` |
 | Tin nhắn mới | `packages/shared/src/protocol.ts` → handler trong `PartyRoom.messages` (hoặc `BrainTestRoom.messages`) → gọi từ `apps/web/src/net/connection.ts` |
 | Luật Kiểm tra não (chọn game, thời lượng, Điểm Não) | `packages/shared/src/brain-test.ts`; luồng phòng ở `apps/server/src/rooms/BrainTestRoom.ts` |
 | Bảng, RLS, RPC bảng xếp hạng | Migration mới trong `supabase/migrations/` ([cài đặt](../03-guides/supabase-setup.md)) |

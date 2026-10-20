@@ -72,7 +72,7 @@ Thời lượng đặt theo nhóm, không theo game. Mỗi nhóm có đúng mộ
 
 | Nhóm | Thời lượng | Vì sao |
 | --- | --- | --- |
-| Nhận diện | 30 s | Kẻ lạc đàn ~1,5 s mỗi câu (~17 câu trong 30 s), Bóng của ai ~2 s mỗi câu (~12 câu) |
+| Nhận diện | 30 s | Kẻ lạc đàn ~1,5 s mỗi câu (~17 câu trong 30 s), Bóng của ai ~2 s mỗi câu (~12 câu), Luyện ngắm ~0,7 s mỗi bia (~40 bia) |
 | Ghi nhớ | 45 s | Mỗi câu có 3–3,4 s trình chiếu không bấm được; 45 s còn 7–12 câu |
 | Phân tích | 40 s | 2,5–3,7 s mỗi câu → 9–13 câu |
 | Tính toán | 45 s | ~5 s mỗi câu; 45 s còn ~8 câu |
@@ -83,7 +83,7 @@ Tổng **200 giây chơi**. Cộng 5 × (≈ 12 s đọc hướng dẫn + 3 s đ
 **Cách chọn game (`pickBrainTestGames(seed, available?)`)**
 
 - Server tạo `seed` cho lượt. Nhóm thứ `i` bốc **đều** một game trong các game đã đăng ký của nhóm, bằng luồng ngẫu nhiên riêng `createRng(deriveSeed(seed, i))`. Cùng seed → cùng 5 game, trên mọi máy.
-- Mọi game đã đăng ký đều được vào, kể cả game còn chờ chơi thử. Hiện tại: Nhận diện có Kẻ lạc đàn và Bóng của ai nên mỗi game có xác suất 1/2; bốn nhóm còn lại mỗi game có xác suất 1/3.
+- Mọi game đã đăng ký đều được vào, kể cả game còn chờ chơi thử. Hiện tại: Nhận diện có Kẻ lạc đàn, Bóng của ai và Luyện ngắm (mỗi game 1/3); Phân tích có thêm Phấn trượt (4 game, mỗi game 1/4); ba nhóm còn lại mỗi game có xác suất 1/3.
 - `available` (tuỳ chọn) giới hạn danh sách game. Id lạ, id trùng và thứ tự trong `available` không ảnh hưởng kết quả. Nhóm không còn game nào trong `available` thì bốc từ mọi game của nhóm đó, để lượt luôn đủ 5 game. Mỗi nhóm có luồng riêng nên giới hạn một nhóm không làm đổi game được bốc ở nhóm khác.
 
 **Quy điểm game về điểm kỹ năng (`skillScore`)**
@@ -114,12 +114,14 @@ Hai nhánh nối trơn tại `r = 1` (cùng độ dốc). Nhánh trên giảm d�
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Nhận diện | Kẻ lạc đàn | 30 s | 1,3 s · 4 % (ước; đặc tả chưa có bảng Cân bằng) | 17,4 · 16,7 | **3 350** | × 1,33 | × 0,73 |
 | Nhận diện | Bóng của ai | 30 s | 2,0 s · 8 % | 12,2 · 11,2 | **2 050** | × 1,41 | × 0,68 |
+| Nhận diện | Luyện ngắm | 30 s | 0,675 s · 2 % (bỏ lỡ tốn trọn 1,5 s; bia mới hiện ngay, 0–0,05 s) | 39,8 · 39,1 | **8 350** | × 1,38 | × 0,72 |
 | Ghi nhớ | Theo dấu ánh đèn | 45 s | trình chiếu ~3,0 s + nhập 2,3 s · 10 % | 7,2 · 6,4 | **1 050** | × 1,23 | × 0,78 |
 | Ghi nhớ | Ai vừa biến mất | 45 s | xem + che 3,4 s + chọn 1,5 s · 10 % | 8,0 · 7,2 | **1 250** | × 1,15 | × 0,84 |
 | Ghi nhớ | Lật cặp | 45 s | phần xem của bàn + chạm 1,5 s · 12 % | 12,2 · 10,8 | **1 950** | × 1,22 | × 0,84 |
 | Phân tích | Cân não | 40 s | 3,0 s · 8 % | 11,6 · 10,6 | **1 850** | × 1,48 | × 0,65 |
 | Phân tích | Đếm khối | 40 s | 3,7 s · 8 % | 9,3 · 8,5 | **1 400** | × 1,53 | × 0,63 |
 | Phân tích | Bi rơi đâu | 40 s | 2,5 s · 10 % | 13,2 · 11,9 | **2 100** | × 1,43 | × 0,68 |
+| Phân tích | Phấn trượt | 40 s | 1,15 s · 6 % | ~26 · 24,5 | **4 900** | × 1,31 | × 0,74 |
 | Tính toán | Bóng bay số | 45 s | 4,9 s · 6 % | 8,0 · 7,6 | **1 250** | × 1,57 | × 0,61 |
 | Tính toán | Chạm đích | 45 s | 5,2 s · 6 % | 7,6 · 7,2 | **1 100** | × 1,61 | × 0,58 |
 | Tính toán | Đếm tiền nhanh | 45 s | 5,0 s · 7 % | 7,9 · 7,4 | **1 200** | × 1,59 | × 0,60 |
@@ -136,7 +138,7 @@ Hai nhánh nối trơn tại `r = 1` (cùng độ dốc). Nhánh trên giảm d�
 **Hạn chế đã biết**
 
 - Game Ghi nhớ có pha trình chiếu cố định nên người nhanh kéo điểm lên ít hơn (× 1,15–1,23 so với × 1,33–1,61 ở các game). Kỹ năng Ghi nhớ vì thế dồn quanh 100 hơn các kỹ năng khác. Chấp nhận ở bản này; xem lại khi có số đo thật.
-- Nhóm Nhận diện mới có hai game (Kẻ lạc đàn, Bóng của ai), ít hơn ba game ở các nhóm khác. Điểm chuẩn hai game ước theo cách khác nhau (Kẻ lạc đàn chưa có bảng Cân bằng), nên cần đối chiếu lại khi có số đo thật.
+- Nhóm Nhận diện có ba game nhưng điểm chuẩn ước theo cách khác nhau (Kẻ lạc đàn chưa có bảng Cân bằng). Luyện ngắm ăn điểm thô gấp ~2,5–4 lần hai game kia vì mỗi bia ~0,7 s (ngoại lệ đã chốt 2026-10-20); điểm chuẩn riêng của game đã bù phần này trong kỹ năng, nhưng bảng xếp hạng từng minigame của Luyện ngắm không so được với game khác. Cần đối chiếu lại khi có số đo thật.
 
 **Biểu đồ 5 cạnh (màn kết quả)**
 
@@ -165,12 +167,14 @@ Hai nhánh nối trơn tại `r = 1` (cùng độ dốc). Nhánh trên giảm d�
 | Nhận diện | `odd-one-out` | Kẻ lạc đàn | Lưới hình, chạm vào hình khác biệt | Lưới lớn hơn, khác biệt tinh tế hơn | Có |
 | Nhận diện | `shadow-match` | Bóng của ai | Chọn bóng đen khớp với đồ vật | Thêm lựa chọn, bóng bị xoay | |
 | Nhận diện | `whack-right` | Đập đúng hình | Hình nhô lên từ các lỗ, chỉ đập hình được yêu cầu | Nhanh hơn, thêm hình mồi nhử | |
+| Nhận diện | `aim-trainer` | Luyện ngắm | Bia tròn hiện ở chỗ bất kỳ, chạm trúng càng nhanh càng tốt | Bia nhỏ hơn, biến mất nếu chậm, co dần, thêm bia mồi đỏ | |
 | Ghi nhớ | `light-trail` | Theo dấu ánh đèn | Các ô sáng theo thứ tự, bấm lặp lại | Chuỗi dài hơn, bấm ngược | Có |
 | Ghi nhớ | `who-vanished` | Ai vừa biến mất | Xem nhóm đồ vật 3 giây, một món biến mất | Nhiều đồ hơn, đồ đổi chỗ | |
 | Ghi nhớ | `pair-flip` | Lật cặp | Lật thẻ tìm cặp giống nhau | Nhiều thẻ hơn, thời gian ngắn hơn | |
 | Phân tích | `balance` | Cân não | Nhìn các cân thăng bằng, chọn vật nặng nhất | Nhiều cân và nhiều vật hơn | Có |
 | Phân tích | `cube-count` | Đếm khối | Đếm khối lập phương, kể cả khối bị che | Chồng cao và rộng hơn | |
 | Phân tích | `marble-drop` | Bi rơi đâu | Bi lăn qua ống rẽ nhánh, đoán lối ra | Nhiều nhánh, có công tắc đổi hướng | |
+| Phân tích | `chalk-arrows` | Phấn trượt | Nhóm mũi tên phấn trượt trên bảng: phấn trắng vuốt theo hướng mũi tên chỉ, phấn vàng vuốt theo hướng trượt | Nhiều mũi tên hơn, đổi màu thường hơn, hai hướng hay ngược nhau, thêm nét tẩy mờ | |
 | Tính toán | `number-balloons` | Bóng bay số | Nổ bóng theo thứ tự số tăng dần | Số âm, phép tính trên bóng | Có |
 | Tính toán | `hit-target` | Chạm đích | Chọn các số cộng lại đúng số đích | Số lớn hơn, thêm phép trừ | |
 | Tính toán | `cash-count` | Đếm tiền nhanh | Cộng tổng tờ tiền mệnh giá VNĐ | Nhiều tờ hơn, tính tiền thối | |
@@ -178,7 +182,7 @@ Hai nhánh nối trơn tại `r = 1` (cùng độ dốc). Nhánh trên giảm d�
 | Hình dung | `top-view` | Nhìn từ trên | Chọn hình chiếu từ trên xuống của khối 3D | Khối nhiều tầng hơn | |
 | Hình dung | `fold-box` | Gấp hộp | Hình trải phẳng nào gấp được thành khối đã cho | Mặt có hoạ tiết cần khớp | |
 
-Thứ tự làm: 5 game MVP (mỗi nhóm một game) → thêm 5 game ở GĐ 2 → 5 game cuối ở GĐ 3. Minigame hình khối (Đếm khối, Nhìn từ trên, Gấp hộp) vẽ isometric 2D trong Phaser, không dùng engine 3D.
+Thứ tự làm: 5 game MVP (mỗi nhóm một game) → thêm 5 game ở GĐ 2 → 7 game cuối ở GĐ 3 (5 game ban đầu + Luyện ngắm, Phấn trượt theo [CR-012](../00-tracking/change-requests.md#cr-012); tổng 17 game). Minigame hình khối (Đếm khối, Nhìn từ trên, Gấp hộp) vẽ isometric 2D trong Phaser, không dùng engine 3D.
 
 ### Quy tắc thiết kế một minigame mới
 

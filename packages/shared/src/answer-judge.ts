@@ -13,6 +13,9 @@ import { gameMultiplier, gameSpeedAllowanceMs, pointsForCorrect } from "./scorin
  * trong 1 giây, hoặc đáp án sai kiểu (`isAnswer`). Còn lại: sinh lại câu bằng `generate()`,
  * `check()`, đúng thì tính `pointsForCorrect` theo hệ số + miễn trừ của game; đúng hay sai đều
  * sang câu kế. Sai thì mất chuỗi và bị khoá `WRONG_ANSWER_LOCK_MS`; giờ hiện câu kế tính từ lúc hết khoá.
+ *
+ * Game có hạn trả lời (`answerWindowMs`, CR-012: vật biến mất như bia Luyện ngắm): đáp án tới
+ * muộn hơn lúc câu bắt đầu + hạn + `LATE_ANSWER_GRACE_MS` bị chấm SAI như bỏ lỡ, dù `check` đúng.
  */
 
 /** Vòng/game đang chơi. */
@@ -60,6 +63,19 @@ export function initialJudgeState(): JudgeState {
   return { progress: 0, streak: 0, shownAt: undefined, lockedUntil: 0, recentAnswers: [] };
 }
 
+/**
+ * Hạn trả lời của câu (ms) theo game, kẹp về số hữu hạn > 0; game không khai báo, hoặc trả
+ * `undefined` / số không hợp lệ, thì không giới hạn (`undefined`). `puzzle` là câu server tự sinh lại.
+ */
+export function gameAnswerWindowMs<Puzzle>(
+  game: { answerWindowMs?(puzzle: Puzzle, difficulty: Difficulty): number | undefined },
+  puzzle: Puzzle,
+  difficulty: Difficulty,
+): number | undefined {
+  const value = game.answerWindowMs?.(puzzle, difficulty);
+  return value !== undefined && Number.isFinite(value) && value > 0 ? value : undefined;
+}
+
 export function judgeAnswer(
   round: JudgeRound,
   difficulty: Difficulty,
@@ -82,7 +98,10 @@ export function judgeAnswer(
   if (!game.isAnswer(msg.answer)) return ignore(counted);
 
   const puzzle = game.generate(round.seed, msg.index, difficulty);
-  const correct = game.check(puzzle, msg.answer);
+  const shownAt = state.shownAt ?? round.startAt;
+  const windowMs = gameAnswerWindowMs(game, puzzle, difficulty);
+  const late = windowMs !== undefined && now - shownAt > windowMs + LATE_ANSWER_GRACE_MS;
+  const correct = !late && game.check(puzzle, msg.answer);
   const result: AnswerResultPayload = { index: msg.index, correct, points: 0 };
   const next: JudgeState = { ...counted, progress: state.progress + 1 };
 
@@ -91,7 +110,7 @@ export function judgeAnswer(
     // giá trị game khai báo sai bị kẹp về mặc định trong gameMultiplier/gameSpeedAllowanceMs.
     result.points = pointsForCorrect({
       difficulty,
-      answerMs: now - (state.shownAt ?? round.startAt),
+      answerMs: now - shownAt,
       streak: state.streak,
       multiplier: gameMultiplier(game, difficulty),
       allowanceMs: gameSpeedAllowanceMs(game, puzzle, difficulty),

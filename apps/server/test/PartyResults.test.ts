@@ -15,7 +15,15 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import appConfig from "../src/app.config";
 import type { PartyRoom } from "../src/rooms/PartyRoom";
 import { MemoryResultStore, NoopResultStore, setResultStore } from "../src/store/ResultStore";
-import { advance, nextMessage, SOLVE, settle, until } from "./helpers";
+import {
+  advance,
+  connectTo,
+  ignoreServerMessages,
+  nextMessage,
+  SOLVE,
+  settle,
+  until,
+} from "./helpers";
 
 /** Ghi kết quả trận party vào tài khoản (FR-MR-10, ADR 0011). */
 
@@ -27,9 +35,7 @@ const USER_A = "00000000-0000-0000-0000-00000000000a";
 const USER_C = "00000000-0000-0000-0000-00000000000c";
 
 async function join(room: PartyRoom, name: string, opts: Partial<JoinOptions> = {}) {
-  const client = await colyseus.connectTo(room, { name, ...opts });
-  for (const type of Object.values(ServerMessage)) client.onMessage(type, () => {});
-  return client;
+  return connectTo(colyseus, room, { name, ...opts });
 }
 type TestClient = Awaited<ReturnType<typeof join>>;
 
@@ -74,8 +80,7 @@ async function reload(room: PartyRoom, client: TestClient): Promise<TestClient> 
   client.reconnection.enabled = false;
   await client.leave(false);
   await until(() => room.state.players.get(id)?.connected === false);
-  const back = (await colyseus.sdk.reconnect(token)) as unknown as TestClient;
-  for (const type of Object.values(ServerMessage)) back.onMessage(type, () => {});
+  const back = ignoreServerMessages((await colyseus.sdk.reconnect(token)) as unknown as TestClient);
   await until(() => room.state.players.get(id)?.connected === true);
   return back;
 }

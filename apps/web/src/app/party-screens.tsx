@@ -1,4 +1,5 @@
-import type { Phase } from "@brain-rizz/shared";
+import { isChatPhase, type Phase } from "@brain-rizz/shared";
+import { ChatDock } from "@/features/chat";
 import { GameIntroScreen } from "@/features/game-intro";
 import { GameSelectScreen } from "@/features/game-select";
 import { LobbyScreen } from "@/features/lobby";
@@ -23,7 +24,20 @@ const SCREENS: Record<Phase, () => React.ReactNode> = {
   podium: PodiumScreen,
 };
 
+/**
+ * Màn của pha hiện tại, kèm khung chat ở các pha có chat (CR-011). Lúc đếm ngược / đang chơi
+ * màn đứng một mình như trước (khung chat gỡ hẳn, không chừa chỗ).
+ */
 export function PartyScreen({ phase }: { phase: Phase }) {
   const Screen = SCREENS[phase];
-  return <Screen />;
+  if (!isChatPhase(phase)) return <Screen />;
+  return (
+    <div className="flex flex-1 gap-5">
+      {/* Điện thoại: chừa đáy để nút chính không nằm dưới nút chat nổi (cách đáy màn ≥ 80 px). */}
+      <div className="flex min-w-0 flex-1 flex-col max-lg:pb-12">
+        <Screen />
+      </div>
+      <ChatDock phase={phase} />
+    </div>
+  );
 }

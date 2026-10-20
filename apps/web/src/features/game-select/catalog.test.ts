@@ -17,11 +17,11 @@ function party(over: Partial<PartyStateView>): PartyStateView {
 const player = (id: string) => ({ id, name: id }) as PlayerView;
 
 describe("danh mục game", () => {
-  it("có đủ 15 game, id không trùng, mọi game đã đăng ký đều nằm trong danh mục", () => {
+  it("có đủ 17 game, id không trùng, mọi game đã đăng ký đều nằm trong danh mục", () => {
     const ids = CATALOG.map((g) => g.id);
-    expect(new Set(ids).size).toBe(15);
+    expect(new Set(ids).size).toBe(17);
     for (const id of GAME_IDS) expect(ids).toContain(id);
-    expect(UPCOMING.length).toBe(15 - GAME_IDS.length);
+    expect(UPCOMING.length).toBe(17 - GAME_IDS.length);
   });
 });
 

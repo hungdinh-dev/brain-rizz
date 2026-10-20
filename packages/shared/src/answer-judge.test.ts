@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { initialJudgeState, type JudgeRound, type JudgeState, judgeAnswer } from "./answer-judge";
+import {
+  gameAnswerWindowMs,
+  initialJudgeState,
+  type JudgeRound,
+  type JudgeState,
+  judgeAnswer,
+} from "./answer-judge";
 import { LATE_ANSWER_GRACE_MS, MAX_ANSWERS_PER_SECOND, WRONG_ANSWER_LOCK_MS } from "./constants";
 import type { Difficulty } from "./difficulty";
 import { GAMES } from "./games";
@@ -122,5 +128,58 @@ describe("judgeAnswer — luật chấm một câu (server + luyện tập)", ()
     const b = answer(s, right(0), 101_234);
     expect(a).toEqual(b);
     expect(s).toEqual(snapshot);
+  });
+});
+
+describe("judgeAnswer — hạn trả lời của game (answerWindowMs, CR-012)", () => {
+  const aim = { ...round, gameId: "aim-trainer" };
+  const hit = (index: number, d: Difficulty) => {
+    const p = GAMES["aim-trainer"].generate(aim.seed, index, d);
+    return { x: p.x, y: p.y };
+  };
+  const send = (state: JudgeState, d: Difficulty, value: unknown, now: number) =>
+    judgeAnswer(aim, d, state, { round: aim.round, index: state.progress, answer: value }, now);
+
+  it("đúng trong hạn + dung sai → đúng; muộn hơn 1 ms → sai, khoá như câu sai", () => {
+    const life = GAMES["aim-trainer"].generate(aim.seed, 0, D).lifeMs;
+    const edge = aim.startAt + life + LATE_ANSWER_GRACE_MS;
+    expect(send(initialJudgeState(), D, hit(0, D), edge).outcome?.correct).toBe(true);
+    const late = send(initialJudgeState(), D, hit(0, D), edge + 1);
+    expect(late.outcome?.correct).toBe(false);
+    expect(late.outcome?.points).toBe(0);
+    expect(late.next).toMatchObject({
+      progress: 1,
+      streak: 0,
+      lockedUntil: edge + 1 + WRONG_ANSWER_LOCK_MS,
+    });
+  });
+
+  it("hạn tính từ lúc câu hiện (shownAt), không từ đầu vòng", () => {
+    const first = send(initialJudgeState(), D, hit(0, D), aim.startAt + 600).next;
+    const life = GAMES["aim-trainer"].generate(aim.seed, 1, D).lifeMs;
+    const shown = first.shownAt as number;
+    expect(send(first, D, hit(1, D), shown + life + LATE_ANSWER_GRACE_MS).outcome?.correct).toBe(
+      true,
+    );
+    expect(
+      send(first, D, hit(1, D), shown + life + LATE_ANSWER_GRACE_MS + 1).outcome?.correct,
+    ).toBe(false);
+  });
+
+  it("game không khai báo hạn (Mầm Luyện ngắm, game cũ) → không giới hạn như trước", () => {
+    expect(send(initialJudgeState(), 0, hit(0, 0), aim.startAt + 40_000).outcome?.correct).toBe(
+      true,
+    );
+    expect(answer(initialJudgeState(), right(0), round.startAt + 40_000).outcome?.correct).toBe(
+      true,
+    );
+  });
+
+  it("gameAnswerWindowMs kẹp giá trị không hợp lệ về không giới hạn", () => {
+    for (const bad of [0, -5, Number.NaN, Number.POSITIVE_INFINITY, undefined]) {
+      expect(gameAnswerWindowMs({ answerWindowMs: () => bad }, null, D)).toBeUndefined();
+    }
+    expect(gameAnswerWindowMs({}, null, D)).toBeUndefined();
+    expect(gameAnswerWindowMs({ answerWindowMs: () => 1_500 }, null, D)).toBe(1_500);
   });
 });

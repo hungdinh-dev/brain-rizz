@@ -8,6 +8,7 @@ import { ArrowLeftIcon, CheckIcon, UserPlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ChatSettingRow } from "@/features/chat";
 import { loadProfile, saveProfile } from "@/features/home";
 import { usePendingAction } from "@/hooks/use-pending-action";
 import { cn } from "@/lib/utils";
@@ -80,7 +81,7 @@ export function LobbyScreen() {
   );
 
   return (
-    <main className="flex flex-1 flex-col gap-3 lg:gap-4">
+    <main className="@container flex flex-1 flex-col gap-3 lg:gap-4">
       <header className="flex items-center gap-2.5 lg:gap-4">
         <Button
           variant="chalk"
@@ -101,8 +102,12 @@ export function LobbyScreen() {
       </header>
       <RoomCodePanel code={party.code} className="lg:hidden" />
 
-      {/* Điện thoại: một cột theo thứ tự khai báo. Máy tính: 3 cột, thẻ thiết lập chiếm cột phải. */}
-      <div className="flex flex-1 flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_21.25rem] lg:grid-rows-[auto_auto_1fr] lg:gap-x-5 lg:gap-y-3.5 lg:[grid-template-areas:'meter_meter_setup'_'grid_grid_setup'_'chars_ready_setup']">
+      {/*
+        Điện thoại: một cột theo thứ tự khai báo. Máy tính: 3 cột, thẻ thiết lập chiếm cột phải.
+        Màn hẹp (cột chat CR-011 chiếm 340 px) thì chọn nhân vật và nút Sẵn sàng xếp chồng
+        thay vì nằm cạnh nhau, theo bề rộng thật của màn (container query).
+      */}
+      <div className="flex flex-1 flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_21.25rem] lg:grid-rows-[auto_auto_1fr_auto] lg:gap-x-5 lg:gap-y-3.5 lg:[grid-template-areas:'meter_meter_setup'_'grid_grid_setup'_'chars_chars_setup'_'ready_ready_setup'] @min-[66rem]:lg:grid-rows-[auto_auto_1fr] @min-[66rem]:lg:[grid-template-areas:'meter_meter_setup'_'grid_grid_setup'_'chars_ready_setup']">
         <ReadyMeter players={players.length} ready={readyCount} className="lg:[grid-area:meter]" />
 
         <section
@@ -128,6 +133,7 @@ export function LobbyScreen() {
               ready={readyCount}
               onStart={() => startMatch.run(() => send(ClientMessage.StartMatch, {}))}
               pending={startMatch.pending}
+              chatSetting={<ChatSettingRow />}
               className="h-full"
             />
           ) : (
@@ -157,7 +163,7 @@ export function LobbyScreen() {
         )}
 
         {me && (
-          <div className="mt-auto flex flex-col gap-2 lg:mt-0 lg:self-end lg:[grid-area:ready]">
+          <div className="mt-auto flex flex-col gap-2 lg:mt-0 lg:self-end lg:justify-self-end lg:[grid-area:ready]">
             {me.ready && !isHost && (
               <p className="flex items-center justify-center gap-1.5 text-[13px] font-semibold text-chalk-muted lg:hidden">
                 <CheckIcon aria-hidden className="size-4 shrink-0" strokeWidth={3} />

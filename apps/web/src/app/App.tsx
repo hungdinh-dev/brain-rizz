@@ -1,4 +1,4 @@
-import type { Phase } from "@brain-rizz/shared";
+import { isChatPhase, type Phase } from "@brain-rizz/shared";
 import { LoaderCircleIcon } from "lucide-react";
 import { lazy, Suspense, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,6 +14,7 @@ import { MusicBar, useMusicAutoplay } from "@/features/music";
 import { SfxToggle, useSfxEffects } from "@/features/sfx";
 import { i18n } from "@/i18n";
 import { loadSoloLocales } from "@/i18n/solo";
+import { cn } from "@/lib/utils";
 import { resumeParty } from "@/net/connection";
 import { takeOAuthReturnScreen, useAuth } from "@/stores/auth.store";
 import { useGame } from "@/stores/game.store";
@@ -69,6 +70,8 @@ export function App() {
   const phase = party?.phase;
   const SoloScreen = phase ? undefined : SOLO_SCREENS[screen];
   const focused = phase ? FOCUS_PHASES.includes(phase) : !!SoloScreen && soloFocus;
+  // Máy tính, pha có chat (CR-011): nới khung thêm đúng bề rộng cột chat (320 px + khoảng cách).
+  const chatColumn = !!phase && isChatPhase(phase);
 
   // Nhạc nền: phát ở thao tác đầu tiên, dừng khi ẩn tab, nhỏ tiếng lúc đếm ngược/đang chơi.
   useMusicAutoplay(focused);
@@ -112,7 +115,12 @@ export function App() {
     <div className="relative h-full p-1.5 pb-4 md:p-3 md:pb-7">
       <div className="chalkboard relative flex h-full flex-col overflow-x-hidden overflow-y-auto rounded-xl bg-background text-foreground">
         <ChalkDefs />
-        <div className="safe-area mx-auto flex w-full max-w-6xl flex-1 flex-col">
+        <div
+          className={cn(
+            "safe-area mx-auto flex w-full max-w-6xl flex-1 flex-col",
+            chatColumn && "lg:max-w-[calc(72rem+21.25rem)]",
+          )}
+        >
           {/* Trang chủ tự đặt nút ngôn ngữ/theme/nhạc; lúc đếm ngược và đang chơi thì ẩn */}
           {(phase || SoloScreen) && !focused && (
             <div className="mb-3 flex flex-wrap justify-end gap-2">

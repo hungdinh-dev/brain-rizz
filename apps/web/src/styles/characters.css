@@ -370,6 +370,100 @@
 }
 
 /*
+ * Chat trong phòng (CR-011, ui-ux 6.5; features/chat). Bong bóng biểu cảm sống 2,5 giây trong một
+ * hoạt ảnh: nảy vào 200 ms, giữ, mờ + bay lên 10 px trong 300 ms cuối. Đang giảm chuyển động thì
+ * component dùng bản chỉ mờ (`chat-*-fade`, không mang tiền tố fx- nên khối @media cuối file
+ * không tắt nó).
+ */
+.fx-chat-bubble {
+  animation: fx-chat-bubble 2500ms linear both;
+}
+.chat-bubble-fade {
+  animation: chat-bubble-fade 2500ms linear both;
+}
+.fx-chat-badge {
+  animation: fx-chat-badge 350ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.fx-chat-hint {
+  animation: fx-chat-hint 3000ms ease-out both;
+}
+.chat-hint-fade {
+  animation: chat-hint-fade 3000ms ease-out both;
+}
+
+@keyframes fx-chat-bubble {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  5% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  8% {
+    transform: scale(1);
+  }
+  88% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+}
+@keyframes chat-bubble-fade {
+  0% {
+    opacity: 0;
+  }
+  6%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes fx-chat-badge {
+  0% {
+    transform: scale(0);
+  }
+  60% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes fx-chat-hint {
+  0% {
+    transform: translateX(8px);
+    opacity: 0;
+  }
+  8%,
+  90% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes chat-hint-fade {
+  0% {
+    opacity: 0;
+  }
+  8%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/*
  * Đặt cuối file, độ ưu tiên cao hơn các class ở trên nên khối này thắng, không cần !important.
  * Nút Hiệu ứng "Luôn bật" (`data-motion="on"` trên <html>, CR-010) thì bỏ qua cài đặt của máy.
  */

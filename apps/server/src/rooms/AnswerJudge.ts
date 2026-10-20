@@ -1,6 +1,9 @@
 import {
   type AnswerPayload,
   type Difficulty,
+  gameAnswerWindowMs,
+  getGame,
+  isGameId,
   type JudgeOutcome,
   type JudgeRound,
   judgeAnswer,
@@ -36,6 +39,22 @@ export class AnswerJudge {
     this.shownAt.delete(id);
     this.lockedUntil.delete(id);
     this.recentAnswers.delete(id);
+  }
+
+  /**
+   * Người `id` vừa nối lại. Game có hạn trả lời (`answerWindowMs`): câu đang làm được tính là hiện
+   * lại từ lúc này (hoặc lúc hết khoá / lúc vòng bắt đầu nếu muộn hơn), vì trong lúc rớt mạng
+   * người chơi không thấy vật; giữ giờ cũ thì đáp án đầu sau khi nối lại chắc chắn bị chấm muộn.
+   * Client cũng hiện lại câu với hạn mới khi nối lại. Game không có hạn: giữ nguyên — thời gian
+   * rớt mạng vẫn tính vào tốc độ, không cho nối lại để lấy thưởng nhanh.
+   */
+  resume(id: string, who: Contestant, round: JudgeRound, now = Date.now()) {
+    if (!round.playing || !isGameId(round.gameId)) return;
+    const game = getGame(round.gameId);
+    const difficulty = who.difficulty as Difficulty;
+    const puzzle = game.generate(round.seed, who.progress, difficulty);
+    if (gameAnswerWindowMs(game, puzzle, difficulty) === undefined) return;
+    this.shownAt.set(id, Math.max(now, this.lockedUntil.get(id) ?? 0, round.startAt));
   }
 
   /** Chấm đáp án của người `id`; `null` = bỏ qua (không gửi gì). Cập nhật `who.progress`/`who.streak`. */

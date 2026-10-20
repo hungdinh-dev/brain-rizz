@@ -1,4 +1,5 @@
 import { type AnswerResultPayload, WRONG_ANSWER_LOCK_MS } from "@brain-rizz/shared";
+import type { AnswerOutcome } from "@/games/types";
 import { serverNow, useGame } from "@/stores/game.store";
 
 /**
@@ -14,29 +15,53 @@ export function unlockDelayOf(result: AnswerResultPayload): number {
 }
 
 /**
- * `MinigameBridge.unlockDelay`: chờ kết quả câu `index` trong store, rồi trả về số ms còn lại tới
- * `lockedUntil` (giờ server, đã quy về đồng hồ máy). Chờ quá `timeoutMs` thì trả về 0.
+ * Chờ `answerResult` của câu `index` trong store (server hoặc Luyện tập chấm trên máy). Chờ quá
+ * `timeoutMs` thì trả về `null` (server đã bỏ qua câu đó) và thôi theo dõi store.
  */
-export function waitUnlockDelay(
+export function waitAnswerResult(
   index: number,
   timeoutMs = UNLOCK_RESULT_TIMEOUT_MS,
-): Promise<number> {
+): Promise<AnswerResultPayload | null> {
   const ofIndex = (r: AnswerResultPayload | null) => (r?.index === index ? r : null);
   const ready = ofIndex(useGame.getState().lastAnswer);
-  if (ready) return Promise.resolve(unlockDelayOf(ready));
+  if (ready) return Promise.resolve(ready);
 
   return new Promise((resolve) => {
     let unsubscribe = () => {};
     const timer = setTimeout(() => {
       unsubscribe();
-      resolve(0);
+      resolve(null);
     }, timeoutMs);
     unsubscribe = useGame.subscribe((s) => {
       const result = ofIndex(s.lastAnswer);
       if (!result) return;
       clearTimeout(timer);
       unsubscribe();
-      resolve(unlockDelayOf(result));
+      resolve(result);
     });
   });
+}
+
+/**
+ * `MinigameBridge.unlockDelay`: chờ kết quả câu `index`, rồi trả về số ms còn lại tới
+ * `lockedUntil` (giờ server, đã quy về đồng hồ máy). Chờ quá `timeoutMs` thì trả về 0.
+ */
+export async function waitUnlockDelay(
+  index: number,
+  timeoutMs = UNLOCK_RESULT_TIMEOUT_MS,
+): Promise<number> {
+  const result = await waitAnswerResult(index, timeoutMs);
+  return result ? unlockDelayOf(result) : 0;
+}
+
+/**
+ * `MinigameBridge.answerOutcome`: chờ kết quả câu `index` (đúng/sai theo server và số ms còn khoá).
+ * Chờ quá `timeoutMs` thì trả về `null`.
+ */
+export async function waitAnswerOutcome(
+  index: number,
+  timeoutMs = UNLOCK_RESULT_TIMEOUT_MS,
+): Promise<AnswerOutcome | null> {
+  const result = await waitAnswerResult(index, timeoutMs);
+  return result ? { correct: result.correct, unlockMs: unlockDelayOf(result) } : null;
 }

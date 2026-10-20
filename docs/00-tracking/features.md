@@ -2,14 +2,14 @@
 
 Bảng theo dõi **cái gì đã xong, cái gì chưa** ở mức người dùng nhìn thấy. Mỗi dòng trỏ về use case (UC) hoặc yêu cầu (FR) trong [SRS](../01-product/srs.md); muốn biết chi tiết hành vi thì mở SRS, muốn biết tiến độ thì xem ở đây.
 
-Cập nhật lần cuối: **2026-10-19** · Phiên bản code: 0.1.0 (chưa gắn tag)
+Cập nhật lần cuối: **2026-10-20** · Phiên bản code: 0.1.0 (chưa gắn tag)
 
 ## Tổng quan
 
 | Nhóm | Xong | Một phần | Chưa làm | Ý tưởng / chờ duyệt |
 | --- | --- | --- | --- | --- |
 | E1 Hồ sơ & vào game | 1 | 0 | 0 | 0 |
-| E2 Phòng chơi | 8 | 1 | 0 | 0 |
+| E2 Phòng chơi | 9 | 1 | 0 | 0 |
 | E3 Vòng chơi & chấm điểm | 7 | 0 | 0 | 0 |
 | E4 Minigame | 5 game | 8 game (🚧 chờ chơi thử) | 2 game | 0 |
 | E5 Giao diện & trải nghiệm | 8 | 0 | 2 | 0 (+1 huỷ) |
@@ -39,6 +39,7 @@ Cập nhật lần cuối: **2026-10-19** · Phiên bản code: 0.1.0 (chưa g�
 | FR-PH-11 | Số người tối thiểu để bắt đầu và chơi lại = 2 | 1 | ✅ | 0.1.0 | `PartyRoom.test.ts` "không bắt đầu trận khi chưa đủ người…", "chơi lại cần ≥ 2 người…" |
 | FR-PH-12 | Phòng chờ 2D: 8 ô người chơi, đếm sẵn sàng x/y, gỡ sân khấu 3D | 1 | ✅ | 0.1.0 | Kiểm tay; đã gỡ three.js (ADR 0010) |
 | FR-PH-13 | Ẩn/hiện + sao chép mã phòng; đổi nhân vật trong phòng chờ | 1 | ✅ | 0.1.0 | Kiểm tay |
+| UC-22 | Chat trong phòng: chữ 120 ký tự + 6 biểu cảm/câu chọn sẵn, bong bóng trên avatar, lọc từ tục, chủ phòng tắt chat, tắt tiếng trên máy mình, 30 tin gần nhất khi vào/nối lại; ẩn lúc đếm ngược/đang chơi (FR-PH-14 → 19, NFR-SEC-04) | 1 | ✅ | chưa phát hành | [CR-011](change-requests.md#cr-011) · `packages/shared/src/chat/chat.test.ts`, `PartyChat.test.ts`, `stores/chat.store.test.ts`; kiểm Chrome headless 390/1280 px với bot Colyseus (gửi, lọc, giới hạn tần suất, tắt tiếng, tắt chat, ẩn ở countdown/playing) · **chưa thử 2 điện thoại thật, chưa thử bàn phím ảo iOS** |
 
 ## E3 — Vòng chơi & chấm điểm
 
@@ -60,7 +61,7 @@ Trạng thái từng game theo dõi ở **[Danh mục minigame](../04-minigames/
 | --- | --- | --- | --- |
 | MVP (GĐ 1) | 5 game, mỗi nhóm một game | **5/5** (2026-10-12): Kẻ lạc đàn, Theo dấu ánh đèn, Cân não, Bóng bay số, Xoay hình · test 10.000 seed mỗi game, `PartyRoom.test.ts` "5 minigame MVP trên server" · cân bằng điểm [CR-006](change-requests.md#cr-006) đã có cơ chế, con số chốt sau chơi thử · **chưa chơi thử trên máy thật** | ✅ |
 | Beta (GĐ 2) | 10 game | 5 ✅ + 8 🚧 (2026-10-14): Ai vừa biến mất, Lật cặp, Đếm khối, Bi rơi đâu, Chạm đích, Đếm tiền nhanh, Nhìn từ trên, Gấp hộp · đủ bộ sinh câu đố + test 10.000 seed, scene, màn hướng dẫn, chữ vi/en, đã đăng ký · chờ QA và chơi thử để chốt hệ số điểm | 🚧 |
-| Release (GĐ 3) | 15 game | 5 ✅ + 9 🚧 (Bóng của ai 🚧 2026-10-20: bộ sinh + test 10.000 seed, scene, màn hướng dẫn, chữ vi/en, đã đăng ký, chờ QA và chơi thử) · còn thiếu Đập đúng hình | ⏳ |
+| Release (GĐ 3) | 17 game (FR-MG-05: 15 game ban đầu + Luyện ngắm, Phấn trượt theo [CR-012](change-requests.md#cr-012)) | 5 ✅ + 11 🚧 · 2026-10-20: Bóng của ai, Luyện ngắm, Phấn trượt 🚧 (bộ sinh + test 10.000 seed, scene, màn hướng dẫn, chữ vi/en, đã đăng ký, chờ QA và chơi thử; Kiểm tra não `BRAIN_TEST_RULES_VERSION` 3) · còn thiếu Đập đúng hình | ⏳ |
 
 ## E5 — Giao diện & trải nghiệm
 

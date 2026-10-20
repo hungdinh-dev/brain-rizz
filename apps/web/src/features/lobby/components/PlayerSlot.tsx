@@ -2,6 +2,7 @@ import type { PlayerView } from "@brain-rizz/shared";
 import { CheckIcon, CrownIcon, PlusIcon, WifiOffIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
+import { ReactionBubble } from "@/features/chat";
 import { cn } from "@/lib/utils";
 
 /**
@@ -28,18 +29,22 @@ export function PlayerSlot({ player, isMe }: { player: PlayerView; isMe: boolean
           <CrownIcon aria-hidden className="size-3 lg:size-5" strokeWidth={2.8} />
         </span>
       )}
-      <PlayerAvatar
-        avatar={player.avatar}
-        colorIndex={player.colorIndex}
-        size="md"
-        className="lg:hidden"
-      />
-      <PlayerAvatar
-        avatar={player.avatar}
-        colorIndex={player.colorIndex}
-        size="lg"
-        className="hidden lg:inline-block"
-      />
+      {/* Bọc avatar để bong bóng biểu cảm (CR-011) đứng ngay trên avatar, tràn ra ngoài ô. */}
+      <span className="relative flex shrink-0">
+        <PlayerAvatar
+          avatar={player.avatar}
+          colorIndex={player.colorIndex}
+          size="md"
+          className="lg:hidden"
+        />
+        <PlayerAvatar
+          avatar={player.avatar}
+          colorIndex={player.colorIndex}
+          size="lg"
+          className="hidden lg:inline-block"
+        />
+        <ReactionBubble playerId={player.id} />
+      </span>
       <span className="flex min-w-0 flex-col items-start gap-0.75 lg:items-center lg:gap-1.5">
         <span className="flex max-w-full items-baseline gap-1 leading-none lg:gap-1.5">
           <span className="truncate font-display text-lg font-extrabold lg:text-[22px]">

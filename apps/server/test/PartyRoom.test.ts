@@ -1,4 +1,5 @@
 import {
+  AIM_TRAINER_MISS,
   type AnswerResultPayload,
   type AnyMinigame,
   availableGames,
@@ -25,22 +26,21 @@ import {
   WHEEL_RESULT_HOLD_MS,
   WHEEL_SPIN_LEAD_MS,
   WHEEL_SPIN_MS,
+  WRONG_ANSWER_LOCK_MS,
 } from "@brain-rizz/shared";
 import { boot, type ColyseusTestServer } from "@colyseus/testing";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import appConfig from "../src/app.config";
 import type { PartyRoom } from "../src/rooms/PartyRoom";
-import { SOLVE } from "./helpers";
+import { connectTo, ignoreServerMessages, SOLVE } from "./helpers";
 
 let colyseus: ColyseusTestServer<typeof appConfig>;
 
 // ------------------------------------------------------------------ helpers
 
 async function join(room: PartyRoom, name: string, opts: Partial<JoinOptions> = {}) {
-  const client = await colyseus.connectTo(room, { name, ...opts });
-  // Đăng ký sẵn để SDK không cảnh báo tin chưa có handler.
-  for (const type of Object.values(ServerMessage)) client.onMessage(type, () => {});
-  return client;
+  // Gắn handler trước khi chờ state để SDK không cảnh báo tin chưa có handler (vd. chatHistory).
+  return connectTo(colyseus, room, { name, ...opts });
 }
 type TestClient = Awaited<ReturnType<typeof join>>;
 type ClientMessageType = (typeof ClientMessage)[keyof typeof ClientMessage];
@@ -146,8 +146,7 @@ async function reload(room: PartyRoom, client: TestClient): Promise<TestClient> 
   client.reconnection.enabled = false;
   await client.leave(false);
   await until(() => room.state.players.get(id)?.connected === false);
-  const back = (await colyseus.sdk.reconnect(token)) as unknown as TestClient;
-  for (const type of Object.values(ServerMessage)) back.onMessage(type, () => {});
+  const back = ignoreServerMessages((await colyseus.sdk.reconnect(token)) as unknown as TestClient);
   await until(() => room.state.players.get(id)?.connected === true);
   return back;
 }
@@ -210,6 +209,7 @@ describe("PartyRoom", () => {
         wheelSpinAt: true,
         wheelSpinMs: true,
         introEndsAt: true,
+        chatEnabled: true,
         players: true,
       } satisfies Record<keyof PartyStateView, true>;
       const PLAYER_KEYS = {
@@ -1215,6 +1215,8 @@ describe("PartyRoom", () => {
       seedling: [Allowance, number];
       /** [miễn trừ câu đầu, điểm câu đầu] ở Siêu khó. */
       expert: [Allowance, number];
+      /** Hạn trả lời mỗi câu ở Siêu khó (ms, đặc tả); không ghi = không giới hạn (CR-012). */
+      expertWindowMs?: number;
     }
 
     /**
@@ -1254,6 +1256,23 @@ describe("PartyRoom", () => {
       { id: "marble-drop", durationMs: 60_000, seedling: [0, 150], expert: [4_000, 495] },
       // M14 Bóng của ai (shadow-match.md): hệ số Mầm 1, Siêu khó 4, không có miễn trừ.
       { id: "shadow-match", durationMs: 60_000, seedling: [0, 150], expert: [0, 450] },
+    ];
+
+    /**
+     * Game GĐ 4 (CR-012), tách nhóm riêng vì NEW_CASES đã đủ MAX_TOTAL_ROUNDS khi thêm game mới.
+     * M16 Luyện ngắm (aim-trainer.md): hệ số Mầm 1, Siêu khó 2,55, không có miễn trừ; bia Siêu khó
+     * sống 1 500 ms (Mầm không giới hạn).
+     * M17 Phấn trượt (chalk-arrows.md): hệ số Mầm 1, Siêu khó 2,9, không có miễn trừ, không có hạn.
+     */
+    const CR012_CASES: ServerCase[] = [
+      {
+        id: "aim-trainer",
+        durationMs: 60_000,
+        seedling: [0, 150],
+        expert: [0, 305],
+        expertWindowMs: 1_500,
+      },
+      { id: "chalk-arrows", durationMs: 60_000, seedling: [0, 150], expert: [0, 340] },
     ];
 
     /** Đáp án rác client sửa đổi có thể gửi (msgpack giữ nguyên NaN, vô cực, số thực). */
@@ -1355,6 +1374,8 @@ describe("PartyRoom", () => {
             client.send(ClientMessage.Answer, { round, index: 0, answer: solve(seed, 0, d) });
             expect(await result, `${c.id} mức ${d}`).toEqual({ index: 0, correct: true, points });
           }
+          // Chủ phòng (Siêu khó) trả lời sau cùng: câu 1 của chủ phòng bắt đầu từ lúc này.
+          const hostShownAt = clock.get();
 
           // Câu 1 của chủ phòng: gửi rác theo lô ≤ 9 tin mỗi giây (dưới mức chặn 10 tin/giây,
           // để từng tin thật sự tới isAnswer). Rác bị bỏ qua: không có kết quả, không khoá,
@@ -1368,6 +1389,25 @@ describe("PartyRoom", () => {
             // Chọn trùng thẻ, thẻ ngoài lưới 3×3, quá 3 thẻ: đều là rác.
             const [a, b] = solve(seed, 1, 3) as number[];
             junk.push([a, a, b], [a, b, 9], [0, 1, 2, 3]);
+          }
+          if (c.id === "aim-trainer") {
+            // Toạ độ số thực, ngoài khung, thiếu/thừa khoá, sai kiểu, "nửa bỏ lỡ": đều là rác.
+            junk.push(
+              { x: 0.5, y: 0 },
+              { x: 0, y: -1 },
+              { x: 1_001, y: 0 },
+              { x: 0, y: 1_401 },
+              { x: -1, y: 0 },
+              { x: 0 },
+              { x: 0, y: 0, z: 0 },
+              { x: "0", y: 0 },
+              { x: Number.NaN, y: 0 },
+              [0, 0],
+            );
+          }
+          if (c.id === "chalk-arrows") {
+            // Hướng ngoài 0–3: rác.
+            junk.push(4, 5, -2);
           }
           const results: AnswerResultPayload[] = [];
           const off = host.onMessage(ServerMessage.AnswerResult, (r: AnswerResultPayload) => {
@@ -1388,7 +1428,23 @@ describe("PartyRoom", () => {
           clock.set(clock.get() + 1_100);
           const result = nextMessage<AnswerResultPayload>(host, ServerMessage.AnswerResult);
           host.send(ClientMessage.Answer, { round, index: 1, answer: solve(seed, 1, 3) });
-          expect(await result, c.id).toMatchObject({ index: 1, correct: true });
+          const late =
+            c.expertWindowMs !== undefined &&
+            clock.get() - hostShownAt > c.expertWindowMs + LATE_ANSWER_GRACE_MS;
+          if (late) {
+            // Game có hạn trả lời: các lô rác (+1,1 s mỗi lô) không gia hạn câu, nên đáp án đúng
+            // tới sau hạn bị chấm sai, khoá và mất chuỗi (CR-012).
+            expect(await result, c.id).toEqual({
+              index: 1,
+              correct: false,
+              points: 0,
+              lockedUntil: clock.get() + WRONG_ANSWER_LOCK_MS,
+            });
+            expect(player(room, host).streak).toBe(0);
+          } else {
+            expect(await result, c.id).toMatchObject({ index: 1, correct: true });
+          }
+          expect(player(room, host).progress).toBe(2);
 
           // Hết vòng đúng mốc của game: 100 ms trước vẫn đang chơi, 100 ms sau sang bảng điểm.
           const end = room.clock.delayed.find((d) => d.active);
@@ -1417,8 +1473,114 @@ describe("PartyRoom", () => {
       await playCases(NEW_CASES);
     }, 45_000);
 
+    it("game GĐ 4 (CR-012): thời lượng vòng, điểm theo hệ số trong đặc tả, chặn đáp án rác, rác không gia hạn câu", async () => {
+      expect(CR012_CASES.length).toBeLessThanOrEqual(MAX_TOTAL_ROUNDS);
+      await playCases(CR012_CASES);
+    }, 30_000);
+
+    it("Luyện ngắm: đáp án đúng trong hạn được tính, muộn 1 ms bị chấm sai và khoá; hạn tính lại sau khoá", async () => {
+      const LIFE_MS = 1_500; // Thường (aim-trainer.md); Mầm không giới hạn.
+      const { room, clients, host } = await setup(
+        ["An", "Bình"],
+        [{ difficulty: 1 }, { difficulty: 0 }],
+      );
+      const guest = clients[1] as TestClient;
+      await toGameSelect(room, clients);
+      host.send(ClientMessage.PickGame, { gameId: "aim-trainer" });
+      await until(() => room.state.phase === "game-intro");
+      await introToPlaying(room, clients);
+
+      const clock = freezeNow();
+      try {
+        const { seed, startAt, round } = room.state;
+        const target = (i: number, d: Difficulty) => SOLVE["aim-trainer"](seed, i, d);
+        async function send(client: TestClient, index: number, answer: unknown, at: number) {
+          clock.set(at);
+          const result = nextMessage<AnswerResultPayload>(client, ServerMessage.AnswerResult);
+          client.send(ClientMessage.Answer, { round, index, answer });
+          return result;
+        }
+        const edge = LIFE_MS + LATE_ANSWER_GRACE_MS;
+
+        // Câu 0: đúng ngay mốc hạn + dung sai → vẫn đúng.
+        const first = await send(host, 0, target(0, 1), startAt + edge);
+        expect(first).toMatchObject({ index: 0, correct: true });
+        expect(first.points).toBeGreaterThan(0);
+
+        // Câu 1: bắt đầu lúc server nhận câu 0; đúng chỗ nhưng muộn 1 ms → sai, khoá, mất chuỗi.
+        const shown1 = startAt + edge;
+        const lateAt = shown1 + edge + 1;
+        expect(await send(host, 1, target(1, 1), lateAt)).toEqual({
+          index: 1,
+          correct: false,
+          points: 0,
+          lockedUntil: lateAt + WRONG_ANSWER_LOCK_MS,
+        });
+        expect(player(room, host).streak).toBe(0);
+        expect(player(room, host).progress).toBe(2);
+        expect(player(room, host).roundScore).toBe(first.points);
+
+        // Câu 2: hạn tính từ lúc hết khoá, nên đúng ngay mốc đó vẫn được tính.
+        const shown2 = lateAt + WRONG_ANSWER_LOCK_MS;
+        expect(await send(host, 2, target(2, 1), shown2 + edge)).toMatchObject({
+          index: 2,
+          correct: true,
+        });
+
+        // Câu 3: "bỏ lỡ" gửi trong hạn vẫn là sai.
+        const shown3 = shown2 + edge;
+        expect(await send(host, 3, AIM_TRAINER_MISS, shown3 + 500)).toMatchObject({
+          index: 3,
+          correct: false,
+          points: 0,
+        });
+
+        // Mầm không có hạn: đúng sau 30 giây vẫn được tính.
+        expect(await send(guest, 0, target(0, 0), startAt + 30_000)).toMatchObject({
+          index: 0,
+          correct: true,
+        });
+      } finally {
+        clock.restore();
+      }
+    });
+
+    it("Luyện ngắm: rớt mạng rồi nối lại giữa vòng thì hạn câu đang làm tính lại từ lúc nối lại", async () => {
+      const LIFE_MS = 1_500; // Thường (aim-trainer.md).
+      const { room, clients, host } = await setup(["An", "Bình"], [{ difficulty: 1 }]);
+      await toGameSelect(room, clients);
+      host.send(ClientMessage.PickGame, { gameId: "aim-trainer" });
+      await until(() => room.state.phase === "game-intro");
+      await introToPlaying(room, clients);
+
+      const clock = freezeNow();
+      try {
+        const { seed, startAt, round } = room.state;
+        const edge = LIFE_MS + LATE_ANSWER_GRACE_MS;
+        async function send(client: TestClient, index: number, at: number) {
+          clock.set(at);
+          const result = nextMessage<AnswerResultPayload>(client, ServerMessage.AnswerResult);
+          client.send(ClientMessage.Answer, {
+            round,
+            index,
+            answer: SOLVE["aim-trainer"](seed, index, 1),
+          });
+          return result;
+        }
+
+        expect(await send(host, 0, startAt + 200)).toMatchObject({ index: 0, correct: true });
+        // Mất kết nối 10 giây (lâu hơn hẳn hạn bia), nối lại rồi chạm đúng ngay mốc hạn mới.
+        const backAt = startAt + 200 + 10_000;
+        clock.set(backAt);
+        const back = await reload(room, host);
+        expect(await send(back, 1, backAt + edge)).toMatchObject({ index: 1, correct: true });
+      } finally {
+        clock.restore();
+      }
+    });
+
     it("mọi game trong danh mục đều có cách giải và số liệu kiểm trên server", () => {
-      const covered = [...CASES, ...NEW_CASES].map((c) => c.id).sort();
+      const covered = [...CASES, ...NEW_CASES, ...CR012_CASES].map((c) => c.id).sort();
       expect(covered).toEqual([...GAME_IDS].sort());
       for (const id of GAME_IDS) expect(SOLVE[id], id).toBeTypeOf("function");
     });

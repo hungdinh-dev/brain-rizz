@@ -13,7 +13,9 @@ import { createRng, deriveSeed } from "./rng";
  * Phiên bản luật Kiểm tra não (thời lượng, điểm chuẩn, công thức, bộ game). Tăng mỗi khi đổi một trong
  * các thứ đó, kể cả thêm game vào một nhóm; server lưu kèm mỗi lượt và bảng xếp hạng chỉ so các lượt cùng phiên bản.
  */
-export const BRAIN_TEST_RULES_VERSION = 2; // 2: thêm Bóng của ai vào nhóm Nhận diện (2026-10-20)
+// 2: thêm Bóng của ai vào nhóm Nhận diện (2026-10-20).
+// 3: thêm Luyện ngắm (Nhận diện) và Phấn trượt (Phân tích), CR-012 (2026-10-20).
+export const BRAIN_TEST_RULES_VERSION = 3;
 
 /** Số game trong một lượt: mỗi nhóm kỹ năng một game. */
 export const BRAIN_TEST_GAME_COUNT = CATEGORIES.length;
@@ -84,6 +86,8 @@ export const BRAIN_TEST_REFERENCE_SCORE: Readonly<Record<GameId, number>> = {
   "top-view": 1550,
   "fold-box": 1700,
   "shadow-match": 2050,
+  "aim-trainer": 8350,
+  "chalk-arrows": 4900,
   // @new-game:brain-reference
 };
 

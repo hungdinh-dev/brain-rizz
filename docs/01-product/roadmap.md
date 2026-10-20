@@ -43,7 +43,7 @@ gantt
   section GĐ 3 · Release
   Tài khoản Supabase, lịch sử          :g3a, 2026-12-28, 14d
   Kiểm tra não, Luyện tập, Đấu bóng ma :g3b, 2027-01-11, 21d
-  5 minigame cuối                      :g3c, 2026-12-28, 2027-02-07
+  7 minigame cuối                      :g3c, 2026-12-28, 2027-02-07
   Phát hành 1.0                        :milestone, m3, 2027-02-07, 0d
 ```
 
@@ -114,7 +114,7 @@ Mã trong ngoặc trỏ tới [SRS](srs.md).
 - [ ] ~~Tài khoản, Luyện tập, Kiểm tra não~~ — dời lên GĐ 1 theo [CR-009](../00-tracking/change-requests.md#cr-009)
 - [ ] Đấu bóng ma (UC-15)
 - [ ] Mũ phần thưởng khi lập kỷ lục (FR-MR-05)
-- [ ] Đủ 15 minigame
+- [ ] Đủ 17 minigame (15 game ban đầu + Luyện ngắm, Phấn trượt theo [CR-012](../00-tracking/change-requests.md#cr-012))
 - [x] i18n tiếng Anh — đã làm sớm ở GĐ 0 ([CR-001](../00-tracking/change-requests.md#cr-001))
 
 **Cổng 3 (phát hành 1.0):** đạt toàn bộ tiêu chí chấp nhận ở [BRD](brd.md#6-tiêu-chí-chấp-nhận-ở-mức-nghiệp-vụ) và checklist phát hành ở [Kiểm thử](../03-guides/testing.md#7-checklist-trước-khi-phát-hành).
