@@ -10,12 +10,33 @@ import type { MinigameDef } from "../types";
 export const SHAPES = ["circle", "square", "triangle", "diamond", "star", "hexagon"] as const;
 export type Shape = (typeof SHAPES)[number];
 
+/** Bảng màu mức Mầm/Thường (ô lạc khác hẳn màu). */
 export const PALETTE = ["#E85D75", "#F2A541", "#3BB273", "#4D9DE0", "#7768AE", "#2D3047"] as const;
+
+/**
+ * Màu gốc mức Khó/Siêu khó, theo HSL: sắc độ `h`, độ bão hoà `s` và dải độ sáng [minL, maxL].
+ * Dải độ sáng chọn sao cho mọi biến thể đều nổi trên nền khung game ở cả hai giao diện
+ * (sáng `--muted` #f3eadf, tối `--muted` #3a3560): độ chói tương đối ~0,11–0,42, tức
+ * tương phản ≥ ~1,8:1 với cả hai nền. Bỏ vàng vì dải hợp lệ quá hẹp (vàng tối thành ô liu).
+ */
+const SHADE_BASES = [
+  { h: 350, s: 75, minL: 42, maxL: 74 }, // hồng
+  { h: 25, s: 85, minL: 34, maxL: 63 }, // cam
+  { h: 140, s: 55, minL: 28, maxL: 49 }, // xanh lá
+  { h: 210, s: 70, minL: 39, maxL: 68 }, // xanh dương
+  { h: 265, s: 55, minL: 52, maxL: 76 }, // tím
+  { h: 300, s: 50, minL: 41, maxL: 71 }, // tím hồng
+] as const;
+
+/** Độ lệch độ sáng HSL (điểm %) của ô lạc so với ô gốc, theo độ khó (cả hai đầu). */
+const SHADE_DELTA_HARD = [14, 18] as const;
+const SHADE_DELTA_EXPERT = [7, 9] as const;
 
 export interface Cell {
   shape: Shape;
+  /** Mã hex `#RRGGBB`. */
   color: string;
-  /** Góc xoay (độ), dùng ở độ khó cao để tạo khác biệt tinh tế. */
+  /** Góc xoay (độ). Hiện mọi ô luôn là 0; giữ trường để mở rộng sau. */
   rotation: number;
 }
 
@@ -31,6 +52,21 @@ export type OddOneOutAnswer = number;
 
 const GRID_BY_DIFFICULTY: Record<Difficulty, number> = { 0: 3, 1: 4, 2: 5, 3: 6 };
 
+/** HSL (h độ, s và l theo %) → `#RRGGBB`. Hàm thuần, tất định. */
+function hslToHex(h: number, s: number, l: number): string {
+  const sat = s / 100;
+  const light = l / 100;
+  const a = sat * Math.min(light, 1 - light);
+  const channel = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const v = light - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    return Math.round(v * 255)
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return `#${channel(0)}${channel(8)}${channel(4)}`.toUpperCase();
+}
+
 export const oddOneOut: MinigameDef<OddOneOutPuzzle, OddOneOutAnswer> = {
   id: "odd-one-out",
   category: "identify",
@@ -40,32 +76,30 @@ export const oddOneOut: MinigameDef<OddOneOutPuzzle, OddOneOutAnswer> = {
     const rng = createRng(deriveSeed(roundSeed, index));
     const size = GRID_BY_DIFFICULTY[difficulty];
     const count = size * size;
+    const shape = rng.pick(SHAPES);
 
-    const base: Cell = {
-      shape: rng.pick(SHAPES),
-      color: rng.pick(PALETTE),
-      rotation: 0,
-    };
-
-    // Mầm/Thường: khác hình hoặc khác màu. Khó: khác màu. Siêu khó: chỉ khác góc xoay.
-    const mode =
-      difficulty <= 1
-        ? rng.pick(["shape", "color"] as const)
-        : difficulty === 2
-          ? "color"
-          : "rotation";
-
+    let base: Cell;
     let odd: Cell;
-    if (mode === "shape") {
-      odd = { ...base, shape: rng.pick(SHAPES.filter((s) => s !== base.shape)) };
-    } else if (mode === "color") {
-      odd = { ...base, color: rng.pick(PALETTE.filter((c) => c !== base.color)) };
+    if (difficulty <= 1) {
+      // Mầm/Thường: khác hình hoặc khác màu. Giữ đúng thứ tự gọi rng như cũ để câu đố
+      // (và điểm chuẩn Kiểm tra não chơi ở mức Thường) không đổi.
+      base = { shape, color: rng.pick(PALETTE), rotation: 0 };
+      const mode = rng.pick(["shape", "color"] as const);
+      odd =
+        mode === "shape"
+          ? { ...base, shape: rng.pick(SHAPES.filter((s) => s !== base.shape)) }
+          : { ...base, color: rng.pick(PALETTE.filter((c) => c !== base.color)) };
     } else {
-      // Hình tròn xoay không thấy khác → đổi sang hình có hướng.
-      const shape: Shape =
-        base.shape === "circle" || base.shape === "hexagon" ? "triangle" : base.shape;
-      base.shape = shape;
-      odd = { ...base, rotation: rng.pick([15, 20, 25]) };
+      // Khó/Siêu khó: cùng hình, cùng sắc độ, chỉ khác độ sáng (sáng hơn hoặc tối hơn).
+      const tone = rng.pick(SHADE_BASES);
+      const [minDelta, maxDelta] = difficulty === 2 ? SHADE_DELTA_HARD : SHADE_DELTA_EXPERT;
+      const delta = rng.int(minDelta, maxDelta);
+      const dir = rng.pick([-1, 1] as const);
+      // Chọn độ sáng gốc sao cho cả ô gốc lẫn ô lạc nằm trong dải hợp lệ của màu.
+      const baseL =
+        dir > 0 ? rng.int(tone.minL, tone.maxL - delta) : rng.int(tone.minL + delta, tone.maxL);
+      base = { shape, color: hslToHex(tone.h, tone.s, baseL), rotation: 0 };
+      odd = { ...base, color: hslToHex(tone.h, tone.s, baseL + dir * delta) };
     }
 
     const oddIndex = rng.int(0, count - 1);

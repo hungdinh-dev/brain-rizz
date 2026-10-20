@@ -123,6 +123,7 @@ Xác suất (X) và Ảnh hưởng (A) chấm 1–3. Rủi ro đang mở đượ
 | R-10 | Supabase tạm dừng khi ít người chơi | 2 | 1 | Chỉ dùng từ GĐ 3; chế độ khách vẫn chơi khi DB ngủ | Mở |
 | R-11 | Không đủ 15 giờ/tuần như giả định | 2 | 2 | Lộ trình tính theo tuần làm việc; trễ thì cắt bớt minigame của GĐ 3, không cắt chất lượng | Mở |
 | R-12 | Nhạc nền "no copyright" thực ra vẫn có chủ, điều khoản thường chỉ cho dùng trong video, không cho dùng trong app/game → yêu cầu gỡ (DMCA) gửi tới GitHub hoặc Cloudflare | 1 | 2 | Chủ dự án chấp nhận rủi ro (2026-10-14, [CR-007](../00-tracking/change-requests.md#cr-007)). Repo chuyển sang private **trước khi** commit file nhạc; vẫn ghi nguồn từng bài vào `assets/LICENSES.md`; bị yêu cầu gỡ thì xoá bài đó ngay, thay bằng nhạc Pixabay/OpenGameArt CC0. Lưu ý: repo private không che được nhạc trên web đã deploy | Mở |
+| R-13 | Để `https://*.trycloudflare.com/**` trong Redirect URLs của Supabase (cần cho đăng nhập Google qua `pnpm share`). Mẫu này khớp tunnel của bất kỳ ai → kẻ xấu gửi link đăng nhập trỏ về tunnel của họ để lấy phiên của người chơi | 1 | 1 | Chỉ thêm trong buổi share, share xong xoá ([Hướng dẫn Supabase › mục 5](../03-guides/supabase-setup.md#5-site-url-và-redirect-urls)). Tài khoản chỉ chứa điểm game nên thiệt hại thấp. Khi có domain riêng thì thay quick tunnel bằng named tunnel và thêm đúng domain đó | Mở |
 
 ## 11. Câu hỏi mở
 

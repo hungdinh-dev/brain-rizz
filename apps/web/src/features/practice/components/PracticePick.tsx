@@ -1,9 +1,10 @@
 import { CATEGORIES, type Category, GAME_IDS, GAMES, type GameId } from "@brain-rizz/shared";
-import { PlayIcon, StarIcon } from "lucide-react";
+import { StarIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CATEGORY_BG } from "@/components/common/MatchChips";
+import { CATEGORY_BG, CATEGORY_FG, CATEGORY_ICON } from "@/components/common/MatchChips";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
+import { GAME_CLIENTS } from "@/games/registry";
 import { useGameTextLookup } from "@/hooks/use-game-text";
 import { useNumberFormat } from "@/hooks/use-number-format";
 import { cn } from "@/lib/utils";
@@ -36,7 +37,7 @@ export function PracticePick({ records, onPick, onBack }: PracticePickProps) {
         }
         onBack={onBack}
       >
-        <fieldset className="-mx-4 flex w-[calc(100%+2rem)] min-w-0 gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:w-auto lg:px-0 lg:pb-0">
+        <fieldset className="-mx-4 flex w-[calc(100%+2rem)] min-w-0 gap-2 overflow-x-auto px-4 pt-0.5 pb-1.5 [scrollbar-width:none] lg:mx-0 lg:w-auto lg:overflow-visible lg:px-0">
           <legend className="sr-only">{t("practice.filter")}</legend>
           <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>
             {t("practice.all")}
@@ -89,10 +90,11 @@ function FilterChip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "flex h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-sm font-bold whitespace-nowrap outline-none focus-visible:ring-3 focus-visible:ring-ring",
+        // Chip thường và chip chọn cùng viền 3px, cùng chữ, cùng cao: đổi chọn không nhảy bố cục.
+        "flex h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border-[3px] px-3.5 font-display text-base font-extrabold whitespace-nowrap outline-none focus-visible:ring-3 focus-visible:ring-ring",
         active
-          ? "border-[3px] border-sticker bg-primary font-display text-base font-extrabold text-primary-foreground shadow-sticker-sm"
-          : "border-[2.5px] border-chalk/60 bg-board-shade text-chalk",
+          ? "border-sticker bg-primary text-primary-foreground shadow-sticker-sm"
+          : "border-chalk/60 bg-board-shade text-chalk",
       )}
     >
       {children}
@@ -133,7 +135,7 @@ function CategoryColumn({
       <div
         className={cn(
           "grid grid-cols-2 gap-3",
-          wide ? "sm:grid-cols-3 lg:grid-cols-4" : "lg:grid-cols-1",
+          wide ? "sm:grid-cols-3 lg:grid-cols-4" : "sm:grid-cols-3 lg:grid-cols-1",
         )}
       >
         {ids.map((id) => (
@@ -160,31 +162,37 @@ function GameTile({
   const text = useGameTextLookup();
   const name = text(gameId).title;
   const top = topBestOfGame(records, gameId);
+  const Illustration = GAME_CLIENTS[gameId].Illustration;
+  const CategoryIcon = CATEGORY_ICON[category];
 
+  // Thẻ dọc kiểu thư viện game: tên trên nền màu nhóm, hình minh hoạ 14:9 (như thẻ hướng dẫn), dải kỷ lục.
   return (
     <button
       type="button"
       aria-label={t("practice.playGame", { name })}
       onClick={() => onPick(gameId)}
-      className="flex min-h-24 min-w-0 cursor-pointer flex-col gap-2 rounded-2xl border-[3px] border-sticker bg-card p-2.5 text-left text-card-foreground shadow-sticker-sm transition-[translate] outline-none hover:-translate-y-0.75 focus-visible:ring-3 focus-visible:ring-ring lg:rounded-[18px] lg:border-[3.5px] lg:p-3"
+      className={cn(
+        "flex min-w-0 cursor-pointer flex-col gap-2 rounded-2xl border-[3px] border-sticker p-2 text-left shadow-sticker-sm transition-[translate] outline-none hover:-translate-y-0.75 focus-visible:ring-3 focus-visible:ring-ring lg:rounded-[18px] lg:p-2.5",
+        CATEGORY_BG[category],
+        CATEGORY_FG[category],
+      )}
     >
-      <span className="flex items-center gap-2 lg:gap-2.5">
-        <span
-          aria-hidden
-          className={cn(
-            "grid size-9 shrink-0 place-items-center rounded-[11px] border-[2.5px] border-ink lg:size-11 lg:rounded-[13px] lg:border-[3px]",
-            CATEGORY_BG[category],
-          )}
-        >
-          <PlayIcon className="size-4 fill-paper text-ink lg:size-5" strokeWidth={2.6} />
-        </span>
-        <span className="font-display text-base leading-tight font-extrabold lg:text-[19px]">
-          {name}
-        </span>
+      <span className="line-clamp-2 min-h-[2lh] px-0.5 font-display text-base leading-tight font-extrabold lg:text-lg">
+        {name}
+      </span>
+      <span
+        aria-hidden
+        className="flex aspect-14/9 w-full items-center justify-center overflow-hidden rounded-xl border-[2.5px] border-sticker bg-board p-1 lg:border-[3px]"
+      >
+        {Illustration ? (
+          <Illustration className="size-full" />
+        ) : (
+          <CategoryIcon className="size-1/2 text-chalk" strokeWidth={2.2} />
+        )}
       </span>
       <span
         className={cn(
-          "mt-auto flex h-6.5 items-center gap-1.5 self-stretch rounded-[9px] bg-muted px-2 text-xs font-bold lg:h-7 lg:rounded-[10px] lg:px-2.5 lg:text-[13px]",
+          "flex h-6.5 items-center gap-1.5 self-stretch rounded-[9px] border-2 border-sticker bg-card px-2 text-xs font-bold text-card-foreground lg:h-7 lg:rounded-[10px] lg:text-[13px]",
           !top && "text-muted-foreground",
         )}
       >

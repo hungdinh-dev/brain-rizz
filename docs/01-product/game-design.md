@@ -72,7 +72,7 @@ Thời lượng đặt theo nhóm, không theo game. Mỗi nhóm có đúng mộ
 
 | Nhóm | Thời lượng | Vì sao |
 | --- | --- | --- |
-| Nhận diện | 30 s | Kẻ lạc đàn ~1,5 s mỗi câu, 30 s vẫn được ~17 câu |
+| Nhận diện | 30 s | Kẻ lạc đàn ~1,5 s mỗi câu (~17 câu trong 30 s), Bóng của ai ~2 s mỗi câu (~12 câu) |
 | Ghi nhớ | 45 s | Mỗi câu có 3–3,4 s trình chiếu không bấm được; 45 s còn 7–12 câu |
 | Phân tích | 40 s | 2,5–3,7 s mỗi câu → 9–13 câu |
 | Tính toán | 45 s | ~5 s mỗi câu; 45 s còn ~8 câu |
@@ -83,7 +83,7 @@ Tổng **200 giây chơi**. Cộng 5 × (≈ 12 s đọc hướng dẫn + 3 s đ
 **Cách chọn game (`pickBrainTestGames(seed, available?)`)**
 
 - Server tạo `seed` cho lượt. Nhóm thứ `i` bốc **đều** một game trong các game đã đăng ký của nhóm, bằng luồng ngẫu nhiên riêng `createRng(deriveSeed(seed, i))`. Cùng seed → cùng 5 game, trên mọi máy.
-- Mọi game đã đăng ký đều được vào, kể cả game còn chờ chơi thử. Hiện tại: Nhận diện chỉ có Kẻ lạc đàn nên lượt nào cũng có game này; bốn nhóm còn lại mỗi game có xác suất 1/3.
+- Mọi game đã đăng ký đều được vào, kể cả game còn chờ chơi thử. Hiện tại: Nhận diện có Kẻ lạc đàn và Bóng của ai nên mỗi game có xác suất 1/2; bốn nhóm còn lại mỗi game có xác suất 1/3.
 - `available` (tuỳ chọn) giới hạn danh sách game. Id lạ, id trùng và thứ tự trong `available` không ảnh hưởng kết quả. Nhóm không còn game nào trong `available` thì bốc từ mọi game của nhóm đó, để lượt luôn đủ 5 game. Mỗi nhóm có luồng riêng nên giới hạn một nhóm không làm đổi game được bốc ở nhóm khác.
 
 **Quy điểm game về điểm kỹ năng (`skillScore`)**
@@ -113,6 +113,7 @@ Hai nhánh nối trơn tại `r = 1` (cùng độ dốc). Nhánh trên giảm d�
 | Nhóm | Game | Thời lượng | Giả định ở Thường (theo đặc tả): thời gian mỗi câu · tỉ lệ sai | Câu · đúng | **Điểm chuẩn** | Nhanh hơn 30 % | Chậm hơn 40 % |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Nhận diện | Kẻ lạc đàn | 30 s | 1,3 s · 4 % (ước; đặc tả chưa có bảng Cân bằng) | 17,4 · 16,7 | **3 350** | × 1,33 | × 0,73 |
+| Nhận diện | Bóng của ai | 30 s | 2,0 s · 8 % | 12,2 · 11,2 | **2 050** | × 1,41 | × 0,68 |
 | Ghi nhớ | Theo dấu ánh đèn | 45 s | trình chiếu ~3,0 s + nhập 2,3 s · 10 % | 7,2 · 6,4 | **1 050** | × 1,23 | × 0,78 |
 | Ghi nhớ | Ai vừa biến mất | 45 s | xem + che 3,4 s + chọn 1,5 s · 10 % | 8,0 · 7,2 | **1 250** | × 1,15 | × 0,84 |
 | Ghi nhớ | Lật cặp | 45 s | phần xem của bàn + chạm 1,5 s · 12 % | 12,2 · 10,8 | **1 950** | × 1,22 | × 0,84 |
@@ -130,12 +131,12 @@ Hai nhánh nối trơn tại `r = 1` (cùng độ dốc). Nhánh trên giảm d�
 
 - **Thêm game mới:** `pnpm new-game` chèn số giữ chỗ 1 500 kèm `TODO`; game designer mô phỏng lại theo cách trên và thay số trước khi đổi trạng thái game sang ✅. Bỏ sót thì TypeScript báo lỗi (bảng có kiểu `Record<GameId, number>`), test kiểm mọi game đều có điểm chuẩn dương.
 - **Chốt sau chơi thử:** đo trung vị điểm game của người lớn ở Thường trong Kiểm tra não, lấy làm điểm chuẩn mới (làm tròn tới 50).
-- **Đổi số sau khi đã có người chơi:** đổi điểm chuẩn làm Điểm Não cũ và mới không còn so được; đổi thời lượng, độ khó hay luật chấm thì cả điểm từng game cũng lệch. Mọi thay đổi loại này phải có CR và **tăng `BRAIN_TEST_RULES_VERSION`**. Cả bảng Điểm Não lẫn bảng từng minigame chỉ xếp các lượt cùng phiên bản luật, nên tăng phiên bản là làm mới cả hai bảng (để đơn giản, kể cả khi chỉ đổi điểm chuẩn); lịch sử cá nhân vẫn giữ.
+- **Đổi số sau khi đã có người chơi:** đổi điểm chuẩn làm Điểm Não cũ và mới không còn so được; đổi thời lượng, độ khó hay luật chấm thì cả điểm từng game cũng lệch; **thêm game vào một nhóm** cũng đổi cách đo kỹ năng của nhóm đó. Mọi thay đổi loại này phải có CR và **tăng `BRAIN_TEST_RULES_VERSION`**. Cả bảng Điểm Não lẫn bảng từng minigame chỉ xếp các lượt cùng phiên bản luật, nên tăng phiên bản là làm mới cả hai bảng (để đơn giản, kể cả khi chỉ đổi điểm chuẩn); lịch sử cá nhân vẫn giữ.
 
 **Hạn chế đã biết**
 
-- Game Ghi nhớ có pha trình chiếu cố định nên người nhanh kéo điểm lên ít hơn (× 1,15–1,23 so với × 1,43–1,61 ở game khác). Kỹ năng Ghi nhớ vì thế dồn quanh 100 hơn các kỹ năng khác. Chấp nhận ở bản này; xem lại khi có số đo thật.
-- Nhóm Nhận diện mới có một game, nên kỹ năng Nhận diện luôn đo bằng Kẻ lạc đàn.
+- Game Ghi nhớ có pha trình chiếu cố định nên người nhanh kéo điểm lên ít hơn (× 1,15–1,23 so với × 1,33–1,61 ở các game). Kỹ năng Ghi nhớ vì thế dồn quanh 100 hơn các kỹ năng khác. Chấp nhận ở bản này; xem lại khi có số đo thật.
+- Nhóm Nhận diện mới có hai game (Kẻ lạc đàn, Bóng của ai), ít hơn ba game ở các nhóm khác. Điểm chuẩn hai game ước theo cách khác nhau (Kẻ lạc đàn chưa có bảng Cân bằng), nên cần đối chiếu lại khi có số đo thật.
 
 **Biểu đồ 5 cạnh (màn kết quả)**
 

@@ -19,6 +19,7 @@ export const SOLVE: Record<GameId, (seed: number, index: number, d: Difficulty) 
   "pair-flip": (s, i, d) => GAMES["pair-flip"].generate(s, i, d).answer,
   "cube-count": (s, i, d) => GAMES["cube-count"].generate(s, i, d).answerIndex,
   "marble-drop": (s, i, d) => GAMES["marble-drop"].generate(s, i, d).answer,
+  "shadow-match": (s, i, d) => GAMES["shadow-match"].generate(s, i, d).answerIndex,
 };
 
 /**

@@ -30,7 +30,7 @@ Script (`scripts/share.mjs`) chạy game server (nạp `apps/server/.env`, đặ
 Giới hạn:
 
 - Máy phải bật và giữ cửa sổ mở suốt lúc chơi; link **đổi mỗi lần chạy**.
-- Đăng nhập Google qua link tunnel cần thêm `https://*.trycloudflare.com/**` vào Supabase › Authentication › URL Configuration › Redirect URLs. Chế độ khách, luyện tập và chơi party không bị ảnh hưởng.
+- Bản build share dùng sẵn `VITE_SUPABASE_*` trong `apps/web/.env`, nhưng **đăng nhập Google** còn cần thêm `https://*.trycloudflare.com/**` vào Supabase › Authentication › URL Configuration › Redirect URLs. Thiếu dòng này thì Google đăng nhập xong lại đưa người chơi về Site URL, không về link share. Chỉ thêm trong buổi chơi, share xong thì xoá ([Hướng dẫn Supabase › mục 5](supabase-setup.md#5-site-url-và-redirect-urls), rủi ro [R-13](../01-product/vision.md#10-rủi-ro-risk-register)). Chế độ khách, luyện tập và chơi party không bị ảnh hưởng.
 - Nếu đang `pnpm dev` thì `/monitor` và `/playground` của server đó cũng ra Internet qua link server; muốn tắt thì dừng `pnpm dev` trước khi chạy `pnpm share`.
 - Chỉ để chơi thử; không thay cho deploy thật trên Fly.io ([Triển khai](deployment.md)).
 

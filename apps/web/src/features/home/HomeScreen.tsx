@@ -19,7 +19,7 @@ function codeFromUrl() {
 }
 
 /**
- * Trang chủ khi chưa vào phòng: màn giới thiệu → menu chính ⇄ chọn bạn đồng hành.
+ * Trang chủ khi chưa vào phòng: màn giới thiệu → menu chính ⇄ hồ sơ của bạn.
  * Mở link mời /r/<mã> thì bỏ qua màn giới thiệu, vào thẳng menu với mã điền sẵn (nav.store).
  * Màn hiện tại nằm ở `useNav` để các chế độ một mình (Luyện tập, Kiểm tra não…) quay về được.
  */

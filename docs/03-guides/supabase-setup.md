@@ -100,6 +100,9 @@ Dashboard → **Authentication → URL Configuration**:
   - `https://brain-rizz.pages.dev/**` (domain production)
   - `https://*.brain-rizz.pages.dev/**` nếu muốn bản preview của Cloudflare Pages đăng nhập được.
   - Thử trên điện thoại qua IP máy tính (`http://192.168.x.x:5173`): thêm đúng địa chỉ đó. Lưu ý Google không cho origin là IP nội bộ, nên trên điện thoại chỉ thử được phiên khách; liên kết Google thì thử trên máy tính hoặc bản deploy.
+  - Chơi qua `pnpm share` (link `https://….trycloudflare.com`, [Phát triển › Chia sẻ](development.md#chia-sẻ-cho-bạn-bè-qua-internet-pnpm-share)): thêm `https://*.trycloudflare.com/**`. **Chỉ thêm lúc cần, share xong thì xoá** (rủi ro [R-13](../01-product/vision.md#10-rủi-ro-risk-register)): mẫu này khớp tunnel của bất kỳ ai, nên kẻ xấu có thể gửi link đăng nhập trỏ về tunnel của họ để lấy phiên của người chơi.
+
+Biến môi trường (mục 6) và Redirect URLs là hai việc riêng: env cho web biết dùng project Supabase nào, còn Redirect URLs là danh sách cho phép trên dashboard. Điền đủ env mà thiếu URL thì đăng nhập Google vẫn chạy nhưng quay về sai trang.
 
 Thiếu URL trong danh sách thì sau khi đăng nhập Google, Supabase đưa người chơi về Site URL thay vì trang đang mở.
 
