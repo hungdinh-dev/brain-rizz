@@ -37,6 +37,7 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 | [CR-009](#cr-009) | Đưa Luyện tập, Kiểm tra não, Tài khoản (Supabase) và Bảng xếp hạng lên làm trước | 2026-10-16 | Dời việc + thêm tính năng | +2–3 tuần, chen trước Cổng 1 | Duyệt (2026-10-16) |
 | [CR-010](#cr-010) | Vinh danh hồi hộp hơn, công tắc hiệu ứng chuyển động, danh hiệu và điểm theo thể loại trong trận party | 2026-10-19 | Thêm tính năng + thay đổi thiết kế | +1–2 ngày | Duyệt (2026-10-19) |
 | [CR-011](#cr-011) | Chat real-time trong phòng party: chữ + biểu cảm nhanh, lọc từ tục, chủ phòng tắt chat, tắt tiếng từng người | 2026-10-20 | Thêm tính năng | +1–2 ngày | Duyệt (2026-10-20) |
+| [CR-012](#cr-012) | Thêm 2 minigame ngoài SRS: Luyện ngắm (aim trainer, Nhận diện) và Phấn trượt (đổi luật theo màu, Phân tích) | 2026-10-20 | Thêm tính năng | +2–3 ngày | Duyệt (2026-10-20) |
 
 ---
 
@@ -294,7 +295,25 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
   - *Lịch:* ước lượng 1–2 ngày, làm sau đợt 2 minigame Nhận diện (cùng chạm `PartyRoom.ts`, `protocol.ts`, i18n).
 - **Quyết định:** **Duyệt** (2026-10-20, chủ dự án chọn qua câu hỏi). Giả định PM: tin hệ thống (vào/rời phòng) không cần; tên người gửi lấy từ hồ sơ trong phòng, server gắn chứ client không tự khai; tắt tiếng chỉ trên máy mình, không báo cho người bị tắt.
 - **Tài liệu kéo theo:** SRS (UC/FR mới nhóm Phòng chơi, NFR-SEC chống spam), UI-UX (khung chat các pha), overview (luồng tin), features.md, changelog.
-- **Kết quả:** chờ làm.
+- **Kết quả:** đã làm (2026-10-20), chờ thử trên điện thoại thật. Shared `packages/shared/src/chat/` (31 test), server `ChatRelay.ts` + cờ `chatEnabled` (`PartyChat.test.ts`), web `features/chat/` + `stores/chat.store.ts` (21 test); SRS 1.8 (UC-22, FR-PH-14 → 19, NFR-SEC-04), UI-UX 1.5 (S16, mục 6.5). Câu chọn sẵn gửi bằng mã nên mỗi người xem theo ngôn ngữ của mình. Kiểm Chrome headless 390/1280 px với bot.
+
+### CR-012
+
+**Thêm 2 minigame ngoài SRS: Luyện ngắm và Phấn trượt**
+
+- **Ngày mở:** 2026-10-20 · **Loại:** Thêm tính năng · **Người đề xuất:** chủ dự án
+- **Mô tả:** nâng danh mục từ 15 lên 17 minigame.
+  1. **Luyện ngắm** (`aim-trainer`, nhóm Nhận diện; tham khảo humanbenchmark.com/tests/aim): mục tiêu tròn hiện ở vị trí sinh từ seed, chạm/click trúng càng nhanh càng tốt, trúng thì mục tiêu kế hiện ngay. Đáp án = toạ độ chạm đã chuẩn hoá theo khung chơi; server kiểm toạ độ nằm trong mục tiêu. Độ khó: Mầm to, đứng yên, không giới hạn thời gian · Thường vừa, biến mất sau ~1,5 s (để lỡ = sai) · Khó nhỏ, co dần rồi biến mất, xuất hiện xa vị trí cũ hơn · Siêu khó nhỏ + 1–2 **mục tiêu mồi đỏ** không được bắn (bắn nhầm = sai). Mục tiêu không di chuyển (để server chấm chính xác và không bất lợi trên điện thoại).
+  2. **Phấn trượt** (`chalk-arrows`, nhóm Phân tích; cơ chế đổi luật theo màu kiểu "Ebb and Flow" của Lumosity nhưng **không dùng lá/mặt nước** — chủ đề, hình, màu là của Brain Rizz): các mũi tên vẽ bằng phấn trượt trên bảng đen, mỗi mũi tên có hướng chỉ và hướng trượt. Phấn trắng nét liền → trả lời theo hướng mũi tên; phấn vàng nét đôi → theo hướng trượt. Đáp án = 1 trong 4 hướng (vuốt trên điện thoại, phím mũi tên hoặc 4 nút trên máy tính). Độ khó: Mầm chỉ phấn trắng, ít mũi tên, chậm · Thường có cả hai màu, hai hướng thường trùng · Khó hai hướng thường ngược, đổi màu giữa các câu, nhiều mũi tên · Siêu khó trượt nhanh, trắng ngà / vàng nhạt gần nhau hơn (vẫn tách bằng nét liền/nét đôi cho người mù màu), có mũi tên bị tẩy mờ gây nhiễu. *Đổi từ bản "Lá theo dòng" (2026-10-20) vì hình lá trên mặt nước quá giống Ebb and Flow.*
+- **Lý do:** chủ dự án muốn thêm game rèn phản xạ và linh hoạt nhận thức; BR-10 (đa dạng nội dung để quay lại).
+- **Phân tích tác động:**
+  - *Trụ cột:* giữ "Nhẹ và rẻ" (Phaser, không thêm thư viện).
+  - *Kỹ thuật:* mỗi game theo khuôn `pnpm new-game` (shared + web + test 10.000 seed). Luyện ngắm cần thưởng tốc độ theo game (CR-006) và có thể dùng cửa sổ thời gian kiểu Đập đúng hình cho mục tiêu biến mất. Nhóm Nhận diện lên 4 game (khi có Đập đúng hình), Phân tích lên 4 → Kiểm tra não bốc trong nhóm lớn hơn: **tăng `BRAIN_TEST_RULES_VERSION`** khi đăng ký mỗi game (quy tắc ở GDD). Vòng quay đông game hơn: xem lại hiển thị ở màn Chọn game.
+  - *Công bằng:* chạm trực tiếp trên điện thoại khác rê chuột trên máy tính; kích thước mục tiêu tính theo tỉ lệ khung chơi, chỉnh sau chơi thử.
+  - *Chi phí:* 0 đồng. *Lịch:* +2–3 ngày, làm sau chat ([CR-011](#cr-011)) vì chat chạm `PartyRoom.ts`/`protocol.ts`.
+- **Quyết định:** **Duyệt** (2026-10-20, chủ dự án chọn qua câu hỏi: xếp vào 5 nhóm sẵn có; Siêu khó Luyện ngắm dùng mồi đỏ; làm chat trước). Giả định PM: id và tên tạm, chốt khi viết đặc tả.
+- **Tài liệu kéo theo:** SRS (số game 15 → 17, FR-MG), GDD, danh mục minigame, `CATALOG` ở màn Chọn game, features.md, roadmap.
+- **Kết quả:** đã làm (2026-10-20), chờ QA và chơi thử. Đặc tả [aim-trainer.md](../04-minigames/aim-trainer.md), [chalk-arrows.md](../04-minigames/chalk-arrows.md) và bản mẫu M16, M17. Bộ sinh câu đố ở `packages/shared/src/games/aim-trainer/` và `chalk-arrows/` (test 10.000 seed: tất định, đúng một đáp án, độ khó tăng dần); scene Phaser, màn hướng dẫn, chữ vi/en ở `apps/web/src/games/`; đã đăng ký ở `games/index.ts`, `registry.ts` và `CATALOG`. Cơ chế chung mới **hạn trả lời** `answerWindowMs` trong `judgeAnswer` (server từ chối đáp án tới sau khi bia Luyện ngắm đã biến mất). Kiểm tra não `BRAIN_TEST_RULES_VERSION` 2 → 3. SRS 1.9 (FR-MG-05 lên 17 game), GDD, danh mục minigame, features.md, roadmap, changelog đã sửa theo.
 
 ---
 

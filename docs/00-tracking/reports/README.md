@@ -22,6 +22,7 @@ Khác với các tài liệu theo dõi khác:
 | [2026-10-14](2026-10-14.md) | DR-20261014 | GĐ 1–2 | Bản mẫu 4 game cuối, 8 minigame mới qua `/new-minigame` (3 vòng QA), 12 commit nhánh `feat/beta-minigames`, nhạc nền (CR-007) + 2 bài nhạc, âm thanh hiệu ứng (CR-008), lập bộ báo cáo ngày, merge vào `main` |
 | [2026-10-16](2026-10-16.md) | DR-20261016 | GĐ 1 | CR-009: Luyện tập, Kiểm tra não, Tài khoản Supabase, Bảng xếp hạng (ADR 0011, 0012); QA PASS, chờ kiểm với Supabase thật; chưa commit |
 | [2026-10-19](2026-10-19.md) | DR-20261019 | GĐ 1 | CR-010: nút Hiệu ứng, vinh danh hồi hộp, điểm/danh hiệu theo thể loại; Supabase thật đã nối; `pnpm share`; merge vào `main`, tạo `dev` |
+| [2026-10-20](2026-10-20.md) | DR-20261020 | GĐ 1 | Bóng của ai, Kẻ lạc đàn khó bằng sắc độ, chat real-time (CR-011), Luyện ngắm + Phấn trượt (CR-012, 17 game), hạn trả lời + đồng bộ khi nối lại; merge vào `dev`/`main` |
 
 Ngày 2026-10-11 không có phiên làm việc.
 

@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Phân tích yêu cầu |
-| Phiên bản tài liệu | 1.6 · 2026-10-16 — Luyện tập, Kiểm tra não, Tài khoản, Bảng xếp hạng theo [CR-009](../00-tracking/change-requests.md#cr-009) |
+| Phiên bản tài liệu | 1.9 · 2026-10-20 — Danh mục lên 17 minigame theo [CR-012](../00-tracking/change-requests.md#cr-012) |
 | Đầu vào | [Yêu cầu nghiệp vụ](brd.md) |
 | Đầu ra cho | [Thiết kế game](game-design.md), [UI/UX](ui-ux.md), [Kiến trúc](../02-architecture/overview.md), [Kiểm thử](../03-guides/testing.md) |
 | Cập nhật khi | Thêm/đổi use case hoặc yêu cầu — tăng phiên bản tài liệu và ghi vào [Lịch sử thay đổi](#9-lịch-sử-thay-đổi-tài-liệu) |
@@ -85,10 +85,12 @@ flowchart LR
   N --- UC08[UC-08 Xem kết quả]
   N --- UC10[UC-10 Nối lại khi rớt mạng]
   N --- UC12[UC-12 Rời phòng]
+  N --- UC22[UC-22 Chat trong phòng]
   C([Chủ phòng]) --- UC06[UC-06 Thiết lập trận, bắt đầu]
   C --- UC20[UC-20 Chọn game cho vòng]
   N --- UC20
   C --- UC09[UC-09 Chơi lại, về sảnh]
+  C --- UC22
   N -.->|là| K
   C -.->|là| N
 ```
@@ -111,6 +113,7 @@ flowchart LR
 | UC-10 | Nối lại sau khi mất kết nối | Người chơi, Server | BR-06 | M | 0 |
 | UC-11 | Đổi giao diện sáng/tối, ngôn ngữ và nhạc nền | Khách, Người chơi | BR-08 | M | 0–1 |
 | UC-12 | Rời phòng | Người chơi | BR-01 | M | 0 |
+| UC-22 | Chat trong phòng (chữ, biểu cảm nhanh) | Người chơi, Chủ phòng, Server | BR-01, BR-11 | S | 1 ([CR-011](../00-tracking/change-requests.md#cr-011)) |
 | UC-13 | Luyện tập một minigame | Khách | BR-10 | S | 1–2 ([CR-009](../00-tracking/change-requests.md#cr-009)) |
 | UC-14 | Kiểm tra não (chơi một mình 5 game) | Khách, Server | BR-10 | S | 1–2 (CR-009) |
 | UC-15 | Đấu bóng ma | Khách | BR-10 | S | 3 |
@@ -309,6 +312,25 @@ flowchart TD
 - **Luồng chính:** bấm **Thoát** (sảnh) hoặc **Rời phòng** (màn kết quả) → rời phòng, về menu; các máy còn lại thấy người đó biến mất; nếu là chủ phòng thì chuyển quyền.
 - **FR:** FR-PH-07, FR-PH-10.
 
+#### UC-22 — Chat trong phòng
+
+- **Tác nhân:** Người chơi, Chủ phòng, Server. **Nguồn:** [CR-011](../00-tracking/change-requests.md#cr-011).
+- **Tiền điều kiện:** đang ở trong phòng party, pha `lobby`, `game-select`, `game-intro`, `round-results` hoặc `podium` (`CHAT_PHASES`).
+- **Luồng chính:**
+  1. Người chơi mở khung chat (điện thoại: nút nổi mở dạng sheet, không che nút chính; máy tính: khung bên). Khung hiện tối đa 30 tin gần nhất, kể cả tin gửi trước khi mình vào phòng.
+  2. Người chơi gõ chữ (tối đa 120 ký tự) và gửi, hoặc bấm một biểu cảm/câu chọn sẵn trong hàng một chạm (😂 🔥 👏 😱 GG "Nhanh lên!").
+  3. Server kiểm tra (chat đang bật, đúng pha, chưa gửi quá nhanh), làm sạch và che từ tục bằng `***`, gắn tên, màu, nhân vật của người gửi rồi phát cho cả phòng.
+  4. Mọi máy hiện tin mới; biểu cảm hiện thêm bong bóng ngắn trên avatar người gửi (ô người chơi ở phòng chờ, bảng điểm, vinh danh).
+- **Luồng rẽ:**
+  - 1a. Đang đếm ngược hoặc đang chơi → khung chat ẩn; tin đến được gom lại, hiện số chưa đọc khi khung hiện lại sau vòng.
+  - 2a. Gửi quá nhanh (quá 3 tin liền, sau đó hơn 1 tin/giây) → server từ chối (`rate-limited`), máy người gửi báo chậm lại.
+  - 2b. Chủ phòng tắt chat → mọi máy thấy chat đã tắt; ai gửi cũng bị từ chối (`chat-disabled`). Chủ phòng bật lại được bất cứ lúc nào; cờ giữ qua Chơi lại / Về phòng chờ.
+  - 2c. Người chơi tắt tiếng một người khác → tin và bong bóng của người đó bị ẩn trên máy mình (nhớ trên máy); người bị tắt tiếng không được báo.
+  - 3a. Chữ chỉ có khoảng trắng / ký tự vô hình → bị từ chối (`invalid`).
+  - 3b. Mất kết nối rồi nối lại (UC-10) → nhận lại 30 tin gần nhất, gồm cả tin gửi trong lúc mất kết nối.
+- **Ràng buộc:** không lưu nội dung chat ở đâu ngoài RAM phòng (phòng đóng là mất); không có tin hệ thống vào/rời; khung chat là React DOM, không đụng canvas Phaser.
+- **FR:** FR-PH-14 → FR-PH-19. **NFR:** NFR-SEC-04.
+
 #### Chế độ chơi một mình và tài khoản (CR-009)
 
 Kỹ thuật chung: [ADR 0011](../02-architecture/decisions/0011-supabase-accounts-and-solo-modes.md). Khi Supabase chưa cấu hình hoặc không truy cập được, mọi chế độ vẫn chơi được, chỉ không lưu và không xem được bảng xếp hạng (luồng rẽ "Không có máy chủ dữ liệu" dưới đây).
@@ -421,6 +443,12 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-PH-11 | Số người tối thiểu để bắt đầu (và chơi lại): 2 | UC-06, UC-09 | M | 1 |
 | FR-PH-12 | Phòng chờ 2D (không 3D): 8 ô người chơi có nhân vật, tên, vương miện chủ phòng, trạng thái sẵn sàng/kết nối; ô trống mời bạn; bộ đếm "Người chơi x/8", "Sẵn sàng y/x" | UC-05 | M | 1 |
 | FR-PH-13 | Mã phòng ẩn/hiện được và có nút sao chép; đổi nhân vật ngay trong phòng chờ, không mất trạng thái sẵn sàng | UC-05 | M | 1 |
+| FR-PH-14 | Chat trong phòng: gửi chữ tự do (sau khi làm sạch tối đa `CHAT_MAX_LENGTH` = 120 ký tự, server tự cắt) hoặc một biểu cảm/câu chọn sẵn (`CHAT_QUICK_IDS`: laugh, fire, clap, shock, gg, hurry); phát cho cả phòng bằng tin nhắn một lần, không nằm trong state đồng bộ; tên, màu, nhân vật người gửi do server gắn | UC-22 | S | 1 |
+| FR-PH-15 | Chỉ chat được ở các pha `CHAT_PHASES` (`lobby`, `game-select`, `game-intro`, `round-results`, `podium`); lúc `countdown`/`playing` khung chat ẩn, server từ chối (`bad-phase`); tin đến khi khung ẩn được đếm thành số chưa đọc | UC-22 | S | 1 |
+| FR-PH-16 | Server lọc từ tục tiếng Việt + tiếng Anh, thay bằng `***`: không phân biệt hoa thường, có/không dấu (từ dễ trùng khi bỏ dấu chỉ khớp khi có dấu), leet cơ bản, lách bằng dấu chấm/gạch/khoảng trắng giữa chữ đơn; khớp nguyên từ để không che nhầm câu thường | UC-22 | S | 1 |
+| FR-PH-17 | Chủ phòng bật/tắt chat cả phòng ở mọi pha (cờ `chatEnabled` trong state, mặc định bật, giữ qua Chơi lại / Về phòng chờ); khi tắt server từ chối mọi tin (`chat-disabled`) | UC-22 | S | 1 |
+| FR-PH-18 | Mỗi người tự tắt tiếng một người khác trên máy mình (ẩn tin và bong bóng biểu cảm), nhớ trên máy; không báo server, không báo người bị tắt | UC-22 | S | 1 |
+| FR-PH-19 | Server giữ `CHAT_HISTORY_SIZE` = 30 tin gần nhất trong RAM phòng (không DB), gửi cho người mới vào và người nối lại; biểu cảm hiện bong bóng ngắn trên avatar người gửi | UC-22, UC-10 | S | 1 |
 
 ### 4.3 Vòng chơi & chấm điểm (VC)
 
@@ -456,7 +484,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-MG-02 | Mỗi minigame có 4 mức độ khó khác nhau rõ rệt và đúng một đáp án mỗi câu (kiểm bằng test 10.000 seed) | UC-07 | M | 0–3 |
 | FR-MG-03 | Mỗi minigame có tên và câu hướng dẫn bằng tiếng Việt và tiếng Anh | UC-07 | M | 0–3 |
 | FR-MG-04 | Scene minigame tải theo nhu cầu (chunk riêng), huỷ khi rời vòng | UC-07 | M | 0 |
-| FR-MG-05 | Đủ 5 game MVP (GĐ 1), 10 game (GĐ 2), 15 game (GĐ 3) | UC-07 | M | 1–3 |
+| FR-MG-05 | Đủ 5 game MVP (GĐ 1), 10 game (GĐ 2), 17 game (GĐ 3; 15 game ban đầu + Luyện ngắm, Phấn trượt theo [CR-012](../00-tracking/change-requests.md#cr-012)) | UC-07 | M | 1–3 |
 
 ### 4.5 Giao diện & trải nghiệm (GD)
 
@@ -518,6 +546,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | NFR-COST-01 | Chi phí | Hosting ≤ 1 USD/tháng khi chơi vài chục giờ; tối đa khoảng 6 USD nếu chạy 24/7 | Hoá đơn Fly.io |
 | NFR-PRIV-01 | Riêng tư | Chỉ lưu lên máy chủ dữ liệu khi người chơi dùng chế độ cần lưu (phiên khách tạo lười); dữ liệu cá nhân chỉ gồm tên hiển thị, nhân vật và email Google (nếu liên kết); bảng xếp hạng chỉ lộ tên + nhân vật (kèm mã người dùng ngẫu nhiên, không gắn email); hồ sơ của người khác không đọc trực tiếp được; người chơi tự xoá được dữ liệu của mình, xoá luôn tài khoản (FR-MR-11); RLS chặn đọc lịch sử của người khác (CR-009) | Soát code + soát chính sách RLS |
 | NFR-SEC-03 | Bảo mật | Khoá secret Supabase chỉ nằm trên game server; client chỉ có khoá publishable; điểm xếp hạng chỉ do server ghi | Soát code + test RLS |
+| NFR-SEC-04 | Chống spam / nội dung xấu | Chat (CR-011): giới hạn tần suất mỗi người bằng token bucket (cụm 3 tin, hồi 1 tin/giây theo giờ server; vượt → `rate-limited`, không phát); chữ thô tối đa 480 ký tự qua schema, server bỏ ký tự điều khiển/vô hình, gộp khoảng trắng, cắt 120 ký tự, lọc từ tục trước khi phát; không nhận danh tính do client khai | `packages/shared/src/chat/chat.test.ts`, `apps/server/test/PartyChat.test.ts` |
 | NFR-MAINT-01 | Bảo trì | `pnpm check` xanh trước mọi commit; quyết định kỹ thuật lớn có ADR; cây thư mục luôn cập nhật | CI GitHub Actions |
 | NFR-LEGAL-01 | Pháp lý | Asset bên ngoài chỉ CC0 hoặc giấy phép tương thích, ghi ở `assets/LICENSES.md`; không dùng tài sản Nintendo. Ngoại lệ chủ dự án đã chấp nhận: nhạc nền "no copyright" chưa xác minh giấy phép, vẫn ghi nguồn vào sổ (rủi ro [R-12](vision.md#10-rủi-ro-risk-register), CR-007) | Soát trước phát hành |
 
@@ -533,6 +562,8 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | --- | --- | --- |
 | Trạng thái phòng (`PartyStateView`) | RAM của game server | Tới khi phòng trống |
 | Giờ hiện câu, thời điểm hết khoá, bộ đếm chống spam | RAM của `PartyRoom` (không đồng bộ xuống client) | Tới khi người chơi rời |
+| 30 tin chat gần nhất, lượt chat còn lại của từng người (CR-011) | RAM của `PartyRoom` (`ChatRelay`, không đồng bộ, không ghi DB) | Tin: tới khi phòng đóng; lượt: tới khi người chơi rời |
+| Danh sách người mình đã tắt tiếng trong chat (CR-011) | `localStorage` (khoá trong `STORAGE_KEYS` của web) | Lâu dài trên máy |
 | Hồ sơ người chơi | `localStorage` `brain-rizz:profile` | Lâu dài trên máy |
 | Giao diện, ngôn ngữ | `localStorage` `brain-rizz:theme`, `brain-rizz:lang` | Lâu dài trên máy |
 | Nhạc nền: bật/tắt, âm lượng, bài đang nghe | `localStorage` `brain-rizz:music` | Lâu dài trên máy |
@@ -561,6 +592,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | BR-10 | UC-13→16 | FR-MR-01→05, FR-MR-07→11, FR-MR-15 | — (đang làm, CR-009) |
 | BR-14 | UC-19 | FR-MR-12→14 | — (đang làm, CR-009) |
 | BR-11 | UC-05, UC-08 | FR-PH-12, FR-GD-06→08 | — |
+| BR-01, BR-11 | UC-22 | FR-PH-14 → FR-PH-19, NFR-SEC-04 | `packages/shared/src/chat/chat.test.ts` (lọc từ tục, làm sạch, token bucket), `protocol.test.ts` (schema chat); `apps/server/test/PartyChat.test.ts` (danh tính do server gắn, rate limit, lọc + cắt, bật/tắt + `not-host`, `bad-phase`, 30 tin cho người vào sau / nối lại) |
 | BR-12 | — | NFR-COST-01 | — |
 
 ## 9. Lịch sử thay đổi tài liệu
@@ -575,5 +607,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | 1.5 | 2026-10-14 | Âm thanh hiệu ứng: viết lại FR-GD-07 (chỉ còn âm thanh hiệu ứng, dời sang GĐ 1), thêm FR-GD-11 (rung, Wake Lock, GĐ 2); sửa UC-11 (1b), NFR-UX-02, mục Dữ liệu, ma trận truy vết | [CR-008](../00-tracking/change-requests.md#cr-008) |
 | 1.6 | 2026-10-16 | Viết chi tiết UC-13, UC-14, UC-16, UC-19 và đưa lên GĐ 1–2; viết lại FR-MR-01, 02, 04, 06; thêm FR-MR-07 → 15, NFR-SEC-03; sửa NFR-PRIV-01, thuật ngữ, Dịch vụ ngoài, Dữ liệu, ma trận truy vết | [CR-009](../00-tracking/change-requests.md#cr-009) |
 | 1.7 | 2026-10-19 | Điểm và danh hiệu theo thể loại trong trận party: thêm FR-VC-21, FR-MR-16, dòng Dữ liệu `match_results.category_scores` / `category_titles`. Vinh danh hồi hộp và nút Hiệu ứng: viết lại UC-08 bước 5 (thêm 5a, 5b), FR-GD-06; thêm FR-GD-12, UC-11 luồng rẽ 1c | [CR-010](../00-tracking/change-requests.md#cr-010) |
+| 1.8 | 2026-10-20 | Chat real-time trong phòng party: thêm UC-22, FR-PH-14 → FR-PH-19, NFR-SEC-04; dòng Dữ liệu (tin chat trong RAM phòng, danh sách tắt tiếng trên máy), ma trận truy vết | [CR-011](../00-tracking/change-requests.md#cr-011) |
+| 1.9 | 2026-10-20 | Danh mục minigame 15 → 17 (thêm Luyện ngắm, Phấn trượt): sửa FR-MG-05 | [CR-012](../00-tracking/change-requests.md#cr-012) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

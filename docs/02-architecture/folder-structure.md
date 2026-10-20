@@ -28,6 +28,8 @@ brain-rizz/
 │  │  │  ├─ odd-one-out.ts     Kẻ lạc đàn: sinh câu đố theo độ khó, chấm đáp án
 │  │  │  └─ odd-one-out.test.ts  Test 10.000 seed
 │  │  ├─ shadow-match/         Bóng của ai: <id>.ts + items.ts (8 vật × 7 biến thể, phần hình L/R/C) + test
+│  │  ├─ aim-trainer/          Luyện ngắm: <id>.ts (vị trí theo khối 8 câu, bia mồi, aimTrainerHitTest, answerWindowMs) + test
+│  │  ├─ chalk-arrows/         Phấn trượt: <id>.ts (mũi tên phấn, luật màu, CHALK_FIELD) + test
 │  │  ├─ light-trail/          Theo dấu ánh đèn: <id>.ts (+ lightTrailRevealMs dùng chung scene/server) + test
 │  │  ├─ balance/              Cân não: <id>.ts (+ BALANCE_ITEMS: mã các vật) + test
 │  │  ├─ number-balloons/      Bóng bay số: <id>.ts + test
@@ -47,6 +49,9 @@ brain-rizz/
 │  ├─ answer-judge.ts          judgeAnswer: luật chấm một câu (index, hết giờ + dung sai, khoá khi sai, chống spam,
 │  │                           sinh lại câu, check, điểm, giờ hiện câu, chuỗi) — hàm thuần, nhận `now`; server
 │  │                           (AnswerJudge) và Luyện tập trên web dùng chung; answer-judge.test.ts
+│  ├─ chat/                    Chat trong phòng (CR-011), hàm thuần dùng chung server + web: constants.ts (120 ký tự,
+│  │                           30 tin, CHAT_RATE, CHAT_PHASES, CHAT_QUICK_IDS), profanity.ts (lọc từ tục vi + en),
+│  │                           sanitize.ts (làm sạch + cắt), rate-limit.ts (token bucket) + chat.test.ts
 │  ├─ brain-test.ts            Kiểm tra não: chọn 5 game (pickBrainTestGames), thời lượng, Điểm Não
 │  │                           (computeBrainResult), BRAIN_TEST_RULES_VERSION — server và web dùng chung
 │  ├─ scoring.ts               Công thức điểm: điểm gốc, thưởng tốc độ, combo (có trần), hệ số và
@@ -72,6 +77,8 @@ brain-rizz/
 │  │  │                        game-result → … → finished, tính Điểm Não, lưu vào tài khoản
 │  │  ├─ rooms/AnswerJudge.ts  Bọc judgeAnswer của shared cho phòng Colyseus: giữ giờ hiện câu, hạn khoá,
 │  │  │                        bộ đếm chống spam của từng người — dùng chung cho cả hai phòng
+│  │  ├─ rooms/ChatRelay.ts    Chat của một phòng (CR-011): giới hạn tần suất, làm sạch + lọc, gắn danh tính người
+│  │  │                        gửi từ PlayerState, giữ 30 tin gần nhất trong RAM (không DB, không vào state)
 │  │  ├─ rooms/messages.ts     parseMessage (zod → lỗi invalid), sendError, replyPong dùng chung
 │  │  ├─ rooms/schema/PartyState.ts   Dữ liệu đồng bộ xuống mọi máy (phòng + người chơi)
 │  │  ├─ rooms/schema/BrainState.ts   State phòng Kiểm tra não (khớp BrainStateView)
@@ -81,6 +88,7 @@ brain-rizz/
 │  │  ├─ app.config.ts         Đăng ký room, route /healthz, /monitor, /playground
 │  │  └─ index.ts              Khởi động server (hầu như không cần sửa)
 │  ├─ test/PartyRoom.test.ts   Test phòng chơi với server thật
+│  ├─ test/PartyChat.test.ts   Test chat: phát tin, lọc, giới hạn tần suất, chat tắt, pha chơi, lịch sử khi nối lại
 │  ├─ test/PartyResults.test.ts  Test ghi match_results (một lần mỗi trận, chỉ người có token hợp lệ)
 │  ├─ test/BrainTestRoom.test.ts  Test Kiểm tra não: đủ 5 game, chấm, hết giờ, lưu/guest/no-db/failed, rớt mạng
 │  ├─ test/helpers.ts          Tiện ích test: SOLVE (đáp án đúng mọi game), until, advance, freezeNow…
@@ -124,6 +132,12 @@ brain-rizz/
 │  │  │  │                     useReducedMotion cho React, prefersReducedMotion() cho scene Phaser, gắn data-motion="on"
 │  │  │  │                     lên <html> cho biến thể CSS motion-safe/motion-reduce), settings.ts ("system" | "on", nhớ
 │  │  │  │                     trên máy) + motion.test.ts, components/MotionToggle (đặt sau SfxToggle)
+│  │  │  ├─ chat/              Chat trong phòng (CR-011, S16): components/ChatDock (điện thoại: nút nổi + sheet;
+│  │  │  │                     máy tính ≥ 1024 px: cột phải thu gọn được), ChatPanel (tiêu đề, dải tắt tiếng / nối lại),
+│  │  │  │                     ChatList, ChatComposer (hàng biểu cảm + ô nhập 120 ký tự), MuteMenu, UnreadBadge,
+│  │  │  │                     ReactionBubble (bong bóng 2,5 s trên avatar), ChatEnabledSwitch (+ ChatSettingRow cho
+│  │  │  │                     MatchSetupCard); quick.ts (mã → emoji / t()), use-keyboard-inset.ts (sheet bám trên bàn phím),
+│  │  │  │                     limit-text.ts (cắt bản nháp theo code point, không cắt đôi emoji) + test
 │  │  │  ├─ game-select/       GameSelectScreen — chọn game mỗi vòng: vòng quay đồng bộ / chủ phòng chọn + bình chọn;
 │  │  │  │                     catalog.ts (danh mục 15 game, gom phiếu, lát vòng quay) + test,
 │  │  │  │                     components/ModeSwitch, LuckyWheel, WheelView, PickView, GameCard, GameThumb,
@@ -134,7 +148,9 @@ brain-rizz/
 │  │  │  │                     PlayScreen (khung chơi: HUD điện thoại / 3 cột máy tính), SoloPlayView (khung chơi một mình:
 │  │  │  │                     không đối thủ, ô kỷ lục / thanh 5 game, nút Thoát),
 │  │  │  │                     standings.ts (hạng trong vòng, combo) + test, unlock-delay.ts (chờ hết khoá sau câu sai
-│  │  │  │                     theo lockedUntil của server, cho MinigameBridge) + test, components/GameFrame (thẻ giấy chứa
+│  │  │  │                     theo lockedUntil của server, cho MinigameBridge) + test, connection-sync.ts (báo scene lúc
+│  │  │  │                     mất / có lại kết nối và câu server đang chờ: bridge.watchConnection, serverSync) + test,
+│  │  │  │                     components/GameFrame (thẻ giấy chứa
 │  │  │  │                     Phaser), FrameOverlays (khoá, +điểm, hết giờ, mất kết nối, tải/lỗi), RoundTimer,
 │  │  │  │                     ScoreStrip, Scoreboard, MyScore, RoundInfo, ComboChip
 │  │  │  ├─ results/           ResultsScreen (bảng điểm vòng → cộng điểm trận), PodiumScreen (vinh danh hồi hộp: hạng 4+ →
@@ -162,6 +178,9 @@ brain-rizz/
 │  │  │  │  ├─ locales.ts      Chữ màn hướng dẫn (vi, en): tên, mô tả, 3 bước, điều khiển, câu nhắc, 4 mức
 │  │  │  │  └─ index.ts        GameClient: scene (tải lười) + locales + Illustration
 │  │  │  ├─ shadow-match/    Bóng của ai: ShadowMatchScene, art.ts (hàm vẽ phần hình) + art.test, HowTo, locales, index
+│  │  │  ├─ aim-trainer/     Luyện ngắm: AimTrainerScene, sync.ts (chip chỉ đếm câu server chấm đúng, cách hiện
+│  │  │  │                   lại câu khi nối lại) + test, HowTo, locales, index
+│  │  │  ├─ chalk-arrows/    Phấn trượt: ChalkArrowsScene, HowTo, locales, index
 │  │  │  ├─ light-trail/, balance/, number-balloons/, rotate-match/, who-vanished/, pair-flip/,
 │  │  │  │  cube-count/, marble-drop/, hit-target/, cash-count/, top-view/, fold-box/
 │  │  │  │                     Cùng khuôn: <Name>Scene.ts, <Name>HowTo.tsx, locales.ts, index.ts;
@@ -169,12 +188,13 @@ brain-rizz/
 │  │  │  │                     mắt, bàn tay, tua ngược) — đều dùng chung cho scene và hình minh hoạ;
 │  │  │  │                     cube-count/ có art.ts, who-vanished/ có items.ts + shapes.ts
 │  │  │  ├─ registry.ts        Nối mã game → GameClient — `pnpm new-game` tự đăng ký vào đây
+│  │  │  ├─ keyboard.ts        Lọc phím cho scene bắt phím (shouldIgnoreGameKey: đang gõ chữ, đang mở hộp thoại/sheet) + test
 │  │  │  ├─ locales.test.ts    Test chữ các game: câu nhắc theo mức đủ ở mọi ngôn ngữ, danh mục i18n khớp tên + summary
 │  │  │  ├─ PhaserHost.tsx     Tạo/huỷ game Phaser, báo trạng thái tải, preloadGame (tải trước lúc đếm ngược)
 │  │  │  └─ types.ts           MinigameBridge (React ↔ Phaser), GameLocale (+ levelHints: câu nhắc theo mức), GameClient,
 │  │  │                        khung 720×1280
 │  │  ├─ components/
-│  │  │  ├─ ui/                Component shadcn đã chỉnh kiểu nhãn dán (button, input, card, toggle-group, tabs, alert-dialog, skeleton, slider…)
+│  │  │  ├─ ui/                Component shadcn đã chỉnh kiểu nhãn dán (button, input, card, toggle-group, tabs, alert-dialog, skeleton, slider, sheet, switch…)
 │  │  │  ├─ characters/        ★ NHÂN VẬT: Character (6 con vật × 7 biểu cảm, SVG + hoạt ảnh), specs.tsx
 │  │  │  ├─ brand/             Logo chữ nhún, linh vật BrainMascot, hình vẽ phấn ChalkDoodle + ChalkDefs
 │  │  │  └─ common/            Dùng ở nhiều feature: PlayerAvatar (nhân vật trong khung tròn), DifficultyPicker, ConnectionBanner,
@@ -212,10 +232,13 @@ brain-rizz/
 │  │  │  │                     câu gần nhất (Luyện tập cũng dùng)…
 │  │  │  │                     (bỏ dữ liệu vòng cũ khi seed trong state đổi)
 │  │  │  ├─ game.store.test.ts Test store: tải lại trang, mất tin roundStart khi nối lại
+│  │  │  ├─ chat.store.ts      Chat (CR-011): tin nhận (gộp lịch sử, bỏ trùng, giữ 50), số chưa đọc, bong bóng đang hiện,
+│  │  │  │                     tắt tiếng theo mã phòng (localStorage), giới hạn tần suất phía client, bản nháp
+│  │  │  ├─ chat.store.test.ts Test hàm thuần + store chat
 │  │  │  └─ theme.store.ts     Giao diện sáng/tối/theo hệ thống
 │  │  ├─ styles/
 │  │  │  ├─ globals.css        Token màu bảng phấn sáng/tối, màu thương hiệu, font, utility chalkboard/sticker-text
-│  │  │  ├─ characters.css     Hoạt ảnh nhân vật, hình vẽ phấn, pháo giấy vinh danh (char-*, fx-*)
+│  │  │  ├─ characters.css     Hoạt ảnh nhân vật, hình vẽ phấn, pháo giấy vinh danh, bong bóng/badge chat (char-*, fx-*, chat-*)
 │  │  │  └─ shadcn.css         Keyframes + variant mà component shadcn cần (chép từ package shadcn)
 │  │  └─ vite-env.d.ts         Khai báo kiểu cho biến môi trường VITE_* (gồm VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY)
 │  ├─ public/                  File tĩnh: favicon.svg, _redirects (sau này: assets/models, assets/games/<id>)
@@ -277,6 +300,8 @@ brain-rizz/
 │     ├─ _template.md          Mẫu đặc tả game mới
 │     ├─ odd-one-out.md        Đặc tả Kẻ lạc đàn
 │     ├─ shadow-match.md       Đặc tả Bóng của ai
+│     ├─ aim-trainer.md        Đặc tả Luyện ngắm
+│     ├─ chalk-arrows.md       Đặc tả Phấn trượt
 │     ├─ whack-right.md        Đặc tả Đập đúng hình (📝, code chưa đăng ký)
 │     ├─ light-trail.md        Đặc tả Theo dấu ánh đèn (MVP)
 │     ├─ balance.md            Đặc tả Cân não (MVP)
@@ -314,7 +339,8 @@ brain-rizz/
 | Đổi số người tối đa, thời gian đếm ngược, thời gian khoá khi sai, màu avatar | `packages/shared/src/constants.ts` |
 | Đổi luật phòng (ai được bắt đầu, khi nào hết vòng, chuyển chủ phòng) | `apps/server/src/rooms/PartyRoom.ts` |
 | Thêm thông tin cần hiện cho mọi người (vd. số câu đúng) | `apps/server/src/rooms/schema/PartyState.ts` **và** `PlayerView`/`PartyStateView` trong `packages/shared/src/protocol.ts` |
-| Thêm một hành động mới (vd. chat, đổi avatar) | `protocol.ts` → xử lý trong `PartyRoom.ts` (mục `messages`) → hàm gửi trong `apps/web/src/net/connection.ts` → nút bấm trong `apps/web/src/features/<màn hình>/` |
+| Sửa chat trong phòng (CR-011) | Luật/lọc: `packages/shared/src/chat/`; server: `apps/server/src/rooms/ChatRelay.ts` + `handleChat` trong `PartyRoom.ts`; web: `apps/web/src/features/chat/`, `stores/chat.store.ts`, đăng ký tin trong `net/connection.ts` |
+| Thêm một hành động mới (vd. đổi avatar) | `protocol.ts` → xử lý trong `PartyRoom.ts` (mục `messages`) → hàm gửi trong `apps/web/src/net/connection.ts` → nút bấm trong `apps/web/src/features/<màn hình>/` |
 | Sửa giao diện trang chủ, phòng chờ, chọn game, hướng dẫn, lúc chơi, kết quả, vinh danh | `apps/web/src/features/{home,lobby,game-select,game-intro,play,results}/` |
 | Sửa Luyện tập, Kiểm tra não, Tài khoản & lịch sử, Bảng xếp hạng | `apps/web/src/features/{practice,brain-test,account,leaderboard}/`; gọi Supabase ở `apps/web/src/net/data-api.ts`, phiên ở `apps/web/src/stores/auth.store.ts` |
 | Thêm màn hình mới | Tạo `apps/web/src/features/<tên>/` (kèm `index.ts`), rẽ nhánh trong `apps/web/src/app/App.tsx` (màn ngoài phòng: thêm vào `Screen` trong `stores/nav.store.ts`) |
