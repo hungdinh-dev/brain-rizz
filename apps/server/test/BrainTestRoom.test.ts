@@ -34,7 +34,17 @@ import {
   type ResultStore,
   setResultStore,
 } from "../src/store/ResultStore";
-import { advance, freezeNow, nextMessage, SOLVE, settle, until, wrongAnswer } from "./helpers";
+import {
+  advance,
+  connectTo,
+  freezeNow,
+  ignoreServerMessages,
+  nextMessage,
+  SOLVE,
+  settle,
+  until,
+  wrongAnswer,
+} from "./helpers";
 
 let colyseus: ColyseusTestServer<typeof appConfig>;
 
@@ -47,8 +57,7 @@ const USER_ID = "00000000-0000-0000-0000-00000000000a";
 async function start(store: ResultStore, opts: Partial<BrainJoinOptions> = {}) {
   setResultStore(store);
   const room = (await colyseus.createRoom(BRAIN_TEST_ROOM_NAME, {})) as BrainTestRoom;
-  const client = await colyseus.connectTo(room, { name: "An", ...opts });
-  for (const type of Object.values(ServerMessage)) client.onMessage(type, () => {});
+  const client = await connectTo(colyseus, room, { name: "An", ...opts });
   return { room, client };
 }
 type TestClient = Awaited<ReturnType<typeof start>>["client"];
@@ -118,8 +127,9 @@ async function drop(room: BrainTestRoom, client: TestClient) {
   await client.leave(false);
   await until(() => !isConnected(room));
   return async () => {
-    const back = (await colyseus.sdk.reconnect(token)) as unknown as TestClient;
-    for (const type of Object.values(ServerMessage)) back.onMessage(type, () => {});
+    const back = ignoreServerMessages(
+      (await colyseus.sdk.reconnect(token)) as unknown as TestClient,
+    );
     await until(() => isConnected(room));
     return back;
   };

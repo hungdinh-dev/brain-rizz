@@ -18,6 +18,7 @@ import {
   computeBrainResult,
   getGame,
   isGameId,
+  type JudgeRound,
   LATE_ANSWER_GRACE_MS,
   pickBrainTestGames,
   RECONNECT_WINDOW_S,
@@ -70,20 +71,7 @@ export class BrainTestRoom extends Room<{ state: BrainState }> {
     [BrainClientMessage.Answer]: (client: Client, raw: unknown) => {
       const msg = parseMessage(client, AnswerSchema, raw);
       if (!msg) return;
-      const s = this.state;
-      const outcome = this.judge.judge(
-        client.sessionId,
-        s,
-        {
-          playing: s.phase === "playing",
-          round: s.round,
-          gameId: s.gameId,
-          seed: s.seed,
-          startAt: s.startAt,
-          endsAt: s.endsAt,
-        },
-        msg,
-      );
+      const outcome = this.judge.judge(client.sessionId, this.state, this.judgeRound(), msg);
       if (!outcome) return;
       const game = this.currentGame();
       if (game && outcome.correct) {
@@ -126,8 +114,10 @@ export class BrainTestRoom extends Room<{ state: BrainState }> {
     await this.allowReconnection(client, RECONNECT_WINDOW_S);
   }
 
-  override onReconnect() {
+  override onReconnect(client: Client) {
     this.connected = true;
+    // Game có hạn trả lời: câu đang làm tính lại giờ hiện từ lúc nối lại (xem AnswerJudge.resume).
+    this.judge.resume(client.sessionId, this.state, this.judgeRound());
     // Lượt xong trong lúc rớt mạng: chỉ lưu khi người chơi quay lại kịp.
     if (this.state.phase === "finished") void this.save();
   }
@@ -279,6 +269,19 @@ export class BrainTestRoom extends Room<{ state: BrainState }> {
   }
 
   // ---------------------------------------------------------------- helpers
+
+  /** Game đang chơi theo góc nhìn của trọng tài chấm câu. */
+  private judgeRound(): JudgeRound {
+    const s = this.state;
+    return {
+      playing: s.phase === "playing",
+      round: s.round,
+      gameId: s.gameId,
+      seed: s.seed,
+      startAt: s.startAt,
+      endsAt: s.endsAt,
+    };
+  }
 
   private currentGame() {
     return this.state.games[this.state.round - 1];

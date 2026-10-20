@@ -1,6 +1,8 @@
-import { type Difficulty, GAMES, type GameId, getGame } from "@brain-rizz/shared";
+import { type Difficulty, GAMES, type GameId, getGame, ServerMessage } from "@brain-rizz/shared";
+import type { ColyseusTestServer } from "@colyseus/testing";
 import type { Room } from "colyseus";
 import { vi } from "vitest";
+import type appConfig from "../src/app.config";
 
 /** Tiện ích dùng chung cho test phòng (PartyRoom, BrainTestRoom). */
 
@@ -20,6 +22,11 @@ export const SOLVE: Record<GameId, (seed: number, index: number, d: Difficulty) 
   "cube-count": (s, i, d) => GAMES["cube-count"].generate(s, i, d).answerIndex,
   "marble-drop": (s, i, d) => GAMES["marble-drop"].generate(s, i, d).answer,
   "shadow-match": (s, i, d) => GAMES["shadow-match"].generate(s, i, d).answerIndex,
+  "chalk-arrows": (s, i, d) => GAMES["chalk-arrows"].generate(s, i, d).answer,
+  "aim-trainer": (s, i, d) => {
+    const p = GAMES["aim-trainer"].generate(s, i, d);
+    return { x: p.x, y: p.y };
+  },
 };
 
 /**
@@ -70,6 +77,38 @@ export function nextMessage<T>(
       resolve(msg);
     });
   });
+}
+
+interface MessageTarget {
+  onMessage(type: string, cb: (msg: unknown) => void): () => void;
+}
+
+/**
+ * Gắn handler rỗng cho mọi loại tin server → client để SDK không cảnh báo
+ * "onMessage() not registered" (vd. `chatHistory` server gửi ngay khi vào/nối lại phòng).
+ */
+export function ignoreServerMessages<C extends MessageTarget>(client: C): C {
+  for (const type of Object.values(ServerMessage)) client.onMessage(type, () => {});
+  return client;
+}
+
+type TestServer = ColyseusTestServer<typeof appConfig>;
+declare const testServer: TestServer;
+type ConnectedClient<R extends Room> = Awaited<ReturnType<typeof testServer.connectTo<R>>>;
+
+/**
+ * Như `colyseus.connectTo()` nhưng gắn handler (`ignoreServerMessages`) NGAY khi SDK trả phòng,
+ * trước khi chờ state đầu tiên: `chatHistory` tới sát state đầu nên gắn sau là đã muộn.
+ */
+export async function connectTo<R extends Room>(
+  colyseus: TestServer,
+  room: R,
+  options: object,
+): Promise<ConnectedClient<R>> {
+  const client = await colyseus.sdk.joinById(room.roomId, options);
+  ignoreServerMessages(client);
+  await client.waitForInitialState();
+  return client as unknown as ConnectedClient<R>;
 }
 
 /** Tua nhanh đồng hồ của room (mọi hẹn giờ đang chờ) thêm `ms` rồi chạy những hẹn giờ đã tới hạn. */

@@ -4,6 +4,7 @@ import {
   availableGames,
   BackToLobbySchema,
   type Category,
+  ChatSendSchema,
   ClientMessage,
   COUNTDOWN_MS,
   categoryLeaders,
@@ -13,8 +14,10 @@ import {
   getGame,
   INTRO_AUTO_START_MS,
   IntroReadySchema,
+  isChatPhase,
   isGameId,
   JoinOptionsSchema,
+  type JudgeRound,
   LATE_ANSWER_GRACE_MS,
   MAX_PLAYERS,
   MIN_PLAYERS_TO_START,
@@ -35,6 +38,7 @@ import {
   rankByMatch,
   rankByRound,
   ServerMessage,
+  SetChatEnabledSchema,
   SetDifficultySchema,
   SetPickModeSchema,
   SetProfileSchema,
@@ -51,7 +55,8 @@ import { type Client, type Delayed, matchMaker, Room } from "colyseus";
 import type { z } from "zod";
 import { getResultStore, type MatchResultRecord } from "../store/ResultStore";
 import { AnswerJudge } from "./AnswerJudge";
-import { parseMessage, replyPong, sendError } from "./messages";
+import { ChatRelay } from "./ChatRelay";
+import { parseMessage, replyPong, sendError, withSource } from "./messages";
 import { PartyState, Player } from "./schema/PartyState";
 
 /**
@@ -88,6 +93,8 @@ export class PartyRoom extends Room<{ state: PartyState }> {
   private matchGames: string[] = [];
   /** Đã ghi kết quả trận hiện tại chưa (mỗi trận đúng một lần). */
   private matchRecorded = false;
+  /** Chat trong phòng (CR-011): giới hạn tần suất, lọc, 30 tin gần nhất trong RAM. */
+  private chat = new ChatRelay();
 
   override messages = {
     // ------------------------------------------------------------ phòng chờ
@@ -228,6 +235,19 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     },
 
     [ClientMessage.Ping]: (client: Client, raw: unknown) => replyPong(client, raw),
+
+    // ------------------------------------------------------------ chat (CR-011)
+
+    [ClientMessage.Chat]: (client: Client, raw: unknown) => {
+      const msg = this.parse(client, ChatSendSchema, raw, "chat");
+      if (msg) this.handleChat(client, msg);
+    },
+
+    [ClientMessage.SetChatEnabled]: (client: Client, raw: unknown) => {
+      const msg = this.parse(client, SetChatEnabledSchema, raw, "chat");
+      if (!msg || !this.requireHost(client, "chat")) return;
+      this.state.chatEnabled = msg.enabled;
+    },
   };
 
   // ---------------------------------------------------------------- lifecycle
@@ -253,6 +273,8 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     this.state.players.set(client.sessionId, player);
     if (!this.state.hostId) this.setHost(client.sessionId);
     if (opts.accessToken) this.authenticate(client.sessionId, opts.accessToken);
+    // Gửi trong onJoin: Colyseus giữ lại tới khi client xác nhận vào phòng rồi mới phát.
+    client.send(ServerMessage.ChatHistory, this.chat.history());
   }
 
   override async onDrop(client: Client) {
@@ -264,7 +286,13 @@ export class PartyRoom extends Room<{ state: PartyState }> {
 
   override onReconnect(client: Client) {
     const p = this.state.players.get(client.sessionId);
-    if (p) p.connected = true;
+    if (p) {
+      p.connected = true;
+      // Game có hạn trả lời: câu đang làm tính lại giờ hiện từ lúc nối lại (xem AnswerJudge.resume).
+      this.judge.resume(client.sessionId, p, this.judgeRound());
+    }
+    // Nối lại thành công: gửi lại lịch sử để bù những tin lỡ trong lúc mất kết nối.
+    client.send(ServerMessage.ChatHistory, this.chat.history());
   }
 
   override onLeave(client: Client) {
@@ -275,6 +303,7 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     this.lastNudgeAt.delete(id);
     this.userIds.delete(id);
     this.pendingAuth.delete(id);
+    this.chat.forget(id);
     // Hẹn giờ của pha hiện tại (vòng quay, tự bắt đầu, hết giờ) vẫn chạy tiếp,
     // nên phòng không bị kẹt khi chủ phòng rời giữa chừng.
     if (this.state.hostId === id) {
@@ -383,22 +412,22 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     });
   }
 
+  /** Vòng đang chơi theo góc nhìn của trọng tài chấm câu. */
+  private judgeRound(): JudgeRound {
+    return {
+      playing: this.state.phase === "playing",
+      round: this.state.round,
+      gameId: this.state.gameId,
+      seed: this.state.seed,
+      startAt: this.state.startAt,
+      endsAt: this.state.endsAt,
+    };
+  }
+
   private handleAnswer(client: Client, msg: z.infer<typeof AnswerSchema>) {
     const p = this.state.players.get(client.sessionId);
     if (!p) return;
-    const outcome = this.judge.judge(
-      client.sessionId,
-      p,
-      {
-        playing: this.state.phase === "playing",
-        round: this.state.round,
-        gameId: this.state.gameId,
-        seed: this.state.seed,
-        startAt: this.state.startAt,
-        endsAt: this.state.endsAt,
-      },
-      msg,
-    );
+    const outcome = this.judge.judge(client.sessionId, p, this.judgeRound(), msg);
     if (!outcome) return;
     if (outcome.correct) {
       p.roundScore += outcome.points;
@@ -477,6 +506,31 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     this.lastNudgeAt.set(targetId, now);
     const payload: NudgePayload = { difficulty };
     this.clients.getById(targetId)?.send(ServerMessage.Nudge, payload);
+  }
+
+  /**
+   * Tin chat: chặn khi chat tắt hoặc sai pha, giới hạn tần suất, làm sạch + lọc, gắn danh tính
+   * từ PlayerState rồi phát cho cả phòng. Không đụng state đồng bộ.
+   */
+  private handleChat(client: Client, msg: z.infer<typeof ChatSendSchema>) {
+    const p = this.state.players.get(client.sessionId);
+    if (!p) return;
+    if (!this.state.chatEnabled) {
+      this.chatError(client, "chat-disabled", "Chủ phòng đã tắt chat.");
+      return;
+    }
+    if (!isChatPhase(this.state.phase)) {
+      this.chatError(client, "bad-phase", "Không chat được khi đang chơi.");
+      return;
+    }
+    const outcome = this.chat.accept(p, msg, Date.now());
+    if (outcome.ok) {
+      this.broadcast(ServerMessage.Chat, outcome.message);
+    } else if (outcome.reason === "rate-limited") {
+      this.chatError(client, "rate-limited", "Gửi chậm lại một chút.");
+    } else {
+      this.chatError(client, "invalid", "Tin nhắn trống.");
+    }
   }
 
   // ---------------------------------------------------------------- tài khoản (ADR 0011)
@@ -594,13 +648,21 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     throw new Error("Không tạo được mã phòng, hãy thử lại.");
   }
 
-  private parse<S extends z.ZodType>(client: Client, schema: S, raw: unknown) {
-    return parseMessage(client, schema, raw);
+  private parse<S extends z.ZodType>(
+    client: Client,
+    schema: S,
+    raw: unknown,
+    source?: ErrorPayload["source"],
+  ) {
+    return parseMessage(client, schema, raw, source);
   }
 
-  private requireHost(client: Client) {
+  private requireHost(client: Client, source?: ErrorPayload["source"]) {
     if (client.sessionId === this.state.hostId) return true;
-    this.sendError(client, { code: "not-host", message: "Chỉ chủ phòng mới làm được việc này." });
+    this.sendError(
+      client,
+      withSource({ code: "not-host", message: "Chỉ chủ phòng mới làm được việc này." }, source),
+    );
     return false;
   }
 
@@ -636,5 +698,10 @@ export class PartyRoom extends Room<{ state: PartyState }> {
 
   private sendError(client: Client, error: ErrorPayload) {
     sendError(client, error);
+  }
+
+  /** Lỗi của tin chat: gắn `source: "chat"` để client không nhầm với lệnh khác đang chờ. */
+  private chatError(client: Client, code: ErrorPayload["code"], message: string) {
+    sendError(client, { code, message, source: "chat" });
   }
 }

@@ -58,6 +58,11 @@ export const PartyState = schema(
     wheelSpinAt: t.float64().default(0),
     wheelSpinMs: t.uint32().default(0),
     introEndsAt: t.float64().default(0),
+    /**
+     * Chat cả phòng đang bật (CR-011). Chỉ cờ này nằm trong state; nội dung chat đi bằng tin
+     * nhắn một lần. Giữ nguyên qua Chơi lại / Về phòng chờ.
+     */
+    chatEnabled: t.boolean().default(true),
     players: t.map(Player),
   },
   "PartyState",
