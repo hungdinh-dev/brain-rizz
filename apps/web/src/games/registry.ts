@@ -1,6 +1,8 @@
 import type { GameId } from "@brain-rizz/shared";
+import { aimTrainerClient } from "./aim-trainer";
 import { balanceClient } from "./balance";
 import { cashCountClient } from "./cash-count";
+import { chalkArrowsClient } from "./chalk-arrows";
 import { cubeCountClient } from "./cube-count";
 import { foldBoxClient } from "./fold-box";
 import { hitTargetClient } from "./hit-target";
@@ -34,5 +36,7 @@ export const GAME_CLIENTS = {
   "cube-count": cubeCountClient,
   "marble-drop": marbleDropClient,
   "shadow-match": shadowMatchClient,
+  "aim-trainer": aimTrainerClient,
+  "chalk-arrows": chalkArrowsClient,
   // @new-game:entry
 } satisfies Record<GameId, GameClient>;

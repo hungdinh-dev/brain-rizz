@@ -52,6 +52,8 @@ interface MatchSetupCardProps {
   onStart?(): void;
   /** Đã bấm "Bắt đầu", đang chờ server đổi pha: chỉ hiện spinner, nút không tắt (tránh nháy/mất focus). */
   pending?: boolean;
+  /** Hàng bật/tắt chat cả phòng (CR-011), chỉ thẻ của chủ phòng có. */
+  chatSetting?: React.ReactNode;
   className?: string;
 }
 
@@ -67,6 +69,7 @@ export function MatchSetupCard({
   ready,
   onStart,
   pending = false,
+  chatSetting,
   className,
 }: MatchSetupCardProps) {
   const { t } = useTranslation();
@@ -166,6 +169,13 @@ export function MatchSetupCard({
           </dd>
         </div>
       </dl>
+
+      {chatSetting && (
+        <>
+          <div className="border-t-[2.5px] border-dashed border-sticker/30" />
+          {chatSetting}
+        </>
+      )}
 
       <div className="flex-1" />
       {onStart && (

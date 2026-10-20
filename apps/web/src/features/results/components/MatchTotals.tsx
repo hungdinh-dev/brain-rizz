@@ -3,6 +3,7 @@ import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { RankBadge } from "@/components/common/RankBadge";
+import { ReactionBubble } from "@/features/chat";
 import { cn } from "@/lib/utils";
 import type { MatchRow } from "../standings";
 
@@ -123,12 +124,15 @@ function TotalRow({
         <span className="order-last flex lg:order-none lg:w-13.5 lg:justify-center">
           {showMovement && <Movement prevRank={row.prevRank} rank={row.rank} />}
         </span>
-        <PlayerAvatar
-          avatar={p.avatar}
-          colorIndex={p.colorIndex}
-          size="md"
-          className="size-9 lg:size-13.5"
-        />
+        <span className="relative flex shrink-0">
+          <PlayerAvatar
+            avatar={p.avatar}
+            colorIndex={p.colorIndex}
+            size="md"
+            className="size-9 lg:size-13.5"
+          />
+          <ReactionBubble playerId={p.id} placement="corner" />
+        </span>
         <span className="flex min-w-0 flex-1 lg:w-32.5 lg:flex-none">{name}</span>
         <span className="order-last lg:hidden">{total}</span>
       </span>

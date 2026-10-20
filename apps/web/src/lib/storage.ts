@@ -45,6 +45,10 @@ export const STORAGE_KEYS = {
   motion: "brain-rizz:motion",
   /** Kỷ lục luyện tập trên máy + độ khó lần trước của từng game (JSON, UC-13). */
   practice: "brain-rizz:practice",
+  /** Chat trong phòng (CR-011): người bị tắt tiếng theo mã phòng (JSON, chỉ trên máy này). */
+  chatMute: "brain-rizz:chat-mute",
+  /** Cột chat máy tính đang thu gọn: "1" | không có. */
+  chatCollapsed: "brain-rizz:chat-collapsed",
   /** Phiên Supabase (supabase-js tự đọc/ghi; app chỉ xem có hay không để khỏi tải thư viện sớm). */
   auth: "brain-rizz:auth",
   /** sessionStorage: đang đi đăng nhập Google, quay về thì mở lại màn Tài khoản. */

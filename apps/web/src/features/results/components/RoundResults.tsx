@@ -12,6 +12,7 @@ import { DifficultyChip } from "@/components/common/MatchChips";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { RankBadge } from "@/components/common/RankBadge";
 import { Card } from "@/components/ui/card";
+import { ReactionBubble } from "@/features/chat";
 import { useNumberFormat } from "@/hooks/use-number-format";
 import { cn } from "@/lib/utils";
 import { roundWinners } from "../standings";
@@ -54,12 +55,15 @@ export function RoundResults({ gameId, players, sessionId }: RoundResultsProps) 
             >
               <RankBadge rank={rank + 1} size="lg" />
               <span className="flex min-w-0 items-center gap-2.5">
-                <PlayerAvatar
-                  avatar={p.avatar}
-                  colorIndex={p.colorIndex}
-                  size="md"
-                  className="size-12"
-                />
+                <span className="relative flex shrink-0">
+                  <PlayerAvatar
+                    avatar={p.avatar}
+                    colorIndex={p.colorIndex}
+                    size="md"
+                    className="size-12"
+                  />
+                  <ReactionBubble playerId={p.id} placement="corner" />
+                </span>
                 <span className="truncate font-display text-[22px] font-extrabold">{p.name}</span>
                 {p.isHost && (
                   <CrownIcon
@@ -100,12 +104,15 @@ export function RoundResults({ gameId, players, sessionId }: RoundResultsProps) 
             )}
           >
             <RankBadge rank={rank + 1} size="md" />
-            <PlayerAvatar
-              avatar={p.avatar}
-              colorIndex={p.colorIndex}
-              size="md"
-              className="size-10"
-            />
+            <span className="relative flex shrink-0">
+              <PlayerAvatar
+                avatar={p.avatar}
+                colorIndex={p.colorIndex}
+                size="md"
+                className="size-10"
+              />
+              <ReactionBubble playerId={p.id} placement="corner" />
+            </span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5 leading-tight">
               <span className="flex min-w-0 items-baseline gap-1">
                 <span className="truncate font-display text-lg font-extrabold">{p.name}</span>

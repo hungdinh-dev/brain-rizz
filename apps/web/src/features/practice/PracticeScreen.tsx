@@ -2,7 +2,7 @@ import { StarIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { QuitDialog } from "@/components/common/QuitDialog";
-import { CountdownStage, SoloPlayView, waitUnlockDelay } from "@/features/play";
+import { CountdownStage, SoloPlayView, waitAnswerOutcome, waitUnlockDelay } from "@/features/play";
 import type { MinigameBridge } from "@/games/types";
 import { useNumberFormat } from "@/hooks/use-number-format";
 import { useNav } from "@/stores/nav.store";
@@ -40,6 +40,7 @@ export function PracticeScreen() {
         startIndex: 0,
         submit: (index, answer) => usePractice.getState().answer(index, answer),
         unlockDelay: waitUnlockDelay,
+        answerOutcome: waitAnswerOutcome,
       },
     [round],
   );

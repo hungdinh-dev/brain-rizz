@@ -16,6 +16,7 @@ import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { RankBadge, rankBg } from "@/components/common/RankBadge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ReactionBubble } from "@/features/chat";
 import { useReducedMotion } from "@/features/motion";
 import { playSfx, type StopSfx } from "@/features/sfx";
 import { usePendingAction } from "@/hooks/use-pending-action";
@@ -343,12 +344,15 @@ export function PodiumScreen() {
                     )}
                   >
                     <RankBadge rank={r + 1} size="md" />
-                    <PlayerAvatar
-                      avatar={p.avatar}
-                      colorIndex={p.colorIndex}
-                      size="md"
-                      className="size-9.5"
-                    />
+                    <span className="relative flex shrink-0">
+                      <PlayerAvatar
+                        avatar={p.avatar}
+                        colorIndex={p.colorIndex}
+                        size="md"
+                        className="size-9.5"
+                      />
+                      {shown && <ReactionBubble playerId={p.id} placement="corner" />}
+                    </span>
                     <span className="flex-1 truncate font-display text-lg font-extrabold">
                       {p.name}
                     </span>
@@ -456,6 +460,9 @@ function PodiumColumn({
             className={cn("max-lg:[&_svg]:size-21", compact && !winner && "xl:[&_svg]:size-30")}
           />
         </span>
+        {shown && (
+          <ReactionBubble playerId={group.map((p) => p.id)} className="bottom-[calc(100%-6px)]" />
+        )}
         {!shown && (
           <span
             aria-hidden

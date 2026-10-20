@@ -3,9 +3,13 @@ import {
   type BrainClientMessage,
   type BrainJoinOptions,
   type BrainStateView,
+  type ChatHistoryPayload,
+  type ChatMessagePayload,
+  type ChatSendPayload,
   ClientMessage,
   type ErrorPayload,
   estimateClock,
+  isChatPhase,
   type JoinOptions,
   type NudgePayload,
   type PartyStateView,
@@ -18,6 +22,7 @@ import { toast } from "sonner";
 import { i18n } from "@/i18n";
 import { STORAGE_KEYS, safeSession } from "@/lib/storage";
 import { useAuth } from "@/stores/auth.store";
+import { routeServerError, useChat } from "@/stores/chat.store";
 import { useGame } from "@/stores/game.store";
 import { brainLeaveAction } from "./brain-leave";
 
@@ -82,11 +87,22 @@ export async function leaveParty() {
   await room?.leave();
   room = null;
   useGame.getState().reset();
+  useChat.getState().reset();
   history.replaceState(null, "", "/");
 }
 
 export function send(type: (typeof ClientMessage)[keyof typeof ClientMessage], payload?: unknown) {
   room?.send(type, payload);
+}
+
+/**
+ * Gửi một tin chat (CR-011). Giới hạn tần suất phía client theo cùng luật server: gửi nhanh quá
+ * thì không gửi, khung chat hiện dòng nhắc. Trả `false` khi không gửi (giữ bản nháp).
+ */
+export function sendChat(payload: ChatSendPayload): boolean {
+  if (!room || !useChat.getState().allowSend(Date.now())) return false;
+  room.send(ClientMessage.Chat, payload);
+  return true;
 }
 
 // ------------------------------------------------------------- Kiểm tra não (UC-14)
@@ -124,7 +140,20 @@ export function sendBrain(
 
 function attachParty(r: Room) {
   safeSession.set(TOKEN_KEY, r.reconnectionToken);
+  // Đăng ký tin chat ngay sau khi vào phòng: server gửi lịch sử ngay sau state đầu tiên.
+  useChat.getState().attach(r.roomId);
   attachCommon(r);
+  r.onMessage(ServerMessage.Chat, (msg: ChatMessagePayload) => {
+    const { sessionId, party } = useGame.getState();
+    // Bong bóng biểu cảm chỉ ở các pha có khung chat; lúc đếm ngược / đang chơi chỉ đếm chưa đọc.
+    useChat.getState().receive(msg, sessionId, !!party && isChatPhase(party.phase));
+  });
+  r.onMessage(ServerMessage.ChatHistory, (msg: ChatHistoryPayload) => {
+    useChat.getState().receiveHistory(msg.messages, useGame.getState().sessionId);
+  });
+  r.onDrop(() => {
+    if (room === r) useChat.getState().markStale();
+  });
   r.onStateChange((state) => {
     useGame.getState().setParty(state.toJSON() as PartyStateView);
   });
@@ -168,10 +197,14 @@ function attachCommon(r: Room) {
   });
   r.onMessage(ServerMessage.Pong, onPong);
   r.onMessage(ServerMessage.Error, (msg: ErrorPayload) => {
-    // Lệnh vừa gửi bị từ chối → mở khoá nút đang chờ phản hồi.
-    useGame.getState().pushError();
-    // Dịch theo mã lỗi; server cũ gửi mã lạ thì hiện nguyên câu server gửi.
-    toast.error(i18n.t(`errors.${msg.code}`, { defaultValue: msg.message }));
+    // Lỗi chat (server gắn `source: "chat"`): gửi nhanh quá → dòng nhắc trong khung chat;
+    // sai pha / tin rỗng → bỏ qua; chat bị tắt / không phải chủ phòng → chỉ toast.
+    // Chỉ lỗi không có nguồn mới mở khoá nút đang chờ phản hồi (lệnh vừa gửi bị từ chối).
+    routeServerError(msg, {
+      pushError: () => useGame.getState().pushError(),
+      // Dịch theo mã lỗi; server cũ gửi mã lạ thì hiện nguyên câu server gửi.
+      showError: () => toast.error(i18n.t(`errors.${msg.code}`, { defaultValue: msg.message })),
+    });
   });
   r.onDrop(() => {
     if (room === r) useGame.getState().setConnection("reconnecting");

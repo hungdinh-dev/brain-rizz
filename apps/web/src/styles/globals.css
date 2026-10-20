@@ -94,6 +94,10 @@
   --color-sticker: var(--sticker);
   --shadow-sticker: 0 6px 0 var(--sticker);
   --shadow-sticker-sm: 0 4px 0 var(--sticker);
+
+  /* Chat trong phòng (CR-011): bong bóng tin của chính mình. Tin người khác dùng bg-muted. */
+  --color-bubble-mine: var(--bubble-mine);
+  --color-bubble-mine-foreground: var(--bubble-mine-foreground);
 }
 
 :root {
@@ -125,6 +129,10 @@
   --chalk-muted: #d5e4dc;
   --wood: #a8693b;
   --sticker: #1f1b3a;
+
+  /* Chữ ink trên nền này: 14:1 */
+  --bubble-mine: #ffecc6;
+  --bubble-mine-foreground: #1f1b3a;
 }
 
 .dark {
@@ -156,6 +164,10 @@
   --chalk-muted: #c9c6dc;
   --wood: #6b4528;
   --sticker: #0e0c1e;
+
+  /* Chữ giấy trên nền này: 8:1 */
+  --bubble-mine: #5c4b22;
+  --bubble-mine-foreground: #fff8ef;
 }
 
 @layer base {

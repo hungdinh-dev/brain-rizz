@@ -14,7 +14,14 @@ import { QuitDialog } from "@/components/common/QuitDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { loadProfile } from "@/features/home";
-import { CountdownStage, SoloPlayView, waitUnlockDelay } from "@/features/play";
+import {
+  brainProgress,
+  CountdownStage,
+  connectionSync,
+  SoloPlayView,
+  waitAnswerOutcome,
+  waitUnlockDelay,
+} from "@/features/play";
 import { playSfx } from "@/features/sfx";
 import type { MinigameBridge } from "@/games/types";
 import { useData } from "@/hooks/use-data";
@@ -163,6 +170,8 @@ function BrainRound({
       startIndex: brain.progress,
       submit: (index, answer) => sendBrain(BrainClientMessage.Answer, { round, index, answer }),
       unlockDelay: waitUnlockDelay,
+      answerOutcome: waitAnswerOutcome,
+      ...connectionSync(brainProgress),
     }),
     [seed, round, difficulty],
   );

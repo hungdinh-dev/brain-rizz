@@ -25,6 +25,50 @@ export interface MinigameBridge {
    * và tới y ≈ 225 khi thẻ thấp nhất (320 px). Đừng đặt đáp án đúng ở dải này.
    */
   unlockDelay(index: number): Promise<number>;
+  /**
+   * Chờ `answerResult` của câu `index` (gọi ngay sau `submit`). Trả về đúng/sai theo server và số
+   * ms (đồng hồ máy) còn khoá; `null` khi quá lâu không có kết quả (server bỏ qua câu đó). Dùng cho
+   * game đi tiếp ngay khi máy thấy đúng nhưng server vẫn có thể chấm sai, vd. hạn trả lời
+   * (`answerWindowMs`, Luyện ngắm): scene nghe kết quả để vào khoá và đồng bộ lại câu đang làm.
+   * Promise có thể trả về sau khi scene đã bị huỷ.
+   */
+  answerOutcome(index: number): Promise<AnswerOutcome | null>;
+  /**
+   * (Tuỳ chọn) Theo dõi kết nối cho game có đồng hồ riêng trong scene (vd. bia hết hạn tự gửi
+   * "bỏ lỡ", Luyện ngắm). `paused`: mất kết nối, scene dừng đồng hồ và không gửi gì (SDK xếp hàng
+   * tin gửi lúc này rồi phát khi nối lại, server sẽ lệch câu). `resumed`: đã nối lại và state đầy
+   * đủ của server đã về, scene hiện lại đúng câu server đang chờ (`SceneResync`). Gọi ngay
+   * `paused` nếu lúc đăng ký đang mất kết nối. Trả hàm huỷ. Luyện tập (chạy trên máy) không có.
+   */
+  watchConnection?(listener: (event: ConnectionEvent) => void): () => void;
+  /**
+   * (Tuỳ chọn) Câu server đang chờ theo state đồng bộ, để scene tự đồng bộ lại khi một câu đã gửi
+   * bị server bỏ qua (`answerOutcome` trả `null`). `undefined` = không biết.
+   */
+  serverSync?(): SceneResync | undefined;
+}
+
+/** Câu server đang chờ, đã quy về đồng hồ máy. */
+export interface SceneResync {
+  /** Câu đang làm theo server (`progress` của state). */
+  progress: number;
+  /**
+   * Số ms còn khoá sau câu `progress − 1` (server chấm sai, `lockedUntil`); 0 = không khoá hoặc
+   * không biết. Server không đồng bộ `lockedUntil` trong state nên lấy từ kết quả câu cuối đã nhận.
+   */
+  unlockMs: number;
+}
+
+/** `resumed.sync` = `undefined` khi state không có người này (không biết câu server đang chờ). */
+export type ConnectionEvent =
+  | { type: "paused" }
+  | { type: "resumed"; sync: SceneResync | undefined };
+
+/** Kết quả server chấm một câu, đã quy về đồng hồ máy. */
+export interface AnswerOutcome {
+  correct: boolean;
+  /** Số ms còn lại tới `lockedUntil` của server (0 = không khoá hoặc đã hết khoá). */
+  unlockMs: number;
 }
 
 /** Một câu có hai bản theo thiết bị: chạm (màn cảm ứng) và chuột (máy tính). */
