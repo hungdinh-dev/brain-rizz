@@ -278,7 +278,8 @@ brain-rizz/
 │  │  ├─ srs.md                Đặc tả yêu cầu phần mềm: UC, FR, NFR, truy vết
 │  │  ├─ game-design.md        GDD: vòng lặp chơi, chế độ, điểm, độ khó, nhân vật
 │  │  ├─ ui-ux.md              Bản đồ màn hình, link canvas, hệ thống thiết kế
-│  │  └─ roadmap.md            Mốc thời gian, cổng kiểm tra, checklist giai đoạn
+│  │  ├─ roadmap.md            Mốc thời gian, cổng kiểm tra, checklist giai đoạn
+│  │  └─ minigame-expansion.md Kế hoạch mở rộng minigame 17 → 31 (đề xuất, chưa duyệt)
 │  ├─ 02-architecture/         KIẾN TRÚC
 │  │  ├─ README.md             Mục lục thư mục
 │  │  ├─ overview.md           Kiến trúc, luồng phòng chơi, giao thức tin nhắn

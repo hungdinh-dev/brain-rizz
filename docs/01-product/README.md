@@ -10,5 +10,6 @@ Làm gì, cho ai, vì sao, chơi thế nào, khi nào xong. Đọc theo thứ t�
 | [game-design.md](game-design.md) | Thiết kế | GDD: vòng lặp chơi, chế độ, độ khó, tính điểm, minigame, nhân vật, âm thanh |
 | [ui-ux.md](ui-ux.md) | Thiết kế | Bản đồ màn hình, danh mục màn hình, link bản mẫu canvas, hệ thống thiết kế |
 | [roadmap.md](roadmap.md) | Lập kế hoạch | Mốc thời gian, cổng kiểm tra, checklist từng giai đoạn |
+| [minigame-expansion.md](minigame-expansion.md) | Lập kế hoạch | Đề xuất (chưa duyệt): 14 minigame mới chia 3 đợt, lấy ý từ Pumer Party, 17 → 31 game |
 
 [← Mục lục tài liệu](../README.md)
