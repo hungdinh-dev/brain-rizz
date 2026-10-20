@@ -1236,7 +1236,7 @@ describe("PartyRoom", () => {
       return 500 * Math.max(0, p.bills.length - 2) + (p.mode === "change" ? 2_000 : 0);
     };
 
-    /** 8 game GĐ 2–3, số liệu chép từ bảng hệ số + miễn trừ trong đặc tả từng game (CR-006). */
+    /** 9 game GĐ 2–3 (gồm Bóng của ai), số liệu chép từ bảng hệ số + miễn trừ trong đặc tả từng game (CR-006). */
     const NEW_CASES: ServerCase[] = [
       { id: "hit-target", durationMs: 60_000, seedling: [500, 150], expert: [1_000, 225] },
       {
@@ -1252,6 +1252,8 @@ describe("PartyRoom", () => {
       { id: "pair-flip", durationMs: 60_000, seedling: [4_000, 150], expert: [5_000, 245] },
       { id: "cube-count", durationMs: 60_000, seedling: [0, 150], expert: [0, 295] },
       { id: "marble-drop", durationMs: 60_000, seedling: [0, 150], expert: [4_000, 495] },
+      // M14 Bóng của ai (shadow-match.md): hệ số Mầm 1, Siêu khó 4, không có miễn trừ.
+      { id: "shadow-match", durationMs: 60_000, seedling: [0, 150], expert: [0, 450] },
     ];
 
     /** Đáp án rác client sửa đổi có thể gửi (msgpack giữ nguyên NaN, vô cực, số thực). */
@@ -1410,7 +1412,7 @@ describe("PartyRoom", () => {
       await playCases(CASES);
     }, 30_000);
 
-    it("8 game GĐ 2–3: thời lượng vòng, điểm theo hệ số + miễn trừ trong đặc tả, chặn đáp án rác", async () => {
+    it("9 game GĐ 2–3: thời lượng vòng, điểm theo hệ số + miễn trừ trong đặc tả, chặn đáp án rác", async () => {
       expect(NEW_CASES.length).toBeLessThanOrEqual(MAX_TOTAL_ROUNDS);
       await playCases(NEW_CASES);
     }, 45_000);

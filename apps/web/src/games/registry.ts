@@ -10,6 +10,7 @@ import { numberBalloonsClient } from "./number-balloons";
 import { oddOneOutClient } from "./odd-one-out";
 import { pairFlipClient } from "./pair-flip";
 import { rotateMatchClient } from "./rotate-match";
+import { shadowMatchClient } from "./shadow-match";
 import { topViewClient } from "./top-view";
 import type { GameClient } from "./types";
 import { whoVanishedClient } from "./who-vanished";
@@ -32,5 +33,6 @@ export const GAME_CLIENTS = {
   "pair-flip": pairFlipClient,
   "cube-count": cubeCountClient,
   "marble-drop": marbleDropClient,
+  "shadow-match": shadowMatchClient,
   // @new-game:entry
 } satisfies Record<GameId, GameClient>;

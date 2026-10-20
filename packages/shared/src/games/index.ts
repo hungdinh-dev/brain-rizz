@@ -9,6 +9,7 @@ import { numberBalloons } from "./number-balloons/number-balloons";
 import { oddOneOut } from "./odd-one-out/odd-one-out";
 import { pairFlip } from "./pair-flip/pair-flip";
 import { rotateMatch } from "./rotate-match/rotate-match";
+import { shadowMatch } from "./shadow-match/shadow-match";
 import { topView } from "./top-view/top-view";
 import type { AnyMinigame } from "./types";
 import { whoVanished } from "./who-vanished/who-vanished";
@@ -32,6 +33,7 @@ export const GAMES = {
   "pair-flip": pairFlip,
   "cube-count": cubeCount,
   "marble-drop": marbleDrop,
+  "shadow-match": shadowMatch,
   // @new-game:entry
 } as const satisfies Record<string, AnyMinigame>;
 
@@ -58,6 +60,7 @@ export * from "./number-balloons/number-balloons";
 export * from "./odd-one-out/odd-one-out";
 export * from "./pair-flip/pair-flip";
 export * from "./rotate-match/rotate-match";
+export * from "./shadow-match/shadow-match";
 export * from "./top-view/top-view";
 export * from "./types";
 export * from "./who-vanished/who-vanished";
