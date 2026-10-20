@@ -1,5 +1,6 @@
 export * from "./answer-judge";
 export * from "./brain-test";
+export * from "./chat";
 export * from "./clock";
 export * from "./constants";
 export * from "./difficulty";

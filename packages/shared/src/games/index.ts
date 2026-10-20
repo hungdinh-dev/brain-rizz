@@ -1,5 +1,7 @@
+import { aimTrainer } from "./aim-trainer/aim-trainer";
 import { balance } from "./balance/balance";
 import { cashCount } from "./cash-count/cash-count";
+import { chalkArrows } from "./chalk-arrows/chalk-arrows";
 import { cubeCount } from "./cube-count/cube-count";
 import { foldBox } from "./fold-box/fold-box";
 import { hitTarget } from "./hit-target/hit-target";
@@ -34,6 +36,8 @@ export const GAMES = {
   "cube-count": cubeCount,
   "marble-drop": marbleDrop,
   "shadow-match": shadowMatch,
+  "aim-trainer": aimTrainer,
+  "chalk-arrows": chalkArrows,
   // @new-game:entry
 } as const satisfies Record<string, AnyMinigame>;
 
@@ -49,8 +53,10 @@ export function getGame(id: GameId): AnyMinigame {
   return GAMES[id];
 }
 
+export * from "./aim-trainer/aim-trainer";
 export * from "./balance/balance";
 export * from "./cash-count/cash-count";
+export * from "./chalk-arrows/chalk-arrows";
 export * from "./cube-count/cube-count";
 export * from "./fold-box/fold-box";
 export * from "./hit-target/hit-target";

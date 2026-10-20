@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CHAT_MAX_INPUT_LENGTH, CHAT_QUICK_IDS, type ChatQuickId } from "./chat/constants";
 import {
   AVATAR_COLORS,
   CHARACTER_IDS,
@@ -74,6 +75,13 @@ export const ClientMessage = {
   BackToLobby: "backToLobby",
   /** Bất cứ lúc nào (đồng bộ giờ). */
   Ping: "ping",
+  /**
+   * Mọi người, các pha trong `CHAT_PHASES`, khi `chatEnabled` (CR-011). Server làm sạch, lọc từ tục,
+   * gắn tên/màu/nhân vật người gửi rồi phát `ServerMessage.Chat` cho cả phòng.
+   */
+  Chat: "chat",
+  /** Chủ phòng, mọi pha: bật/tắt chat cả phòng (CR-011). */
+  SetChatEnabled: "setChatEnabled",
 } as const;
 
 /** Các trường hồ sơ người chơi, chưa gắn giá trị mặc định. */
@@ -168,6 +176,21 @@ export const BackToLobbySchema = EmptyPayloadSchema;
 export const PingSchema = z.object({ clientTime: z.number() });
 export type PingPayload = z.infer<typeof PingSchema>;
 
+/**
+ * Một tin chat (CR-011): chữ tự do hoặc biểu cảm/câu chọn sẵn. Chữ dài hơn `CHAT_MAX_LENGTH`
+ * vẫn qua schema (tới `CHAT_MAX_INPUT_LENGTH`), server tự cắt. Không có trường danh tính:
+ * tên/màu người gửi do server gắn, trường lạ bị bỏ.
+ */
+export const ChatSendSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("text"), text: z.string().max(CHAT_MAX_INPUT_LENGTH) }),
+  z.object({ kind: z.literal("quick"), id: z.enum(CHAT_QUICK_IDS) }),
+]);
+export type ChatSendPayload = z.infer<typeof ChatSendSchema>;
+
+/** Chủ phòng bật/tắt chat cả phòng. */
+export const SetChatEnabledSchema = z.object({ enabled: z.boolean() });
+export type SetChatEnabledPayload = z.infer<typeof SetChatEnabledSchema>;
+
 // ---------- Server → Client ----------
 
 export const ServerMessage = {
@@ -177,6 +200,14 @@ export const ServerMessage = {
   Nudge: "nudge",
   Pong: "pong",
   Error: "error",
+  /** Một tin chat mới, phát cho cả phòng (kể cả người gửi) — `ChatMessagePayload`. */
+  Chat: "chat",
+  /**
+   * Lịch sử chat gần nhất (tối đa `CHAT_HISTORY_SIZE`, cũ → mới) — `ChatHistoryPayload`.
+   * Gửi riêng khi vào phòng và khi nối lại thành công; client gộp vào danh sách đang có theo `id`
+   * (bỏ trùng, giữ thứ tự cũ → mới, tối đa 50 tin gần nhất), không xoá tin cũ hơn bộ đệm server.
+   */
+  ChatHistory: "chatHistory",
 } as const;
 
 export interface RoundStartPayload {
@@ -206,10 +237,44 @@ export interface PongPayload {
   serverTime: number;
 }
 
+/**
+ * Một tin chat đã qua server (CR-011). Danh tính người gửi lấy từ `PlayerView` lúc gửi,
+ * client không tự khai. Không nằm trong state đồng bộ.
+ */
+export interface ChatMessagePayload {
+  /** Số tăng dần trong phòng (dùng làm key, bỏ trùng khi nhận lại lịch sử). */
+  id: number;
+  playerId: string;
+  name: string;
+  colorIndex: number;
+  avatar: CharacterId;
+  kind: "text" | "quick";
+  /** Có khi `kind = "text"`: đã làm sạch, cắt 120 ký tự, che từ tục bằng `***`. */
+  text?: string;
+  /** Có khi `kind = "quick"`. */
+  quickId?: ChatQuickId;
+  /** Giờ server (ms epoch). */
+  at: number;
+}
+
+export interface ChatHistoryPayload {
+  /** Cũ → mới. */
+  messages: ChatMessagePayload[];
+}
+
 export interface ErrorPayload {
-  /** `not-ready`: chưa đủ người, chưa ai cũng sẵn sàng / chưa ai cũng "Đã hiểu". */
-  code: "not-host" | "bad-phase" | "invalid" | "rate-limited" | "not-ready";
+  /**
+   * `not-ready`: chưa đủ người, chưa ai cũng sẵn sàng / chưa ai cũng "Đã hiểu".
+   * `chat-disabled`: chủ phòng đã tắt chat (CR-011). Chat sai pha dùng `bad-phase`,
+   * gửi quá nhanh dùng `rate-limited`, tin rỗng/sai schema dùng `invalid`.
+   */
+  code: "not-host" | "bad-phase" | "invalid" | "rate-limited" | "not-ready" | "chat-disabled";
   message: string;
+  /**
+   * Lệnh gây ra lỗi. `chat`: lỗi của tin `Chat` hoặc `SetChatEnabled` — client xử lý trong khung
+   * chat thay vì coi là lệnh khác bị từ chối. Không có = lỗi của lệnh khác (server cũ cũng không gửi).
+   */
+  source?: "chat";
 }
 
 // ---------- Hình dạng state đồng bộ (client đọc) ----------
@@ -275,6 +340,8 @@ export interface PartyStateView {
   wheelSpinMs: number;
   /** Hạn tự bắt đầu vòng ở pha `game-intro` theo giờ server (0 ở pha khác). */
   introEndsAt: number;
+  /** Chat cả phòng đang bật (CR-011). Chủ phòng đổi; giữ nguyên qua Chơi lại / Về phòng chờ. */
+  chatEnabled: boolean;
   players: Record<string, PlayerView>;
 }
 

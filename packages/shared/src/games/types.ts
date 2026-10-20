@@ -37,6 +37,13 @@ export interface MinigameDef<Puzzle, Answer> {
    * chiếu không bấm được, thời gian tối thiểu cho nhiều lần chạm… Phải tất định theo câu đố.
    */
   speedAllowanceMs?(puzzle: Puzzle, difficulty: Difficulty): number;
+  /**
+   * Hạn trả lời của câu (ms), tính từ lúc câu bắt đầu theo đồng hồ server (CR-012): câu trả lời
+   * tới muộn hơn hạn này cộng dung sai mạng của server thì bị chấm sai dù `check` đúng. Dùng cho
+   * game có vật biến mất (Luyện ngắm, Đập đúng hình). Không khai báo, hoặc trả `undefined`, thì
+   * không giới hạn như mọi game cũ. Phải tất định theo câu đố.
+   */
+  answerWindowMs?(puzzle: Puzzle, difficulty: Difficulty): number | undefined;
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: registry chứa nhiều kiểu puzzle khác nhau

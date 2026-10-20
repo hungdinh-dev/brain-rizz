@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { CHAT_MAX_INPUT_LENGTH, CHAT_QUICK_IDS } from "./chat/constants";
 import { BRAIN_TEST_ROOM_NAME, MAX_ACCESS_TOKEN_LENGTH, ROOM_NAME } from "./constants";
 import {
   BRAIN_SAVE_STATUSES,
   BrainClientMessage,
   BrainJoinOptionsSchema,
   BrainReadySchema,
+  ChatSendSchema,
   ClientMessage,
   JoinOptionsSchema,
+  ServerMessage,
+  SetChatEnabledSchema,
 } from "./protocol";
 
 describe("giao thức tài khoản + Kiểm tra não (CR-009)", () => {
@@ -60,5 +64,44 @@ describe("giao thức tài khoản + Kiểm tra não (CR-009)", () => {
 
   it("trạng thái lưu kết quả", () => {
     expect([...BRAIN_SAVE_STATUSES]).toEqual(["pending", "saved", "guest", "no-db", "failed"]);
+  });
+});
+
+describe("giao thức chat (CR-011)", () => {
+  it("tên tin nhắn", () => {
+    expect(ClientMessage.Chat).toBe("chat");
+    expect(ClientMessage.SetChatEnabled).toBe("setChatEnabled");
+    expect(ServerMessage.Chat).toBe("chat");
+    expect(ServerMessage.ChatHistory).toBe("chatHistory");
+  });
+
+  it("tin chữ: chấp nhận tới CHAT_MAX_INPUT_LENGTH, server tự cắt; bỏ trường danh tính lạ", () => {
+    expect(
+      ChatSendSchema.parse({ kind: "text", text: "chào", name: "Giả", playerId: "x" }),
+    ).toEqual({ kind: "text", text: "chào" });
+    expect(
+      ChatSendSchema.safeParse({ kind: "text", text: "a".repeat(CHAT_MAX_INPUT_LENGTH) }).success,
+    ).toBe(true);
+    expect(
+      ChatSendSchema.safeParse({ kind: "text", text: "a".repeat(CHAT_MAX_INPUT_LENGTH + 1) })
+        .success,
+    ).toBe(false);
+    expect(ChatSendSchema.safeParse({ kind: "text", text: 42 }).success).toBe(false);
+    expect(ChatSendSchema.safeParse({ kind: "text" }).success).toBe(false);
+  });
+
+  it("tin chọn sẵn: chỉ id trong CHAT_QUICK_IDS", () => {
+    for (const id of CHAT_QUICK_IDS) {
+      expect(ChatSendSchema.parse({ kind: "quick", id })).toEqual({ kind: "quick", id });
+    }
+    expect(ChatSendSchema.safeParse({ kind: "quick", id: "poop" }).success).toBe(false);
+    expect(ChatSendSchema.safeParse({ kind: "sticker", id: "fire" }).success).toBe(false);
+    expect(ChatSendSchema.safeParse(null).success).toBe(false);
+  });
+
+  it("bật/tắt chat cần boolean", () => {
+    expect(SetChatEnabledSchema.parse({ enabled: false })).toEqual({ enabled: false });
+    expect(SetChatEnabledSchema.safeParse({ enabled: "no" }).success).toBe(false);
+    expect(SetChatEnabledSchema.safeParse({}).success).toBe(false);
   });
 });
