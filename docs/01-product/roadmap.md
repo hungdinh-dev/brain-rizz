@@ -93,6 +93,7 @@ Mã trong ngoặc trỏ tới [SRS](srs.md).
   - [ ] Luyện tập (UC-13)
   - [ ] Kiểm tra não, Điểm Não, biểu đồ 5 kỹ năng (UC-14)
   - [ ] Bảng xếp hạng Điểm Não + từng minigame (UC-19; bảng bạn bè chờ tính năng kết bạn)
+- [ ] **Chơi với bot — [CR-016](../00-tracking/change-requests.md#cr-016)** (UC-23, duyệt 2026-10-21; +2,5–3 ngày lịch, làm sau khi merge `feat/minigame-wave-1`, không song song với CR-015). Kế hoạch: [Chơi với bot](bot-players.md)
 - [ ] Test nối lại phòng trong `PartyRoom.test.ts` (đã có tải lại trang ở từng pha; còn rớt mạng giữ chỗ / quá 45 giây) ([Kiểm thử](../03-guides/testing.md#6-lỗ-hổng-test-cần-bù))
 - [ ] Deploy: web lên Cloudflare Pages, server lên Fly.io (hoặc Render Free)
 - [ ] Test Playwright 4 trình duyệt chơi trọn một trận

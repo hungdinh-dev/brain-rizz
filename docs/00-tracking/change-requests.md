@@ -41,6 +41,7 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 | [CR-013](#cr-013) | Mở rộng minigame từ nghiên cứu Pumer Party, đợt đầu 7 game: Tráo cốc, Xếp lại tháp, Chuỗi quy luật, Đếm sĩ số, Mảnh vừa khít, Ô bí ẩn, Nối mạch | 2026-10-20 | Thêm tính năng | +5–7 ngày | Duyệt (2026-10-20) |
 | [CR-014](#cr-014) | Mở rộng minigame, đợt hai 7 game còn lại của kế hoạch: Tìm bạn, Giỏ hời nhất, Rót vừa vạch, Hình to hình nhỏ, Nhại nhịp, Cổng luật, Đường số | 2026-10-20 | Thêm tính năng | +8–12 ngày | Duyệt (2026-10-20) |
 | [CR-015](#cr-015) | Vòng quay chọn game chỉ lấy 8 game chưa chơi (mỗi nhóm ít nhất 1 lát) thay cho 30 lát | 2026-10-20 | Đổi luật + thay đổi thiết kế | +0,5–1 ngày | Chờ duyệt |
+| [CR-016](#cr-016) | Chơi với bot: chủ phòng thêm bot 4 mức vào ghế trống, nút "Chơi với máy" ở menu, lịch sử gắn nhãn có bot | 2026-10-21 | Thêm tính năng | +3,5–4,5 ngày công (2,5–3 ngày lịch) | Duyệt (2026-10-21) |
 
 ---
 
@@ -387,6 +388,42 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 - **Quyết định:** _chờ duyệt_.
 - **Tài liệu kéo theo (nếu duyệt):** GDD §2 (Chọn game mỗi vòng), SRS (UC-20 luồng chính + 2a, FR-VC-14, FR-VC-16), UI-UX (S10, khu 6 của canvas), `docs/01-product/minigame-expansion.md` mục 5 (đánh dấu đã có CR), overview (state `wheelGames`), features.md, changelog.
 - **Kết quả:** chưa làm.
+
+---
+
+### CR-016
+
+**Chơi với bot**
+
+- **Ngày mở:** 2026-10-21 · **Loại:** Thêm tính năng · **Người đề xuất:** chủ dự án. Kế hoạch đầy đủ: [Kế hoạch chơi với bot](../01-product/bot-players.md)
+- **Mô tả:**
+  - Chủ phòng thêm bot vào ghế trống ở phòng chờ và chọn mức ngay trong ô: Dễ, Vừa, Khó, Siêu.
+  - Nút **Chơi với máy** ở menu mở hộp thoại chọn số bot (1–7) và một mức chung, rồi tạo phòng party bình thường (vẫn có mã) kèm bot.
+  - Bot đi đủ luồng trận, được chấm theo luật của người, thỉnh thoảng gửi biểu cảm nhanh.
+  - Trận có bot vẫn lưu vào lịch sử, gắn nhãn "Đấu với máy".
+- **Lý do:**
+  - BR-10: có lý do quay lại khi không có bạn chơi cùng.
+  - Trụ cột "Vào là chơi": một mình vẫn vào trận ngay. Phòng 2 người cũng có thêm đối thủ.
+- **Phân tích tác động:**
+  - *Trụ cột:* hỗ trợ "Vào là chơi" và "Ngắn, gọn, nhiều vòng" (giữ nguyên luồng trận). Giữ "Nhẹ và rẻ": bot chỉ là hẹn giờ trên server, mỗi bot khoảng 1 lần chấm mỗi 2–8 giây.
+  - *Kỹ thuật:*
+    - Bot **không giải câu đố**. Server bốc thời gian nghĩ và đúng/sai cho từng câu, rồi chấm qua `judgeBotAnswer`, dùng cùng đường tính điểm với người (ADR 0014 khi làm).
+    - Shared: `src/bots/` (model cắm thêm được), `MinigameDef.expectedSolveMs?`, 3 lệnh zod mới, `PlayerView.isBot`/`botLevel`.
+    - Server: `BotDriver`, `PartyRoom` (ghế, chủ phòng, đóng phòng khi hết người thật), migration `match_results.bot_count`.
+    - Web: hộp thoại ở menu, ô bot ở phòng chờ, huy hiệu máy, nhãn lịch sử.
+    - **Không đổi seed, bộ sinh câu đố hay luật chấm của người.**
+  - *Chi phí:* 0 đồng.
+  - *Lịch:* +3,5–4,5 ngày công, chạy song song thì 2,5–3 ngày lịch. Nên làm sau khi merge `feat/minigame-wave-1`, và không làm song song với CR-015 (cùng sửa `PartyRoom.ts`, `PartyState.ts`, `protocol.ts`).
+- **Đã chốt với chủ dự án (2026-10-21):**
+  - Có cả hai lối vào bot.
+  - 4 mức cố định. Không có tính cách theo nhóm kỹ năng, nhưng chừa chỗ cho nhiều model bot sau này.
+  - Mức Siêu: người giỏi cố gắng vẫn thắng.
+  - Phòng bot là phòng thường. Bot gửi biểu cảm nhanh. Lịch sử gắn nhãn có bot.
+- **Quyết định:** **Duyệt** (2026-10-21). Chủ dự án duyệt luôn các mặc định ở mục 2 của kế hoạch (gồm "người thật vào phòng đầy thì bot nhường ghế") và bảng thông số xuất phát của 4 mức ở mục 3.1. game-designer sẽ chỉnh lại bảng thông số bằng mô phỏng.
+- **Tài liệu kéo theo:**
+  - Đã cập nhật khi duyệt: SRS 1.11 (UC-23, FR-PH-20 → FR-PH-26), BRD 1.3 (BR-10), features.md, roadmap.
+  - Cập nhật khi làm: GDD (mục Bot), UI-UX, ADR 0014, overview (giao thức, state), folder-structure, changelog.
+- **Kết quả:** chưa làm. Làm trên nhánh `feat/bot-players` sau khi merge `feat/minigame-wave-1`.
 
 ---
 

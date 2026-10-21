@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Phân tích yêu cầu |
-| Phiên bản tài liệu | 1.10 · 2026-10-20 — Danh mục lên 31 minigame theo [CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014) |
+| Phiên bản tài liệu | 1.11 · 2026-10-21 — Chơi với bot theo [CR-016](../00-tracking/change-requests.md#cr-016) |
 | Đầu vào | [Yêu cầu nghiệp vụ](brd.md) |
 | Đầu ra cho | [Thiết kế game](game-design.md), [UI/UX](ui-ux.md), [Kiến trúc](../02-architecture/overview.md), [Kiểm thử](../03-guides/testing.md) |
 | Cập nhật khi | Thêm/đổi use case hoặc yêu cầu — tăng phiên bản tài liệu và ghi vào [Lịch sử thay đổi](#9-lịch-sử-thay-đổi-tài-liệu) |
@@ -37,6 +37,7 @@ Web client (trình duyệt), game server (Colyseus) và gói logic dùng chung. 
 | Kiểm tra não | Chế độ chơi một mình 5 game (mỗi nhóm kỹ năng một game) liên tiếp, server chấm, kết quả lên bảng xếp hạng |
 | Điểm Não | Điểm tổng của một lượt Kiểm tra não, tính từ điểm 5 kỹ năng; công thức ở [Thiết kế game](game-design.md) |
 | Phiên khách | Tài khoản Supabase ẩn danh gắn với trình duyệt; liên kết Google để giữ lịch sử khi đổi máy |
+| Bot | Người chơi máy do game server điều khiển, chiếm một ghế trong phòng party; có 4 mức Dễ · Vừa · Khó · Siêu (CR-016) |
 
 ### 1.4 Quy ước mã
 
@@ -114,6 +115,7 @@ flowchart LR
 | UC-11 | Đổi giao diện sáng/tối, ngôn ngữ và nhạc nền | Khách, Người chơi | BR-08 | M | 0–1 |
 | UC-12 | Rời phòng | Người chơi | BR-01 | M | 0 |
 | UC-22 | Chat trong phòng (chữ, biểu cảm nhanh) | Người chơi, Chủ phòng, Server | BR-01, BR-11 | S | 1 ([CR-011](../00-tracking/change-requests.md#cr-011)) |
+| UC-23 | Chơi với bot (thêm bot vào phòng, nút "Chơi với máy") | Người chơi, Chủ phòng, Server | BR-10 | S | 1 ([CR-016](../00-tracking/change-requests.md#cr-016)) |
 | UC-13 | Luyện tập một minigame | Khách | BR-10 | S | 1–2 ([CR-009](../00-tracking/change-requests.md#cr-009)) |
 | UC-14 | Kiểm tra não (chơi một mình 5 game) | Khách, Server | BR-10 | S | 1–2 (CR-009) |
 | UC-15 | Đấu bóng ma | Khách | BR-10 | S | 3 |
@@ -331,6 +333,33 @@ flowchart TD
 - **Ràng buộc:** không lưu nội dung chat ở đâu ngoài RAM phòng (phòng đóng là mất); không có tin hệ thống vào/rời; khung chat là React DOM, không đụng canvas Phaser.
 - **FR:** FR-PH-14 → FR-PH-19. **NFR:** NFR-SEC-04.
 
+#### UC-23 — Chơi với bot
+
+- **Tác nhân:** Người chơi, Chủ phòng, Server. **Nguồn:** [CR-016](../00-tracking/change-requests.md#cr-016), chi tiết ở [Kế hoạch chơi với bot](bot-players.md).
+- **Tiền điều kiện:** đã có hồ sơ (nếu chưa → UC-01); kết nối được game server.
+- **Luồng chính:**
+  1. Người chơi bấm **Chơi với máy** ở menu → hộp thoại chọn số bot (1–7, mặc định 3) và một mức chung (Dễ / Vừa / Khó / Siêu, mặc định Vừa).
+  2. Bấm **Vào phòng** → hệ thống tạo phòng party như UC-02 (vẫn có mã 4 ký tự) kèm số bot đã chọn. Người chơi là chủ phòng và vào phòng chờ.
+  3. Mỗi bot chiếm một ô: nhân vật, tên theo nhân vật, huy hiệu máy, chip mức. Bot luôn sẵn sàng.
+  4. Chủ phòng bắt đầu trận (UC-06). Trận chạy như thường (UC-20, UC-21, UC-07, UC-08):
+     - Bot bấm "Đã hiểu" sau vài giây.
+     - Bot chơi và được chấm theo cùng luật với người.
+     - Thỉnh thoảng bot gửi biểu cảm nhanh ở bảng điểm vòng và vinh danh.
+  5. Trận vào vinh danh → người chơi có phiên được lưu kết quả như UC-16, kèm số bot.
+- **Luồng rẽ:**
+  - 1a. Thêm bot vào phòng party sẵn có: ở phòng chờ, chủ phòng bấm **+ Thêm bot** trên một ô trống → chọn mức ngay trong ô → bot vào ô đó. Người khác vẫn thấy "Mời bạn" ở ô trống.
+  - 2a. Không kết nối được game server → thông báo "Không kết nối được tới server", ở lại menu.
+  - 3a. Chủ phòng bấm chip mức trên ô bot để đổi mức, bấm × để bỏ bot. Chỉ làm được ở phòng chờ.
+  - 3b. Người thật vào phòng bằng mã khi đủ 8 ghế mà còn bot → bot được thêm gần nhất rời để nhường ghế. Không còn bot → từ chối như phòng đầy (UC-03).
+  - 4a. Chủ phòng rời → quyền chuyển cho người thật kế tiếp, không bao giờ cho bot. Không còn người thật nào (kể cả hết thời gian giữ chỗ) → phòng đóng.
+  - 4b. Chủ phòng tắt chat (UC-22) → bot không gửi biểu cảm.
+  - 5a. Màn lịch sử trận party (UC-16) gắn nhãn "Đấu với máy" cho trận có bot.
+- **Quy tắc:**
+  - 1 người thật + 1 bot là đủ để bắt đầu.
+  - Bot không bỏ phiếu chọn game, không bị nhắc độ khó, không tính vào độ khó đa số.
+  - Thông số 4 mức theo [Kế hoạch chơi với bot](bot-players.md#31-bốn-mức), chỉnh sau chơi thử. Mức Siêu phải để người giỏi cố gắng vẫn thắng được.
+- **FR:** FR-PH-20 → FR-PH-26.
+
 #### Chế độ chơi một mình và tài khoản (CR-009)
 
 Kỹ thuật chung: [ADR 0011](../02-architecture/decisions/0011-supabase-accounts-and-solo-modes.md). Khi Supabase chưa cấu hình hoặc không truy cập được, mọi chế độ vẫn chơi được, chỉ không lưu và không xem được bảng xếp hạng (luồng rẽ "Không có máy chủ dữ liệu" dưới đây).
@@ -449,6 +478,13 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-PH-17 | Chủ phòng bật/tắt chat cả phòng ở mọi pha (cờ `chatEnabled` trong state, mặc định bật, giữ qua Chơi lại / Về phòng chờ); khi tắt server từ chối mọi tin (`chat-disabled`) | UC-22 | S | 1 |
 | FR-PH-18 | Mỗi người tự tắt tiếng một người khác trên máy mình (ẩn tin và bong bóng biểu cảm), nhớ trên máy; không báo server, không báo người bị tắt | UC-22 | S | 1 |
 | FR-PH-19 | Server giữ `CHAT_HISTORY_SIZE` = 30 tin gần nhất trong RAM phòng (không DB), gửi cho người mới vào và người nối lại; biểu cảm hiện bong bóng ngắn trên avatar người gửi | UC-22, UC-10 | S | 1 |
+| FR-PH-20 | Chủ phòng thêm bot vào ô trống ở `lobby` và chọn mức (Dễ, Vừa, Khó, Siêu) ngay trong ô; đổi mức và bỏ bot cũng chỉ làm ở `lobby`. Người khác gửi → `not-host`, sai pha → `bad-phase` | UC-23 | S | 1 |
+| FR-PH-21 | Nút "Chơi với máy" ở menu: chọn 1–7 bot và một mức chung, tạo phòng party thường (có mã) kèm bot, người tạo là chủ phòng | UC-23 | S | 1 |
+| FR-PH-22 | Tổng người thật + bot ≤ 8. Người thật vào phòng đủ ghế ở `lobby` thì bot được thêm gần nhất rời để nhường ghế. Bot tính vào số người tối thiểu để bắt đầu và chơi lại (FR-PH-11) | UC-23, UC-03 | S | 1 |
+| FR-PH-23 | Bot không bao giờ làm chủ phòng; không còn người thật thì phòng đóng. Bot luôn sẵn sàng, tự "Đã hiểu" sau 1–3 giây, không bỏ phiếu, không bị nhắc độ khó, không tính vào độ khó đa số | UC-23 | S | 1 |
+| FR-PH-24 | Server chơi thay bot: mỗi câu bốc thời gian nghĩ và đúng/sai theo mức, rồi chấm qua cùng luật điểm, combo, khoá khi sai, hạn trả lời như người. Cùng seed vòng thì bot chơi giống hệt nhau. Không đổi seed hay bộ sinh câu đố | UC-23, UC-07 | S | 1 |
+| FR-PH-25 | Bot có huy hiệu máy và tên dịch theo nhân vật ở mọi màn có tên người chơi. Bot gửi biểu cảm nhanh ở `round-results`, `podium`, theo cùng luật chat (FR-PH-14 → 17) | UC-23, UC-22 | S | 1 |
+| FR-PH-26 | Kết quả trận party ghi số bot (`match_results.bot_count`); lịch sử tài khoản gắn nhãn "Đấu với máy" cho trận có bot | UC-23, UC-16 | S | 1 |
 
 ### 4.3 Vòng chơi & chấm điểm (VC)
 
@@ -574,6 +610,8 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | Trạng thái phòng Kiểm tra não, `user_id` của người chơi trong phòng | RAM của game server | Tới khi rời phòng |
 | Hồ sơ tài khoản, kết quả Kiểm tra não, kết quả trận party, kỷ lục luyện tập | Supabase Postgres (`profiles`, `brain_tests`, `brain_test_games`, `match_results`, `practice_bests`) | Lâu dài, tới khi người chơi xoá |
 | Điểm theo thể loại và danh hiệu thể loại của mỗi trận party (CR-010) | Supabase Postgres, cột `match_results.category_scores` (jsonb, chỉ thể loại đã chơi) và `match_results.category_titles` (text[]) — migration `20261019000000_match_category_scores.sql`; trong trận: RAM game server (`PlayerView.categoryScores`) | Lâu dài, tới khi người chơi xoá; trong trận thì tới khi Chơi lại / Về phòng chờ |
+| Số bot của mỗi trận party (CR-016) | Supabase Postgres, cột `match_results.bot_count` (mặc định 0) | Lâu dài, tới khi người chơi xoá |
+| Bot trong phòng: mức, model, RNG, hẹn giờ trả lời (CR-016) | RAM của `PartyRoom` (`BotDriver`); chỉ `isBot`, `botLevel` nằm trong state đồng bộ | Tới khi bot bị bỏ hoặc phòng đóng |
 | Lượt chơi bóng ma (GĐ 3) | Supabase Postgres | Lâu dài |
 
 ## 8. Ma trận truy vết
@@ -593,6 +631,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | BR-14 | UC-19 | FR-MR-12→14 | — (đang làm, CR-009) |
 | BR-11 | UC-05, UC-08 | FR-PH-12, FR-GD-06→08 | — |
 | BR-01, BR-11 | UC-22 | FR-PH-14 → FR-PH-19, NFR-SEC-04 | `packages/shared/src/chat/chat.test.ts` (lọc từ tục, làm sạch, token bucket), `protocol.test.ts` (schema chat); `apps/server/test/PartyChat.test.ts` (danh tính do server gắn, rate limit, lọc + cắt, bật/tắt + `not-host`, `bad-phase`, 30 tin cho người vào sau / nối lại) |
+| BR-10 | UC-23 | FR-PH-20 → FR-PH-26 | — (đã duyệt CR-016, chưa làm) |
 | BR-12 | — | NFR-COST-01 | — |
 
 ## 9. Lịch sử thay đổi tài liệu
@@ -610,5 +649,6 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | 1.8 | 2026-10-20 | Chat real-time trong phòng party: thêm UC-22, FR-PH-14 → FR-PH-19, NFR-SEC-04; dòng Dữ liệu (tin chat trong RAM phòng, danh sách tắt tiếng trên máy), ma trận truy vết | [CR-011](../00-tracking/change-requests.md#cr-011) |
 | 1.9 | 2026-10-20 | Danh mục minigame 15 → 17 (thêm Luyện ngắm, Phấn trượt): sửa FR-MG-05 | [CR-012](../00-tracking/change-requests.md#cr-012) |
 | 1.10 | 2026-10-20 | Danh mục minigame 17 → 31 (14 game của kế hoạch mở rộng, hai đợt 7 game): sửa FR-MG-05 | [CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014) |
+| 1.11 | 2026-10-21 | Chơi với bot: thêm UC-23, FR-PH-20 → FR-PH-26, thuật ngữ "Bot", dòng Dữ liệu (`match_results.bot_count`, bot trong RAM phòng), ma trận truy vết | [CR-016](../00-tracking/change-requests.md#cr-016) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

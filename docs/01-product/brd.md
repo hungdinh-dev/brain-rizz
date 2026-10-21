@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Discovery → đầu vào cho [SRS](srs.md) |
-| Phiên bản tài liệu | 1.2 · 2026-10-12 — cân bằng điểm theo [CR-006](../00-tracking/change-requests.md#cr-006) (RULE-06, RULE-07, RULE-08); 1.1 · 2026-10-10 — luồng trận mới theo [CR-005](../00-tracking/change-requests.md#cr-005) |
+| Phiên bản tài liệu | 1.3 · 2026-10-21 — BR-10 thêm chơi với bot theo [CR-016](../00-tracking/change-requests.md#cr-016) (UC-23); 1.2 · 2026-10-12 — cân bằng điểm theo [CR-006](../00-tracking/change-requests.md#cr-006) (RULE-06, RULE-07, RULE-08); 1.1 · 2026-10-10 — luồng trận mới theo [CR-005](../00-tracking/change-requests.md#cr-005) |
 | Đọc trước | [Tầm nhìn & phạm vi](vision.md) |
 | Cập nhật khi | Có nhu cầu nghiệp vụ mới hoặc đổi ưu tiên — luôn đi kèm một [yêu cầu thay đổi](../00-tracking/change-requests.md) |
 
@@ -83,7 +83,7 @@ Mức ưu tiên theo MoSCoW cho bản 1.0: **M** = bắt buộc, **S** = nên c�
 | BR-07 | Trận ngắn (khoảng 5 phút), chủ phòng điều khiển nhịp chơi | Trụ cột "Ngắn, gọn, nhiều vòng" | M | P1 | UC-06, UC-08, UC-09 |
 | BR-08 | Giao diện tiếng Việt, có tiếng Anh; sáng/tối | Đối tượng là người Việt, mở rộng sau | M | P2 | UC-11 |
 | BR-09 | Có bản sắc riêng: vui, thân thiện, nhân vật đáng yêu | Dễ nhớ, trẻ em thích | S | P2 | UC-01, [UI/UX](ui-ux.md) |
-| BR-10 | Có lý do quay lại: chơi một mình, lịch sử điểm, đấu bất đồng bộ với bạn | Giữ chân sau lần chơi đầu | S | P3 | UC-13 → UC-16 |
+| BR-10 | Có lý do quay lại: chơi một mình, chơi với bot khi thiếu bạn, lịch sử điểm, đấu bất đồng bộ với bạn | Giữ chân sau lần chơi đầu | S | P3 | UC-13 → UC-16, UC-23 ([CR-016](../00-tracking/change-requests.md#cr-016)) |
 | BR-11 | Cảm giác "game thật": phòng chờ sinh động, vinh danh người thắng kiểu Kahoot, âm thanh, cài lên màn hình chính — nhẹ, không 3D | Trải nghiệm đáng nhớ | S | P1 | UC-05, UC-08, NFR-UX |
 | BR-12 | Chi phí vận hành gần 0 | Dự án cá nhân, không có doanh thu | M | Chủ dự án | NFR-COST |
 | BR-13 | Không vi phạm sở hữu trí tuệ | Có thể công khai mà không bị gỡ | M | Chủ dự án | NFR-LEGAL |

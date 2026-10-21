@@ -11,5 +11,6 @@ Làm gì, cho ai, vì sao, chơi thế nào, khi nào xong. Đọc theo thứ t�
 | [ui-ux.md](ui-ux.md) | Thiết kế | Bản đồ màn hình, danh mục màn hình, link bản mẫu canvas, hệ thống thiết kế |
 | [roadmap.md](roadmap.md) | Lập kế hoạch | Mốc thời gian, cổng kiểm tra, checklist từng giai đoạn |
 | [minigame-expansion.md](minigame-expansion.md) | Lập kế hoạch | Đề xuất (chưa duyệt): 14 minigame mới chia 3 đợt, lấy ý từ Pumer Party, 17 → 31 game |
+| [bot-players.md](bot-players.md) | Lập kế hoạch | Đã duyệt (CR-016), chưa làm: chơi với bot 4 mức, nút "Chơi với máy", luật bot, thay đổi kỹ thuật, chia việc |
 
 [← Mục lục tài liệu](../README.md)
