@@ -7,8 +7,9 @@ import {
 } from "@brain-rizz/shared";
 import Phaser from "phaser";
 import { prefersReducedMotion } from "@/features/motion";
+import { EYE_PATH, HAND_PATH } from "../_shared/icons";
 import type { MinigameBridge } from "../types";
-import { BULB_BASE_PATH, BULB_PATH, EYE_PATH, HAND_PATH, REWIND_PATH } from "./shapes";
+import { BULB_BASE_PATH, BULB_PATH, REWIND_PATH } from "./shapes";
 
 /*
  * Theo dấu ánh đèn — đặc tả: docs/04-minigames/light-trail.md (mục "Ghi chú cho FE").

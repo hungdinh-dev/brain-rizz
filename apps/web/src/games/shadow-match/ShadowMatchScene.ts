@@ -9,6 +9,7 @@ import {
 } from "@brain-rizz/shared";
 import Phaser from "phaser";
 import { prefersReducedMotion } from "@/features/motion";
+import { type Ctx, makeCanvas, roundRectPath } from "../_shared/canvas";
 import type { MinigameBridge } from "../types";
 import { diffRing, FRAME, ITEM_ART, type PlacedPart, placeParts } from "./art";
 
@@ -186,18 +187,6 @@ function readPalette(el: Element): Palette {
 const toColor = (css: string) => Phaser.Display.Color.ValueToColor(css).color;
 
 // ---------------------------------------------------------------- vẽ canvas 2D
-
-type Ctx = CanvasRenderingContext2D;
-
-function roundRectPath(ctx: Ctx, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
 
 /** Nét đứt chia đều quanh hình chữ nhật bo góc để chỗ nối không lệch. */
 function evenDash(w: number, h: number, r: number, [dash, gap]: [number, number]) {
@@ -634,16 +623,10 @@ export default class ShadowMatchScene extends Phaser.Scene {
   private texture(name: string, width: number, height: number, draw: (ctx: Ctx) => void) {
     const key = `shadow-match:${name}`;
     if (this.textures.exists(key)) return key;
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.ceil(width);
-    canvas.height = Math.ceil(height);
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
+    const canvas = makeCanvas(width, height, (ctx) => {
+      ctx.translate(Math.ceil(width) / 2, Math.ceil(height) / 2);
       draw(ctx);
-    }
+    });
     this.textures.addCanvas(key, canvas);
     return key;
   }

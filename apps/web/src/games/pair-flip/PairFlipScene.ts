@@ -9,8 +9,8 @@ import {
 } from "@brain-rizz/shared";
 import Phaser from "phaser";
 import { prefersReducedMotion } from "@/features/motion";
-import { type ArtPart, ITEM_ART } from "../balance/items";
-import { EYE_PATH, HAND_PATH } from "../light-trail/shapes";
+import { EYE_PATH, HAND_PATH } from "../_shared/icons";
+import { type ArtPart, ITEM_ART } from "../_shared/items";
 import type { MinigameBridge } from "../types";
 
 /*

@@ -8,6 +8,20 @@ import {
 import Phaser from "phaser";
 import { prefersReducedMotion } from "@/features/motion";
 import { currentLanguage } from "@/i18n";
+import type { Ctx } from "../_shared/canvas";
+import {
+  type Art,
+  type Box,
+  circle,
+  fill,
+  grain,
+  paintArt,
+  placeArt,
+  rgba,
+  roundRect,
+  softStroke,
+  stroke,
+} from "../_shared/chalk";
 import { shouldIgnoreGameKey } from "../keyboard";
 import { DESIGN_HEIGHT, DESIGN_WIDTH, type MinigameBridge } from "../types";
 import { sceneText } from "./locales";
@@ -243,115 +257,13 @@ const RES = 2;
 const TAU = Math.PI * 2;
 const QUARTER = Math.PI / 2;
 
-// ─── Vẽ ra canvas 2D ───────────────────────────────────────────────────────────────────────────
-
-type Ctx = CanvasRenderingContext2D;
-/** Khung vẽ [x0, y0, x1, y1] theo đơn vị hình, gốc (0, 0) là điểm neo của ảnh. */
-type Box = readonly [number, number, number, number];
-
-interface Art {
-  key: string;
-  ox: number;
-  oy: number;
-  /** Tỉ lệ đặt ảnh để ra đúng cỡ thiết kế (texture vẽ ở RES lần). */
-  scale: number;
-}
+// ─── Tiện ích ─────────────────────────────────────────────────────────────────────────────────
 
 const mod = (a: number, m: number) => ((a % m) + m) % m;
 
-function stroke(ctx: Ctx, shape: Path2D, color: string, width: number, alpha = 1) {
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width;
-  ctx.stroke(shape);
-  ctx.restore();
-}
-
-function fill(ctx: Ctx, shape: Path2D, color: string, alpha = 1) {
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = color;
-  ctx.fill(shape);
-  ctx.restore();
-}
-
-function circle(cx: number, cy: number, r: number): Path2D {
-  const shape = new Path2D();
-  shape.arc(cx, cy, r, 0, TAU);
-  return shape;
-}
-
-function roundRect(x: number, y: number, w: number, h: number, r: number): Path2D {
-  const shape = new Path2D();
-  shape.moveTo(x + r, y);
-  shape.arcTo(x + w, y, x + w, y + h, r);
-  shape.arcTo(x + w, y + h, x, y + h, r);
-  shape.arcTo(x, y + h, x, y, r);
-  shape.arcTo(x, y, x + w, y, r);
-  shape.closePath();
-  return shape;
-}
-
-/** Hex `#rrggbb` → `rgba(…, a)`. */
-function rgba(hex: string, alpha: number): string {
-  const n = Number.parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
-}
-
-/**
- * Nét nhoè (thay cho filter blur, Safari không hỗ trợ `ctx.filter`): vẽ hình lệch hẳn ra ngoài
- * khung rồi chỉ để lại bóng đổ mờ đúng chỗ. `blur` tính theo đơn vị hình.
- */
-function softStroke(
-  ctx: Ctx,
-  shape: Path2D,
-  color: string,
-  alpha: number,
-  width: number,
-  blur: number,
-) {
-  const zoom = ctx.getTransform().a;
-  const shift = 10000;
-  ctx.save();
-  ctx.translate(-shift / zoom, 0);
-  ctx.shadowOffsetX = shift;
-  ctx.shadowBlur = blur * zoom;
-  ctx.shadowColor = rgba(color, alpha);
-  ctx.strokeStyle = "#000000";
-  ctx.lineWidth = width;
-  ctx.stroke(shape);
-  ctx.restore();
-}
-
-/** Bộ sinh số giả ngẫu nhiên cho hạt phấn (trang trí, không phải logic câu đố). */
-function grainRng(seed: number) {
-  let s = seed >>> 0;
-  return () => {
-    s = (s + 0x6d2b79f5) >>> 0;
-    let t = s;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/** Hạt phấn: đục lỗ li ti vào nét vừa vẽ (cả canvas), như phấn trên mặt bảng sần. */
-function grain(ctx: Ctx, density: number, seed: number) {
-  const { width, height } = ctx.canvas;
-  const rand = grainRng(seed);
-  ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.globalCompositeOperation = "destination-out";
-  ctx.fillStyle = "#000000";
-  const count = Math.round(width * height * density);
-  for (let i = 0; i < count; i++) {
-    ctx.globalAlpha = 0.25 + rand() * 0.65;
-    const size = rand() < 0.2 ? 2 : 1;
-    ctx.fillRect(Math.floor(rand() * width), Math.floor(rand() * height), size, size);
-  }
-  ctx.restore();
-}
+/** Hạt phấn của game này đục đậm hơn mặc định (độ đục 0,25 + 0,65 × rand). */
+const grainDeep = (ctx: Ctx, density: number, seed: number) =>
+  grain(ctx, density, seed, 0.25, 0.65);
 
 function waitForFont(): Promise<void> {
   const fonts = document.fonts;
@@ -1033,10 +945,7 @@ export default class ChalkArrowsScene extends Phaser.Scene {
   // ── Texture vẽ bằng canvas 2D (khoá theo hình + màu nên mỗi hình chỉ vẽ một lần) ──
 
   private place(art: Art, scale = 1): Phaser.GameObjects.Image {
-    return this.add
-      .image(0, 0, art.key)
-      .setOrigin(art.ox, art.oy)
-      .setScale(art.scale * scale);
+    return placeArt(this, art, scale);
   }
 
   /**
@@ -1044,23 +953,7 @@ export default class ChalkArrowsScene extends Phaser.Scene {
    * lần cỡ thiết kế, ảnh đặt với tỉ lệ 1/res.
    */
   private paint(name: string, box: Box, zoom: number, draw: (ctx: Ctx) => void, res = RES): Art {
-    const [x0, y0, x1, y1] = box;
-    const z = zoom * res;
-    const w = Math.ceil((x1 - x0) * z);
-    const h = Math.ceil((y1 - y0) * z);
-    const key = `chalk-arrows/${name}`;
-    if (!this.textures.exists(key)) {
-      const texture = this.textures.createCanvas(key, w, h);
-      if (texture) {
-        const ctx = texture.context;
-        ctx.setTransform(z, 0, 0, z, -x0 * z, -y0 * z);
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        draw(ctx);
-        texture.refresh();
-      }
-    }
-    return { key, ox: (-x0 * z) / w, oy: (-y0 * z) / h, scale: 1 / res };
+    return paintArt(this.textures, `chalk-arrows/${name}`, box, zoom, draw, res);
   }
 
   private chalkColor(color: ChalkColor, subtle: boolean): string {
@@ -1075,14 +968,14 @@ export default class ChalkArrowsScene extends Phaser.Scene {
         const shape = new Path2D(SOLID);
         stroke(ctx, shape, css, 21, 0.16);
         stroke(ctx, shape, css, 13);
-        grain(ctx, 0.16, 3);
+        grainDeep(ctx, 0.16, 3);
       });
     }
     return this.paint(`double-${css}`, [-46, -78, 46, 70], UNIT, (ctx) => {
       const shape = new Path2D(DOUBLE);
       stroke(ctx, shape, css, 13, 0.14);
       stroke(ctx, shape, css, 8);
-      grain(ctx, 0.16, 7);
+      grainDeep(ctx, 0.16, 7);
     });
   }
 
@@ -1121,7 +1014,7 @@ export default class ChalkArrowsScene extends Phaser.Scene {
       const shape = new Path2D(SMUDGED);
       softStroke(ctx, shape, css, 0.9, 7, 3);
       stroke(ctx, shape, css, 5, 0.85);
-      grain(ctx, 0.22, 11);
+      grainDeep(ctx, 0.22, 11);
     });
   }
 
@@ -1289,7 +1182,7 @@ export default class ChalkArrowsScene extends Phaser.Scene {
           sctx.lineCap = "round";
           sctx.lineJoin = "round";
           stroke(sctx, new Path2D(BOARD_SCRIBBLES), "#ffffff", 5, dark ? 0.07 : 0.1);
-          grain(sctx, 0.3, 5);
+          grainDeep(sctx, 0.3, 5);
           ctx.save();
           ctx.setTransform(1, 0, 0, 1, 0, 0);
           ctx.drawImage(scratch, 0, 0);

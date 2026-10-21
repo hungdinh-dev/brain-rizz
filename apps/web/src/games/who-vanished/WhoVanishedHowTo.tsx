@@ -1,7 +1,7 @@
 import type { WhoVanishedItem } from "@brain-rizz/shared";
 import { cn } from "@/lib/utils";
+import { EYE_PATH, HAND_PATH } from "../_shared/icons";
 import { ITEM_ART, partKey } from "./items";
-import { EYE_PATH, HAND_PATH } from "./shapes";
 
 /** Nét phấn sần (filter #chalk khai báo trong <ChalkDefs /> của App). */
 const CHALK = "filter-[url(#chalk)]";

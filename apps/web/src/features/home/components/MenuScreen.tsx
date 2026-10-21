@@ -1,4 +1,10 @@
-import { GAME_IDS, isValidRoomCode, MAX_PLAYERS, normalizeRoomCode } from "@brain-rizz/shared";
+import {
+  GAME_IDS,
+  isValidRoomCode,
+  MAX_PLAYERS,
+  normalizeRoomCode,
+  PLANNED_GAME_COUNT,
+} from "@brain-rizz/shared";
 import {
   BrainIcon,
   CalendarDaysIcon,
@@ -32,9 +38,6 @@ import { fetchBrainHistory } from "@/net/data-api";
 import { useAuth } from "@/stores/auth.store";
 import type { Profile } from "../profile";
 import { MenuCard } from "./MenuCard";
-
-/** Tổng số minigame dự kiến (danh mục ở docs/04-minigames/README.md). */
-const PLANNED_GAMES = 15;
 
 const SKILL_DOTS = ["bg-identify", "bg-memorize", "bg-analyze", "bg-compute", "bg-visualize"];
 
@@ -273,7 +276,7 @@ export function MenuScreen({
             title={t("home.menu.collection")}
             description={t("home.menu.collectionDesc", {
               count: GAME_IDS.length,
-              total: PLANNED_GAMES,
+              total: PLANNED_GAME_COUNT,
             })}
             onClick={soon}
           />

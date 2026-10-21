@@ -7,6 +7,24 @@ import {
 } from "@brain-rizz/shared";
 import Phaser from "phaser";
 import { prefersReducedMotion } from "@/features/motion";
+import { type Ctx, roundRectPath } from "../_shared/canvas";
+import {
+  BADGE_BAD_AT,
+  BADGE_CANVAS,
+  BADGE_MIRROR_AT,
+  BADGE_OK_AT,
+  type BadgeKind,
+  type CardState,
+  CHOICE_CARD,
+  CHOICE_CARD_CANVAS,
+  drawBadge,
+  drawChoiceCard,
+  drawCorrectRing,
+  drawMirrorIcon,
+  makeCenteredCanvas,
+  RING_CANVAS,
+  strokeIcon,
+} from "../_shared/card-art";
 import type { MinigameBridge } from "../types";
 
 /*
@@ -23,11 +41,7 @@ type Point = readonly [x: number, y: number];
 const MODEL = { x: 360, y: 236, size: 360, radius: 32, border: 7, shadow: 10 } as const;
 /** Dải nhắc luật 288×56, tâm (360, 464): ↻ ✓ (xoay: được) và ⇋ ✗ (lật: không), không có chữ. */
 const RULES: Point = [360, 464];
-/** Thẻ lựa chọn 320×320, cả thẻ là vùng chạm. Rê chuột: nhấc 4 px, viền đậm hơn. */
-const CARD = { size: 320, radius: 28, border: 4, hoverBorder: 7, shadow: 8, lift: 4 } as const;
-/** Thẻ bị chạm sai: viền gạch đứt. */
-const MISS_BORDER = 7;
-const MISS_DASH: [number, number] = [20, 12];
+// Thẻ lựa chọn 320×320 (`CHOICE_CARD`), viền chạm sai và huy hiệu ✓/✗/gương: `_shared/card-art`.
 /** Tâm thẻ lựa chọn theo đúng thứ tự `choices` (trái → phải, trên → dưới). Mầm: thẻ thứ ba ở giữa. */
 const SLOTS_4: readonly Point[] = [
   [188, 680],
@@ -55,12 +69,7 @@ const GHOST_ALPHA = 0.6;
 /** Độ mờ của các thẻ không liên quan trong lúc khoá sau câu sai. */
 const DIM_ALPHA = 0.35;
 
-/** Huy hiệu (so với tâm thẻ): ✓ ở góc trên phải; ✗ và icon gương cạnh nhau; mũi tên chiều xoay góc dưới phải. */
-const BADGE_R = 30;
-const BADGE_SHADOW = 5;
-const OK_AT: Point = [140, -140];
-const BAD_AT: Point = [130, -130];
-const MIRROR_AT: Point = [62, -130];
+/** Mũi tên chiều xoay (so với tâm thẻ) ở góc dưới phải; vị trí ✓/✗/gương ở `_shared/card-art`. */
 const TURN_AT: Point = [116, 116];
 const TURN_SCALE = 1.6;
 /** Icon con mắt của thẻ mẫu (so với tâm thẻ). */
@@ -86,13 +95,10 @@ const SHAKE_PX = 8;
 const DIM_MS = 120;
 
 // ---------------------------------------------------------------- icon (đường SVG của bản mẫu, tâm 0,0)
+// Icon gương, ✓, ✗ dùng chung: `_shared/card-art`.
 
 const TURN_ARC = "M-12 -6 A13 13 0 1 1 -6 12";
 const TURN_HEAD = "M-0.3 9.3 L-9.6 10.2 L-4.7 18.3";
-const MIRROR_AXIS = "M0 -16 L0 16";
-const MIRROR_ARROWS = "M-5 0 L-19 0 M-14 -5 L-19 0 L-14 5 M5 0 L19 0 M14 -5 L19 0 L14 5";
-const CHECK = "M-14 1 L-4 12 L15 -11";
-const CROSS = "M-11 -11 L11 11 M11 -11 L-11 11";
 const EYE =
   "M-20 0 C-14 -10 -7 -13 0 -13 C7 -13 14 -10 20 0 C14 10 7 13 0 13 C-7 13 -14 10 -20 0 Z";
 
@@ -248,43 +254,11 @@ function fillCellEdges(g: Phaser.GameObjects.Graphics, cells: Cells, u: number, 
 
 // ---------------------------------------------------------------- vẽ texture bằng canvas 2D
 
-type Ctx = CanvasRenderingContext2D;
-type CardState = "idle" | "hover" | "miss";
-type BadgeKind = "ok" | "bad" | "mirror";
-
-function roundRectPath(ctx: Ctx, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
-/** Nét đứt chia đều quanh hình vuông bo góc để chỗ nối không lệch. */
-function evenDash(size: number, r: number, [dash, gap]: [number, number]): [number, number] {
-  const length = 4 * (size - 2 * r) + 2 * Math.PI * r;
-  const k = length / Math.max(1, Math.round(length / (dash + gap))) / (dash + gap);
-  return [dash * k, gap * k];
-}
-
-function strokeIcon(ctx: Ctx, d: string, width: number, color: string, dash: number[] = []) {
-  ctx.setLineDash(dash);
-  ctx.lineWidth = width;
-  ctx.strokeStyle = color;
-  ctx.stroke(new Path2D(d));
-  ctx.setLineDash([]);
-}
-
+// Thẻ, vòng ✓, huy hiệu, icon gương: `_shared/card-art`. Mũi tên xoay chỉ game này dùng (dải nhắc
+// luật và bóng ma) nên để tại chỗ.
 function drawTurnIcon(ctx: Ctx, width: number, color: string) {
   strokeIcon(ctx, TURN_ARC, width, color);
   strokeIcon(ctx, TURN_HEAD, width, color);
-}
-
-function drawMirrorIcon(ctx: Ctx, color: string) {
-  strokeIcon(ctx, MIRROR_AXIS, 3, color, [4, 3]);
-  strokeIcon(ctx, MIRROR_ARROWS, 4, color);
 }
 
 // ---------------------------------------------------------------- scene
@@ -375,7 +349,7 @@ export default class RotateMatchScene extends Phaser.Scene {
 
       // Vùng chạm phủ cả thẻ 320×320; ghi nhận ở pointerdown, một chạm là chốt.
       const zone = this.add
-        .zone(x, y, CARD.size, CARD.size)
+        .zone(x, y, CHOICE_CARD.size, CHOICE_CARD.size)
         .setInteractive({ useHandCursor: true });
       zone.on("pointerdown", () => this.answer(puzzle, i));
       zone.on("pointerover", (pointer: Phaser.Input.Pointer) => {
@@ -422,7 +396,7 @@ export default class RotateMatchScene extends Phaser.Scene {
   private setHover(view: ChoiceView, on: boolean) {
     if (view.hovered === on) return;
     view.hovered = on;
-    view.face.y = on ? -CARD.lift : 0;
+    view.face.y = on ? -CHOICE_CARD.lift : 0;
     view.card.setTexture(this.cardTexture(on ? "hover" : "idle"));
   }
 
@@ -475,7 +449,7 @@ export default class RotateMatchScene extends Phaser.Scene {
    */
   private showRight(view: ChoiceView, model: RotateMatchFigure, ghostMs: number) {
     view.face.addAt(this.add.image(0, 0, this.ringTexture()), 0);
-    view.face.add(this.add.image(OK_AT[0], OK_AT[1], this.badgeTexture("ok")));
+    view.face.add(this.add.image(BADGE_OK_AT[0], BADGE_OK_AT[1], this.badgeTexture("ok")));
     if (this.reducedMotion) return;
 
     const target = view.angle > 180 ? view.angle - 360 : view.angle;
@@ -506,9 +480,11 @@ export default class RotateMatchScene extends Phaser.Scene {
   private showMiss(view: ChoiceView, mirror: boolean) {
     view.card.setTexture(this.cardTexture("miss"));
     if (mirror) {
-      view.face.add(this.add.image(MIRROR_AT[0], MIRROR_AT[1], this.badgeTexture("mirror")));
+      view.face.add(
+        this.add.image(BADGE_MIRROR_AT[0], BADGE_MIRROR_AT[1], this.badgeTexture("mirror")),
+      );
     }
-    view.face.add(this.add.image(BAD_AT[0], BAD_AT[1], this.badgeTexture("bad")));
+    view.face.add(this.add.image(BADGE_BAD_AT[0], BADGE_BAD_AT[1], this.badgeTexture("bad")));
     if (this.reducedMotion) return;
 
     const face = view.face;
@@ -531,9 +507,9 @@ export default class RotateMatchScene extends Phaser.Scene {
    * giống hệt làm mờ cả nhóm.
    */
   private dim(view: ChoiceView) {
-    const height = CARD.size + CARD.shadow + 4;
+    const height = CHOICE_CARD.size + CHOICE_CARD.shadow + 4;
     const veil = this.add
-      .rectangle(0, CARD.shadow / 2, CARD.size + 4, height, this.inks.muted, 1)
+      .rectangle(0, CHOICE_CARD.shadow / 2, CHOICE_CARD.size + 4, height, this.inks.muted, 1)
       .setAlpha(0);
     view.slot.add(veil);
     const alpha = 1 - DIM_ALPHA;
@@ -556,52 +532,15 @@ export default class RotateMatchScene extends Phaser.Scene {
   private texture(name: string, width: number, height: number, draw: (ctx: Ctx) => void) {
     const key = `rotate-match:${name}`;
     if (this.textures.exists(key)) return key;
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.ceil(width);
-    canvas.height = Math.ceil(height);
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      draw(ctx);
-    }
-    this.textures.addCanvas(key, canvas);
+    this.textures.addCanvas(key, makeCenteredCanvas(width, height, draw));
     return key;
   }
 
-  /**
-   * Thẻ lựa chọn kèm bóng đổ (chung một ảnh). Thẻ rê chuột: viền 7 và bóng lệch thêm 4 px vì mặt thẻ
-   * nhấc lên 4 px còn bóng đứng yên. Thẻ chạm sai: viền gạch đứt màu lỗi thay cho viền mực.
-   */
+  /** Thẻ lựa chọn kèm bóng đổ (chung một ảnh): thường, rê chuột hoặc chạm sai. */
   private cardTexture(state: CardState) {
-    const c = this.colors;
-    const { size, radius } = CARD;
-    const half = size / 2;
-    const shadow = state === "hover" ? CARD.shadow + CARD.lift : CARD.shadow;
-    const pad = 6;
-    return this.texture(
-      `card-${state}`,
-      size + 2 * pad,
-      size + 2 * (CARD.shadow + CARD.lift + pad),
-      (ctx) => {
-        roundRectPath(ctx, -half, -half + shadow, size, size, radius);
-        ctx.fillStyle = c.sticker;
-        ctx.fill();
-        roundRectPath(ctx, -half, -half, size, size, radius);
-        ctx.fillStyle = c.card;
-        ctx.fill();
-        if (state === "miss") {
-          ctx.setLineDash(evenDash(size, radius, MISS_DASH));
-          ctx.lineCap = "butt";
-          ctx.lineWidth = MISS_BORDER;
-          ctx.strokeStyle = c.destructive;
-        } else {
-          ctx.lineWidth = state === "hover" ? CARD.hoverBorder : CARD.border;
-          ctx.strokeStyle = c.border;
-        }
-        ctx.stroke();
-      },
+    const { width, height } = CHOICE_CARD_CANVAS;
+    return this.texture(`card-${state}`, width, height, (ctx) =>
+      drawChoiceCard(ctx, this.colors, state),
     );
   }
 
@@ -678,39 +617,16 @@ export default class RotateMatchScene extends Phaser.Scene {
 
   /** Vòng vàng viền mực quanh thẻ đúng (nằm dưới thẻ). */
   private ringTexture() {
-    const c = this.colors;
-    return this.texture("ring", 360, 360, (ctx) => {
-      roundRectPath(ctx, -170, -170, 340, 340, 36);
-      ctx.lineWidth = 14;
-      ctx.strokeStyle = c.border;
-      ctx.stroke();
-      ctx.lineWidth = 8;
-      ctx.strokeStyle = c.primary;
-      ctx.stroke();
-    });
+    return this.texture("ring", RING_CANVAS, RING_CANVAS, (ctx) =>
+      drawCorrectRing(ctx, this.colors),
+    );
   }
 
   /** Huy hiệu tròn có bóng: ✓ (vàng), ✗ (màu lỗi), gương (nền thẻ). */
   private badgeTexture(kind: BadgeKind) {
-    const c = this.colors;
-    const size = 2 * (BADGE_R + BADGE_SHADOW + 4);
-    return this.texture(`badge-${kind}`, size, size, (ctx) => {
-      ctx.beginPath();
-      ctx.arc(0, BADGE_SHADOW, BADGE_R, 0, Math.PI * 2);
-      ctx.fillStyle = c.sticker;
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(0, 0, BADGE_R, 0, Math.PI * 2);
-      ctx.fillStyle = kind === "ok" ? c.primary : kind === "bad" ? c.destructive : c.card;
-      ctx.fill();
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = c.border;
-      ctx.stroke();
-      // Dấu ✗ dùng màu nền thẻ: kem trên đỏ (sáng), tím đậm trên hồng (tối), đều đủ tương phản.
-      if (kind === "ok") strokeIcon(ctx, CHECK, 7, c.primaryFg);
-      else if (kind === "bad") strokeIcon(ctx, CROSS, 7, c.card);
-      else drawMirrorIcon(ctx, c.cardFg);
-    });
+    return this.texture(`badge-${kind}`, BADGE_CANVAS, BADGE_CANVAS, (ctx) =>
+      drawBadge(ctx, this.colors, kind),
+    );
   }
 
   /** Mũi tên chiều xoay của bóng ma (↻; lật ngang thành ↺ khi quay ngược). */

@@ -1,6 +1,6 @@
 import type { BalanceItem } from "@brain-rizz/shared";
 import { cn } from "@/lib/utils";
-import { ITEM_ART, partKey } from "./items";
+import { ITEM_ART, partKey } from "../_shared/items";
 
 /** Nét phấn sần (filter #chalk khai báo trong <ChalkDefs /> của App). */
 const CHALK = "filter-[url(#chalk)]";

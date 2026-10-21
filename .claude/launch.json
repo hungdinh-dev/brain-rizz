@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web-qa",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@brain-rizz/web",
+        "exec",
+        "vite",
+        "--port",
+        "5191",
+        "--strictPort"
+      ],
+      "port": 5191
+    }
+  ]
+}

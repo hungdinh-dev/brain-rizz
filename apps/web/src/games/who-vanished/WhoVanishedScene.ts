@@ -7,20 +7,18 @@ import {
 } from "@brain-rizz/shared";
 import Phaser from "phaser";
 import { prefersReducedMotion } from "@/features/motion";
-import type { MinigameBridge } from "../types";
-import { ITEM_ART, ITEM_BOX, type ItemPart } from "./items";
 import {
   CHECK_PATH,
-  CURTAIN_FOLD_PATH,
-  CURTAIN_LIGHT_PATH,
-  CURTAIN_PATH,
   EYE_LASH_PATH,
   EYE_PATH,
   EYE_SHUT_PATH,
   HAND_PATH,
   SWAP_HEADS_PATH,
   SWAP_LINES_PATH,
-} from "./shapes";
+} from "../_shared/icons";
+import type { MinigameBridge } from "../types";
+import { ITEM_ART, ITEM_BOX, type ItemPart } from "./items";
+import { CURTAIN_FOLD_PATH, CURTAIN_LIGHT_PATH, CURTAIN_PATH } from "./shapes";
 
 /*
  * Ai vừa biến mất — đặc tả: docs/04-minigames/who-vanished.md (mục "Ghi chú cho FE").

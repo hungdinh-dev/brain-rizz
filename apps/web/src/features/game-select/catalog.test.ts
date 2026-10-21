@@ -1,4 +1,9 @@
-import { GAME_IDS, type PartyStateView, type PlayerView } from "@brain-rizz/shared";
+import {
+  GAME_IDS,
+  type PartyStateView,
+  PLANNED_GAME_COUNT,
+  type PlayerView,
+} from "@brain-rizz/shared";
 import { describe, expect, it } from "vitest";
 import { CATALOG, desktopSoonLayout, tallyVotes, topVoted, UPCOMING, wheelSlices } from "./catalog";
 
@@ -17,11 +22,12 @@ function party(over: Partial<PartyStateView>): PartyStateView {
 const player = (id: string) => ({ id, name: id }) as PlayerView;
 
 describe("danh mục game", () => {
-  it("có đủ 17 game, id không trùng, mọi game đã đăng ký đều nằm trong danh mục", () => {
+  it("có đủ PLANNED_GAME_COUNT (31) game, id không trùng, mọi game đã đăng ký đều nằm trong danh mục", () => {
     const ids = CATALOG.map((g) => g.id);
-    expect(new Set(ids).size).toBe(17);
+    expect(PLANNED_GAME_COUNT).toBe(31);
+    expect(new Set(ids).size).toBe(PLANNED_GAME_COUNT);
     for (const id of GAME_IDS) expect(ids).toContain(id);
-    expect(UPCOMING.length).toBe(17 - GAME_IDS.length);
+    expect(UPCOMING.length).toBe(PLANNED_GAME_COUNT - GAME_IDS.length);
   });
 });
 

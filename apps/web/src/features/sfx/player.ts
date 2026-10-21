@@ -52,12 +52,15 @@ function playBuffer(
   buffer: AudioBuffer,
   accent: boolean,
   sources: Sources,
+  when: number | undefined,
 ) {
   const source = ctx.createBufferSource();
   source.buffer = buffer;
   if (accent) source.playbackRate.value = ACCENT_RATE;
   source.connect(out);
-  source.start();
+  // Mốc đã qua → Web Audio phát ngay.
+  if (when === undefined) source.start();
+  else source.start(Math.max(0, when));
   sources.push(source);
 }
 
@@ -179,8 +182,10 @@ function playSynth(
   kind: SfxKind,
   accent: boolean,
   sources: Sources,
+  when: number | undefined,
 ) {
-  const t0 = ctx.currentTime + 0.005;
+  // Không có `when` (hay mốc đã qua): phát ngay như trước.
+  const t0 = Math.max(ctx.currentTime + 0.005, when ?? 0);
   for (const voice of recipeFor(kind, accent)) playVoice(ctx, out, voice, t0, sources);
 }
 
@@ -203,6 +208,23 @@ export interface PlaySfxOptions {
   accent?: boolean;
   /** Nhân âm lượng của riêng lần phát này (0–1), vd. tiếng tick nhỏ hơn ở màn vinh danh. */
   volume?: number;
+  /**
+   * Mốc phát theo đồng hồ AudioContext (giây, cùng gốc với `sfxNow()`). Dùng để xếp lịch trước
+   * cả một chuỗi tiếng cho đúng nhịp (câu trống Nhại nhịp) thay vì gọi từng tiếng theo hẹn giờ
+   * khung hình (lệch ±16 ms). Bỏ trống hoặc mốc đã qua → phát ngay.
+   */
+  when?: number;
+}
+
+/**
+ * Giờ hiện tại của đồng hồ âm thanh (giây, `AudioContext.currentTime`) làm gốc cho `when`.
+ * `null` khi lúc này không phát được (đã tắt sfx, chưa mở khoá, không có Web Audio): nơi gọi chỉ
+ * chạy phần hình.
+ */
+export function sfxNow(): number | null {
+  if (!useSfx.getState().enabled) return null;
+  const ctx = peekAudioContext();
+  return ctx?.state === "running" ? ctx.currentTime : null;
 }
 
 /** Dừng một tiếng đang phát (tắt nhanh ~30 ms). Gọi nhiều lần hay khi đã hết tiếng đều vô hại. */
@@ -225,8 +247,8 @@ export function playSfx(kind: SfxKind, options: PlaySfxOptions = {}): StopSfx {
     const sources: Sources = [];
     const accent = options.accent === true;
     const buffer = buffers.get(kind);
-    if (buffer) playBuffer(ctx, bus, buffer, accent, sources);
-    else playSynth(ctx, bus, kind, accent, sources);
+    if (buffer) playBuffer(ctx, bus, buffer, accent, sources, options.when);
+    else playSynth(ctx, bus, kind, accent, sources, options.when);
     let stopped = false;
     return () => {
       if (stopped) return;

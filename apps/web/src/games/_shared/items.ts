@@ -1,7 +1,8 @@
 import type { BalanceItem } from "@brain-rizz/shared";
 
 /**
- * Hình 8 vật của Cân não, dùng chung cho scene (vẽ ra canvas) và hình minh hoạ (SVG).
+ * Hình 8 vật của Cân não, dùng chung cho scene (vẽ ra canvas) và hình minh hoạ (SVG); Lật cặp và
+ * Ai vừa biến mất dùng lại đúng bộ hình này.
  * Nguồn: bản mẫu BalanceLevels / BalanceStates (canvas Brain Rizz, trang Minigame).
  *
  * Đổi bộ vật (vd. sang khối gỗ khắc hình sau chơi thử): chỉ thay `FOOD` và `ITEM_ART`, giữ khoá

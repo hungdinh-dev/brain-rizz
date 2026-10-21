@@ -9,7 +9,7 @@ import {
 } from "@brain-rizz/shared";
 
 /**
- * Danh mục 17 minigame (CR-012) theo docs/04-minigames/README.md (chỉ id + nhóm, tên ở i18n `catalog.<id>`).
+ * Danh mục 31 minigame (CR-012 → CR-014) theo docs/04-minigames/README.md (chỉ id + nhóm, tên ở i18n `catalog.<id>`).
  * Game đã đăng ký trong `GAMES` được chơi; game còn lại hiện thẻ "Sắp có" ở màn Chọn game.
  */
 export const CATALOG = [
@@ -17,19 +17,33 @@ export const CATALOG = [
   { id: "shadow-match", category: "identify" },
   { id: "whack-right", category: "identify" },
   { id: "aim-trainer", category: "identify" },
+  { id: "cup-shuffle", category: "identify" },
+  { id: "crowd-search", category: "identify" },
+  { id: "navon-shapes", category: "identify" },
   { id: "light-trail", category: "memorize" },
   { id: "who-vanished", category: "memorize" },
   { id: "pair-flip", category: "memorize" },
+  { id: "stack-recall", category: "memorize" },
+  { id: "rhythm-echo", category: "memorize" },
   { id: "balance", category: "analyze" },
   { id: "cube-count", category: "analyze" },
   { id: "marble-drop", category: "analyze" },
   { id: "chalk-arrows", category: "analyze" },
+  { id: "bead-pattern", category: "analyze" },
+  { id: "latin-cell", category: "analyze" },
+  { id: "rule-gate", category: "analyze" },
   { id: "number-balloons", category: "compute" },
   { id: "hit-target", category: "compute" },
   { id: "cash-count", category: "compute" },
+  { id: "head-count", category: "compute" },
+  { id: "best-basket", category: "compute" },
+  { id: "number-path", category: "compute" },
   { id: "rotate-match", category: "visualize" },
   { id: "top-view", category: "visualize" },
   { id: "fold-box", category: "visualize" },
+  { id: "piece-fit", category: "visualize" },
+  { id: "circuit-link", category: "visualize" },
+  { id: "pour-line", category: "visualize" },
 ] as const satisfies readonly { id: string; category: Category }[];
 
 export type CatalogEntry = (typeof CATALOG)[number];
