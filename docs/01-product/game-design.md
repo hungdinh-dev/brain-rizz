@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Thiết kế — phần luật chơi và cảm giác chơi |
-| Phiên bản tài liệu | 1.3 · 2026-10-16 — luật Kiểm tra não và Điểm Não theo [CR-009](../00-tracking/change-requests.md#cr-009) |
+| Phiên bản tài liệu | 1.4 · 2026-10-20 — danh mục 31 minigame và điểm chuẩn Kiểm tra não theo [CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014) |
 | Liên quan | [SRS](srs.md) (yêu cầu), [UI/UX](ui-ux.md) (màn hình), [Minigame](../04-minigames/README.md) (đặc tả từng game) |
 | Cập nhật khi | Đổi luật, điểm, độ khó, chế độ chơi — đổi luật nào cũng phải ghi [CR](../00-tracking/change-requests.md) |
 
@@ -115,19 +115,33 @@ Hai nhánh nối trơn tại `r = 1` (cùng độ dốc). Nhánh trên giảm d�
 | Nhận diện | Kẻ lạc đàn | 30 s | 1,3 s · 4 % (ước; đặc tả chưa có bảng Cân bằng) | 17,4 · 16,7 | **3 350** | × 1,33 | × 0,73 |
 | Nhận diện | Bóng của ai | 30 s | 2,0 s · 8 % | 12,2 · 11,2 | **2 050** | × 1,41 | × 0,68 |
 | Nhận diện | Luyện ngắm | 30 s | 0,675 s · 2 % (bỏ lỡ tốn trọn 1,5 s; bia mới hiện ngay, 0–0,05 s) | 39,8 · 39,1 | **8 350** | × 1,38 | × 0,72 |
+| Nhận diện | Tìm bạn | 30 s | 2,5 s · 7 % | 10,0 · 9,3 | **1 600** | × 1,47 | × 0,66 |
+| Nhận diện | Hình to hình nhỏ | 30 s | 1,25 s · 5 % | 18,4 · 17,5 | **3 450** | × 1,34 | × 0,72 |
+| Nhận diện | Tráo cốc | 30 s | xem + tráo 3,4 s (miễn trừ) + chọn 0,8 s · 10 % | 6,0 · 5,4 | **900** | × 1,14 | × 0,96 |
 | Ghi nhớ | Theo dấu ánh đèn | 45 s | trình chiếu ~3,0 s + nhập 2,3 s · 10 % | 7,2 · 6,4 | **1 050** | × 1,23 | × 0,78 |
 | Ghi nhớ | Ai vừa biến mất | 45 s | xem + che 3,4 s + chọn 1,5 s · 10 % | 8,0 · 7,2 | **1 250** | × 1,15 | × 0,84 |
 | Ghi nhớ | Lật cặp | 45 s | phần xem của bàn + chạm 1,5 s · 12 % | 12,2 · 10,8 | **1 950** | × 1,22 | × 0,84 |
+| Ghi nhớ | Xếp lại tháp | 45 s | xem + che 2,9 s (miễn trừ) + nhập 2,0 s · 10 % | 8,0 · 7,2 | **1 250** | × 1,16 | × 0,82 |
+| Ghi nhớ | Nhại nhịp | 45 s | chờ 0,6 s + nghe câu nhịp + gõ lại · ~4 % (mô hình gõ chạy trên `check`) | 8,3 · 7,9 | **1 450** | × 1,05 | × 0,95 |
 | Phân tích | Cân não | 40 s | 3,0 s · 8 % | 11,6 · 10,6 | **1 850** | × 1,48 | × 0,65 |
 | Phân tích | Đếm khối | 40 s | 3,7 s · 8 % | 9,3 · 8,5 | **1 400** | × 1,53 | × 0,63 |
 | Phân tích | Bi rơi đâu | 40 s | 2,5 s · 10 % | 13,2 · 11,9 | **2 100** | × 1,43 | × 0,68 |
 | Phân tích | Phấn trượt | 40 s | 1,15 s · 6 % | ~26 · 24,5 | **4 900** | × 1,31 | × 0,74 |
+| Phân tích | Chuỗi quy luật | 40 s | 3,0 s · 8 % | 11,3 · 10,4 | **1 750** | × 1,49 | × 0,66 |
+| Phân tích | Ô bí ẩn | 40 s | 3,25 s · 8 % | 10,5 · 9,7 | **1 600** | × 1,50 | × 0,65 |
+| Phân tích | Cổng luật | 40 s | 1,15 s · 4 % (câu đầu khối luật mới 1,65 s · 10 %) | 24,8 · 23,6 | **4 750** | × 1,32 | × 0,73 |
 | Tính toán | Bóng bay số | 45 s | 4,9 s · 6 % | 8,0 · 7,6 | **1 250** | × 1,57 | × 0,61 |
 | Tính toán | Chạm đích | 45 s | 5,2 s · 6 % | 7,6 · 7,2 | **1 100** | × 1,61 | × 0,58 |
 | Tính toán | Đếm tiền nhanh | 45 s | 5,0 s · 7 % | 7,9 · 7,4 | **1 200** | × 1,59 | × 0,60 |
+| Tính toán | Đếm sĩ số | 45 s | trình chiếu ~4,5 s (miễn trừ) + chọn 1,5 s · 8 % | 6,7 · 6,2 | **1 050** | × 1,06 | × 0,84 |
+| Tính toán | Giỏ hời nhất | 45 s | 5,3 s · 7 % (miễn trừ 1,5 s) | 7,5 · 7,0 | **1 100** | × 1,62 | × 0,57 |
+| Tính toán | Đường số | 45 s | 4,5 s · 8 % | 8,7 · 8,0 | **1 200** | × 1,58 | × 0,60 |
 | Hình dung | Xoay hình | 40 s | 2,75 s · 10 % | 12,1 · 10,9 | **1 900** | × 1,45 | × 0,67 |
 | Hình dung | Nhìn từ trên | 40 s | 3,25 s · 10 % | 10,4 · 9,4 | **1 550** | × 1,49 | × 0,66 |
 | Hình dung | Gấp hộp | 40 s | 3,05 s · 10 % | 11,0 · 9,9 | **1 700** | × 1,48 | × 0,66 |
+| Hình dung | Mảnh vừa khít | 40 s | 2,8 s · 8 % | 12,1 · 11,1 | **1 900** | × 1,48 | × 0,67 |
+| Hình dung | Nối mạch | 40 s | 2,8 s · 8 % | 12,1 · 11,1 | **1 900** | × 1,47 | × 0,66 |
+| Hình dung | Rót vừa vạch | 40 s | bấm 0,55 s + giữ tới vạch (lệch tay σ 50 ms, trễ 20 ms) · ~6 % | 18,8 · 17,6 | **3 450** | × 1,09 | × 0,90 |
 
 Đối chiếu: các con số này khớp điểm vòng 60 s đã ghi trong đặc tả sau khi quy về thời lượng mới (vd. Bi rơi đâu ~3 220 điểm / 60 s ≈ 2 150 / 40 s; Theo dấu ánh đèn ~1 550 / 60 s ≈ 1 160 / 45 s, thấp hơn một chút vì 45 s mất trọn phần câu dở cuối vòng).
 
@@ -137,8 +151,9 @@ Hai nhánh nối trơn tại `r = 1` (cùng độ dốc). Nhánh trên giảm d�
 
 **Hạn chế đã biết**
 
-- Game Ghi nhớ có pha trình chiếu cố định nên người nhanh kéo điểm lên ít hơn (× 1,15–1,23 so với × 1,33–1,61 ở các game). Kỹ năng Ghi nhớ vì thế dồn quanh 100 hơn các kỹ năng khác. Chấp nhận ở bản này; xem lại khi có số đo thật.
+- Game Ghi nhớ có pha trình chiếu cố định nên người nhanh kéo điểm lên ít hơn (× 1,15–1,23 so với × 1,33–1,61 ở các game). Kỹ năng Ghi nhớ vì thế dồn quanh 100 hơn các kỹ năng khác. Chấp nhận ở bản này; xem lại khi có số đo thật. Hai game ngoài nhóm Ghi nhớ cũng có pha trình chiếu là Tráo cốc (× 1,14) và Đếm sĩ số (× 1,06), nên điểm chuẩn ước sai ở hai game này ảnh hưởng tới kỹ năng Nhận diện / Tính toán ít hơn các game khác cùng nhóm.
 - Nhóm Nhận diện có ba game nhưng điểm chuẩn ước theo cách khác nhau (Kẻ lạc đàn chưa có bảng Cân bằng). Luyện ngắm ăn điểm thô gấp ~2,5–4 lần hai game kia vì mỗi bia ~0,7 s (ngoại lệ đã chốt 2026-10-20); điểm chuẩn riêng của game đã bù phần này trong kỹ năng, nhưng bảng xếp hạng từng minigame của Luyện ngắm không so được với game khác. Cần đối chiếu lại khi có số đo thật.
+- Hai game có đáp án đo thời gian phía client (Rót vừa vạch, Nhại nhịp; [ADR 0013](../02-architecture/decisions/0013-client-timed-answers.md)) phân biệt người chơi gần như chỉ bằng độ chính xác (× 1,05–1,09 khi nhanh hơn 30 %), vì thời gian giữ tay / gõ nhịp là bắt buộc. Dung sai chốt sau khi đo trễ chạm trên Android tầm trung.
 
 **Biểu đồ 5 cạnh (màn kết quả)**
 
@@ -168,21 +183,35 @@ Hai nhánh nối trơn tại `r = 1` (cùng độ dốc). Nhánh trên giảm d�
 | Nhận diện | `shadow-match` | Bóng của ai | Chọn bóng đen khớp với đồ vật | Thêm lựa chọn, bóng bị xoay | |
 | Nhận diện | `whack-right` | Đập đúng hình | Hình nhô lên từ các lỗ, chỉ đập hình được yêu cầu | Nhanh hơn, thêm hình mồi nhử | |
 | Nhận diện | `aim-trainer` | Luyện ngắm | Bia tròn hiện ở chỗ bất kỳ, chạm trúng càng nhanh càng tốt | Bia nhỏ hơn, biến mất nếu chậm, co dần, thêm bia mồi đỏ | |
+| Nhận diện | `cup-shuffle` | Tráo cốc | Phấn úp dưới một cốc, các cốc tráo chỗ; hết tráo thì chạm cốc có phấn | Nhiều cốc, tráo nhanh hơn, xoay vòng 3 cốc, giấu 2 vật | |
+| Nhận diện | `crowd-search` | Tìm bạn | Thẻ vẽ một bạn (loài, mũ, đồ cầm, kính); chạm đúng bạn đó trong đám đông | Đám đông đông hơn, bạn gần giống chỉ khác 1 chi tiết, điều kiện "không" | |
+| Nhận diện | `navon-shapes` | Hình to hình nhỏ | Hình lớn ghép từ nhiều hình nhỏ khác loại; chọn hình lớn (hoặc hình nhỏ) | Hình nhỏ khác hình lớn, khung đổi câu hỏi, nút đổi chỗ | |
 | Ghi nhớ | `light-trail` | Theo dấu ánh đèn | Các ô sáng theo thứ tự, bấm lặp lại | Chuỗi dài hơn, bấm ngược | Có |
 | Ghi nhớ | `who-vanished` | Ai vừa biến mất | Xem nhóm đồ vật 3 giây, một món biến mất | Nhiều đồ hơn, đồ đổi chỗ | |
 | Ghi nhớ | `pair-flip` | Lật cặp | Lật thẻ tìm cặp giống nhau | Nhiều thẻ hơn, thời gian ngắn hơn | |
+| Ghi nhớ | `stack-recall` | Xếp lại tháp | Xem tháp khối rồi bị che; chạm khối ở khay theo thứ tự từ dưới lên | Tháp cao hơn, xem ngắn hơn, tầng lặp loại, khay đổi chỗ | |
+| Ghi nhớ | `rhythm-echo` | Nhại nhịp | Trống gõ một câu nhịp (mặt trống sáng theo tiếng); gõ lại bằng nửa trái / nửa phải màn hình | Nhiều tiếng hơn, hai mặt trống, chỗ nghỉ, nghịch phách, dung sai hẹp | |
 | Phân tích | `balance` | Cân não | Nhìn các cân thăng bằng, chọn vật nặng nhất | Nhiều cân và nhiều vật hơn | Có |
 | Phân tích | `cube-count` | Đếm khối | Đếm khối lập phương, kể cả khối bị che | Chồng cao và rộng hơn | |
 | Phân tích | `marble-drop` | Bi rơi đâu | Bi lăn qua ống rẽ nhánh, đoán lối ra | Nhiều nhánh, có công tắc đổi hướng | |
 | Phân tích | `chalk-arrows` | Phấn trượt | Nhóm mũi tên phấn trượt trên bảng: phấn trắng vuốt theo hướng mũi tên chỉ, phấn vàng vuốt theo hướng trượt | Nhiều mũi tên hơn, đổi màu thường hơn, hai hướng hay ngược nhau, thêm nét tẩy mờ | |
+| Phân tích | `bead-pattern` | Chuỗi quy luật | Chuỗi hạt xâu theo quy luật còn một chỗ trống; chọn hạt đúng | Hai thuộc tính đổi độc lập, số chấm tăng đều, hai luật xen kẽ, chỗ trống ở giữa | |
+| Phân tích | `latin-cell` | Ô bí ẩn | Lưới hình, mỗi hàng và mỗi cột có đủ mỗi hình một lần; chọn hình cho ô ? | Lưới lớn hơn, có khối, phải suy qua ô trung gian | |
+| Phân tích | `rule-gate` | Cổng luật | Từng bạn tới cổng; cho vào hay mời về theo luật vẽ trên bảng | Luật đổi giữa vòng, luật ghép VÀ / HOẶC, luật ẩn | |
 | Tính toán | `number-balloons` | Bóng bay số | Nổ bóng theo thứ tự số tăng dần | Số âm, phép tính trên bóng | Có |
 | Tính toán | `hit-target` | Chạm đích | Chọn các số cộng lại đúng số đích | Số lớn hơn, thêm phép trừ | |
 | Tính toán | `cash-count` | Đếm tiền nhanh | Cộng tổng tờ tiền mệnh giá VNĐ | Nhiều tờ hơn, tính tiền thối | |
+| Tính toán | `head-count` | Đếm sĩ số | Các bạn ra vào lớp; cửa đóng thì chọn số bạn còn trong lớp | Nhiều lượt hơn, nhanh hơn, vừa vào vừa ra, thầy giáo đi lẫn | |
+| Tính toán | `best-basket` | Giỏ hời nhất | Chọn giỏ đồ ăn vặt nhiều sao nhất mà không lố tiền | Nhiều món hơn, cặp món thêm sao, ưu đãi mua 2 | |
+| Tính toán | `number-path` | Đường số | Các đường vẽ sẵn mang phép tính; chọn đường ra đúng số đích | Nhiều đường và phép hơn, ×2, ÷, số âm, đường đan nhau | |
 | Hình dung | `rotate-match` | Xoay hình | Hình nào là bản xoay (không phải lật gương) của hình mẫu | Hình phức tạp hơn, góc lẻ | Có |
 | Hình dung | `top-view` | Nhìn từ trên | Chọn hình chiếu từ trên xuống của khối 3D | Khối nhiều tầng hơn | |
 | Hình dung | `fold-box` | Gấp hộp | Hình trải phẳng nào gấp được thành khối đã cho | Mặt có hoạ tiết cần khớp | |
+| Hình dung | `piece-fit` | Mảnh vừa khít | Hộp lưới còn một khoảng trống; chọn mảnh lấp vừa khít (chỉ xoay, không lật) | Mảnh nhiều ô hơn, góc xoay bất kỳ, nhiễu là bản lật gương | |
+| Hình dung | `circuit-link` | Nối mạch | Dây từ pin tới bóng đèn còn thiếu một ô; chọn mảnh dây đúng hướng | Lưới lớn hơn, nhánh cụt, mảnh chữ T, thiếu 2 ô | |
+| Hình dung | `pour-line` | Rót vừa vạch | Giữ để rót nước vào bình, buông tay khi nước chạm vạch | Dung sai hẹp hơn, bình loe hoặc thót, rót nhanh dần, nửa trên bị che | |
 
-Thứ tự làm: 5 game MVP (mỗi nhóm một game) → thêm 5 game ở GĐ 2 → 7 game cuối ở GĐ 3 (5 game ban đầu + Luyện ngắm, Phấn trượt theo [CR-012](../00-tracking/change-requests.md#cr-012); tổng 17 game). Minigame hình khối (Đếm khối, Nhìn từ trên, Gấp hộp) vẽ isometric 2D trong Phaser, không dùng engine 3D.
+Thứ tự làm: 5 game MVP (mỗi nhóm một game) → thêm 5 game ở GĐ 2 → 7 game cuối ở GĐ 3 (5 game ban đầu + Luyện ngắm, Phấn trượt theo [CR-012](../00-tracking/change-requests.md#cr-012); tổng 17 game) → 14 game của [kế hoạch mở rộng](minigame-expansion.md), hai đợt 7 game ([CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014); tổng 31 game). Minigame hình khối (Đếm khối, Nhìn từ trên, Gấp hộp) vẽ isometric 2D trong Phaser, không dùng engine 3D.
 
 ### Quy tắc thiết kế một minigame mới
 
@@ -288,5 +317,6 @@ Mỗi nhân vật có 7 biểu cảm dùng chung (`idle` bình thường, `happy
 | 1.1 | 2026-10-10 | Vòng lặp chơi 9 bước, chọn game mỗi vòng, độ khó chọn theo từng game + chủ phòng giám sát, bỏ 3D | [CR-005](../00-tracking/change-requests.md#cr-005) |
 | 1.2 | 2026-10-12 | Hệ số điểm theo từng game, miễn trừ thời gian cho thưởng tốc độ, trần combo × 1,5, vòng 60 giây cho game mới, hiện đáp án đúng khi sai | [CR-006](../00-tracking/change-requests.md#cr-006) |
 | 1.3 | 2026-10-16 | Luật Kiểm tra não: độ khó cố định Thường, thời lượng theo nhóm, cách chọn game, điểm chuẩn từng game, thang kỹ năng 0–200 và Điểm Não 0–1 000, biểu đồ 5 cạnh; Luyện tập và Bảng xếp hạng lên GĐ 1–2 | [CR-009](../00-tracking/change-requests.md#cr-009) |
+| 1.4 | 2026-10-20 | Danh mục §5 thêm 14 game của kế hoạch mở rộng (tổng 31); bảng điểm chuẩn Kiểm tra não thêm 14 dòng, phiên bản luật 4; hạn chế đã biết về game đo thời gian phía client và game có pha trình chiếu ngoài nhóm Ghi nhớ | [CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

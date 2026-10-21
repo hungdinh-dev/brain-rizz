@@ -15,7 +15,8 @@ import { CUBE_COUNT_FALLBACK, CUBE_COUNT_MAX_ATTEMPTS, sampleCubeCountHeights } 
 const SEEDS = 10_000;
 /** Test chạy hết 10.000 seed × 4 mức cần hơn 5 giây mặc định. */
 const SLOW = 60_000;
-const seedOf = (i: number) => Math.imul(i + 1, 0x9e3779b1) >>> 0;
+/** Không nhân 0x9e3779b1 như `deriveSeed`: XOR triệt tiêu, 25 câu đầu trùng nhau. */
+const seedOf = (i: number) => (Math.imul(i, 0x27d4eb2f) + 0x165667b1) >>> 0;
 
 /** Mọi câu của 10.000 seed ở một mức (ghi nhớ để các test dùng chung). */
 const cache = new Map<Difficulty, CubeCountPuzzle[]>();

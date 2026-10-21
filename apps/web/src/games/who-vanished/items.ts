@@ -1,9 +1,9 @@
 import type { WhoVanishedItem } from "@brain-rizz/shared";
-import { type ArtPart, ITEM_ART as BALANCE_ART } from "../balance/items";
+import { type ArtPart, ITEM_ART as BALANCE_ART } from "../_shared/items";
 
 /**
  * Hình 16 món của Ai vừa biến mất, dùng chung cho scene (vẽ ra canvas) và hình minh hoạ (SVG).
- * - 8 món đầu dùng lại đúng hình của Cân não (balance/items.ts), như đặc tả yêu cầu.
+ * - 8 món đầu dùng lại đúng hình của Cân não (_shared/items.ts), như đặc tả yêu cầu.
  * - cherry, pineapple, lemon, pumpkin, apple-bitten lấy từ bản mẫu M10 (WhoVanishedStates, "Bộ vật").
  * - corn, banana-peeled, watermelon-whole chưa có trong bản mẫu: frontend-dev vẽ theo cùng kiểu
  *   (hộp 112, cao ~100, viền mực 6), chờ ui-designer duyệt.

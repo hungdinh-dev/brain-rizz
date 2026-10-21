@@ -12,6 +12,12 @@ export const BRAIN_TEST_INTRO_IDLE_MS = 5 * 60_000;
 /** Mã đóng kết nối (WebSocket close code) khi phòng Kiểm tra não bị đóng vì chờ quá lâu ở `intro`. */
 export const BRAIN_TEST_IDLE_CLOSE_CODE = 4_100;
 
+/**
+ * Tổng số minigame theo kế hoạch (FR-MG-05, CR-014), kể cả game chưa có code. Bằng số dòng của
+ * `CATALOG` ở màn Chọn game (test `catalog.test.ts` kiểm) và bảng docs/04-minigames/README.md.
+ */
+export const PLANNED_GAME_COUNT = 31;
+
 export const MAX_PLAYERS = 8;
 /** Số người tối thiểu để chủ phòng bắt đầu trận (FR-PH-11). */
 export const MIN_PLAYERS_TO_START = 2;

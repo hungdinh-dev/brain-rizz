@@ -193,6 +193,37 @@ export const SYNTH_RECIPES: Record<SfxKind, readonly Voice[]> = {
   ],
   drumroll: drumrollRecipe(),
   fanfare: fanfareRecipe(),
+  // Trống trái (Nhại nhịp): "tùng" trầm — sine trượt 165 → 80 Hz tắt nhanh, thêm một nốt
+  // triangle ngắn cao hơn quãng tám để loa điện thoại (yếu dưới ~200 Hz) vẫn nghe rõ, và một
+  // chút nhiễu lọc thấp cho tiếng da trống.
+  "drum-low": [
+    { type: "sine", freq: 165, to: 80, start: 0, dur: 0.18, peak: 0.9, attack: 0.002 },
+    { type: "triangle", freq: 330, to: 160, start: 0, dur: 0.06, peak: 0.3, attack: 0.002 },
+    {
+      noise: true,
+      start: 0,
+      dur: 0.04,
+      attack: 0.001,
+      peak: 0.3,
+      filters: [{ type: "lowpass", freq: 900 }],
+    },
+  ],
+  // Trống phải (Nhại nhịp): "tách" cao như snare — nhiễu lọc dải ~2 kHz, thêm thân trống
+  // triangle ngắn.
+  "drum-high": [
+    {
+      noise: true,
+      start: 0,
+      dur: 0.12,
+      attack: 0.001,
+      peak: 0.55,
+      filters: [
+        { type: "highpass", freq: 900 },
+        { type: "bandpass", freq: 2000, q: 0.8 },
+      ],
+    },
+    { type: "triangle", freq: 420, to: 260, start: 0, dur: 0.06, peak: 0.3, attack: 0.002 },
+  ],
 };
 
 /** Tiếng nhấn (giây cuối đếm ngược): blip cao hơn, dài hơn một chút. */
@@ -214,13 +245,18 @@ export function recipeDuration(voices: readonly Voice[]): number {
   return voices.reduce((max, v) => Math.max(max, voiceEnd(v)), 0);
 }
 
-/** Giới hạn độ dài: tiếng bấm ≤ 150 ms, đúng/sai ≤ 300 ms; tiếng vinh danh dài theo nhịp màn. */
+/**
+ * Giới hạn độ dài: tiếng bấm ≤ 150 ms, đúng/sai ≤ 300 ms; tiếng vinh danh dài theo nhịp màn;
+ * tiếng trống Nhại nhịp ≤ 200 ms, ngắn hơn khoảng ngắn nhất giữa hai tiếng (260 ms).
+ */
 const MAX_DURATION: Partial<Record<SfxKind, number>> = {
   correct: 0.3,
   wrong: 0.3,
   reveal: 0.25,
   drumroll: DRUMROLL_SECONDS,
   fanfare: 1.6,
+  "drum-low": 0.2,
+  "drum-high": 0.2,
 };
 
 export function maxDurationOf(kind: SfxKind): number {

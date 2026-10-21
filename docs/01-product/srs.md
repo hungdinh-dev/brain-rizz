@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Phân tích yêu cầu |
-| Phiên bản tài liệu | 1.9 · 2026-10-20 — Danh mục lên 17 minigame theo [CR-012](../00-tracking/change-requests.md#cr-012) |
+| Phiên bản tài liệu | 1.10 · 2026-10-20 — Danh mục lên 31 minigame theo [CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014) |
 | Đầu vào | [Yêu cầu nghiệp vụ](brd.md) |
 | Đầu ra cho | [Thiết kế game](game-design.md), [UI/UX](ui-ux.md), [Kiến trúc](../02-architecture/overview.md), [Kiểm thử](../03-guides/testing.md) |
 | Cập nhật khi | Thêm/đổi use case hoặc yêu cầu — tăng phiên bản tài liệu và ghi vào [Lịch sử thay đổi](#9-lịch-sử-thay-đổi-tài-liệu) |
@@ -484,7 +484,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-MG-02 | Mỗi minigame có 4 mức độ khó khác nhau rõ rệt và đúng một đáp án mỗi câu (kiểm bằng test 10.000 seed) | UC-07 | M | 0–3 |
 | FR-MG-03 | Mỗi minigame có tên và câu hướng dẫn bằng tiếng Việt và tiếng Anh | UC-07 | M | 0–3 |
 | FR-MG-04 | Scene minigame tải theo nhu cầu (chunk riêng), huỷ khi rời vòng | UC-07 | M | 0 |
-| FR-MG-05 | Đủ 5 game MVP (GĐ 1), 10 game (GĐ 2), 17 game (GĐ 3; 15 game ban đầu + Luyện ngắm, Phấn trượt theo [CR-012](../00-tracking/change-requests.md#cr-012)) | UC-07 | M | 1–3 |
+| FR-MG-05 | Đủ 5 game MVP (GĐ 1), 10 game (GĐ 2), 31 game (GĐ 3; 15 game ban đầu + Luyện ngắm, Phấn trượt theo [CR-012](../00-tracking/change-requests.md#cr-012) + 14 game của [kế hoạch mở rộng](minigame-expansion.md) theo [CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014)) | UC-07 | M | 1–3 |
 
 ### 4.5 Giao diện & trải nghiệm (GD)
 
@@ -609,5 +609,6 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | 1.7 | 2026-10-19 | Điểm và danh hiệu theo thể loại trong trận party: thêm FR-VC-21, FR-MR-16, dòng Dữ liệu `match_results.category_scores` / `category_titles`. Vinh danh hồi hộp và nút Hiệu ứng: viết lại UC-08 bước 5 (thêm 5a, 5b), FR-GD-06; thêm FR-GD-12, UC-11 luồng rẽ 1c | [CR-010](../00-tracking/change-requests.md#cr-010) |
 | 1.8 | 2026-10-20 | Chat real-time trong phòng party: thêm UC-22, FR-PH-14 → FR-PH-19, NFR-SEC-04; dòng Dữ liệu (tin chat trong RAM phòng, danh sách tắt tiếng trên máy), ma trận truy vết | [CR-011](../00-tracking/change-requests.md#cr-011) |
 | 1.9 | 2026-10-20 | Danh mục minigame 15 → 17 (thêm Luyện ngắm, Phấn trượt): sửa FR-MG-05 | [CR-012](../00-tracking/change-requests.md#cr-012) |
+| 1.10 | 2026-10-20 | Danh mục minigame 17 → 31 (14 game của kế hoạch mở rộng, hai đợt 7 game): sửa FR-MG-05 | [CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

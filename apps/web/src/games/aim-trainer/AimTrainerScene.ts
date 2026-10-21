@@ -10,9 +10,10 @@ import {
 import Phaser from "phaser";
 import { prefersReducedMotion } from "@/features/motion";
 import { currentLanguage } from "@/i18n";
+import { ignoredByServer, planResync } from "../_shared/resync";
 import type { ConnectionEvent, MinigameBridge, SceneResync } from "../types";
 import { sceneText } from "./locales";
-import { HitTally, ignoredByServer, planResync } from "./sync";
+import { HitTally } from "./sync";
 
 /*
  * Luyện ngắm — đặc tả: docs/04-minigames/aim-trainer.md (mục "Ghi chú cho FE").

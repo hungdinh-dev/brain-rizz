@@ -334,7 +334,7 @@ export const vi = {
     other: "hạng {{n}}",
   },
   /**
-   * Danh mục 15 minigame (docs/04-minigames/README.md) — chỉ dùng cho game CHƯA có code
+   * Danh mục 31 minigame (docs/04-minigames/README.md) — chỉ dùng cho game CHƯA có code
    * (thẻ "Sắp có" ở màn Chọn game). Game đã làm lấy tên ở `src/games/<id>/locales.ts`.
    */
   catalog: {
@@ -342,19 +342,33 @@ export const vi = {
     "shadow-match": { name: "Bóng của ai", desc: "Chọn bóng đen khớp với đồ vật" },
     "aim-trainer": { name: "Luyện ngắm", desc: "Chạm thật nhanh vào hồng tâm" },
     "whack-right": { name: "Đập đúng hình", desc: "Chỉ đập hình được yêu cầu" },
+    "cup-shuffle": { name: "Tráo cốc", desc: "Dõi theo cốc úp cục phấn" },
+    "crowd-search": { name: "Tìm bạn", desc: "Tìm đúng bạn giữa đám đông" },
+    "navon-shapes": { name: "Hình to hình nhỏ", desc: "Chọn hình to hay hình nhỏ theo khung" },
     "light-trail": { name: "Theo dấu ánh đèn", desc: "Xem đèn sáng, chạm lại đúng thứ tự" },
     "who-vanished": { name: "Ai vừa biến mất", desc: "Nhớ đồ vật, tìm món biến mất" },
     "pair-flip": { name: "Lật cặp", desc: "Lật thẻ tìm cặp giống nhau" },
+    "stack-recall": { name: "Xếp lại tháp", desc: "Nhớ tháp khối, xếp lại từ dưới lên" },
+    "rhythm-echo": { name: "Nhại nhịp", desc: "Nghe trống gõ, gõ lại y hệt" },
     balance: { name: "Cân não", desc: "Nhìn các cân, chọn vật nặng nhất" },
     "cube-count": { name: "Đếm khối", desc: "Đếm khối lập phương, kể cả khối bị che" },
     "marble-drop": { name: "Bi rơi đâu", desc: "Đoán bi lăn ra ở lối nào" },
     "chalk-arrows": { name: "Phấn trượt", desc: "Phấn trắng theo mũi, phấn vàng theo trượt" },
+    "bead-pattern": { name: "Chuỗi quy luật", desc: "Tìm hạt còn thiếu trong chuỗi" },
+    "latin-cell": { name: "Ô bí ẩn", desc: "Hình nào làm đủ hàng và cột?" },
+    "rule-gate": { name: "Cổng luật", desc: "Khớp vé thì cho vào, sai mời về" },
     "number-balloons": { name: "Bóng bay số", desc: "Nổ bóng theo số tăng dần" },
     "hit-target": { name: "Chạm đích", desc: "Chọn các số cộng lại đúng số đích" },
     "cash-count": { name: "Đếm tiền nhanh", desc: "Cộng tổng các tờ tiền" },
+    "head-count": { name: "Đếm sĩ số", desc: "Bạn vào, bạn ra: còn mấy bạn?" },
+    "best-basket": { name: "Giỏ hời nhất", desc: "Nhiều sao nhất mà không lố tiền" },
+    "number-path": { name: "Đường số", desc: "Chọn đường tính ra đúng số đích" },
     "rotate-match": { name: "Xoay hình", desc: "Tìm bản xoay của hình mẫu, tránh bản lật" },
     "top-view": { name: "Nhìn từ trên", desc: "Chọn hình nhìn từ trên xuống" },
     "fold-box": { name: "Gấp hộp", desc: "Hình trải phẳng nào gấp thành khối" },
+    "piece-fit": { name: "Mảnh vừa khít", desc: "Chọn mảnh lấp vừa khoảng trống" },
+    "circuit-link": { name: "Nối mạch", desc: "Chọn mảnh dây cho bóng đèn sáng" },
+    "pour-line": { name: "Rót vừa vạch", desc: "Giữ để rót, buông đúng vạch" },
   },
   /** Chat trong phòng party (CR-011, ui-ux 6.5). */
   chat: {

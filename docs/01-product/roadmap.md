@@ -114,7 +114,7 @@ Mã trong ngoặc trỏ tới [SRS](srs.md).
 - [ ] ~~Tài khoản, Luyện tập, Kiểm tra não~~ — dời lên GĐ 1 theo [CR-009](../00-tracking/change-requests.md#cr-009)
 - [ ] Đấu bóng ma (UC-15)
 - [ ] Mũ phần thưởng khi lập kỷ lục (FR-MR-05)
-- [ ] Đủ 17 minigame (15 game ban đầu + Luyện ngắm, Phấn trượt theo [CR-012](../00-tracking/change-requests.md#cr-012))
+- [ ] Đủ 31 minigame (15 game ban đầu + Luyện ngắm, Phấn trượt theo [CR-012](../00-tracking/change-requests.md#cr-012) + 14 game của [kế hoạch mở rộng](minigame-expansion.md) theo [CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014))
 - [x] i18n tiếng Anh — đã làm sớm ở GĐ 0 ([CR-001](../00-tracking/change-requests.md#cr-001))
 
 **Cổng 3 (phát hành 1.0):** đạt toàn bộ tiêu chí chấp nhận ở [BRD](brd.md#6-tiêu-chí-chấp-nhận-ở-mức-nghiệp-vụ) và checklist phát hành ở [Kiểm thử](../03-guides/testing.md#7-checklist-trước-khi-phát-hành).

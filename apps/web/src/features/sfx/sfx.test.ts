@@ -126,6 +126,25 @@ describe("tiếng tổng hợp", () => {
     expect(freqOf(recipeFor("tick", true))).toBeGreaterThan(freqOf(recipeFor("tick")));
     expect(recipeFor("click", true)).toBe(SYNTH_RECIPES.click);
   });
+
+  it("trống Nhại nhịp: trống trái trầm hơn trống phải, mỗi tiếng ≤ 200 ms (khoảng ngắn nhất 260 ms)", () => {
+    const lowest = (voices: readonly unknown[]) =>
+      Math.min(
+        ...(voices as Tone[])
+          .filter((v) => !isNoise(v))
+          .map((v) => Math.min(v.freq, v.to ?? v.freq)),
+      );
+    const low = SYNTH_RECIPES["drum-low"];
+    const high = SYNTH_RECIPES["drum-high"];
+    expect(lowest(low)).toBeLessThan(lowest(high));
+    expect(lowest(low)).toBeLessThan(120);
+    // Trống phải là tiếng nhiễu lọc dải quanh 2 kHz (snare).
+    expect(high.filter(isNoise).flatMap((v) => v.filters.map((f) => f.freq))).toContain(2000);
+    for (const voices of [low, high]) {
+      expect(recipeDuration(voices)).toBeLessThanOrEqual(0.2);
+      expect(recipeDuration(voices)).toBeGreaterThan(0.05);
+    }
+  });
 });
 
 describe("sfxUrlsFromGlob", () => {

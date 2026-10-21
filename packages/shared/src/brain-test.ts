@@ -15,7 +15,8 @@ import { createRng, deriveSeed } from "./rng";
  */
 // 2: thêm Bóng của ai vào nhóm Nhận diện (2026-10-20).
 // 3: thêm Luyện ngắm (Nhận diện) và Phấn trượt (Phân tích), CR-012 (2026-10-20).
-export const BRAIN_TEST_RULES_VERSION = 3;
+// 4: thêm 14 game của kế hoạch mở rộng vào cả 5 nhóm, CR-013 + CR-014 (2026-10-20).
+export const BRAIN_TEST_RULES_VERSION = 4;
 
 /** Số game trong một lượt: mỗi nhóm kỹ năng một game. */
 export const BRAIN_TEST_GAME_COUNT = CATEGORIES.length;
@@ -88,6 +89,20 @@ export const BRAIN_TEST_REFERENCE_SCORE: Readonly<Record<GameId, number>> = {
   "shadow-match": 2050,
   "aim-trainer": 8350,
   "chalk-arrows": 4900,
+  "cup-shuffle": 900,
+  "stack-recall": 1250,
+  "bead-pattern": 1750,
+  "head-count": 1050,
+  "piece-fit": 1900,
+  "latin-cell": 1600,
+  "circuit-link": 1900,
+  "crowd-search": 1600,
+  "best-basket": 1100,
+  "pour-line": 3450,
+  "navon-shapes": 3450,
+  "rhythm-echo": 1450,
+  "rule-gate": 4750,
+  "number-path": 1200,
   // @new-game:brain-reference
 };
 

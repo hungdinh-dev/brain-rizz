@@ -1,8 +1,8 @@
 import { type BalanceItem, WRONG_ANSWER_LOCK_MS } from "@brain-rizz/shared";
 import { useNumberFormat } from "@/hooks/use-number-format";
 import { cn } from "@/lib/utils";
-import { ITEM_ART, partKey } from "../balance/items";
-import { EYE_PATH, HAND_PATH } from "../light-trail/shapes";
+import { EYE_PATH, HAND_PATH } from "../_shared/icons";
+import { ITEM_ART, partKey } from "../_shared/items";
 
 /** Nét phấn sần: filter SVG #chalk khai báo một lần trong <ChalkDefs /> của App. */
 const CHALK = "filter-[url(#chalk)]";

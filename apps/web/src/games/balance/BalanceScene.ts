@@ -6,8 +6,8 @@ import {
 } from "@brain-rizz/shared";
 import Phaser from "phaser";
 import { prefersReducedMotion } from "@/features/motion";
+import { type ArtPart, ITEM_ART, ITEM_BOX } from "../_shared/items";
 import { DESIGN_WIDTH, type MinigameBridge } from "../types";
-import { type ArtPart, ITEM_ART, ITEM_BOX } from "./items";
 
 /*
  * Cân não — đọc các cân đĩa, chạm vật nặng nhất ở hàng lựa chọn bên dưới.

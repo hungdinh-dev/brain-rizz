@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { HAND_PATH } from "./shapes";
+import { HAND_PATH } from "../_shared/icons";
 
 /** Lưới 3×3 thu nhỏ: ô 52, bước 66; góc trên trái của nửa trái (Xem) và nửa phải (Chạm lại). */
 const CELL = 52;

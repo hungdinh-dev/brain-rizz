@@ -32,17 +32,45 @@ class FakeContext {
   oscillators = 0;
   bufferSources = 0;
   decoded: unknown[] = [];
+  /** Mốc `start(when)` của mọi nguồn âm đã xếp (undefined = gọi `start()` không mốc). */
+  starts: (number | undefined)[] = [];
   createGain() {
     return { gain: param(), connect() {} };
   }
   createOscillator() {
     this.oscillators += 1;
-    return { type: "", frequency: param(), connect() {}, start() {}, stop() {} };
+    const starts = this.starts;
+    return {
+      type: "",
+      frequency: param(),
+      detune: param(),
+      connect() {},
+      start(when?: number) {
+        starts.push(when);
+      },
+      stop() {},
+    };
   }
   createBufferSource() {
     this.bufferSources += 1;
-    return { buffer: null, playbackRate: param(), connect() {}, start() {} };
+    const starts = this.starts;
+    return {
+      buffer: null,
+      playbackRate: param(),
+      connect() {},
+      start(when?: number) {
+        starts.push(when);
+      },
+      stop() {},
+    };
   }
+  createBiquadFilter() {
+    return { type: "", frequency: param(), Q: param(), connect() {} };
+  }
+  createBuffer(_channels: number, length: number) {
+    return { sampleRate: 48_000, getChannelData: () => new Float32Array(length) };
+  }
+  sampleRate = 48_000;
   decodeAudioData(data: ArrayBuffer) {
     this.decoded.push(data);
     return Promise.resolve({ duration: 0.1 });
@@ -122,8 +150,45 @@ describe("player", () => {
 
   it("context chưa chạy (chưa mở khoá) → im, không xếp tiếng", async () => {
     ctx.state = "suspended";
-    const { playSfx } = await loadPlayer();
+    const { playSfx, sfxNow } = await loadPlayer();
     playSfx("tick");
     expect(ctx.oscillators).toBe(0);
+    expect(sfxNow()).toBeNull();
+  });
+
+  it("when: xếp lịch theo đồng hồ AudioContext; không có when hay mốc đã qua → phát ngay", async () => {
+    ctx.currentTime = 10;
+    const { playSfx, sfxNow } = await loadPlayer();
+    expect(sfxNow()).toBe(10);
+    // Tiếng tổng hợp: mọi giọng của trống bắt đầu đúng mốc đã hẹn.
+    playSfx("drum-low", { when: 10.75 });
+    expect(ctx.starts.length).toBeGreaterThan(0);
+    for (const t of ctx.starts) expect(t).toBeCloseTo(10.75, 6);
+    ctx.starts = [];
+    playSfx("drum-high", { when: 3 });
+    for (const t of ctx.starts) expect(t).toBeCloseTo(10.005, 6);
+    ctx.starts = [];
+    playSfx("tick");
+    expect(ctx.starts).toEqual([10.005]);
+  });
+
+  it("when với tiếng từ file: start(when)", async () => {
+    mock.urls = { "drum-low": "/sfx/drum-low.mp3" };
+    const { preloadSfx, playSfx } = await loadPlayer();
+    preloadSfx();
+    await flush();
+    playSfx("drum-low", { when: 2.5 });
+    expect(ctx.bufferSources).toBe(1);
+    expect(ctx.starts).toEqual([2.5]);
+  });
+
+  it("sfx đã tắt → sfxNow null, không phát", async () => {
+    const { playSfx, sfxNow } = await loadPlayer();
+    const { useSfx } = await import("./sfx.store");
+    useSfx.setState({ enabled: false });
+    expect(sfxNow()).toBeNull();
+    playSfx("drum-low", { when: 1 });
+    expect(ctx.starts).toEqual([]);
+    useSfx.setState({ enabled: true });
   });
 });

@@ -15,6 +15,9 @@ export const SFX_KINDS = [
   "reveal",
   "drumroll",
   "fanfare",
+  // Nhại nhịp (CR-014): trống trái trầm, trống phải cao; scene xếp lịch bằng `when`.
+  "drum-low",
+  "drum-high",
 ] as const;
 
 export type SfxKind = (typeof SFX_KINDS)[number];

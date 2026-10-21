@@ -2,13 +2,13 @@
 
 | | |
 | --- | --- |
-| Giai đoạn SDLC | Lập kế hoạch: đề xuất, **chưa duyệt** |
-| Phiên bản tài liệu | 0.1 · 2026-10-20 · bản nháp đầu |
+| Giai đoạn SDLC | Lập kế hoạch: **đã duyệt cả 14 game** (2026-10-20), chia hai đợt 7 game theo [CR-013](../00-tracking/change-requests.md#cr-013) và [CR-014](../00-tracking/change-requests.md#cr-014) |
+| Phiên bản tài liệu | 0.2 · 2026-10-20 · chủ dự án duyệt, đang làm |
 | Nguồn ý tưởng | 21 trò của Pumer Party (pumgames.vercel.app/games/pumer-party), đọc từ bundle JS ngày 2026-10-20 |
 | Liên quan | [GDD](game-design.md) (luật, quy tắc thiết kế minigame), [Danh mục minigame](../04-minigames/README.md), [Yêu cầu thay đổi](../00-tracking/change-requests.md), [Lộ trình](roadmap.md) |
 | Cập nhật khi | Chủ dự án duyệt hoặc đổi danh sách game, xong một đợt, hoặc đặc tả chốt khác với bản này |
 
-> Đây là kế hoạch, chưa phải phạm vi. Mọi game dưới đây nằm ngoài [SRS](srs.md) nên phải có CR được duyệt trước khi làm ([Bước 0](#4-các-bước-cho-mỗi-đợt)). ID, tên và tham số độ khó là gợi ý; game-designer chốt khi viết đặc tả.
+> Cả 14 game đã vào phạm vi: CR-013 (Tráo cốc, Xếp lại tháp, Chuỗi quy luật, Đếm sĩ số, Mảnh vừa khít, Ô bí ẩn, Nối mạch) và CR-014 (7 game còn lại), SRS 1.10. Chủ dự án chọn làm luôn, chơi thử sau, nên khuyến nghị "chơi thử xong mới làm đợt sau" ở mục 4 không áp dụng cho lần này. ID, tên và tham số độ khó là gợi ý; game-designer chốt khi viết đặc tả.
 
 ## 1. Tóm tắt
 

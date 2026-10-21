@@ -38,6 +38,9 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 | [CR-010](#cr-010) | Vinh danh hồi hộp hơn, công tắc hiệu ứng chuyển động, danh hiệu và điểm theo thể loại trong trận party | 2026-10-19 | Thêm tính năng + thay đổi thiết kế | +1–2 ngày | Duyệt (2026-10-19) |
 | [CR-011](#cr-011) | Chat real-time trong phòng party: chữ + biểu cảm nhanh, lọc từ tục, chủ phòng tắt chat, tắt tiếng từng người | 2026-10-20 | Thêm tính năng | +1–2 ngày | Duyệt (2026-10-20) |
 | [CR-012](#cr-012) | Thêm 2 minigame ngoài SRS: Luyện ngắm (aim trainer, Nhận diện) và Phấn trượt (đổi luật theo màu, Phân tích) | 2026-10-20 | Thêm tính năng | +2–3 ngày | Duyệt (2026-10-20) |
+| [CR-013](#cr-013) | Mở rộng minigame từ nghiên cứu Pumer Party, đợt đầu 7 game: Tráo cốc, Xếp lại tháp, Chuỗi quy luật, Đếm sĩ số, Mảnh vừa khít, Ô bí ẩn, Nối mạch | 2026-10-20 | Thêm tính năng | +5–7 ngày | Duyệt (2026-10-20) |
+| [CR-014](#cr-014) | Mở rộng minigame, đợt hai 7 game còn lại của kế hoạch: Tìm bạn, Giỏ hời nhất, Rót vừa vạch, Hình to hình nhỏ, Nhại nhịp, Cổng luật, Đường số | 2026-10-20 | Thêm tính năng | +8–12 ngày | Duyệt (2026-10-20) |
+| [CR-015](#cr-015) | Vòng quay chọn game chỉ lấy 8 game chưa chơi (mỗi nhóm ít nhất 1 lát) thay cho 30 lát | 2026-10-20 | Đổi luật + thay đổi thiết kế | +0,5–1 ngày | Chờ duyệt |
 
 ---
 
@@ -314,6 +317,76 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 - **Quyết định:** **Duyệt** (2026-10-20, chủ dự án chọn qua câu hỏi: xếp vào 5 nhóm sẵn có; Siêu khó Luyện ngắm dùng mồi đỏ; làm chat trước). Giả định PM: id và tên tạm, chốt khi viết đặc tả.
 - **Tài liệu kéo theo:** SRS (số game 15 → 17, FR-MG), GDD, danh mục minigame, `CATALOG` ở màn Chọn game, features.md, roadmap.
 - **Kết quả:** đã làm (2026-10-20), chờ QA và chơi thử. Đặc tả [aim-trainer.md](../04-minigames/aim-trainer.md), [chalk-arrows.md](../04-minigames/chalk-arrows.md) và bản mẫu M16, M17. Bộ sinh câu đố ở `packages/shared/src/games/aim-trainer/` và `chalk-arrows/` (test 10.000 seed: tất định, đúng một đáp án, độ khó tăng dần); scene Phaser, màn hướng dẫn, chữ vi/en ở `apps/web/src/games/`; đã đăng ký ở `games/index.ts`, `registry.ts` và `CATALOG`. Cơ chế chung mới **hạn trả lời** `answerWindowMs` trong `judgeAnswer` (server từ chối đáp án tới sau khi bia Luyện ngắm đã biến mất). Kiểm tra não `BRAIN_TEST_RULES_VERSION` 2 → 3. SRS 1.9 (FR-MG-05 lên 17 game), GDD, danh mục minigame, features.md, roadmap, changelog đã sửa theo.
+
+### CR-013
+
+**Mở rộng minigame từ nghiên cứu Pumer Party: đợt đầu 7 game**
+
+- **Ngày mở:** 2026-10-20 · **Loại:** Thêm tính năng · **Người đề xuất:** chủ dự án
+- **Mô tả:** làm 7 game ít rủi ro nhất trong [kế hoạch mở rộng minigame](../01-product/minigame-expansion.md). Danh mục lên từ 17 lên 24 game: 5 game Đợt 1 là Tráo cốc (`cup-shuffle`, Nhận diện), Xếp lại tháp (`stack-recall`, Ghi nhớ), Chuỗi quy luật (`bead-pattern`, Phân tích), Đếm sĩ số (`head-count`, Tính toán), Mảnh vừa khít (`piece-fit`, Hình dung), cộng 2 game Đợt 2 không cần asset hay kiểu đáp án mới là Ô bí ẩn (`latin-cell`, Phân tích) và Nối mạch (`circuit-link`, Hình dung). Luật và độ khó theo mục 3.1–3.5, 3.7, 3.9 của kế hoạch.
+- **Lý do:** BR-10 (đa dạng nội dung để người chơi quay lại); mỗi nhóm kỹ năng có thêm game.
+- **Phân tích tác động:**
+  - *Trụ cột:* giữ "Nhẹ và rẻ": dùng Phaser, không thêm thư viện, không thêm asset ngoài.
+  - *Kỹ thuật:* mỗi game theo khuôn `pnpm new-game`. Cả 7 game đều chọn đáp án hoặc chạm, nên không đổi giao thức hay server. Kiểm tra não: thêm điểm chuẩn cho từng game và tăng `BRAIN_TEST_RULES_VERSION` một lần cho cả đợt.
+  - *Giao diện:* bố cục và cách tương tác tham khảo trò gốc của Pumer, nhưng tên, hình và chữ vẽ lại theo phong cách bảng phấn. Không chép code, hình hay chữ (trang Pumer không ghi giấy phép). Bản mẫu trên canvas Design làm sau; scene chỉnh lại theo bản mẫu.
+  - *Chi phí:* 0 đồng. *Lịch:* +5–7 ngày.
+- **Quyết định:** **Duyệt** (2026-10-20, chủ dự án yêu cầu bắt đầu code ngay 7 game, điều phối chọn danh sách). Giả định PM: chưa đợi chơi thử xong 11 game đang 🚧 (khác khuyến nghị của kế hoạch).
+- **Tài liệu kéo theo:** SRS (FR-MG-05 17 → 24, sau đó 31 cùng CR-014), GDD, danh mục minigame, `CATALOG`, features.md, roadmap, changelog.
+- **Kết quả:** đã làm (2026-10-20), chờ QA và chơi thử. Đủ 7 đặc tả `docs/04-minigames/<id>.md`, bộ sinh + test 10.000 seed (kèm test "không có mẹo đoán"), scene, màn hướng dẫn, hình minh hoạ, chữ vi/en; đã đăng ký ở `games/index.ts`, `registry.ts`, `CATALOG`; điểm chuẩn Kiểm tra não và `BRAIN_TEST_RULES_VERSION` 4 (chung với CR-014). Lệch kế hoạch, chốt lại sau chơi thử: Tráo cốc Mầm giữ 3 lượt (chiến lược "ô đầu + lượt cuối" vẫn trúng 50 %, giới hạn đã ghi); Đếm sĩ số nhiễu lệch tới ±3 (±1/±2 thì đáp án luôn ở hai thẻ giữa); Mảnh vừa khít Khó luôn có hai cặp gương (một cặp duy nhất làm lộ đáp án); Chuỗi quy luật hoa văn thứ ba là ca-rô, Khó bỏ "nhân đôi"; Xếp lại tháp Khó có tầng lặp ở 1/2 số câu; Ô bí ẩn Siêu khó là 2 ô trung gian độc lập (không phải chuỗi A → B → ?, **chờ chủ dự án xác nhận**).
+
+### CR-014
+
+**Mở rộng minigame, đợt hai: 7 game còn lại của kế hoạch**
+
+- **Ngày mở:** 2026-10-20 · **Loại:** Thêm tính năng · **Người đề xuất:** chủ dự án
+- **Mô tả:** làm nốt 7 game còn lại trong [kế hoạch mở rộng minigame](../01-product/minigame-expansion.md), nối tiếp CR-013. Danh mục lên từ 24 lên 31 game: Tìm bạn (`crowd-search`, Nhận diện), Giỏ hời nhất (`best-basket`, Tính toán), Rót vừa vạch (`pour-line`, Hình dung), Hình to hình nhỏ (`navon-shapes`, Nhận diện), Nhại nhịp (`rhythm-echo`, Ghi nhớ), Cổng luật (`rule-gate`, Phân tích), Đường số (`number-path`, Tính toán). Luật và độ khó theo mục 3.6, 3.8, 3.10–3.14 của kế hoạch.
+- **Lý do:** BR-10 (đa dạng nội dung); nhóm nào cũng có 5–7 game, Điểm Não ít phụ thuộc điểm chuẩn ước sai của một game.
+- **Phân tích tác động:**
+  - *Trụ cột:* giữ "Nhẹ và rẻ": dùng Phaser, không thêm thư viện, không thêm asset ngoài. Nhân vật và phụ kiện của Tìm bạn vẽ bằng SVG viết trong code (dùng lại `components/characters/specs`) rồi chuyển thành texture canvas, theo phong cách bảng phấn; không có file hình ngoài.
+  - *Kỹ thuật:* mỗi game theo khuôn `pnpm new-game`. Rót vừa vạch và Nhại nhịp có **đáp án đo thời gian phía client** (thời lượng giữ tay, khoảng cách giữa các lần gõ). Giao thức vẫn là `answer: unknown` + `isAnswer` của từng game, nên không đổi schema zod; ghi ADR về mức tin cậy và dung sai. Kiểm tra não: điểm chuẩn từng game, tăng `BRAIN_TEST_RULES_VERSION` một lần cho cả đợt.
+  - *Giao diện:* như CR-013, chỉ mượn cơ chế, không chép tên, hình, chữ hay code của Pumer. Nhại nhịp chơi được khi tắt tiếng (mặt trống sáng theo từng tiếng). Vòng quay 31 lát quá nhỏ: để CR riêng (kế hoạch mục 5), không làm ở đây.
+  - *Chi phí:* 0 đồng. *Lịch:* +8–12 ngày.
+- **Quyết định:** **Duyệt** (2026-10-20, chủ dự án yêu cầu làm tiếp luôn 7 game còn lại, chơi thử sau). Giả định PM: làm cả 4 game Đợt 3 mà chưa chơi thử Đợt 1–2 (kế hoạch khuyên chơi thử xong mới quyết); game nào chơi thử thấy trùng ý game cũ thì mở CR bỏ game.
+- **Tài liệu kéo theo:** SRS (FR-MG-05 24 → 31), GDD, danh mục minigame, `CATALOG`, ADR đáp án đo thời gian, features.md, roadmap, changelog.
+- **Kết quả:** đã làm (2026-10-20), chờ QA và chơi thử. Đủ 7 đặc tả, bộ sinh + test 10.000 seed (kèm test "không có mẹo đoán"), scene, màn hướng dẫn, hình minh hoạ, chữ vi/en, đã đăng ký; [ADR 0013](../02-architecture/decisions/0013-client-timed-answers.md) kết luận server và giao thức không cần đổi; Nhại nhịp thêm 2 tiếng trống Web Audio (`drum-low`, `drum-high`) và tham số `when` xếp lịch theo đồng hồ AudioContext. Lệch kế hoạch, chốt lại sau chơi thử: Giỏ hời nhất mỗi giỏ 2 món (3 món làm Siêu khó ~10 s một câu); Đường số Khó / Siêu khó 3 phép (giữ ≥ 8 câu mỗi vòng); Rót vừa vạch Siêu khó không rót nhanh dần mà mỗi câu một tốc độ cố định; Nhại nhịp Siêu khó giữ chỗ nghỉ của Khó, thêm phím ← A F / → D J; Cổng luật Siêu khó không có phủ định; Hình to hình nhỏ đáp án là chỉ số nút; Tìm bạn Mầm 6 loài (chỉ có 6 nhân vật). Cần đo trễ chạm trên Android tầm trung trước khi chốt dung sai của Rót vừa vạch và Nhại nhịp.
+
+### CR-015
+
+**Vòng quay chọn game: 8 lát thay cho 30 lát**
+
+- **Ngày mở:** 2026-10-20 · **Loại:** Đổi luật + thay đổi thiết kế · **Người đề xuất:** điều phối (từ [kế hoạch mở rộng minigame](../01-product/minigame-expansion.md) mục 5 và ghi chú ở CR-012, CR-014)
+- **Mô tả:** đổi luật "mỗi lát là một game chưa chơi" ở [GDD §2](../01-product/game-design.md#chọn-game-mỗi-vòng) để vòng quay luôn đọc được trên điện thoại khi danh mục lớn lên.
+- **Lý do:** danh mục có 30 game chơi được (31 trong `CATALOG`, Đập đúng hình chưa có code), nên vòng 1 có 30 lát. Mỗi lát rộng 12°, mép ngoài chỉ khoảng 30 px trên điện thoại (vòng quay rộng tối đa 320 px), chữ cao khoảng 13 px. Tên dài chồng lên nhau ở gần tâm, màu nhóm thành dải sọc, lúc quay không theo kịp lát nào đang qua kim. Nghi thức chọn game (BR-15) mất phần hồi hộp vì không ai đọc được mình sắp chơi gì. Danh mục còn tăng thì vòng quay càng dày.
+- **Các phương án:**
+
+  | | A. Quay hai bước: nhóm trước, game sau | **B. Vòng quay 8 lát (khuyến nghị)** | C. Bỏ vòng quay, dùng lưới đèn chạy |
+  | --- | --- | --- | --- |
+  | Luật | Vòng 1 có tối đa 5 lát, mỗi lát một nhóm còn game chưa chơi. Vòng 2 gồm các game chưa chơi của nhóm vừa trúng (5–7 lát). | Vào pha `game-select`, server bốc **tối đa 8 game chưa chơi**: mỗi nhóm còn game có ít nhất 1 lát, các lát còn lại bốc ngẫu nhiên. Mọi máy thấy cùng 8 lát trước khi quay; quay một lần, kết quả là 1 trong 8. Còn ≤ 8 game thì lấy hết. | Giữ luật cũ (mọi game chưa chơi đều có cơ hội), chỉ đổi hình: lưới 30 ô như chế độ Chủ phòng chọn, đèn chạy qua các ô rồi dừng ở `wheelGameId`. |
+  | Trên điện thoại | 5 lát to, nhưng phải xem hai lần quay | 45°/lát, mép ngoài khoảng 115 px, đủ chỗ cho tên và biểu tượng nhỏ | 30 ô khoảng 64 px (lưới 5×6), tên phải thu nhỏ còn khoảng 11 px hoặc bỏ; mất hình ảnh vòng quay của CR-005 |
+  | Xác suất trúng mỗi game (so với chia đều 1/30 ≈ 3,3 %) | Lệch theo cỡ nhóm: game Ghi nhớ (5 game) 4 %, game Phân tích (7 game) 2,9 %, chênh 1,4 lần | Lệch ít hơn: game Ghi nhớ 3,7 %, game Phân tích 3,1 %, chênh 1,2 lần (bốc 8 game không chia theo nhóm thì đều tuyệt đối) | Đều tuyệt đối |
+  | Thời gian mỗi vòng | **+4–5 giây** (thêm một lần quay `WHEEL_SPIN_MS` 4 s + giữ kết quả), ngược trụ cột "Ngắn, gọn, nhiều vòng" | Không đổi | Không đổi |
+  | Server | State mới: bước quay (nhóm / game) và nhóm đã trúng. `spinWheel` chạy hai lượt hẹn giờ; xử lý nối lại giữa hai lượt | Thêm `wheelGames` vào state, bốc ở `enterGameSelect`, `spinWheel` chọn trong đó (chi tiết bên dưới) | Không đổi |
+  | Web | `LuckyWheel` vẽ được cả lát nhóm lẫn lát game, `WheelView` có hai trạng thái quay | `wheelSlices` đọc `wheelGames`, thẻ "Trong vòng quay" có thêm dòng giải thích | Thay `LuckyWheel` bằng lưới đèn chạy, viết lại `WheelView` |
+  | Công sức | 1,5–2 ngày | 0,5–1 ngày | khoảng 1 ngày (chỉ web) |
+  | Khi danh mục tăng nữa | Vòng 2 dày dần (nhóm 10 game = 10 lát) | Luôn tối đa 8 lát | Lưới dài thêm, phải cuộn |
+
+- **Khuyến nghị: phương án B.** Giữ vòng quay của CR-005 và chỉ quay một lần, nên không kéo dài vòng. Vòng quay luôn có tối đa 8 lát dù danh mục tăng bao nhiêu. Xác suất gần đều như luật cũ, và vòng quay luôn đủ 5 màu nhóm. Sửa ít nhất trong hai phương án có đổi luật. A tốn thêm thời gian và lệch xác suất nhiều hơn. C không đổi luật nhưng bỏ hình ảnh vòng quay, và lưới 30 ô vẫn chật trên điện thoại.
+- **Phân tích tác động (phương án B):**
+  - *Luật (GDD §2, SRS):* "Vòng quay may mắn: mỗi lát là một game chưa chơi" đổi thành "vòng quay gồm tối đa 8 game chưa chơi do server bốc khi vào pha chọn game, mỗi nhóm còn game có ít nhất 1 lát; bộ lát chỉ đổi khi sang vòng mới". "Không lặp" và chế độ Chủ phòng chọn + bình chọn **giữ nguyên**: chủ phòng vẫn chọn được mọi game chưa chơi, kể cả game không có trên vòng quay. Làm mới danh sách khi chơi hết (FR-VC-16) không đổi. Trận tối đa 10 vòng (`MAX_TOTAL_ROUNDS`) nên ít khi hết game trong một trận.
+  - *Trụ cột:* hỗ trợ "Ngắn, gọn, nhiều vòng" (chọn game nhanh, đọc được ngay). Giữ "Nhẹ và rẻ": thêm một mảng tối đa 8 chuỗi vào state.
+  - *Shared:* hàm thuần `wheelCandidates(available, random, size)` trong `packages/shared/src/match.ts`, cạnh `availableGames`, kèm test (không trùng, ≤ `size`, không chứa game đã chơi, đủ nhóm còn game, còn ≤ `size` thì trả hết). `random` truyền vào, server dùng `Math.random` như `spinWheel` hiện tại. Đây không phải logic câu đố nên không đụng bất biến 1. Hằng số `WHEEL_SLICES = 8` trong `constants.ts`. `PartyStateView` thêm `wheelGames: string[]`.
+  - *Server:* `PartyState` thêm `wheelGames` (mảng chuỗi, khớp `PartyStateView`, bất biến 5). `enterGameSelect` bốc bộ lát sau bước làm mới `playedGames`. `spinWheel` chọn trong `wheelGames` thay vì `availableGames(...)`. `clearWheel` chỉ xoá kết quả quay, giữ bộ lát. "Chơi lại" bốc bộ mới qua `beginMatch` → `enterGameSelect`. Lệnh `SpinWheel` và schema zod của client **không đổi**. `requireAvailable` vẫn dùng `availableGames`. Nối lại tự đúng vì `wheelGames` nằm trong state. **Không đổi seed hay bộ sinh câu đố.** Sửa test vòng quay trong `apps/server/test/PartyRoom.test.ts`: kết quả thuộc `wheelGames`, bộ lát ≤ 8 và đủ nhóm.
+  - *Web (`apps/web/src/features/game-select/`):* `wheelSlices` trong `catalog.ts` đọc `party.wheelGames` thay cho `availableGames(...)` (vẫn bảo đảm có kết quả server đã chọn), sửa `catalog.test.ts`. Ở `WheelView.tsx`, thẻ "Trong vòng quay" (máy tính) và hàng chip (điện thoại) chỉ hiện 8 game, kèm dòng "8 game bốc ngẫu nhiên từ N game chưa chơi". `LuckyWheel.tsx` có thể tăng cỡ chữ hoặc thêm biểu tượng game vì lát rộng hơn. Chữ mới qua `t()` (`vi.ts` rồi `en.ts`); đổi `gameSelect.wheelNote`.
+  - *Chi phí:* 0 đồng. *Lịch:* +0,5–1 ngày (shared + server cho backend-dev, web cho frontend-dev, rồi QA). Nên làm sau khi QA xong 14 game của CR-013/CR-014 vì cùng chạm `PartyRoom.test.ts` và `catalog.ts`.
+- **Bản mẫu:** _(ui-designer đang phác, sẽ thêm link)_
+- **Cần chủ dự án quyết:**
+  1. Chọn phương án (khuyến nghị B).
+  2. Với B: số lát 8 hay 6? 6 lát rộng hơn nữa nhưng chỉ dư 1 lát sau phần "mỗi nhóm 1 lát".
+  3. Với B: có giữ "mỗi nhóm ít nhất 1 lát" không? Bỏ đi thì xác suất đều tuyệt đối, nhưng có vòng quay thiếu màu nhóm.
+  4. Có thêm nút "Đổi bộ khác" cho chủ phòng (bốc lại 8 game, 1 lần/vòng) không? Mặc định là không, vì chủ phòng đã có chế độ tự chọn.
+- **Quyết định:** _chờ duyệt_.
+- **Tài liệu kéo theo (nếu duyệt):** GDD §2 (Chọn game mỗi vòng), SRS (UC-20 luồng chính + 2a, FR-VC-14, FR-VC-16), UI-UX (S10, khu 6 của canvas), `docs/01-product/minigame-expansion.md` mục 5 (đánh dấu đã có CR), overview (state `wheelGames`), features.md, changelog.
+- **Kết quả:** chưa làm.
 
 ---
 
