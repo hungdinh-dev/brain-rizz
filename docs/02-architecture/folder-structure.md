@@ -41,7 +41,22 @@ brain-rizz/
 │  │  ├─ hit-target/           Chạm đích: <id>.ts + test
 │  │  ├─ cash-count/           Đếm tiền nhanh: <id>.ts (+ CASH_DENOMINATIONS) + test
 │  │  ├─ top-view/             Nhìn từ trên: <id>.ts, iso.ts (hình học isometric), patterns.ts (kho hình chiếu) + test
-│  │  └─ fold-box/             Gấp hộp: <id>.ts, cube.ts (gấp lưới lập phương, 24 phép quay) + test
+│  │  ├─ fold-box/             Gấp hộp: <id>.ts, cube.ts (gấp lưới lập phương, 24 phép quay) + test
+│  │  │                        14 game mở rộng (CR-013, CR-014), mỗi game <id>.ts + <id>.test.ts (10.000 seed + kiểm mẹo đoán):
+│  │  ├─ cup-shuffle/          Tráo cốc (+ cupShuffleCupOrder, mốc dòng thời gian cho scene)
+│  │  ├─ crowd-search/         Tìm bạn (+ matchesCard, crowdSearchMismatch, CROWD_SPECIES)
+│  │  ├─ navon-shapes/         Hình to hình nhỏ (+ NAVON_MASKS 7×7)
+│  │  ├─ stack-recall/         Xếp lại tháp (+ stackRecallOnTrack chấm từng lần chạm, STACK_RECALL_KINDS)
+│  │  ├─ rhythm-echo/          Nhại nhịp (đáp án đo thời gian, ADR 0013; + rhythmEchoFirstMiss, rhythmEchoNextWindow)
+│  │  ├─ bead-pattern/         Chuỗi quy luật (thư viện luật + kiểm duy nhất; + beadPatternClues)
+│  │  ├─ latin-cell/           Ô bí ẩn: <id>.ts, grid.ts (hình vuông Latin, bộ giải đếm bước), fallback.ts (câu dự phòng)
+│  │  ├─ rule-gate/            Cổng luật (luật theo khối câu, luật ẩn ở Siêu khó)
+│  │  ├─ head-count/           Đếm sĩ số (+ headCountTally, mốc dòng thời gian)
+│  │  ├─ best-basket/          Giỏ hời nhất (+ bestBasketTotals, bestBasketSolve)
+│  │  ├─ number-path/          Đường số (+ evaluateNumberPath, traceNumberPath)
+│  │  ├─ piece-fit/            Mảnh vừa khít (dùng hình học của rotate-match/shapes.ts)
+│  │  ├─ circuit-link/         Nối mạch (bitmask cổng N/E/S/W, BFS pin → đèn)
+│  │  └─ pour-line/            Rót vừa vạch (đáp án đo thời gian, ADR 0013; + pourLineLevelAt, mô hình bình số nguyên)
 │  │                           Game mới khai báo durationMs 60 giây, difficultyMultiplier và (nếu cần) speedAllowanceMs (CR-006)
 │  ├─ protocol.ts              Tên tin nhắn client ↔ server, kiểm tra dữ liệu (zod), hình dạng state
 │  │                           (party + phòng Kiểm tra não: BrainJoinOptionsSchema, BrainClientMessage, BrainStateView)
@@ -123,9 +138,9 @@ brain-rizz/
 │  │  │  │                     + test, settings.ts (nhớ bật/tắt, âm lượng, bài) + test, use-music-autoplay.ts (phát ở
 │  │  │  │                     thao tác đầu tiên, dừng khi ẩn tab), gesture.ts (thao tác nào thì phát/bỏ qua/thôi chờ)
 │  │  │  │                     + test, components/MusicBar (đặt cạnh nút ngôn ngữ/theme)
-│  │  │  ├─ sfx/               Âm thanh hiệu ứng (FR-GD-07): player.ts (playSfx: file đã giải mã hoặc tiếng tổng hợp, gain
-│  │  │  │                     riêng, trả hàm dừng sớm), kinds.ts (11 loại, chọn tiếng theo data-sfx / aria-pressed / role),
-│  │  │  │                     recipes.ts (nốt + nhiễu qua bộ lọc; trống dồn, kèn vinh danh), sources.ts + sfx-files.ts (import.meta.glob src/assets/sfx), settings.ts + sfx.store.ts
+│  │  │  ├─ sfx/               Âm thanh hiệu ứng (FR-GD-07): player.ts (playSfx: file đã giải mã hoặc tiếng tổng hợp, `when` xếp lịch theo AudioContext, sfxNow; gain
+│  │  │  │                     riêng, trả hàm dừng sớm), kinds.ts (13 loại, chọn tiếng theo data-sfx / aria-pressed / role),
+│  │  │  │                     recipes.ts (nốt + nhiễu qua bộ lọc; trống dồn, kèn vinh danh, drum-low / drum-high của Nhại nhịp), sources.ts + sfx-files.ts (import.meta.glob src/assets/sfx), settings.ts + sfx.store.ts
 │  │  │  │                     (bật/tắt, nhớ trên máy), sfx.test.ts + player.test.ts, use-sfx-effects.ts (listener click uỷ quyền, tải trước file khi mở khoá, lỗi server,
 │  │  │  │                     đúng/sai), components/SfxToggle
 │  │  │  ├─ motion/            Hiệu ứng chuyển động (FR-GD-12, CR-010): motion.store.ts (nguồn "giảm chuyển động" duy nhất:
@@ -178,15 +193,31 @@ brain-rizz/
 │  │  │  │  ├─ locales.ts      Chữ màn hướng dẫn (vi, en): tên, mô tả, 3 bước, điều khiển, câu nhắc, 4 mức
 │  │  │  │  └─ index.ts        GameClient: scene (tải lười) + locales + Illustration
 │  │  │  ├─ shadow-match/    Bóng của ai: ShadowMatchScene, art.ts (hàm vẽ phần hình) + art.test, HowTo, locales, index
-│  │  │  ├─ aim-trainer/     Luyện ngắm: AimTrainerScene, sync.ts (chip chỉ đếm câu server chấm đúng, cách hiện
-│  │  │  │                   lại câu khi nối lại) + test, HowTo, locales, index
+│  │  │  ├─ _shared/         Phần hiển thị dùng chung giữa nhiều game (không phải một game; game không import chéo
+│  │  │  │                   thư mục của nhau, cần dùng lại thì đưa vào đây): icons.ts (mắt, mắt nhắm, bàn tay,
+│  │  │  │                   huy hiệu đổi chỗ, dấu tích), items.ts (hình 8 vật của Cân não, dùng lại ở Lật cặp và
+│  │  │  │                   Ai vừa biến mất), canvas.ts (makeCanvas, withHalo, roundRectPath), canvas-svg.ts (cây
+│  │  │  │                   SVG React → canvas 2D → texture), chalk.ts (nét/hạt phấn, paintArt/placeArt),
+│  │  │  │                   card-art.ts (thẻ chọn, vòng ✓, huy hiệu ✓/✗/gương), resync.ts (cách hiện lại câu
+│  │  │  │                   khi nối lại, nhận ra câu bị server bỏ qua) + test
+│  │  │  ├─ aim-trainer/     Luyện ngắm: AimTrainerScene, sync.ts (chip chỉ đếm câu server chấm đúng) + test,
+│  │  │  │                   HowTo, locales, index
 │  │  │  ├─ chalk-arrows/    Phấn trượt: ChalkArrowsScene, HowTo, locales, index
 │  │  │  ├─ light-trail/, balance/, number-balloons/, rotate-match/, who-vanished/, pair-flip/,
 │  │  │  │  cube-count/, marble-drop/, hit-target/, cash-count/, top-view/, fold-box/
 │  │  │  │                     Cùng khuôn: <Name>Scene.ts, <Name>HowTo.tsx, locales.ts, index.ts;
-│  │  │  │                     balance/ có thêm items.ts (hình 8 vật), light-trail/ có thêm shapes.ts (bóng đèn,
-│  │  │  │                     mắt, bàn tay, tua ngược) — đều dùng chung cho scene và hình minh hoạ;
-│  │  │  │                     cube-count/ có art.ts, who-vanished/ có items.ts + shapes.ts
+│  │  │  │                     light-trail/ có thêm shapes.ts (bóng đèn, tua ngược) — dùng chung cho scene và
+│  │  │  │                     hình minh hoạ; cube-count/ có art.ts, who-vanished/ có items.ts + shapes.ts (rèm)
+│  │  │  ├─ cup-shuffle/, crowd-search/, navon-shapes/, stack-recall/, rhythm-echo/, bead-pattern/,
+│  │  │  │  latin-cell/, rule-gate/, head-count/, best-basket/, number-path/, piece-fit/, circuit-link/,
+│  │  │  │  pour-line/         14 game mở rộng (CR-013, CR-014), cùng khuôn Scene + HowTo + locales + index; file thêm
+│  │  │  │                     (dùng chung cho scene và hình minh hoạ): cup-shuffle/shapes.ts (cốc, phấn, tẩy),
+│  │  │  │                     crowd-search/buddies.tsx (6 loài + phụ kiện SVG),
+│  │  │  │                     stack-recall/blocks.ts (8 loại khối), rhythm-echo/shapes.ts (tai, loa, nốt),
+│  │  │  │                     bead-pattern/beads.ts (hạt, nhãn chấm), latin-cell/shapes.ts (6 hình),
+│  │  │  │                     rule-gate/shapes.ts + art.ts (bạn, phụ kiện, vé) + play-state.ts (sổ cổng, gợi ý) + test,
+│  │  │  │                     head-count/figures.tsx (học sinh, thầy) + timeline.ts (dòng thời gian) + test,
+│  │  │  │                     best-basket/art.ts (8 món, xu, giỏ), pour-line/vessel.ts (bình → px) + hold.ts (đo ms) + test
 │  │  │  ├─ registry.ts        Nối mã game → GameClient — `pnpm new-game` tự đăng ký vào đây
 │  │  │  ├─ keyboard.ts        Lọc phím cho scene bắt phím (shouldIgnoreGameKey: đang gõ chữ, đang mở hộp thoại/sheet) + test
 │  │  │  ├─ locales.test.ts    Test chữ các game: câu nhắc theo mức đủ ở mọi ngôn ngữ, danh mục i18n khớp tên + summary
@@ -286,7 +317,7 @@ brain-rizz/
 │  │  ├─ tech-stack.md         Công nghệ, phiên bản, dịch vụ, làm quen cho dev mới
 │  │  ├─ folder-structure.md   (file này)
 │  │  ├─ server-fallback.md    Kế hoạch dự phòng game server, rủi ro khi bỏ Colyseus
-│  │  └─ decisions/            Quyết định kỹ thuật: README.md, ADR 0001–0010, _template.md
+│  │  └─ decisions/            Quyết định kỹ thuật: README.md, ADR 0001–0013, _template.md
 │  ├─ 03-guides/               HƯỚNG DẪN
 │  │  ├─ README.md             Mục lục thư mục
 │  │  ├─ sdlc.md               Quy trình phát triển, DoR/DoD, phiên bản & phát hành

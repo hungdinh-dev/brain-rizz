@@ -16,6 +16,7 @@ Mỗi file ghi một quyết định kỹ thuật: bối cảnh, lựa chọn, l
 | [0010](0010-drop-3d-2d-lobby-and-podium.md) | Bỏ 3D: phòng chờ và vinh danh chung cuộc bằng 2D | Đã chấp nhận (đã làm 2026-10-12) |
 | [0011](0011-supabase-accounts-and-solo-modes.md) | Tài khoản, lịch sử, bảng xếp hạng trên Supabase; Kiểm tra não chấm trên game server | Đã chấp nhận |
 | [0012](0012-i18n-lazy-chunks.md) | Tải lười chữ của màn một mình và minigame (bổ sung 0007) | Đã chấp nhận |
+| [0013](0013-client-timed-answers.md) | Đáp án đo thời gian phía client (Rót vừa vạch, Nhại nhịp): tin số đo như Luyện ngắm, chấm thời lượng/khoảng cách, server không đổi (bổ sung 0003) | Đã chấp nhận |
 
 Mẫu cho ADR mới: [_template.md](_template.md).
 
