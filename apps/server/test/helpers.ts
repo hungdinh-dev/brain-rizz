@@ -27,6 +27,20 @@ export const SOLVE: Record<GameId, (seed: number, index: number, d: Difficulty) 
     const p = GAMES["aim-trainer"].generate(s, i, d);
     return { x: p.x, y: p.y };
   },
+  "cup-shuffle": (s, i, d) => GAMES["cup-shuffle"].generate(s, i, d).answer,
+  "bead-pattern": (s, i, d) => GAMES["bead-pattern"].generate(s, i, d).answer,
+  "latin-cell": (s, i, d) => GAMES["latin-cell"].generate(s, i, d).answer,
+  "stack-recall": (s, i, d) => GAMES["stack-recall"].generate(s, i, d).layers,
+  "head-count": (s, i, d) => GAMES["head-count"].generate(s, i, d).answerIndex,
+  "piece-fit": (s, i, d) => GAMES["piece-fit"].generate(s, i, d).answerIndex,
+  "circuit-link": (s, i, d) => GAMES["circuit-link"].generate(s, i, d).answerIndex,
+  "crowd-search": (s, i, d) => GAMES["crowd-search"].generate(s, i, d).answerIndex,
+  "navon-shapes": (s, i, d) => GAMES["navon-shapes"].generate(s, i, d).answerIndex,
+  "rhythm-echo": (s, i, d) => GAMES["rhythm-echo"].generate(s, i, d).hits,
+  "rule-gate": (s, i, d) => GAMES["rule-gate"].generate(s, i, d).answer,
+  "best-basket": (s, i, d) => GAMES["best-basket"].generate(s, i, d).answerIndex,
+  "number-path": (s, i, d) => GAMES["number-path"].generate(s, i, d).answer,
+  "pour-line": (s, i, d) => GAMES["pour-line"].generate(s, i, d).idealHoldMs,
 };
 
 /**

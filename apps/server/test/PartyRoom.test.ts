@@ -20,6 +20,8 @@ import {
   type NudgePayload,
   type PartyStateView,
   type PlayerView,
+  pourLineLevelAt,
+  type RhythmEchoHit,
   ROOM_NAME,
   type RoundStartPayload,
   ServerMessage,
@@ -1217,6 +1219,8 @@ describe("PartyRoom", () => {
       expert: [Allowance, number];
       /** Hạn trả lời mỗi câu ở Siêu khó (ms, đặc tả); không ghi = không giới hạn (CR-012). */
       expertWindowMs?: number;
+      /** Đáp án rác riêng của game, thêm vào bộ rác chung theo kiểu đáp án (CR-013, CR-014). */
+      junk?: readonly unknown[];
     }
 
     /**
@@ -1273,6 +1277,184 @@ describe("PartyRoom", () => {
         expertWindowMs: 1_500,
       },
       { id: "chalk-arrows", durationMs: 60_000, seedling: [0, 150], expert: [0, 340] },
+    ];
+
+    /** Đếm sĩ số (head-count.md, Dòng thời gian): xem lớp + số lượt × thời gian mỗi lượt (Mầm 3–4 lượt). */
+    const headCountAllowance = (seed: number, d: Difficulty) => {
+      const p = GAMES["head-count"].generate(seed, 0, d);
+      return p.showMs + p.events.length * p.stepMs;
+    };
+
+    /**
+     * 7 game đợt đầu mở rộng (CR-013), mọi game vòng 60 s, không game nào có hạn trả lời. Hệ số Mầm
+     * và Siêu khó, miễn trừ lấy từ bảng "Hệ số điểm và miễn trừ thời gian" trong đặc tả từng game:
+     * - Tráo cốc (cup-shuffle.md): 1 / 2,35; miễn trừ = xem + úp + mọi lượt tráo, 3 300 / 3 720 ms.
+     * - Xếp lại tháp (stack-recall.md): 1 / 2,2; miễn trừ = xem + che + 300 ms mỗi lần chạm sau lần
+     *   đầu, 3 200 / 3 600 ms.
+     * - Chuỗi quy luật (bead-pattern.md): 1 / 3,35, không có miễn trừ.
+     * - Đếm sĩ số (head-count.md): 1 / 1,75, miễn trừ theo số lượt của câu (`headCountAllowance`).
+     * - Mảnh vừa khít (piece-fit.md): 1 / 3,2, không có miễn trừ.
+     * - Ô bí ẩn (latin-cell.md): 1 / 3,1, không có miễn trừ.
+     * - Nối mạch (circuit-link.md): 1 / 3,25, không có miễn trừ.
+     * Rác riêng: chỉ số đầu tiên ngoài khoảng đáp án (số cốc, số thẻ, số hình nhiều nhất ở mọi mức).
+     */
+    const CR013_CASES: ServerCase[] = [
+      {
+        id: "cup-shuffle",
+        durationMs: 60_000,
+        seedling: [3_300, 150],
+        expert: [3_720, 285],
+        junk: [5], // 5 cốc ở Siêu khó: ô 0–4.
+      },
+      {
+        id: "stack-recall",
+        durationMs: 60_000,
+        seedling: [3_200, 150],
+        expert: [3_600, 270],
+        // Loại khối ngoài 0–7, số thực, lẫn chuỗi/null, dài hơn tháp cao nhất (5 tầng).
+        junk: [[8], [0, 8], [1.5], [0, "1"], [0, null], [0, -1], [0, 1, 0, 1, 0, 1]],
+      },
+      {
+        id: "bead-pattern",
+        durationMs: 60_000,
+        seedling: [0, 150],
+        expert: [0, 385],
+        junk: [4], // 4 thẻ.
+      },
+      {
+        id: "head-count",
+        durationMs: 60_000,
+        seedling: [headCountAllowance, 150],
+        expert: [headCountAllowance, 225],
+        junk: [4], // 4 thẻ.
+      },
+      {
+        id: "piece-fit",
+        durationMs: 60_000,
+        seedling: [0, 150],
+        expert: [0, 370],
+        junk: [4], // 4 thẻ.
+      },
+      {
+        id: "latin-cell",
+        durationMs: 60_000,
+        seedling: [0, 150],
+        expert: [0, 360],
+        junk: [6], // 6 hình ở lưới lớn nhất.
+      },
+      {
+        id: "circuit-link",
+        durationMs: 60_000,
+        seedling: [0, 150],
+        expert: [0, 375],
+        junk: [4], // 4 thẻ.
+      },
+    ];
+
+    /** Giỏ hời nhất (best-basket.md, Miễn trừ): 250 ms mỗi món sau hai món đầu + 500 ms mỗi luật. */
+    const basketAllowance = (seed: number, d: Difficulty) => {
+      const p = GAMES["best-basket"].generate(seed, 0, d);
+      const items = p.baskets.reduce((n, basket) => n + basket.length, 0);
+      return 250 * Math.max(0, items - 2) + 500 * ((p.combo ? 1 : 0) + (p.deal ? 1 : 0));
+    };
+
+    /** Rót vừa vạch (pour-line.md, Thưởng tốc độ và miễn trừ): phần giữ tay bắt buộc = mép dưới khoảng đúng. */
+    const pourAllowance = (seed: number, d: Difficulty) =>
+      GAMES["pour-line"].generate(seed, 0, d).holdMinMs;
+
+    /**
+     * Nhại nhịp (rhythm-echo.md, Hệ số điểm và miễn trừ): pha nghe + thời gian gõ bắt buộc
+     * = chờ đầu + lặng cuối + 2 × độ dài câu nhịp (tiếng đầu tới tiếng cuối).
+     */
+    const rhythmAllowance = (seed: number, d: Difficulty) => {
+      const p = GAMES["rhythm-echo"].generate(seed, 0, d);
+      const span = (p.hits[p.hits.length - 1]?.atMs ?? 0) - (p.hits[0]?.atMs ?? 0);
+      return p.leadMs + p.tailMs + 2 * span;
+    };
+
+    /** Một lần gõ của Nhại nhịp, nhận cả giá trị sai kiểu để dựng rác. */
+    const tap = (side: unknown, atMs: unknown) => ({ side, atMs });
+
+    /**
+     * 7 game đợt hai mở rộng (CR-014), mọi game vòng 60 s, không game nào có hạn trả lời. Hệ số Mầm
+     * và Siêu khó, miễn trừ lấy từ đặc tả từng game:
+     * - Tìm bạn (crowd-search.md): 1 / 3,45, không có miễn trừ.
+     * - Giỏ hời nhất (best-basket.md): 0,85 / 1,65, miễn trừ theo số món và số luật (`basketAllowance`).
+     * - Rót vừa vạch (pour-line.md): 1 / 2,55, miễn trừ = `holdMinMs` của câu (`pourAllowance`).
+     * - Hình to hình nhỏ (navon-shapes.md): 1 / 3, không có miễn trừ.
+     * - Nhại nhịp (rhythm-echo.md): 1 / 2,7, miễn trừ = pha nghe + độ dài câu nhịp (`rhythmAllowance`).
+     * - Cổng luật (rule-gate.md): 1 / 2,4, không có miễn trừ.
+     * - Đường số (number-path.md): 1 / 1,95, không có miễn trừ.
+     */
+    const CR014_CASES: ServerCase[] = [
+      {
+        id: "crowd-search",
+        durationMs: 60_000,
+        seedling: [0, 150],
+        expert: [0, 395],
+        junk: [30], // 30 bạn ở Siêu khó: ô 0–29.
+      },
+      {
+        id: "best-basket",
+        durationMs: 60_000,
+        seedling: [basketAllowance, 135],
+        expert: [basketAllowance, 215],
+        junk: [4], // 4 giỏ.
+      },
+      {
+        id: "pour-line",
+        durationMs: 60_000,
+        seedling: [pourAllowance, 150],
+        expert: [pourAllowance, 305],
+        // Số ms giữ tay ngoài 0–10 000, số thực, sai kiểu.
+        junk: [10_001, 1_000.5, "1000", [1_000], { holdMs: 1_000 }],
+      },
+      {
+        id: "navon-shapes",
+        durationMs: 60_000,
+        seedling: [0, 150],
+        expert: [0, 350],
+        junk: [5], // 5 nút ở Siêu khó.
+      },
+      {
+        id: "rhythm-echo",
+        durationMs: 60_000,
+        seedling: [rhythmAllowance, 150],
+        expert: [rhythmAllowance, 320],
+        junk: [
+          [tap("up", 0)],
+          [tap("LEFT", 0)],
+          [tap("left", 0.5)],
+          [tap("left", -1)],
+          [tap("left", 60_001)],
+          [tap("left", "0")],
+          [tap("left", Number.NaN)],
+          [tap("left", null)],
+          [{ side: "left" }],
+          [{ atMs: 0 }],
+          [["left", 0]],
+          [tap("left", 0), null],
+          [tap("left", 0), 300],
+          // `atMs` giảm dần.
+          [tap("left", 300), tap("right", 200)],
+          // 7 tiếng, dài hơn câu nhịp dài nhất (6 tiếng).
+          Array.from({ length: 7 }, (_, k) => tap(k % 2 === 0 ? "left" : "right", k * 300)),
+        ],
+      },
+      {
+        id: "rule-gate",
+        durationMs: 60_000,
+        seedling: [0, 150],
+        expert: [0, 290],
+        junk: ["IN", "Out", "", "in ", "yes", ["in"], { answer: "in" }, 0, 1],
+      },
+      {
+        id: "number-path",
+        durationMs: 60_000,
+        seedling: [0, 150],
+        expert: [0, 245],
+        junk: [4], // 4 đường ở Siêu khó.
+      },
     ];
 
     /** Đáp án rác client sửa đổi có thể gửi (msgpack giữ nguyên NaN, vô cực, số thực). */
@@ -1409,6 +1591,11 @@ describe("PartyRoom", () => {
             // Hướng ngoài 0–3: rác.
             junk.push(4, 5, -2);
           }
+          if (c.id === "pour-line") {
+            // Đáp án là số ms giữ tay (số nguyên 0–10 000): 99 là đáp án thật, không phải rác.
+            junk.splice(junk.indexOf(99), 1);
+          }
+          junk.push(...(c.junk ?? []));
           const results: AnswerResultPayload[] = [];
           const off = host.onMessage(ServerMessage.AnswerResult, (r: AnswerResultPayload) => {
             results.push(r);
@@ -1477,6 +1664,16 @@ describe("PartyRoom", () => {
       expect(CR012_CASES.length).toBeLessThanOrEqual(MAX_TOTAL_ROUNDS);
       await playCases(CR012_CASES);
     }, 30_000);
+
+    it("7 game CR-013: thời lượng vòng, điểm theo hệ số + miễn trừ trong đặc tả, chặn đáp án rác", async () => {
+      expect(CR013_CASES.length).toBeLessThanOrEqual(MAX_TOTAL_ROUNDS);
+      await playCases(CR013_CASES);
+    }, 45_000);
+
+    it("7 game CR-014: thời lượng vòng, điểm theo hệ số + miễn trừ trong đặc tả, chặn đáp án rác", async () => {
+      expect(CR014_CASES.length).toBeLessThanOrEqual(MAX_TOTAL_ROUNDS);
+      await playCases(CR014_CASES);
+    }, 45_000);
 
     it("Luyện ngắm: đáp án đúng trong hạn được tính, muộn 1 ms bị chấm sai và khoá; hạn tính lại sau khoá", async () => {
       const LIFE_MS = 1_500; // Thường (aim-trainer.md); Mầm không giới hạn.
@@ -1579,8 +1776,155 @@ describe("PartyRoom", () => {
       }
     });
 
+    /**
+     * Vào vòng của game đáp án đo ở client (ADR 0013) với bốn người, mỗi người một mức (dung sai
+     * khác nhau theo mức), đóng băng giờ server. `send` gửi câu kế của một người 2 giây sau câu trước
+     * (lâu hơn khoá 1,5 s sau câu sai) và chờ kết quả.
+     */
+    async function playClientTimed(gameId: GameId) {
+      const { room, clients, host } = await setup(
+        ["An", "Bình", "Chi", "Dũng"],
+        [{ difficulty: 3 }, { difficulty: 0 }, { difficulty: 1 }, { difficulty: 2 }],
+      );
+      await toGameSelect(room, clients);
+      host.send(ClientMessage.PickGame, { gameId });
+      await until(() => room.state.phase === "game-intro");
+      await introToPlaying(room, clients);
+      const clock = freezeNow();
+      const { seed, startAt, round } = room.state;
+      const lastAt = new Map<TestClient, number>();
+      async function send(client: TestClient, index: number, answer: unknown) {
+        const at = (lastAt.get(client) ?? startAt) + 2_000;
+        lastAt.set(client, at);
+        clock.set(at);
+        const result = nextMessage<AnswerResultPayload>(client, ServerMessage.AnswerResult);
+        client.send(ClientMessage.Answer, { round, index, answer });
+        return { result: await result, at };
+      }
+      const seats = clients.map((client) => ({
+        client,
+        d: player(room, client).difficulty as Difficulty,
+      }));
+      return { room, seats, seed, clock, send };
+    }
+
+    it("Rót vừa vạch (ADR 0013): đúng số ms tham chiếu và hai mép khoảng đúng, lệch ra ngoài 1 ms là sai", async () => {
+      const { room, seats, seed, clock, send } = await playClientTimed("pour-line");
+      try {
+        // Điểm câu đúng ở Mầm / Thường / Khó / Siêu khó khi trọn thưởng tốc độ, chuỗi 0: 100 × hệ số + 50.
+        const fullPoints: Record<Difficulty, number> = { 0: 150, 1: 150, 2: 190, 3: 305 };
+        for (const { client, d } of seats) {
+          const puzzle = (i: number) => GAMES["pour-line"].generate(seed, i, d);
+          // Độ lệch mức nước so với vạch khi giữ `holdMs`, tính lại độc lập với server.
+          const miss = (i: number, holdMs: number) => {
+            const p = puzzle(i);
+            return Math.abs(pourLineLevelAt(p, holdMs) - p.target) - p.tol;
+          };
+          const label = `pour-line mức ${d}`;
+
+          // Câu 0: đúng số ms tham chiếu → đúng.
+          const ideal = SOLVE["pour-line"](seed, 0, d) as number;
+          expect(miss(0, ideal), label).toBeLessThanOrEqual(0);
+          expect((await send(client, 0, ideal)).result, label).toMatchObject({ correct: true });
+
+          // Câu 1: buông muộn 1 ms sau mép trên → mực nước vượt dung sai → sai, khoá, mất chuỗi.
+          const over = puzzle(1).holdMaxMs + 1;
+          expect(miss(1, over), label).toBeGreaterThan(0);
+          const late = await send(client, 1, over);
+          expect(late.result, label).toEqual({
+            index: 1,
+            correct: false,
+            points: 0,
+            lockedUntil: late.at + WRONG_ANSWER_LOCK_MS,
+          });
+          expect(player(room, client).streak, label).toBe(0);
+
+          // Câu 2: buông sớm 1 ms trước mép dưới → sai.
+          const under = puzzle(2).holdMinMs - 1;
+          expect(miss(2, under), label).toBeGreaterThan(0);
+          expect((await send(client, 2, under)).result, label).toMatchObject({ correct: false });
+
+          // Câu 3, 4: đúng mép dưới, đúng mép trên → đúng (hai đầu đều tính).
+          expect((await send(client, 3, puzzle(3).holdMinMs)).result, label).toMatchObject({
+            correct: true,
+          });
+          expect((await send(client, 4, puzzle(4).holdMaxMs)).result, label).toMatchObject({
+            correct: true,
+          });
+
+          // Câu 5: giữ tới khi tràn (FE tự buông ở `fullMs`) → sai.
+          expect((await send(client, 5, puzzle(5).fullMs)).result, label).toMatchObject({
+            correct: false,
+          });
+
+          // Câu 6: tới server chỉ 100 ms sau khi câu bắt đầu (hết khoá câu 5) mà giữ tận mép trên:
+          // server không kiểm thời gian vật lý tối thiểu (ADR 0013, mục 2), và số ms client đo
+          // không vào công thức điểm: điểm theo giờ server, trọn thưởng tốc độ.
+          const at = clock.get() + WRONG_ANSWER_LOCK_MS + 100;
+          clock.set(at);
+          const result = nextMessage<AnswerResultPayload>(client, ServerMessage.AnswerResult);
+          client.send(ClientMessage.Answer, {
+            round: room.state.round,
+            index: 6,
+            answer: puzzle(6).holdMaxMs,
+          });
+          expect(await result, label).toEqual({ index: 6, correct: true, points: fullPoints[d] });
+          expect(player(room, client).progress, label).toBe(7);
+        }
+      } finally {
+        clock.restore();
+      }
+    });
+
+    it("Nhại nhịp (ADR 0013): chỉ chấm mặt trống và khoảng cách, dời cả chuỗi vẫn đúng, lệch quá dung sai là sai", async () => {
+      const { room, seats, seed, clock, send } = await playClientTimed("rhythm-echo");
+      try {
+        for (const { client, d } of seats) {
+          const puzzle = (i: number) => GAMES["rhythm-echo"].generate(seed, i, d);
+          const solved = (i: number) => SOLVE["rhythm-echo"](seed, i, d) as RhythmEchoHit[];
+          /** Dời các tiếng từ vị trí `from` trở đi thêm `by` ms (đổi đúng khoảng `from − 1 → from`). */
+          const shiftFrom = (hits: RhythmEchoHit[], from: number, by: number) =>
+            hits.map((h, k) => ({ ...h, atMs: k >= from ? h.atMs + by : h.atMs }));
+          const label = `rhythm-echo mức ${d}`;
+          const verdict = async (index: number, answer: RhythmEchoHit[]) =>
+            (await send(client, index, answer)).result.correct;
+
+          // Câu 0: đúng câu nhịp tham chiếu.
+          expect(await verdict(0, solved(0)), label).toBe(true);
+          // Câu 1: dời cả chuỗi 1 234 ms (lần gõ đầu không phải 0) → vẫn đúng.
+          expect(await verdict(1, shiftFrom(solved(1), 0, 1_234)), label).toBe(true);
+          // Câu 2: khoảng đầu dài thêm đúng `tolMs` → đúng (mép dung sai tính đúng).
+          expect(await verdict(2, shiftFrom(solved(2), 1, puzzle(2).tolMs)), label).toBe(true);
+          // Câu 3: khoảng đầu dài thêm `tolMs + 1` → sai.
+          expect(await verdict(3, shiftFrom(solved(3), 1, puzzle(3).tolMs + 1)), label).toBe(false);
+          // Câu 4: khoảng cuối ngắn đi `tolMs + 1` → sai.
+          const last4 = puzzle(4).hits.length - 1;
+          expect(await verdict(4, shiftFrom(solved(4), last4, -(puzzle(4).tolMs + 1))), label).toBe(
+            false,
+          );
+          // Câu 5: mọi khoảng cùng dài thêm `tolMs` (trôi nhịp cộng dồn) → vẫn đúng, không kiểm trôi.
+          const tol5 = puzzle(5).tolMs;
+          const drift = solved(5).map((h, k) => ({ ...h, atMs: h.atMs + k * tol5 }));
+          expect(await verdict(5, drift), label).toBe(true);
+          // Câu 6: đúng nhịp nhưng tiếng cuối sai mặt trống → sai.
+          const flipped = solved(6).map(
+            (h, k, all): RhythmEchoHit =>
+              k === all.length - 1 ? { ...h, side: h.side === "left" ? "right" : "left" } : h,
+          );
+          expect(await verdict(6, flipped), label).toBe(false);
+          // Câu 7: thiếu tiếng cuối (client gửi ngay khi quá hạn tiếng kế) → sai.
+          expect(await verdict(7, solved(7).slice(0, -1)), label).toBe(false);
+          expect(player(room, client).progress, label).toBe(8);
+        }
+      } finally {
+        clock.restore();
+      }
+    });
+
     it("mọi game trong danh mục đều có cách giải và số liệu kiểm trên server", () => {
-      const covered = [...CASES, ...NEW_CASES, ...CR012_CASES].map((c) => c.id).sort();
+      const covered = [...CASES, ...NEW_CASES, ...CR012_CASES, ...CR013_CASES, ...CR014_CASES]
+        .map((c) => c.id)
+        .sort();
       expect(covered).toEqual([...GAME_IDS].sort());
       for (const id of GAME_IDS) expect(SOLVE[id], id).toBeTypeOf("function");
     });

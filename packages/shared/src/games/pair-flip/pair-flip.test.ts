@@ -19,8 +19,8 @@ const SPEC: Record<Difficulty, { cols: number; rows: number; previewMs: number }
   3: { cols: 4, rows: 4, previewMs: 4_000 },
 };
 
-/** Seed vòng thứ i: trải khắp 32 bit thay vì chỉ 0…9 999. */
-const roundSeedOf = (i: number) => Math.imul(i + 1, 0x9e3779b1) >>> 0;
+/** Seed vòng thứ i: trải khắp 32 bit (không nhân 0x9e3779b1 như `deriveSeed`: XOR triệt tiêu, các câu đầu trùng nhau). */
+const roundSeedOf = (i: number) => (Math.imul(i, 0x27d4eb2f) + 0x165667b1) >>> 0;
 
 /** Duyệt 10.000 câu của một mức: mỗi câu một seed vòng, index xoay vòng 0–29. */
 function forEachPuzzle(
