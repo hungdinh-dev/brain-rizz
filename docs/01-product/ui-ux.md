@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Thiết kế — phần giao diện và trải nghiệm |
-| Phiên bản tài liệu | 1.5 · 2026-10-20 — khung chat trong phòng theo [CR-011](../00-tracking/change-requests.md#cr-011) |
+| Phiên bản tài liệu | 1.6 · 2026-10-21 — chơi với bot theo [CR-016](../00-tracking/change-requests.md#cr-016) |
 | Bản mẫu (canvas) | **[Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ)** |
 | Liên quan | [Thiết kế game](game-design.md), [ADR 0006 — shadcn & token](../02-architecture/decisions/0006-ui-shadcn-and-theme-tokens.md), [ADR 0009 — bảng phấn & nhân vật](../02-architecture/decisions/0009-chalkboard-style-and-characters.md) |
 | Cập nhật khi | Thêm màn hình, đổi luồng, thêm artboard vào canvas, đổi token màu/font |
@@ -26,7 +26,9 @@ flowchart TD
   I["Giới thiệu<br/>Chạm để bắt đầu"] --> M["Menu chính"]
   L0(["Mở link /r/ABCD"]) --> M
   M <--> P["Chọn bạn đồng hành<br/>(hồ sơ)"]
-  M -->|"Tạo phòng / Vào phòng"| LB["Phòng chờ 2D<br/>sẵn sàng, đổi nhân vật,<br/>chủ phòng đặt số vòng"]
+  M -->|"Tạo phòng / Vào phòng"| LB["Phòng chờ 2D<br/>sẵn sàng, đổi nhân vật,<br/>chủ phòng đặt số vòng,<br/>thêm / đổi mức / bỏ bot"]
+  M -->|"Chơi với máy"| BD["Hộp thoại Chơi với máy<br/>số bot 1–7, mức chung"]
+  BD -->|"Vào phòng"| LB
   M -.->|"Sắp có"| X["Tìm trận · Đấu bóng ma ·<br/>Thử thách hôm nay"]
   M --> PK["Luyện tập: chọn game<br/>(nhóm theo 5 kỹ năng)"]
   PK --> PI["Hướng dẫn + độ khó<br/>(dùng lại S11, bản một mình)"]
@@ -63,7 +65,7 @@ flowchart TD
 | S1 | Giới thiệu | `features/home/components/IntroScreen.tsx` | ✅ Desktop + Điện thoại | ✅ | |
 | S2 | Menu chính | `features/home/components/MenuScreen.tsx` | ✅ Khu 2 (cũ) · Khu 12 (CR-009) | ✅ | Theo khu 12: thẻ Luyện tập, Kiểm tra não ("Cao nhất …"), dòng Bảng xếp hạng, Tài khoản & lịch sử (trạng thái phiên); còn "Sắp có": Tìm trận, Đấu bóng ma (ô nét đứt), Thử thách hôm nay. Bỏ linh vật + câu gợi ý ở cột phải cho vừa 1280×720 |
 | S3 | Chọn bạn đồng hành (hồ sơ) | `features/home/components/ProfileScreen.tsx` | ✅ "Chọn bạn đồng hành" (tương tác) | ✅ | |
-| S4 | Phòng chờ 2D | `features/lobby/LobbyScreen.tsx` | ✅ Khu 5 | ✅ | Đã gỡ 3D (ADR 0010). Chưa có mã QR như bản máy tính |
+| S4 | Phòng chờ 2D | `features/lobby/LobbyScreen.tsx` | ✅ Khu 5 · Khu 23 (CR-016) | ✅ (bot: ❌) | Đã gỡ 3D (ADR 0010). Chưa có mã QR như bản máy tính. CR-016: ô trống thêm bot, ô bot đổi mức / bỏ ngay trong ô ([mục 6.6](#66-chơi-với-máy-s17-cr-016)) |
 | S10 | Chọn game (vòng quay / chủ phòng chọn + bình chọn) | `features/game-select/` | ✅ Khu 6 | ✅ | CR-005 |
 | S11 | Hướng dẫn & độ khó | `features/game-intro/` | ✅ Khu 7 | ✅ | CR-005; lời nhắc của chủ phòng hiện bằng toast |
 | S5 | Chơi (đếm ngược 5 giây, dải điểm, khung minigame) | `features/play/CountdownScreen.tsx`, `PlayScreen.tsx` | ✅ Khu 8 + trang Minigame M1 | ✅ | |
@@ -79,6 +81,8 @@ flowchart TD
 | — | Trạng thái chung (tải, trống, lỗi, chưa kết nối máy chủ dữ liệu, hộp xác nhận) | dùng chung 4 màn trên | ✅ Khu 17 | ❌ | FR-MR-15 |
 | — | Hàng nút trên cùng · nút Hiệu ứng | `app/App.tsx`, `IntroScreen.tsx`, `MenuScreen.tsx`, `features/motion/` | ✅ Khu 18 (CR-010) | ❌ | Theo hệ thống / Luôn bật ([mục 6.1](#61-hàng-nút-trên-cùng--nút-hiệu-ứng-cr-010)) |
 | S16 | Chat trong phòng (nút nổi + sheet điện thoại, cột phải máy tính, bong bóng biểu cảm) | `features/chat/` | ✅ Khu 22 (CR-011) | ❌ | Hiện ở 5 pha, ẩn lúc đếm ngược/đang chơi ([mục 6.5](#65-khung-chat-trong-phòng-s16-cr-011)) |
+| S17 | Chơi với máy (thẻ menu + hộp thoại) | `features/home/` | ✅ Khu 23 (CR-016) | ❌ | Số bot 1–7, một mức chung, trạng thái đang tạo / lỗi ([mục 6.6](#66-chơi-với-máy-s17-cr-016)) |
+| — | Huy hiệu máy (`BotBadge`), chip mức bot, tên bot | `components/characters/BotBadge` (đề xuất), `components/common/MatchChips.tsx` | ✅ Khu 23 (CR-016) | ❌ | Dùng ở phòng chờ, hướng dẫn, dải điểm, bảng điểm, vinh danh, chat, lịch sử |
 
 Thứ tự thiết kế tiếp theo (đề xuất): bảng nhân vật cho 4 con còn lại; 5 minigame của giai đoạn 2 khi tới lúc.
 
@@ -86,7 +90,7 @@ Thứ tự thiết kế tiếp theo (đề xuất): bảng nhân vật cho 4 con
 
 Canvas [Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ) có 3 trang.
 
-### Trang "Màn chờ & luồng trận" (36 artboard)
+### Trang "Màn chờ & luồng trận" (47 artboard)
 
 | Khu | Artboard | Kích thước |
 | --- | --- | --- |
@@ -105,12 +109,15 @@ Canvas [Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2
 | 19 · Vinh danh hồi hộp (CR-010) | Desktop chủ phòng (tự chạy) / Điện thoại Na (tự chạy, cuộn) / Lịch hiện · đặc tả nhịp | 1280×720 / 390×1320 / 1280×860 |
 | 20 · Giỏi nhất mỗi thể loại (CR-010) | Trạng thái & bố cục / Điện thoại · Tối (đã cuộn) | 1280×1040 / 390×844 |
 | 22 · Chat trong phòng (CR-011) | Điện thoại Na (bấm thử) / Điện thoại · Tối (chủ phòng) / Desktop chủ phòng (bấm thử, thu gọn) / Nút nổi theo 6 pha · Điện thoại / Bong bóng biểu cảm & chuyển động / Trạng thái (8 ô) | 390×844 / 1280×720 / 2540×940 / 1280×720 / 1280×1000 |
+| 23 · Chơi với máy (CR-016) | Hàng 1: Menu + hộp thoại · Desktop (bấm thử) / Hộp thoại · Điện thoại (bấm thử) / Menu có thẻ mới · Điện thoại · Tối / Trạng thái hộp thoại + thẻ menu. Hàng 2: Phòng chờ có bot · Desktop chủ phòng (bấm thử) / Điện thoại chủ phòng (bấm thử, cuộn) / Điện thoại · Tối (người chơi Lan) / Đặc tả huy hiệu, chip mức, tên, trạng thái ô. Hàng 3: Huy hiệu máy ở mọi nơi (sáng, tối) / Bot nhường ghế | 1280×720 / 390×844 / 390×844 / 1600×940 · 1280×720 / 390×844 / 390×844 / 1280×1300 · 1280×1330 ×2 / 1280×840 |
 
 Khu 5–11 kể một câu chuyện liền mạch: phòng 4 người (Hưng chủ phòng, Lan, Minh, Na), vòng 2/3 chơi Kẻ lạc đàn sau khi vòng 1 đã chơi Cân não. Bản điện thoại luôn là góc nhìn của Na. Mỗi khu có ghi chú cam mô tả trạng thái đang tải / lỗi / trống / mất kết nối. Các màn có link nối với nhau theo đúng luồng.
 
 Khu 18–20 (CR-010) dùng trận 6 người, 5 vòng (Hưng 42, Na 40, Minh 33, Lan 29, Bảo 24, Vy 18) để có đủ hạng 4+ và đủ 5 thể loại; bản "Điện thoại · Tối" ở khu 20 dùng lại trận 4 người, 3 vòng của khu 5–11 (chỉ 3 thể loại đã chơi). Artboard vinh danh tự chạy lặp lại; Tweaks: `stage` (dừng ở một nhịp), `reduced` (giảm chuyển động), `dark`. Artboard nút Hiệu ứng: Tweaks `osReduce` (máy đang giảm chuyển động), `dark`.
 
 Khu 22 (CR-011) dùng lại phòng 4 người của khu 5–11; điện thoại là góc nhìn Na, máy tính là chủ phòng Hưng. Artboard chat bấm thử có Tweaks `host` (hiện công tắc chủ phòng), `variant` (`normal` / `empty` / `chatOff`), `dark`; artboard bong bóng có Tweaks `reduced`.
+
+Khu 23 (CR-016) kể chuyện Na chơi với máy: Na bấm "Chơi với máy", giữ mặc định 3 bot mức Vừa, rồi đổi một bot sang Khó; bạn Lan vào bằng mã. Phòng chờ có Na (chủ phòng), Fen · máy, Si · máy, Fen 2 · máy (trùng nhân vật nên có số), Lan và 3 ô trống. Tên nhân vật theo `vi.ts` hiện tại (Si, Fen, Mochi, Bắp, Cam, Tròn); màu avatar theo `AVATAR_COLORS`. Artboard hộp thoại có Tweaks `dark`, `state` (`normal` / `loading` / `error`), `open`; bấm thử: lần đầu giả lập lỗi, Thử lại thì thành công và nối sang phòng chờ. Artboard phòng chờ có Tweaks `dark`, `host` (tắt = góc nhìn Lan), `full` (đủ 8 ghế); bấm thử được thêm bot, đổi mức, bỏ bot, Sẵn sàng.
 
 ### Trang "Minigame" (20 artboard)
 
@@ -157,6 +164,7 @@ Nguồn chuẩn là code: token ở `apps/web/src/styles/globals.css`, component
 | `destructive` | `#c93a55` | `#f07a90` | Lỗi, thao tác nguy hiểm |
 | `destructive-foreground` | `#fff8ef` | `#1f1b3a` | Chữ trên nút xoá đặc (`Button variant="destructive"`); cùng `destructive` làm badge số tin chưa đọc của chat (4,7:1 sáng, 6,2:1 tối) |
 | `bubble-mine` / `bubble-mine-foreground` | `#ffecc6` / `#1f1b3a` (14:1) | `#5c4b22` / `#fff8ef` (8:1) | Bong bóng tin của chính mình trong khung chat (CR-011). Tin người khác dùng `bg-muted` + `text-card-foreground` |
+| `bot` / `bot-foreground` | `#b9c7dc` thép nhạt / `#1f1b3a` (9,6:1) | Giữ như sáng (nền so với thẻ tối 7,8:1) | Huy hiệu máy, nhãn "Đấu với máy", thẻ "Chơi với máy" (CR-016). Luôn kèm viền `border-sticker` vì nền chỉ 1,6:1 so với thẻ giấy |
 | `identify` … `visualize` | Xem [Thiết kế game › 5 nhóm](game-design.md#4-năm-nhóm-kỹ-năng) | | Màu nhóm kỹ năng |
 | Màu avatar (8 màu) | `AVATAR_COLORS` trong `packages/shared/src/constants.ts` | | Phân biệt người chơi |
 
@@ -173,7 +181,7 @@ Cả hai tải từ Google Fonts trong `apps/web/index.html`, đủ dấu tiến
 
 ### Component
 
-- **UI cơ bản** (`components/ui/`): AlertDialog, Badge, Button, Card, DropdownMenu, Input, Label, Sheet (CR-011: viền mực 4 px, bo 3xl ở cạnh hướng vào màn, giảm chuyển động chỉ mờ; nút đóng chỉ hiện khi truyền `closeLabel` đã dịch), Skeleton, Slider, Sonner (toast), Switch (CR-011: rãnh 48×28 viền mực, bật = `primary`, vùng chạm 64×44), Tabs (`variant` "folder" kiểu bìa hồ sơ / "pill" trên bảng), Toggle, ToggleGroup; thêm bằng `pnpm dlx shadcn@latest add <tên>` trong `apps/web`. Lưu ý (2026-10-16): CLI hiện sinh `import { cn } from "cn"` và đòi ghi đè `button.tsx`; chạy kèm `--dry-run --view`, chép mã về rồi sửa import thành `@/lib/utils`.
+- **UI cơ bản** (`components/ui/`): AlertDialog, Badge, Button, Card, Dialog (CR-016: như AlertDialog nhưng đóng được bằng Esc / lớp phủ / nút ×; nút đóng chỉ hiện khi truyền `closeLabel`; giảm chuyển động chỉ mờ; cao quá màn thì cuộn trong hộp), DropdownMenu, Input, Label, Sheet (CR-011: viền mực 4 px, bo 3xl ở cạnh hướng vào màn, giảm chuyển động chỉ mờ; nút đóng chỉ hiện khi truyền `closeLabel` đã dịch), Skeleton, Slider, Sonner (toast), Switch (CR-011: rãnh 48×28 viền mực, bật = `primary`, vùng chạm 64×44), Tabs (`variant` "folder" kiểu bìa hồ sơ / "pill" trên bảng), Toggle, ToggleGroup; thêm bằng `pnpm dlx shadcn@latest add <tên>` trong `apps/web`. Lưu ý (2026-10-16): CLI hiện sinh `import { cn } from "cn"` và đòi ghi đè `button.tsx`; chạy kèm `--dry-run --view`, chép mã về rồi sửa import thành `@/lib/utils`.
 - **Dùng chung** (`components/common/`): `PlayerAvatar`, `DifficultyPicker`, `LanguageToggle`, `ThemeToggle`, `ConnectionBanner`, `RankBadge`, `MatchChips` (`RoundChip`, `CategoryChip`, `DifficultyChip`), `HostWaitCard`, `AvatarStrip`.
 - **Hàng nút trên cùng** (thứ tự cố định): `MusicBar` · `SfxToggle` · nút Hiệu ứng (CR-010, `features/motion/`) · `LanguageToggle` · `ThemeToggle`. Mọi nút là `Button variant="chalk" size="icon-chalk"` (44×44).
 - **Thương hiệu** (`components/brand/`): `Logo`, `BrainMascot`, `ChalkDoodle`.
@@ -188,7 +196,7 @@ Cả hai tải từ Google Fonts trong `apps/web/index.html`, đủ dấu tiến
 
 ## 6. Đặc tả chi tiết
 
-Thông số để frontend-dev làm theo. Câu chữ ghi ở đây là đề xuất: frontend-dev thêm vào `vi.ts` trước rồi `en.ts`, tên khoá có thể đổi cho khớp nhóm sẵn có. Mục 6.1–6.4 chỉ dùng token sẵn có; mục 6.5 thêm token `bubble-mine`.
+Thông số để frontend-dev làm theo. Câu chữ ghi ở đây là đề xuất: frontend-dev thêm vào `vi.ts` trước rồi `en.ts`, tên khoá có thể đổi cho khớp nhóm sẵn có. Mục 6.1–6.4 chỉ dùng token sẵn có; mục 6.5 thêm token `bubble-mine`; mục 6.6 thêm token `bot` và component `Dialog`.
 
 ### 6.1 Hàng nút trên cùng · nút Hiệu ứng (CR-010)
 
@@ -346,6 +354,147 @@ Tin bị lọc hiện `***` đúng như máy chủ gửi, không đánh dấu th
 
 **Câu chữ gợi ý** (vi / en): "Chat phòng" / "Room chat"; "{{count}} người" / "{{count}} players"; "Nhắn cả phòng…" / "Message the room…"; "Gửi" / "Send"; "Mở chat" / "Open chat"; "{{count}} tin chưa đọc" / "{{count}} unread"; "{{count}} tin mới" / "{{count}} new messages"; "Thu gọn chat" / "Collapse chat"; "Mở rộng chat" / "Expand chat"; "Đóng chat" / "Close chat"; "Chưa có tin nào" / "No messages yet"; "Chào cả phòng một câu, hoặc bấm một biểu cảm bên dưới." / "Say hi to the room, or tap a reaction below."; "Gửi chậm lại chút nhé, thử lại sau 1 giây." / "Slow down a little, try again in a second."; "Chủ phòng đã tắt chat" / "The host turned chat off"; "Bạn vẫn xem được tin cũ." / "You can still read earlier messages."; "Bạn đã tắt chat cho cả phòng" / "You turned chat off for the room"; "Chat trong phòng" / "Room chat"; "Bật" / "On"; "Tắt" / "Off"; "Đã tắt" / "Off"; "Tắt tiếng {{name}}" / "Mute {{name}}"; "Chỉ ẩn trên máy bạn, {{name}} không biết." / "Only hidden on your device. {{name}} won't know."; "Đã tắt tiếng {{name}}" / "{{name}} is muted"; "Bật lại" / "Unmute"; "Tuỳ chọn cho {{name}}" / "Options for {{name}}"; "Đang kết nối lại…" (khoá sẵn có). Nhãn trình đọc màn hình cho biểu cảm: "Gửi biểu cảm cười ra nước mắt / cháy quá / vỗ tay / hoảng hốt" / "Send reaction: tears of joy / fire / clap / scream". "GG" và "Nhanh lên!" / "Hurry up!" là câu chọn sẵn, dịch theo ngôn ngữ người xem nếu máy chủ gửi mã câu thay vì chữ (đề xuất cho backend-dev).
 
+### 6.6 Chơi với máy (S17, CR-016)
+
+Bản mẫu: [canvas khu 23](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ), trang "Màn chờ & luồng trận" (menu + hộp thoại, trạng thái hộp thoại, phòng chờ chủ phòng / người chơi, đặc tả ô, huy hiệu ở mọi nơi, bot nhường ghế). Luật bot: [Kế hoạch chơi với bot](bot-players.md). Mục này có **token mới** `bot` / `bot-foreground` và **component mới** `Dialog` (mục 5).
+
+**Thẻ ở menu:** nút "Chơi với máy" là thẻ đầu tiên của cột phải trên máy tính, và nằm ngay dưới lưới 4 thẻ trên điện thoại (cùng phần tử `<aside>`, chỉ đổi thứ tự). Cao 80 / 72 px, `bg-bot text-bot-foreground`, viền 4 / 3,5 px `border-sticker`, `shadow-sticker`, ô icon giấy 54 / 44 px với `BotIcon`, ba mặt bot nhỏ chồng nhau (trang trí, `aria-hidden`), mũi tên phải. `aria-haspopup="dialog"`. Để vừa 1280×720, cột phải giảm khoảng cách còn 12 px, các dòng MenuRow cao 60 px, ô "?" của Thử thách hôm nay cao 36 px.
+
+**Hộp thoại** (`Dialog`, rộng 480 px máy tính, `w-[calc(100%-2rem)]` điện thoại):
+
+| Phần | Thông số |
+| --- | --- |
+| Đầu | Ô icon 54 / 48 px `bg-bot` nghiêng −4°; tiêu đề `font-display` 30 / 26 px; mô tả 14 / 13 px `text-muted-foreground`. Nút × 44 px (`closeLabel`) |
+| Số bot | Như bộ chỉnh số vòng của `MatchSetupCard`: nút − / + 56 / 52 px (`aria-label` riêng), ô số `output aria-live="polite"`. Từ 1 đến 7, mặc định 3; chạm biên thì nút khoá (`disabled`, mờ 40%) |
+| Dải 8 ghế | 8 vòng 32 px cách 8 / 6 px, `aria-hidden`: ghế đầu là mình (vòng vàng 3 px), N ghế bot (nhân vật + huy hiệu xs), còn lại vòng nét đứt `border-muted-foreground`. Dòng dưới 13 px: "Bạn + 3 bot · còn 4 ghế cho bạn bè"; 7 bot thì nói rõ bot sẽ nhường ghế |
+| Mức chung | `ToggleGroup type="single"` (như `DifficultyPicker`, không cho bỏ chọn), 4 chip ô chọn cao 54 / 50 px chia đều; mặc định Vừa. Ô mô tả ngay dưới (`bg-muted`, bo 14, `aria-live="polite"`): dòng 1 "**Vừa** · chơi câu độ `DifficultyChip`", dòng 2 câu mô tả |
+| Nút chính | `Button` cao 62 / 58 px, "Vào phòng →". Mở hộp thoại thì focus vào nút này (`onOpenAutoFocus`), một chạm là chơi với mặc định |
+
+| Trạng thái | Hiển thị |
+| --- | --- |
+| Đang tạo phòng | Nút thành "Đang tạo phòng…" + `LoaderCircleIcon` quay, khoá; −/+ và chip khoá (mờ 45%). Nút × vẫn bấm được: huỷ, nếu phòng đã tạo xong thì rời phòng |
+| Lỗi kết nối | Khung `role="alert"` viền 2,5 px `border-destructive`, nền `bg-destructive/10`, `WifiOffIcon`: "Chưa tạo được phòng" + "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại."; giữ lựa chọn; nút thành "Thử lại" + `RefreshCwIcon` |
+| Thành công | Đóng hộp thoại, vào thẳng phòng chờ (không có màn trung gian) |
+
+**Chip mức bot** (`BotLevelChip`, đề xuất đặt cạnh `DifficultyChip` trong `MatchChips.tsx`). Màu giữ nguyên ở sáng / tối, chữ mực, viền `border-sticker`, kèm 4 vạch "độ mạnh" (cao 4 / 6 / 8 / 10 px, rộng 3 px, số vạch đậm = mức 1–4, vạch nhạt `ink/22`) nên không chỉ phân biệt bằng màu:
+
+| Mức | Màu | Tương phản chữ | Bot chơi câu độ |
+| --- | --- | --- | --- |
+| Dễ | `bg-mint` | 9,1:1 | Mầm |
+| Vừa | `bg-sky` | 9,1:1 | Thường (không dùng nền giấy như `DifficultyChip` vì lẫn vào thẻ) |
+| Khó | `bg-identify` | 8,0:1 | Khó |
+| Siêu | `bg-pink` | 8,8:1 | Siêu khó |
+
+- **Nhãn** (trên ô bot): cao 24 px (điện thoại) / 26 px (máy tính), chữ 12 / 13 px đậm, viền 2 px. Chủ phòng thì thêm `ChevronDownIcon` 13 px.
+- **Ô chọn** (hộp thoại, chọn mức trong ô): cao 44 px (trong ô) / 50–54 px (hộp thoại), bo 12–14, viền 2,5 px, `shadow-[0_3px_0]`, chữ `font-display` 16–19 px trên vạch. **Đang chọn:** vòng `0 0 0 4px primary, 0 0 0 6.5px sticker` (như chọn nhân vật ở phòng chờ) + dấu tích tròn 20–22 px góc trên phải (`bg-ink text-primary`). Vùng chứa chừa ≥ 7 px để vòng không bị cắt.
+
+**Huy hiệu máy** (`BotBadge`, đề xuất `components/characters/BotBadge`): vòng tròn `bg-bot text-bot-foreground` viền `border-sticker`, `BotIcon` (lucide), luôn `aria-hidden` vì tên đã có "· máy". Góc dưới phải avatar, lệch ra ngoài (vương miện chủ phòng và huy hiệu hạng ở góc trên trái nên không đè nhau; bot không bao giờ là chủ phòng).
+
+| Cỡ | Khung / viền / icon | Lệch | Dùng ở |
+| --- | --- | --- | --- |
+| `xs` | 16 / 2 / 10 px | −3 px | Avatar 32: `ScoreStrip` (dải điểm điện thoại), tin trong khung chat, dải 8 ghế của hộp thoại |
+| `sm` | 20 / 2 / 12 px | −4 px | Avatar 36–48: ô phòng chờ điện thoại (44), danh sách "Đã hiểu" ở `RoomDifficulty` (36), bảng điểm vòng (40 điện thoại, 48 máy tính), `Scoreboard` máy tính (44) |
+| `md` | 28 / 3 / 16 px | −5 px | Avatar 68: ô phòng chờ máy tính |
+| `inline` | `sm` khi chữ 16–22 px, `md` khi ≥ 26 px | — | Đứng trước tên khi không có avatar tròn: vinh danh (nhân vật đứng trên bục) |
+
+**Tên bot:** web dịch `characters.<id>.name` + hậu tố "· máy" (en "· bot"); ví dụ trong kế hoạch "Bơ · máy" nay là "Fen · máy" theo tên nhân vật hiện tại. Hai bot trùng nhân vật thì số đứng sau tên, đánh theo thứ tự ghế: "Fen · máy", "Fen 2 · máy". Hiển thị như "(bạn)": tên `truncate`, hậu tố `shrink-0 text-muted-foreground` (trên bảng phấn: `text-chalk-muted`), nên khi chật chỉ tên bị cắt. Tin chat của bot đã bị bỏ (cờ `bot` trong tin) chỉ ghi "Fen · máy", không số. Bot không bao giờ có "(bạn)".
+
+**Phòng chờ · ô trống** (`EmptySlot`):
+
+| Ai xem | Hiển thị | Bấm |
+| --- | --- | --- |
+| Người chơi khác | Như hiện nay: "Chỗ trống" + "Mời bạn" | Mở chia sẻ |
+| Chủ phòng | Vòng nét đứt có `BotIcon` (thay dấu +), "Chỗ trống" + dòng gạch chân "+ Thêm bot"; `aria-label` "Chỗ trống, thêm bot", `aria-expanded` | Mở chọn mức ngay trong ô |
+
+- **Chọn mức trong ô:** viền liền 3 px `border-chalk`, nền `bg-board-shade` đậm hơn (≈ `rgb(0 0 0 / .32)`), `role="group"` "Chọn mức cho bot mới". Điện thoại: hàng đầu cao 44 px "Thêm bot" + "Chọn mức" và nút × (44 px, vòng 30 px); dưới là lưới 2×2 ô chọn 44 px; ô cao 156 px, lưới ô dùng `items-start` để ô bên cạnh giữ 60 px. Máy tính: ô giữ 194×148 px, dòng "Thêm bot · chọn mức" 16 px, lưới 2×2 ô chọn 44 px, nút × 44 px (vòng 32 px) đặt lệch ra góc trên phải (−16 px, nằm trong khe lưới). Mở thì focus vào chip Vừa; Esc hoặc × đóng và trả focus về ô; mỗi lúc chỉ mở một ô; bấm chỗ khác cũng đóng.
+- **Bấm chip:** gửi `addBot { level }`; trong lúc chờ, chip đó thay chữ bằng vòng xoay (`sr-only` "Đang thêm bot"), các chip khác mờ 45% và khoá. Máy chủ từ chối (vd. vừa đủ người) thì đóng ô + toast "Không thêm được bot, phòng vừa đủ người."
+- **Hết ô trống:** không còn "+ Thêm bot". Phòng đủ 8 ghế mà có bot thì dưới lưới có dòng phấn `role="note"` (`InfoIcon`, `text-chalk-muted`, 13 / 14 px) cho mọi người: "Phòng đủ 8 ghế. Bạn bè vẫn vào được bằng mã: bot thêm sau cùng sẽ nhường ghế." Nút "Mời bạn" vẫn bấm được.
+
+**Phòng chờ · ô bot** (`PlayerSlot` khi `isBot`): nhân vật + huy hiệu (sm điện thoại, md máy tính), tên "Fen · máy", chip mức thay cho nhãn trạng thái (bot luôn sẵn sàng và được tính vào "Sẵn sàng n/m"). Không có vương miện, không "(bạn)".
+
+| | Điện thoại (166×60) | Máy tính (194×148) |
+| --- | --- | --- |
+| Người khác xem | Chỉ xem: nhãn mức không mũi tên, không nút | Như điện thoại |
+| Chủ phòng | **Cả ô là một nút** (lớp nút trong suốt phủ ô, `aria-label` "Fen · máy, mức Vừa. Đổi mức hoặc bỏ bot", `aria-expanded`), nhãn mức có mũi tên. Ô quá hẹp để đặt cả chip lẫn × đủ 44 px, nên dồn vào một chạm | Nhãn mức là nút (vùng chạm cao 44 px, lấn lề trên/dưới bằng margin âm), `aria-label` "Đổi mức Fen · máy, đang Vừa". Nút × 44 px (vòng 30 px) góc trên phải trong ô, `aria-label` "Bỏ Fen · máy", bỏ ngay không hỏi lại |
+| Đang đổi mức | Ô mở rộng tại chỗ (cao ≈ 208 px): hàng đầu "Đổi mức" + tên + ×; lưới 2×2 ô chọn (mức hiện tại có vòng vàng + tích, `role="radio"`); nút "Bỏ bot" cao 44 px viền mực, chữ `text-destructive`, `XIcon` | Ô giữ kích thước: dòng "Mức cho Fen · máy" + lưới 2×2 ô chọn, × ở góc như khi thêm. Bỏ bot dùng nút × trên ô |
+
+Chọn mức là gửi `setBotLevel` và đóng ô ngay (không có nút Lưu). Bot mới vào và bot đổi mức không đổi vị trí ghế. `MatchSetupCard`: dòng "Bắt đầu khi" đổi thành "Từ 2 người (tính cả bot), tất cả sẵn sàng"; máy tính thêm dòng "Bot trong phòng: 3 · thêm ở ô trống". `HostStatusCard` (điện thoại, người chơi): thêm "· chỉ chủ phòng thêm hoặc bỏ bot".
+
+**Huy hiệu ở các màn khác:**
+
+| Nơi | Thay đổi |
+| --- | --- |
+| Hướng dẫn & độ khó (`RoomDifficulty`) | Hàng bot: huy hiệu sm trên avatar 36, dòng phụ "Độ khó theo mức Vừa" (`text-muted-foreground` 11,5 px) ở chỗ nhãn "Lệch". Bot **không** bị viền cam, **không** có nút Nhắc dù độ khó khác đa số; đa số chỉ tính người thật. "Đã hiểu" tính cả bot |
+| Dải điểm khi chơi (`ScoreStrip`) | Huy hiệu xs góc dưới phải, hạng giữ góc trên trái. Tên dùng `PlayerName compact`: "· máy" chỉ còn `sr-only` (huy hiệu đã báo là bot), `title` giữ đủ "Fen 2 · máy"; chật thì cắt chữ, số của bot trùng nhân vật giữ lại ("Fe… 2"). Lửa combo (14 px) đè góc trên phải avatar thay vì đứng sau điểm, để điểm 5 chữ số vừa cột chữ 53 px của thẻ 108 px |
+| `Scoreboard` máy tính | Áp dụng cho mọi người chơi. Huy hiệu sm trên avatar; tên dùng `PlayerName compact` như dải điểm, **không co theo tỉ lệ** (`shrink-0`), chỉ cắt khi dài hơn trần `min(7rem, cột, max(cột − 1,125rem, 4,75rem))`: tối đa 112 px, chừa 18 px cho viên màu độ khó trừ khi chừa vậy làm tên hẹp hơn 76 px (khoảng 6 ký tự, rộng hơn mọi tên bot như "Ember 2" 66 px). "(bạn)" chỉ còn `sr-only` (hàng của mình đã tô nền). Nhãn độ khó lấy phần còn lại (khung `@container`): đủ chỗ thì cắt chữ ("Siê…"), hẹp hơn 44 px thành viên màu 12 px, hẹp hơn 18 px thì chỉ còn cho trình đọc màn hình; `title` giữ tên mức. Điểm và lửa combo cố định (`shrink-0`) |
+| Bảng điểm vòng, cộng điểm trận | Huy hiệu sm trên avatar; tên + "· máy" |
+| Vinh danh | Huy hiệu `inline` sm trước tên dưới nhân vật. Bot lên bục, nhận vương miện, vào thẻ Giỏi nhất mỗi thể loại như người |
+| Khung chat | Avatar 32 + xs; tên "Fen · máy" 15 px. Bot chỉ gửi biểu cảm nhanh; bong bóng trên avatar như người (CR-011). Tắt tiếng bot dùng menu sẵn có |
+| Lịch sử tài khoản · Trận party | Khi `bot_count > 0`: nhãn "Đấu với máy" dưới mã phòng (cột thứ 2, nên điện thoại cuộn ngang vẫn thấy): cao 22 px, `bg-bot text-bot-foreground`, viền 2 px `border-sticker`, `BotIcon` 13 px + chữ 11,5 px đậm; `title` và phần `sr-only` "(3 bot)". Hạng "/ 5 người" tính tổng số ghế gồm cả bot |
+
+**Bot nhường ghế** (phòng đủ 8 ghế có bot, người thật vào bằng mã). **Đề xuất: có báo**, bằng toast 3 giây (sonner, `role="status"`) cho những người đã ở trong phòng: "Lan vào phòng · Bắp · máy nhường ghế". Người mới vào không thấy toast. Lý do: bot do chủ phòng thêm và chọn mức, một ô tự biến mất mà không lời giải thích trông như lỗi. Không hỏi xác nhận (luật đã chốt, hỏi lại thì bạn bè phải đứng ngoài chờ), không tự thêm lại bot, không có âm thanh riêng. Nhiều bot nhường liền nhau thì mỗi lần một toast. Dòng phấn "Phòng đủ 8 ghế…" đã báo trước luật này.
+
+**Chuyển động** (một nguồn giảm chuyển động của `features/motion`):
+
+| Phần tử | Bình thường | Giảm chuyển động |
+| --- | --- | --- |
+| Hộp thoại | Mờ + phóng 95% → 100%, 150 ms (đã có trong `Dialog`) | Chỉ mờ |
+| Mở chọn mức trong ô, ô bot mới | Nảy vào 220 ms (scale .9 → 1, `cubic-bezier(.34,1.56,.64,1)`) + mờ | Mờ 200 ms |
+| Bỏ bot, bot nhường ghế | Mờ + co còn 95%, 200 ms; ô người mới nảy vào như trên | Chỉ mờ, thứ tự giữ nguyên |
+| Vòng xoay đang tạo / đang thêm | Quay 0,9 s / vòng | Đứng yên, chữ vẫn báo trạng thái |
+| Toast | Mặc định của sonner | Chỉ mờ |
+
+**Câu chữ gợi ý** (vi / en; khoá `bots.*`, riêng nhãn lịch sử nằm cùng nhóm `account` trong `locales/solo/*.ts`):
+
+| Khoá gợi ý | vi | en |
+| --- | --- | --- |
+| `bots.menuTitle` | Chơi với máy | Play with bots |
+| `bots.menuDesc` | Chưa có bạn? Vào trận ngay với bot | No friends around? Jump in with bots |
+| `bots.dialogTitle` | Chơi với máy | Play with bots |
+| `bots.dialogDesc` | Phòng có sẵn bot, vẫn có mã để bạn bè vào cùng. | A room with bots ready. It still has a code so friends can join. |
+| `bots.countLabel` / `bots.countRange` | Số bot / Từ 1 đến 7 | Bots / 1 to 7 |
+| `bots.countUnit` | bot | bot / bots (`_one` / `_other`) |
+| `bots.decrease` / `bots.increase` (aria) | Bớt một bot / Thêm một bot | One fewer bot / One more bot |
+| `bots.seatsFree` (`_one` / `_other`) | Bạn + {{count}} bot · còn {{free}} ghế cho bạn bè | You + {{count}} bot · seats left for friends: {{free}} / You + {{count}} bots · seats left for friends: {{free}} |
+| `bots.seatsFull` | Bạn + 7 bot · đủ 8 ghế. Bạn bè vào bằng mã thì bot nhường ghế. | You + 7 bots · all 8 seats taken. If a friend joins with the code, a bot gives up its seat. |
+| `bots.levelLabel` / `bots.levelHint` | Mức của bot / Vào phòng rồi vẫn đổi từng bot | Bot level / You can change each bot in the lobby |
+| `bots.level.0`…`3` | Dễ · Vừa · Khó · Siêu | Easy · Medium · Hard · Super |
+| `bots.levelDesc.0` | Nghĩ chậm, hay nhầm. Hợp với bé và người mới. | Thinks slowly, often wrong. Great for kids and beginners. |
+| `bots.levelDesc.1` | Như người chơi bình thường, thắng thua ngang ngửa. | Plays like a regular player. An even match. |
+| `bots.levelDesc.2` | Nhanh và chắc tay. Phải tập trung mới thắng. | Quick and steady. You'll need to focus. |
+| `bots.levelDesc.3` | Rất nhanh, hiếm khi sai. Cố hết sức vẫn thắng được. | Very fast, rarely wrong. Beatable at your best. |
+| `bots.playsAt` (Trans, `<chip/>` là `DifficultyChip`) | `chơi câu độ <chip/>` | `plays <chip/> puzzles` |
+| `bots.start` | Vào phòng | Enter room |
+| `bots.creating` | Đang tạo phòng… | Creating room… |
+| `bots.errorTitle` / `bots.errorBody` | Chưa tạo được phòng / Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại. | Couldn't create the room / Can't reach the server. Check your connection and try again. |
+| `bots.retry` | Thử lại | Try again |
+| `bots.close` (aria, nút ×) | Đóng | Close |
+| `bots.addBot` | + Thêm bot | + Add bot |
+| `bots.emptyAddLabel` (aria) | Chỗ trống, thêm bot | Empty seat, add a bot |
+| `bots.pickTitle` / `bots.pickHint` | Thêm bot / Chọn mức | Add a bot / Pick a level |
+| `bots.pickTitleWide` (máy tính) | Thêm bot · chọn mức | Add bot · pick a level |
+| `bots.pickGroup` (aria) | Chọn mức cho bot mới | Choose a level for the new bot |
+| `bots.addAt` (aria từng chip) | Thêm bot mức {{level}} | Add bot: {{level}} |
+| `bots.adding` (sr-only) | Đang thêm bot | Adding bot |
+| `bots.addFailed` (toast) | Không thêm được bot, phòng vừa đủ người. | Couldn't add a bot. The room just filled up. |
+| `bots.suffix` | · máy | · bot |
+| `bots.numbered` | {{name}} {{n}} | {{name}} {{n}} |
+| `bots.editLabel` (aria, ô bot điện thoại) | {{name}}, mức {{level}}. Đổi mức hoặc bỏ bot | {{name}}, {{level}}. Change level or remove |
+| `bots.chipLabel` (aria, chip máy tính) | Đổi mức {{name}}, đang {{level}} | Change level for {{name}}, now {{level}} |
+| `bots.editTitle` / `bots.editTitleWide` | Đổi mức / Mức cho {{name}} | Change level / Level for {{name}} |
+| `bots.editGroup` (aria) | Đổi mức cho {{name}} | Change level for {{name}} |
+| `bots.remove` | Bỏ bot | Remove bot |
+| `bots.removeLabel` (aria, nút ×) | Bỏ {{name}} | Remove {{name}} |
+| `bots.full` | Phòng đủ 8 ghế. Bạn bè vẫn vào được bằng mã: bot thêm sau cùng sẽ nhường ghế. | All 8 seats are taken. Friends can still join with the code: the last bot added gives up its seat. |
+| `bots.yielded` (toast) | {{name}} vào phòng · {{bot}} nhường ghế | {{name}} joined · {{bot}} gave up a seat |
+| `bots.inRoom` | Bot trong phòng · {{count}} · thêm ở ô trống | Bots in room · {{count}} · add in empty seats |
+| `bots.meterHint` (máy tính) | tính cả bot · bot luôn sẵn sàng | bots included · bots are always ready |
+| `bots.hostOnly` | chỉ chủ phòng thêm hoặc bỏ bot | only the host can add or remove bots |
+| `bots.introLevel` | Độ khó theo mức {{level}} | Difficulty set by level: {{level}} |
+| `lobby.setup.startWhenValue` (sửa khoá sẵn có) | Từ {{min}} người (tính cả bot), tất cả sẵn sàng | {{min}}+ players (bots count), everyone ready |
+| `account.vsBots` | Đấu với máy | Vs bots |
+| `account.vsBotsCount` (`title`, sr-only) | Có {{count}} bot trong trận | {{count}} bots in this match |
+
 ## 7. Đa ngôn ngữ & nội dung
 
 - Mọi chữ qua `t()`: khoá thêm vào `apps/web/src/i18n/locales/vi.ts` trước, rồi `en.ts`. Tên/cách chơi minigame ở `apps/web/src/games/<id>/locales.ts`.
@@ -362,5 +511,6 @@ Tin bị lọc hiện `***` đúng như máy chủ gửi, không đánh dấu th
 | 1.3 | 2026-10-16 | Trang canvas "Một mình & tài khoản" (khu 12–17): menu mới, Luyện tập, Kiểm tra não, Tài khoản & lịch sử, Bảng xếp hạng, trạng thái chung; bản đồ màn hình, S12–S15; component Tabs, AlertDialog, Skeleton; token `destructive-foreground` | [CR-009](../00-tracking/change-requests.md#cr-009) |
 | 1.4 | 2026-10-19 | Canvas khu 18–21: nút Hiệu ứng, vinh danh hồi hộp (lịch hiện, chuyển động, âm thanh), thẻ Giỏi nhất mỗi thể loại, thẻ Thế mạnh trong trận party; mục 6 Đặc tả chi tiết; quy tắc một nguồn giảm chuyển động | [CR-010](../00-tracking/change-requests.md#cr-010) |
 | 1.5 | 2026-10-20 | Canvas khu 22: khung chat trong phòng (S16), mục 6.5; token `bubble-mine`; component Sheet, Switch | [CR-011](../00-tracking/change-requests.md#cr-011) |
+| 1.6 | 2026-10-21 | Canvas khu 23: chơi với bot (S17 thẻ menu + hộp thoại, ô thêm bot và ô bot ở phòng chờ, huy hiệu máy ở mọi nơi, nhãn "Đấu với máy", bot nhường ghế); bản đồ màn hình, S4, S17, mục 6.6; token `bot`; component Dialog | [CR-016](../00-tracking/change-requests.md#cr-016) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

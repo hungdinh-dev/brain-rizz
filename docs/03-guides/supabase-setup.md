@@ -33,7 +33,7 @@ Gói Free tự tạm dừng sau khoảng 1 tuần không có truy cập (rủi r
 
 ## 2. Chạy migration
 
-Chạy **mọi file** trong [`supabase/migrations/`](../../supabase/migrations/) theo thứ tự tên (hiện có `20261016000000_accounts.sql` và `20261019000000_match_category_scores.sql` của [CR-010](../00-tracking/change-requests.md#cr-010)). Chọn **một** trong hai cách, và đã chọn cách nào thì giữ cách đó cho các lần sau.
+Chạy **mọi file** trong [`supabase/migrations/`](../../supabase/migrations/) theo thứ tự tên (hiện có `20261016000000_accounts.sql`, `20261019000000_match_category_scores.sql` của [CR-010](../00-tracking/change-requests.md#cr-010) và `20261021000000_match_bot_count.sql` của [CR-016](../00-tracking/change-requests.md#cr-016)). Chọn **một** trong hai cách, và đã chọn cách nào thì giữ cách đó cho các lần sau.
 
 **Cách A: Supabase CLI với chuỗi kết nối (nên dùng, CLI tự nhớ file nào đã chạy)**
 
@@ -149,7 +149,7 @@ Khoá secret bị lộ: Project Settings → API Keys → tạo secret key mới
    Trả về rỗng (chưa ai chơi) là đúng; báo lỗi là migration chưa chạy đủ. Tham số cuối là `BRAIN_TEST_RULES_VERSION` trong `packages/shared/src/brain-test.ts`.
 3. **Phiên khách**: mở `http://localhost:5173`, làm một lượt **Kiểm tra não**. Authentication → Users có một người dùng "Anonymous"; kết quả cuối lượt ghi "đã lưu".
 4. **Dữ liệu**: Table Editor → `brain_tests` có một dòng, `brain_test_games` có 5 dòng cùng `brain_test_id`.
-5. **Party**: chơi một trận 2 máy tới màn vinh danh → `match_results` có một dòng cho mỗi người có phiên.
+5. **Party**: chơi một trận 2 máy tới màn vinh danh → `match_results` có một dòng cho mỗi người có phiên, `bot_count = 0`. Chơi thêm một trận "Chơi với máy" (1 người + bot) → dòng mới có `bot_count` bằng số bot, `players` gồm cả bot.
 6. **Google**: ở màn Tài khoản bấm **Liên kết Google** → quay lại app, trạng thái "Đã liên kết Google"; Users hiện email, `user_id` không đổi.
 7. **RLS**: SQL Editor chạy `set role anon; select * from public.brain_tests;` → 0 dòng, và `select * from public.profiles;` → lỗi permission denied (hồ sơ không đọc công khai); chạy `reset role;` sau đó.
 8. **Xoá dữ liệu**: ở màn Tài khoản bấm **Xoá dữ liệu của tôi** → người dùng biến mất khỏi Authentication → Users và mọi dòng của họ trong 5 bảng bị xoá theo.

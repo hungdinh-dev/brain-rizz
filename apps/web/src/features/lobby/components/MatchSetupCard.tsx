@@ -49,6 +49,8 @@ interface MatchSetupCardProps {
   minPlayers: number;
   players: number;
   ready: number;
+  /** Số bot trong phòng (CR-016): dòng "Bot trong phòng" trên máy tính. */
+  bots?: number;
   onStart?(): void;
   /** Đã bấm "Bắt đầu", đang chờ server đổi pha: chỉ hiện spinner, nút không tắt (tránh nháy/mất focus). */
   pending?: boolean;
@@ -67,6 +69,7 @@ export function MatchSetupCard({
   minPlayers,
   players,
   ready,
+  bots = 0,
   onStart,
   pending = false,
   chatSetting,
@@ -168,6 +171,15 @@ export function MatchSetupCard({
             {t("lobby.setup.startWhenValue", { min: minPlayers })}
           </dd>
         </div>
+        {/* Máy tính (CR-016): chủ phòng luôn thấy để biết thêm bot ở đâu; người khác khi đã có bot. */}
+        {(editable || bots > 0) && (
+          <div className="hidden justify-between gap-3 lg:flex">
+            <dt className="text-muted-foreground">{t("bots.inRoomLabel")}</dt>
+            <dd className="text-right font-bold">
+              {editable ? t("bots.inRoomValue", { count: bots }) : bots}
+            </dd>
+          </div>
+        )}
       </dl>
 
       {chatSetting && (
@@ -221,6 +233,7 @@ export function HostStatusCard({
   rounds: number;
   className?: string;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       role="status"
@@ -236,7 +249,8 @@ export function HostStatusCard({
           count={rounds}
           values={{ name: hostName }}
           components={{ b: <strong /> }}
-        />
+        />{" "}
+        {t("bots.hostOnly")}
       </span>
     </div>
   );

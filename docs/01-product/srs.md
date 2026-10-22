@@ -631,7 +631,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | BR-14 | UC-19 | FR-MR-12→14 | — (đang làm, CR-009) |
 | BR-11 | UC-05, UC-08 | FR-PH-12, FR-GD-06→08 | — |
 | BR-01, BR-11 | UC-22 | FR-PH-14 → FR-PH-19, NFR-SEC-04 | `packages/shared/src/chat/chat.test.ts` (lọc từ tục, làm sạch, token bucket), `protocol.test.ts` (schema chat); `apps/server/test/PartyChat.test.ts` (danh tính do server gắn, rate limit, lọc + cắt, bật/tắt + `not-host`, `bad-phase`, 30 tin cho người vào sau / nối lại) |
-| BR-10 | UC-23 | FR-PH-20 → FR-PH-26 | — (đã duyệt CR-016, chưa làm) |
+| BR-10 | UC-23 | FR-PH-20 → FR-PH-26 | `packages/shared/src/bots/bots.test.ts`, `bots/balance-sim.test.ts`, `answer-judge.test.ts` (`judgeBotAnswer`), `protocol.test.ts` (lệnh bot); `apps/server/test/PartyBots.test.ts`; web `bot-name.test.ts`, `bot-setup.test.ts`, `bot-slot.test.tsx`, `create-party.test.ts`, `data-api.test.ts` (CR-016) |
 | BR-12 | — | NFR-COST-01 | — |
 
 ## 9. Lịch sử thay đổi tài liệu

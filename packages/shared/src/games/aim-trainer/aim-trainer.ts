@@ -188,6 +188,13 @@ export const aimTrainer: MinigameDef<AimTrainerPuzzle, AimTrainerAnswer> = {
 
   // Đặc tả, mục Cân bằng: mô phỏng 200 000 vòng mỗi mức. Mầm theo trần chung = 1.
   difficultyMultiplier: { 0: 1, 1: 1, 2: 1.75, 3: 2.55 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): thời
+  // gian mỗi bia (bia mới hiện ngay, không có hiệu ứng chuyển câu).
+  expectedSolveMs: { 0: 1_500, 1: 675, 2: 925, 3: 1_150 },
+  // Bot (CR-016): tỉ lệ đúng = 1 − tỉ lệ sai (bỏ lỡ, bắn mồi) ở bảng Cân bằng của đặc tả. Mầm không
+  // có cách sai nên lấy ước lượng ~5 % lần chạm trượt của trẻ 7 tuổi (đặc tả › Cân bằng), không
+  // dùng 1: với 1 mọi mức bot cùng đúng 99 %, bot Dễ không bao giờ trượt.
+  expectedAccuracy: { 0: 0.95, 1: 0.98, 2: 0.95, 3: 0.92 },
 
   generate(roundSeed, index, difficulty) {
     const level = LEVELS[difficulty];

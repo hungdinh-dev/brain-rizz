@@ -115,6 +115,19 @@ Người chơi mục tiêu (trẻ ở Mầm theo luật chung, đã chốt): M�
 
 Các mức của người lớn không chồng nhau (Thường ≤ 0,80 s ≤ Khó ≤ 1,05 s, Siêu khó ≥ 1,00 s chỉ chạm Khó ở biên). Siêu khó còn ~42 câu đúng mỗi vòng (≫ 8).
 
+**Thời gian và tỉ lệ đúng cho bot** ([CR-016](../00-tracking/change-requests.md#cr-016)), khai báo trong `aimTrainer`. Mầm theo trẻ 7 tuổi, các mức khác theo người lớn. Bia mới hiện ngay, không có hiệu ứng chuyển câu nên `expectedSolveMs` là giữa khoảng thời gian mỗi bia:
+
+| Mức | `expectedSolveMs` | `expectedAccuracy` | Cách tính |
+| --- | --- | --- | --- |
+| Mầm | 1 500 | **0,95 (ước lượng)** | Trẻ 1,0–2,0 s. Tỉ lệ đúng: xem dưới |
+| Thường | 675 | 0,98 | 0,55–0,80 s; 1 − 2 % bỏ lỡ (đúng bằng trần 98 % của bot) |
+| Khó | 925 | 0,95 | 0,80–1,05 s; 1 − 5 % bỏ lỡ |
+| Siêu khó | 1 150 | 0,92 | 1,00–1,30 s; 1 − 8 % (bỏ lỡ, bắn mồi) |
+
+- **Mầm 0,95 là ước lượng, chưa đo** (sửa 2026-10-21 theo lỗi QA, trước là 1). Ở Mầm trẻ không thể bị chấm sai (bia đứng yên, không có mồi, chạm hụt không gửi), nhưng bot chỉ thể hiện lỗi bằng câu sai. Khai báo 1 thì công thức tương đối của bot (`relativeAccuracy`) cho mọi mức cùng đúng 99 % (trần), bot Dễ gần như không bao giờ trượt, trái ý đồ "trẻ em thắng được". Lấy tỉ lệ chạm trượt của trẻ 7 tuổi khoảng 1 lần trong 20 (lơ đãng, chạm vào chỗ bia cũ, ngón lệch khỏi đĩa chấm ~27 % cạnh ngắn) làm tỉ lệ sai tương đương. Người lớn ở Thường bỏ lỡ 2 %, nên trẻ ở bia to mà sai 5 % là hợp lý. Bảng Cân bằng ở trên vẫn ghi 0 % sai vì đó là luật game, và 1,0–2,0 s mỗi bia của trẻ đã gồm thời gian chạm trượt.
+- Nhờ vậy bot Dễ (sai gấp 2,2 lần người chuẩn) đúng ~89 % ở Mầm, thay vì 99 %. Mô phỏng ([bot-players.md mục 3.1](../01-product/bot-players.md#31-bốn-mức)): trẻ 7 tuổi thắng bot Dễ 97 % số vòng (trước 96 %), điểm bot Dễ bằng 0,30 lần bot Vừa (trước 0,39). Các tiêu chí khác không đổi.
+- Chơi thử với trẻ đo được tỉ lệ chạm trượt thì sửa số Mầm này (không quá 0,98: `relativeAccuracy` kẹp mọi tỉ lệ chuẩn ở `BOT_MAX_BASE_ACCURACY`).
+
 **Ngoại lệ quy tắc "1–8 giây mỗi câu"** ([GDD](../01-product/game-design.md#quy-tắc-thiết-kế-một-minigame-mới)), **đã chốt 2026-10-20**: mỗi câu ở Thường chỉ ~0,7 s. Đây là bản chất game phản xạ; thưởng tốc độ nằm ở **số bia trúng mỗi vòng** chứ không ở điểm từng câu (xem dưới).
 
 **Hệ số điểm và miễn trừ thời gian** (CR-006, khai báo trong `aimTrainer`):

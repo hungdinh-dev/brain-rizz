@@ -97,6 +97,11 @@ export const shadowMatch: MinigameDef<ShadowMatchPuzzle, ShadowMatchAnswer> = {
   // CR-006: mô phỏng ở mục Cân bằng của đặc tả (người chơi đúng sức mỗi mức ≈ người lớn ở Thường;
   // Mầm = min(mô phỏng cho trẻ 7 tuổi, 1)). Chốt lại sau buổi chơi thử.
   difficultyMultiplier: { 0: 1, 1: 1, 2: 2.55, 3: 4 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): giữa
+  // khoảng + 0,3 s hiệu ứng chuyển câu.
+  expectedSolveMs: { 0: 2_600, 1: 2_300, 2: 3_900, 3: 5_050 },
+  // Bot (CR-016): tỉ lệ đúng chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.9, 1: 0.92, 2: 0.86, 3: 0.8 },
   // Không khai báo `speedAllowanceMs`: không có pha trình chiếu, một chạm là xong (đặc tả).
 
   generate(roundSeed, index, difficulty) {

@@ -105,13 +105,17 @@ const DIFFICULTY_BG: Record<Difficulty, string> = {
 export function DifficultyChip({
   difficulty,
   className,
+  title,
 }: {
   difficulty: Difficulty;
   className?: string;
+  /** Chú thích khi rê chuột: dùng ở chỗ nhãn có thể bị cắt chữ hoặc thu thành viên màu. */
+  title?: string;
 }) {
   const { t } = useTranslation();
   return (
     <span
+      title={title}
       className={cn(
         "inline-flex h-5.5 shrink-0 items-center rounded-full border-2 border-sticker px-2 text-xs font-bold whitespace-nowrap text-ink",
         DIFFICULTY_BG[difficulty],

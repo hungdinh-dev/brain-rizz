@@ -358,6 +358,11 @@ export const foldBox: MinigameDef<FoldBoxPuzzle, FoldBoxAnswer> = {
   durationMs: 60_000,
   // CR-006: mô phỏng ở mục Cân bằng của đặc tả. Mầm = min(mô phỏng trẻ 7 tuổi, 1).
   difficultyMultiplier: { 0: 0.85, 1: 1, 2: 1.95, 3: 3.25 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): giữa
+  // khoảng + 0,35 s hiệu ứng chuyển câu.
+  expectedSolveMs: { 0: 3_100, 1: 3_400, 2: 4_850, 3: 6_550 },
+  // Bot (CR-016): tỉ lệ đúng = 1 − tỉ lệ sai ở bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.9, 1: 0.9, 2: 0.85, 3: 0.8 },
   // Không khai báo `speedAllowanceMs`: không có pha trình chiếu, một chạm là xong.
 
   generate(roundSeed, index, difficulty) {

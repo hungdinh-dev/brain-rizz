@@ -311,6 +311,11 @@ export const pieceFit: MinigameDef<PieceFitPuzzle, PieceFitAnswer> = {
   // CR-006: mô phỏng từ bảng Cân bằng của đặc tả (người chơi đúng sức ở mỗi mức ≈ người lớn ở
   // Thường). Mầm = min(1,13 mô phỏng cho trẻ 7 tuổi, 1). Chốt lại sau buổi chơi thử.
   difficultyMultiplier: { 0: 1, 1: 1, 2: 2, 3: 3.2 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): trung
+  // bình + 0,3 s hiệu ứng chuyển câu.
+  expectedSolveMs: { 0: 3_200, 1: 3_100, 2: 4_500, 3: 6_000 },
+  // Bot (CR-016): tỉ lệ đúng = 1 − tỉ lệ sai ở bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.9, 1: 0.92, 2: 0.88, 3: 0.84 },
   // Không khai báo `speedAllowanceMs`: không có pha trình chiếu, một chạm là xong (đặc tả).
 
   generate(roundSeed, index, difficulty) {

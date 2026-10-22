@@ -1,4 +1,4 @@
-import { normalizeRoomCode } from "@brain-rizz/shared";
+import { normalizeRoomCode, type RoomBotsOption } from "@brain-rizz/shared";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -57,6 +57,25 @@ export function HomeScreen() {
     void run(action, profile);
   }
 
+  /**
+   * "Chơi với máy" (CR-016): lỗi để hộp thoại tự hiện (khung lỗi + Thử lại), không toast.
+   * Chưa có tên thì điền hồ sơ trước như Tạo phòng, xong thì tạo phòng kèm bot.
+   */
+  async function playBots(bots: RoomBotsOption, signal: AbortSignal) {
+    if (busy) return;
+    if (!profile.name.trim()) {
+      setPending(() => (p: Profile) => createParty(p, { bots }));
+      go("profile");
+      return;
+    }
+    setBusy(true);
+    try {
+      await createParty(profile, { bots, signal });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function confirmProfile(next: Profile) {
     saveProfile(next);
     setProfile(next);
@@ -96,6 +115,7 @@ export function HomeScreen() {
       onBrainTest={() => withProfile(async () => go("brain-test"))}
       onLeaderboard={() => go("leaderboard")}
       onAccount={() => go("account")}
+      onPlayBots={playBots}
     />
   );
 }

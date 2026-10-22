@@ -40,8 +40,13 @@ export interface MatchResultRecord {
   roomCode: string;
   /** Hạng chung cuộc theo `rankByMatch`, 0 = nhất. */
   placement: number;
-  /** Số người còn trong phòng lúc vào `podium`. */
+  /** Số ghế còn trong phòng lúc vào `podium`, gồm cả bot (CR-016). */
   players: number;
+  /**
+   * Số bot trong `players` (CR-016, cột `bot_count`); 0 = trận chỉ có người thật. Bot không có tài
+   * khoản nên không có dòng riêng. Màn Tài khoản gắn nhãn "Đấu với máy" khi > 0.
+   */
+  botCount: number;
   matchPoints: number;
   totalScore: number;
   rounds: number;

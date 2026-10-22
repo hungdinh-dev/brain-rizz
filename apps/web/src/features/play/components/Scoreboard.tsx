@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { BotBadge, PlayerName } from "@/components/characters";
 import { DifficultyChip } from "@/components/common/MatchChips";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { RankBadge } from "@/components/common/RankBadge";
@@ -7,6 +8,20 @@ import { useNumberFormat } from "@/hooks/use-number-format";
 import { cn } from "@/lib/utils";
 import type { Standing } from "../standings";
 import { ComboFlame } from "./ComboChip";
+
+/**
+ * Trần độ rộng của tên: không quá 7rem, không quá cột; chừa 1,125rem cho viên màu độ khó, trừ khi
+ * chừa vậy làm tên hẹp hơn 4,75rem (khoảng 6 ký tự, rộng hơn mọi tên bot như "Ember 2").
+ */
+const NAME_MAX = "max-w-[min(7rem,100%,max(100%_-_1.125rem,4.75rem))]";
+
+/**
+ * Nhãn độ khó nhận phần còn lại của hàng (khung `@container` bọc ngoài): đủ chỗ thì cắt chữ,
+ * hẹp hơn 2,75rem (không còn nổi "S…") thì thành viên màu 12 px, hẹp hơn 1,125rem thì chỉ còn cho
+ * trình đọc màn hình. Chữ luôn nằm trong DOM, `title` cho chuột.
+ */
+const DIFFICULTY_FIT =
+  "ml-1.5 block h-5 min-w-0 shrink truncate text-[11px] leading-4 @max-[2.75rem]:size-3 @max-[2.75rem]:p-0 @max-[2.75rem]:text-[0px] @max-[1.125rem]:sr-only";
 
 interface ScoreboardProps {
   standings: Standing[];
@@ -46,22 +61,36 @@ export function Scoreboard({ standings, meId, round, className }: ScoreboardProp
               )}
             >
               <RankBadge rank={rank} size="md" />
-              <PlayerAvatar avatar={p.avatar} colorIndex={p.colorIndex} size="md" />
+              <span className="relative flex shrink-0">
+                <PlayerAvatar avatar={p.avatar} colorIndex={p.colorIndex} size="md" />
+                {p.isBot && <BotBadge size="sm" />}
+              </span>
               <span className="flex min-w-0 flex-1 flex-col gap-0.5 leading-tight">
-                <span className="flex min-w-0 items-center gap-1.5">
-                  <span className="truncate font-display text-lg font-extrabold">{p.name}</span>
-                  {isMe && (
-                    <span className="shrink-0 text-xs font-semibold text-muted-foreground">
-                      {t("lobby.you")}
-                    </span>
-                  )}
-                  <DifficultyChip difficulty={p.difficulty} className="h-5 text-[11px]" />
+                {/*
+                 * Tên không co theo tỉ lệ (shrink-0), chỉ cắt khi dài hơn trần; huy hiệu máy trên
+                 * avatar thay cho hậu tố "· máy" (compact). Độ khó lấy phần còn lại.
+                 */}
+                <span className="flex min-w-0 items-center">
+                  <PlayerName
+                    player={p}
+                    compact
+                    className={cn(NAME_MAX, "shrink-0 font-display text-lg font-extrabold")}
+                  />
+                  {/* Hàng của mình đã tô nền: "(bạn)" chỉ còn cho trình đọc màn hình. */}
+                  {isMe && <span className="sr-only">{` ${t("lobby.you")}`}</span>}
+                  <span className="@container flex min-w-0 flex-1 items-center">
+                    <DifficultyChip
+                      difficulty={p.difficulty}
+                      title={t(`difficulty.${p.difficulty}`)}
+                      className={DIFFICULTY_FIT}
+                    />
+                  </span>
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {t("play.atQuestion", { n: p.progress + 1 })}
                 </span>
               </span>
-              <span className="flex items-center gap-1">
+              <span className="flex shrink-0 items-center gap-1">
                 <ComboFlame streak={p.streak} className="size-4" />
                 <span className="font-display text-2xl font-extrabold tabular-nums">
                   {fmt(p.roundScore)}

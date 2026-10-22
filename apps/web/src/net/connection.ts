@@ -1,4 +1,5 @@
 import {
+  type BotYieldedPayload,
   BRAIN_TEST_ROOM_NAME,
   type BrainClientMessage,
   type BrainJoinOptions,
@@ -7,6 +8,7 @@ import {
   type ChatMessagePayload,
   type ChatSendPayload,
   ClientMessage,
+  type CreateOptions,
   type ErrorPayload,
   estimateClock,
   isChatPhase,
@@ -15,6 +17,7 @@ import {
   type PartyStateView,
   type PongPayload,
   ROOM_NAME,
+  type RoomBotsOption,
   ServerMessage,
 } from "@brain-rizz/shared";
 import { Client, type Room } from "@colyseus/sdk";
@@ -24,6 +27,7 @@ import { STORAGE_KEYS, safeSession } from "@/lib/storage";
 import { useAuth } from "@/stores/auth.store";
 import { routeServerError, useChat } from "@/stores/chat.store";
 import { useGame } from "@/stores/game.store";
+import { BOT_YIELDED_TOAST_MS, botYieldedText } from "./bot-yielded";
 import { brainLeaveAction } from "./brain-leave";
 
 /**
@@ -44,6 +48,9 @@ const ACCESS_TOKEN_WAIT_MS = 4_000;
 const client = new Client(SERVER_URL);
 let room: Room | null = null;
 
+/** Id toast lỗi server (`ServerMessage.Error`): gọi `toast.error(…, { id })` để thay câu chung. */
+export const SERVER_ERROR_TOAST_ID = "server-error";
+
 /**
  * Token phiên Supabase để server ghi kết quả vào tài khoản (FR-MR-10). Tạo phiên khách lười nếu
  * chưa có; lỗi, chưa cấu hình hoặc quá lâu → vào phòng không token (vẫn chơi được).
@@ -59,9 +66,24 @@ async function accessToken(profile: { name: string; avatar?: JoinOptions["avatar
   return (await Promise.race([ensure, timeout])) ?? undefined;
 }
 
-export async function createParty(options: JoinOptions) {
+interface CreatePartyExtra {
+  /** "Chơi với máy" (CR-016): tạo phòng kèm sẵn bot; server đọc ở `onCreate` (`CreateOptions`). */
+  bots?: RoomBotsOption;
+  /** Người chơi huỷ giữa chừng (đóng hộp thoại): phòng tạo xong thì rời ngay, không vào phòng chờ. */
+  signal?: AbortSignal;
+}
+
+export async function createParty(options: JoinOptions, extra: CreatePartyExtra = {}) {
   const token = await accessToken(options);
-  attachParty(await client.create(ROOM_NAME, { ...options, accessToken: token }));
+  if (extra.signal?.aborted) return;
+  const create: CreateOptions = extra.bots ? { bots: extra.bots } : {};
+  const r = await client.create(ROOM_NAME, { ...options, ...create, accessToken: token });
+  if (extra.signal?.aborted) {
+    // Không còn người thật nào trong phòng nên server đóng phòng (kể cả bot).
+    void r.leave().catch(() => {});
+    return;
+  }
+  attachParty(r);
 }
 
 export async function joinParty(code: string, options: JoinOptions) {
@@ -165,6 +187,17 @@ function attachParty(r: Room) {
       position: "top-center",
     });
   });
+  // Bot nhường ghế cho người vừa vào (CR-016): server chỉ gửi những người đã ở trong phòng.
+  // Không đặt id toast: nhiều bot nhường liền nhau thì mỗi lần một toast.
+  r.onMessage(ServerMessage.BotYielded, (msg: BotYieldedPayload) => {
+    const text = botYieldedText(msg, {
+      character: (avatar) => i18n.t(`characters.${avatar}.name`),
+      numbered: (name, n) => i18n.t("bots.numbered", { name, n }),
+      suffix: i18n.t("bots.suffix"),
+      sentence: (name, bot) => i18n.t("bots.yielded", { name, bot }),
+    });
+    toast(text, { duration: BOT_YIELDED_TOAST_MS });
+  });
   r.onReconnect(() => safeSession.set(TOKEN_KEY, r.reconnectionToken));
 }
 
@@ -202,8 +235,12 @@ function attachCommon(r: Room) {
     // Chỉ lỗi không có nguồn mới mở khoá nút đang chờ phản hồi (lệnh vừa gửi bị từ chối).
     routeServerError(msg, {
       pushError: () => useGame.getState().pushError(),
-      // Dịch theo mã lỗi; server cũ gửi mã lạ thì hiện nguyên câu server gửi.
-      showError: () => toast.error(i18n.t(`errors.${msg.code}`, { defaultValue: msg.message })),
+      // Dịch theo mã lỗi; server cũ gửi mã lạ thì hiện nguyên câu server gửi. Cùng một id toast
+      // để màn hình thay bằng câu rõ hơn khi biết lệnh nào bị từ chối (vd. thêm bot khi vừa đủ người).
+      showError: () =>
+        toast.error(i18n.t(`errors.${msg.code}`, { defaultValue: msg.message }), {
+          id: SERVER_ERROR_TOAST_ID,
+        }),
     });
   });
   r.onDrop(() => {

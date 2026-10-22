@@ -96,6 +96,11 @@ export const lightTrail: MinigameDef<LightTrailPuzzle, LightTrailAnswer> = {
    * Khó 1,56; Siêu khó 2,19. Mầm giữ 1 để hệ số không bao giờ giảm khi lên mức.
    */
   difficultyMultiplier: { 0: 1, 1: 1, 2: 1.55, 3: 2.2 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): xem +
+  // nhập + 0,3 s chuyển câu.
+  expectedSolveMs: { 0: 5_800, 1: 5_700, 2: 6_500, 3: 7_600 },
+  // Bot (CR-016): tỉ lệ đúng chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.85, 1: 0.9, 2: 0.8, 3: 0.75 },
 
   generate(roundSeed, index, difficulty) {
     const level = LEVELS[difficulty];

@@ -122,6 +122,11 @@ export const navonShapes: MinigameDef<NavonShapesPuzzle, NavonShapesAnswer> = {
   durationMs: 60_000,
   // Bảng Cân bằng của đặc tả: Mầm chặn trần 1; Khó cần 1,92, Siêu khó cần 3,02 (làm tròn 0,05).
   difficultyMultiplier: { 0: 1, 1: 1, 2: 1.9, 3: 3 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): giữa
+  // khoảng + 0,3 s hiệu ứng chuyển câu.
+  expectedSolveMs: { 0: 2_300, 1: 1_550, 2: 2_100, 3: 2_750 },
+  // Bot (CR-016): tỉ lệ đúng chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.9, 1: 0.95, 2: 0.89, 3: 0.85 },
   // Không khai báo `speedAllowanceMs` / `answerWindowMs`: hình hiện là chạm được ngay, một chạm.
 
   generate(roundSeed, index, difficulty) {

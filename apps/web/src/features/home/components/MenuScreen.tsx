@@ -1,11 +1,14 @@
 import {
+  type CharacterId,
   GAME_IDS,
   isValidRoomCode,
   MAX_PLAYERS,
   normalizeRoomCode,
   PLANNED_GAME_COUNT,
+  type RoomBotsOption,
 } from "@brain-rizz/shared";
 import {
+  BotIcon,
   BrainIcon,
   CalendarDaysIcon,
   ChevronRightIcon,
@@ -34,9 +37,11 @@ import { SfxToggle } from "@/features/sfx";
 import { useData } from "@/hooks/use-data";
 import { useNumberFormat } from "@/hooks/use-number-format";
 import { hasStoredSession } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
 import { fetchBrainHistory } from "@/net/data-api";
 import { useAuth } from "@/stores/auth.store";
 import type { Profile } from "../profile";
+import { BotDialog } from "./BotDialog";
 import { MenuCard } from "./MenuCard";
 
 const SKILL_DOTS = ["bg-identify", "bg-memorize", "bg-analyze", "bg-compute", "bg-visualize"];
@@ -52,6 +57,8 @@ interface MenuScreenProps {
   onBrainTest(): void;
   onLeaderboard(): void;
   onAccount(): void;
+  /** "Chơi với máy" (CR-016): tạo phòng kèm bot rồi vào phòng chờ; ném lỗi = chưa tạo được. */
+  onPlayBots(bots: RoomBotsOption, signal: AbortSignal): Promise<void>;
 }
 
 /** Menu chính: tạo/vào phòng, các chế độ chơi, thử thách hằng ngày. */
@@ -66,6 +73,7 @@ export function MenuScreen({
   onBrainTest,
   onLeaderboard,
   onAccount,
+  onPlayBots,
 }: MenuScreenProps) {
   const { t } = useTranslation();
   const fmt = useNumberFormat();
@@ -84,6 +92,7 @@ export function MenuScreen({
         : t("home.menu.accountGuest");
   const [code, setCode] = useState(initialCode);
   const soon = () => toast(t("home.menu.soonToast"));
+  const [botsOpen, setBotsOpen] = useState(false);
 
   function submitJoin(e: FormEvent) {
     e.preventDefault();
@@ -225,7 +234,15 @@ export function MenuScreen({
           </MenuCard>
         </div>
 
-        <aside className="flex flex-col gap-3.5">
+        {/* Thẻ "Chơi với máy" đứng đầu cột phải; điện thoại ngay dưới lưới 4 thẻ. */}
+        <aside className="flex flex-col gap-3.5 lg:gap-3">
+          <PlayBotsCard onClick={() => setBotsOpen(true)} />
+          <BotDialog
+            open={botsOpen}
+            onOpenChange={setBotsOpen}
+            me={{ avatar: profile.avatar, colorIndex: profile.colorIndex }}
+            onStart={onPlayBots}
+          />
           <button
             type="button"
             onClick={soon}
@@ -248,7 +265,7 @@ export function MenuScreen({
                 <span
                   key={i}
                   aria-hidden
-                  className="grid h-14 place-items-center rounded-xl border-[3px] border-dashed border-ink bg-paper/50 font-display text-2xl font-extrabold"
+                  className="grid h-14 place-items-center rounded-xl border-[3px] border-dashed border-ink bg-paper/50 font-display text-2xl font-extrabold lg:h-9 lg:text-xl"
                 >
                   ?
                 </span>
@@ -290,6 +307,48 @@ export function MenuScreen({
   );
 }
 
+/** Ba mặt bot chồng nhau trên thẻ "Chơi với máy" (trang trí). */
+const BOT_FACES: { avatar: CharacterId; colorIndex: number }[] = [
+  { avatar: "bo", colorIndex: 1 },
+  { avatar: "mochi", colorIndex: 2 },
+  { avatar: "bap", colorIndex: 4 },
+];
+
+/** Thẻ "Chơi với máy" (S17, CR-016): mở hộp thoại chọn số bot và mức. */
+function PlayBotsCard({ onClick }: { onClick(): void }) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      aria-haspopup="dialog"
+      onClick={onClick}
+      className="flex h-18 shrink-0 cursor-pointer items-center gap-3 rounded-[22px] border-[3.5px] border-sticker bg-bot pr-3 pl-3 text-left text-bot-foreground shadow-sticker transition-[translate,box-shadow] hover:-translate-y-1 active:translate-y-1 active:shadow-none lg:h-20 lg:border-4 lg:pr-3.5"
+    >
+      <span className="grid size-11 shrink-0 -rotate-4 place-items-center rounded-2xl border-[3px] border-ink bg-paper text-ink lg:size-13.5">
+        <BotIcon aria-hidden className="size-6 lg:size-7" strokeWidth={2.3} />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.75 leading-[1.15]">
+        <span className="font-display text-[22px] leading-none font-extrabold lg:text-2xl">
+          {t("bots.menuTitle")}
+        </span>
+        <span className="text-[13px] font-semibold">{t("bots.menuDesc")}</span>
+      </span>
+      <span aria-hidden className="hidden shrink-0 min-[360px]:flex">
+        {BOT_FACES.map((f, i) => (
+          <PlayerAvatar
+            key={f.avatar}
+            avatar={f.avatar}
+            colorIndex={f.colorIndex}
+            size="sm"
+            className={cn("size-7.5 border-[2.5px] border-ink", i > 0 && "-ml-2.5")}
+          />
+        ))}
+      </span>
+      <ChevronRightIcon aria-hidden className="size-5 shrink-0" strokeWidth={2.6} />
+    </button>
+  );
+}
+
 function Chip({ children }: { children: string }) {
   return (
     <span className="rounded-full bg-ink/12 px-2.5 py-1 text-[13px] font-bold">{children}</span>
@@ -313,7 +372,7 @@ function MenuRow({
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-16 cursor-pointer items-center gap-3 rounded-2xl border-[3px] border-sticker bg-card px-3.5 text-left text-card-foreground shadow-sticker-sm transition-[translate,box-shadow] hover:-translate-y-0.5 active:translate-y-1 active:shadow-none"
+      className="flex min-h-16 cursor-pointer items-center gap-3 rounded-2xl border-[3px] border-sticker bg-card px-3.5 text-left text-card-foreground shadow-sticker-sm transition-[translate,box-shadow] hover:-translate-y-0.5 active:translate-y-1 active:shadow-none lg:min-h-15"
     >
       <span
         className={`grid size-10 shrink-0 place-items-center rounded-xl border-[3px] border-ink text-ink ${tone}`}

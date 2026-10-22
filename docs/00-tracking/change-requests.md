@@ -41,7 +41,7 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 | [CR-013](#cr-013) | Mở rộng minigame từ nghiên cứu Pumer Party, đợt đầu 7 game: Tráo cốc, Xếp lại tháp, Chuỗi quy luật, Đếm sĩ số, Mảnh vừa khít, Ô bí ẩn, Nối mạch | 2026-10-20 | Thêm tính năng | +5–7 ngày | Duyệt (2026-10-20) |
 | [CR-014](#cr-014) | Mở rộng minigame, đợt hai 7 game còn lại của kế hoạch: Tìm bạn, Giỏ hời nhất, Rót vừa vạch, Hình to hình nhỏ, Nhại nhịp, Cổng luật, Đường số | 2026-10-20 | Thêm tính năng | +8–12 ngày | Duyệt (2026-10-20) |
 | [CR-015](#cr-015) | Vòng quay chọn game chỉ lấy 8 game chưa chơi (mỗi nhóm ít nhất 1 lát) thay cho 30 lát | 2026-10-20 | Đổi luật + thay đổi thiết kế | +0,5–1 ngày | Chờ duyệt |
-| [CR-016](#cr-016) | Chơi với bot: chủ phòng thêm bot 4 mức vào ghế trống, nút "Chơi với máy" ở menu, lịch sử gắn nhãn có bot | 2026-10-21 | Thêm tính năng | +3,5–4,5 ngày công (2,5–3 ngày lịch) | Duyệt (2026-10-21) |
+| [CR-016](#cr-016) | Chơi với bot: chủ phòng thêm bot 4 mức vào ghế trống, nút "Chơi với máy" ở menu, lịch sử gắn nhãn có bot | 2026-10-21 | Thêm tính năng | +3,5–4,5 ngày công (2,5–3 ngày lịch) | Đã làm (2026-10-21), chờ QA và merge |
 
 ---
 
@@ -423,7 +423,10 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 - **Tài liệu kéo theo:**
   - Đã cập nhật khi duyệt: SRS 1.11 (UC-23, FR-PH-20 → FR-PH-26), BRD 1.3 (BR-10), features.md, roadmap.
   - Cập nhật khi làm: GDD (mục Bot), UI-UX, ADR 0014, overview (giao thức, state), folder-structure, changelog.
-- **Kết quả:** chưa làm. Làm trên nhánh `feat/bot-players` sau khi merge `feat/minigame-wave-1`.
+- **Kết quả:** đã làm 2026-10-21 trên nhánh `feat/bot-players` (chờ QA, chưa merge), xem UC-23 ở [features.md](features.md) và changelog [Chưa phát hành].
+  - Bảng 3.1 đã chỉnh theo mô phỏng (kế hoạch bản 0.3): Vừa T × 1 / 90 %, Khó T × 0,9 / 90 %.
+  - **Thứ tự triển khai:** chạy migration `supabase/migrations/20261021000000_match_bot_count.sql` trên Supabase thật **trước** khi deploy server và web mới. Server luôn ghi cột `bot_count` (kể cả trận chỉ có người), web đọc cột này ở lịch sử: thiếu cột thì ghi kết quả trận và đọc lịch sử đều lỗi (giống CR-010).
+  - Còn chờ chủ dự án: toast báo "bot nhường ghế" (ui-ux 6.6, chưa làm), tỉ lệ đúng theo từng game và nới bot Dễ (câu hỏi của game-designer).
 
 ---
 

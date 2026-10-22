@@ -465,6 +465,11 @@ export const bestBasket: MinigameDef<BestBasketPuzzle, BestBasketAnswer> = {
    * trẻ 7 tuổi, 1); hệ số không giảm khi lên mức. Chốt lại sau buổi chơi thử.
    */
   difficultyMultiplier: { 0: 0.85, 1: 1, 2: 1.4, 3: 1.65 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): trung
+  // bình + 0,25 s chuyển câu.
+  expectedSolveMs: { 0: 4_650, 1: 5_550, 2: 6_550, 3: 7_250 },
+  // Bot (CR-016): tỉ lệ đúng = 1 − tỉ lệ sai ở bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.9, 1: 0.93, 2: 0.9, 3: 0.88 },
 
   /** Miễn trừ thưởng tốc độ (CR-006): 250 ms mỗi món sau hai món đầu, 500 ms mỗi luật thưởng/ưu đãi. */
   speedAllowanceMs(puzzle) {

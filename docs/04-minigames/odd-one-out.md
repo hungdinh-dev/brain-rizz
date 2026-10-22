@@ -57,6 +57,45 @@ Ví dụ (gốc → lạc):
 - Khó/Siêu khó (test 10.000 seed mỗi mức): ô lạc cùng hình, mọi ô góc xoay 0, cùng sắc độ (sai số ≤ 3° do làm tròn hex), độ lệch độ sáng nằm trong dải của mức (nới 0,5 cho làm tròn), mọi màu có độ sáng 27–77 %; có cả ô lạc sáng hơn lẫn tối hơn.
 - Không còn kiểu khác góc xoay ở bất kỳ mức nào.
 
+## Cân bằng
+
+**Ước lượng CHƯA ĐO** (thêm 2026-10-21 cho bot, [CR-016](../00-tracking/change-requests.md#cr-016)). Trước đây game chưa có mục này. Số dưới đây chỉ để bot có mốc; phải đo lại ở buổi chơi thử. Người chơi mục tiêu: Mầm là trẻ 7 tuổi, các mức khác là người lớn chọn đúng sức.
+
+| Mức | Lưới | Thời gian giải mỗi câu | Tỉ lệ sai | Số câu mỗi vòng 45 s (trả lời · đúng) |
+| --- | --- | --- | --- | --- |
+| Mầm | 3×3 | trẻ 7 tuổi ~1,9 s (người lớn ~0,7 s) | 10 % | ~20 · 18 |
+| Thường | 4×4 | ~1,3 s | 4 % | ~29 · 28 |
+| Khó | 5×5 | ~2,0 s | 10 % | ~19 · 17 |
+| Siêu khó | 6×6 | ~2,9 s | 15 % | ~13 · 11 |
+
+Cách suy ra:
+
+- **Thường:** 1,3 s mỗi câu, sai 4 %, theo giả định của [GDD › Kiểm tra não](../01-product/game-design.md#kiểm-tra-não) (điểm chuẩn Kẻ lạc đàn).
+- **Khó, Siêu khó:** thời gian tỉ lệ với số ô của `GRID_BY_DIFFICULTY` so với lưới 4×4: 1,3 × 25/16 ≈ 2,0 s và 1,3 × 36/16 ≈ 2,9 s. Đây là mô hình đơn giản nhất cho tìm lần lượt từng ô. Không trừ phần chạm cố định vì ở hai mức này khác biệt chỉ còn ở độ sáng, nên mỗi ô cũng xem lâu hơn. Tỉ lệ sai: Khó 10 % (lệch 14–18 % còn khá rõ, thấp hơn chút so với 11–14 % ở Khó của Hình to hình nhỏ, Tìm bạn, Bóng của ai); Siêu khó 15 % (Hình to hình nhỏ 15 %, Tìm bạn 16 %).
+- **Mầm:** người lớn 1,3 × 9/16 ≈ 0,73 s. Trẻ 7 tuổi chậm hơn khoảng 2,6 lần, là trung vị tỉ số trẻ / người lớn ở Mầm của 4 game Nhận diện khác (Luyện ngắm 2,7, Hình to hình nhỏ 2,7, Tìm bạn 2,6, Bóng của ai 2,3), ra ~1,9 s. Sai 10 % như trẻ ở Hình to hình nhỏ, Tìm bạn, Bóng của ai.
+- Số câu mỗi vòng: thời gian một câu (cộng 0,2 s chuyển câu) cộng khoá 1,5 s cho phần câu sai.
+- Siêu khó còn ~13 câu mỗi vòng (≥ 8). Thời gian các mức người lớn tăng dần, không chồng nhau ở mức ước lượng điểm này (chưa có khoảng dao động).
+
+**Thời gian và tỉ lệ đúng cho bot** (khai báo trong `oddOneOut`):
+
+| Mức | `expectedSolveMs` | `expectedAccuracy` | Cách tính |
+| --- | --- | --- | --- |
+| Mầm | 2 100 | 0,90 | trẻ 1,9 s + 0,2 s chuyển câu (nảy 180 ms, mục Ghi chú cho FE) |
+| Thường | 1 500 | 0,96 | 1,3 + 0,2 s |
+| Khó | 2 250 | 0,90 | 2,03 + 0,2 s, làm tròn tới 50 ms |
+| Siêu khó | 3 150 | 0,85 | 2,93 + 0,2 s, làm tròn tới 50 ms |
+
+**Hệ số điểm và miễn trừ thời gian** ([CR-006](../00-tracking/change-requests.md#cr-006)): **chưa khai báo**. Game vẫn dùng hệ số chung 0,8 / 1 / 1,25 / 1,5, không có miễn trừ (chạm được ngay, không có pha trình chiếu).
+
+Với ước lượng trên, mô phỏng 1 000 vòng bằng công thức điểm của server cho điểm vòng so với người lớn ở Thường: trẻ ở Mầm ~50 %, người lớn ở Khó ~63 %, ở Siêu khó ~44 %. Tức là chọn mức cao bị thiệt, trái nguyên tắc "không phạt người chọn mức cao" của GDD. Vì thế bot Khó và Siêu ở game này cũng được ít điểm hơn bot Vừa (Khó 0,72 lần, Siêu 0,62 lần). Test mô phỏng bot ghi game này là ngoại lệ có lý do (`NOT_ORDERED` trong `balance-sim.test.ts`).
+
+**Đề xuất, chưa áp dụng, chờ chủ dự án duyệt:** cân theo CR-006 thì cần hệ số **Mầm 1** (trẻ cần 2,04, chặn ở 1), **Thường 1**, **Khó 2,25**, **Siêu khó 3,85**, ngang các game Nhận diện khác (Hình to hình nhỏ 1 / 1 / 1,9 / 3; Bóng của ai 1 / 1 / 2,55 / 4). Với số này bot lại tăng dần: Dễ 0,36, Khó 1,14, Siêu 1,37 lần Vừa.
+
+- Thường giữ 1 nên Kiểm tra não và `BRAIN_TEST_REFERENCE_SCORE` không đổi.
+- Phải sửa kèm test server `PartyRoom.test.ts` (ca `odd-one-out` đang ghi cứng hệ số chung: Mầm 130, Siêu khó 200 điểm).
+- Điểm Luyện tập cũ ở Mầm, Khó, Siêu khó không còn so được với điểm mới.
+- Nên đo thời gian thật ở buổi chơi thử rồi mới chốt.
+
 ## Ghi chú cho FE
 
 Lưới vuông ở giữa khung 720×1280, mỗi ô là vùng chạm. Mép trên của lưới nằm dưới dải huy hiệu khoá của khung, nên huy hiệu không che ô nào.
@@ -77,4 +116,5 @@ Lưới vuông ở giữa khung 720×1280, mỗi ô là vùng chạm. Mép trên
 
 ## Lịch sử thay đổi
 
+- 2026-10-21: Thêm mục Cân bằng (ước lượng chưa đo) và khai báo `expectedSolveMs`, `expectedAccuracy` cho bot (CR-016). Hệ số điểm chưa đổi; đề xuất hệ số riêng chờ duyệt.
 - 2026-10-20: Khó đổi từ "khác hẳn màu" sang "cùng sắc độ, lệch độ sáng 14–18 %"; Siêu khó đổi từ "khác góc xoay 15–25°" sang "lệch độ sáng 7–9 %" (yêu cầu chủ dự án: khác màu và xoay quá dễ nhận). Mầm/Thường không đổi.

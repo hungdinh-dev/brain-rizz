@@ -1,12 +1,16 @@
 import {
+  AddBotSchema,
   AnswerSchema,
   AVATAR_COLORS,
   availableGames,
   BackToLobbySchema,
+  type BotYieldedPayload,
   type Category,
+  type ChatQuickId,
   ChatSendSchema,
   ClientMessage,
   COUNTDOWN_MS,
+  CreateOptionsSchema,
   categoryLeaders,
   type ErrorPayload,
   type GameId,
@@ -14,9 +18,11 @@ import {
   getGame,
   INTRO_AUTO_START_MS,
   IntroReadySchema,
+  isCharacterId,
   isChatPhase,
   isGameId,
   JoinOptionsSchema,
+  type JudgeOutcome,
   type JudgeRound,
   LATE_ANSWER_GRACE_MS,
   MAX_PLAYERS,
@@ -33,11 +39,14 @@ import {
   playedCategories,
   RECONNECT_WINDOW_S,
   ReadySchema,
+  RemoveBotSchema,
+  type RoomBotsOption,
   type RoundStartPayload,
   randomSeed,
   rankByMatch,
   rankByRound,
   ServerMessage,
+  SetBotLevelSchema,
   SetChatEnabledSchema,
   SetDifficultySchema,
   SetPickModeSchema,
@@ -55,6 +64,7 @@ import { type Client, type Delayed, matchMaker, Room } from "colyseus";
 import type { z } from "zod";
 import { getResultStore, type MatchResultRecord } from "../store/ResultStore";
 import { AnswerJudge } from "./AnswerJudge";
+import { BotDriver } from "./BotDriver";
 import { ChatRelay } from "./ChatRelay";
 import { parseMessage, replyPong, sendError, withSource } from "./messages";
 import { PartyState, Player } from "./schema/PartyState";
@@ -70,8 +80,12 @@ import { PartyState, Player } from "./schema/PartyState";
  * lobby → game-select → game-intro → countdown → playing → round-results
  *       → (còn vòng) game-select … | (hết vòng) podium → game-select (Chơi lại) | lobby
  *
- * Mỗi lần đổi pha đều huỷ hẹn giờ của pha cũ (`clearTimers`), nên hẹn giờ không bao giờ
- * "bắn nhầm" sang pha khác; mỗi callback hẹn giờ vẫn tự kiểm tra lại pha cho chắc.
+ * Mỗi lần đổi pha đều huỷ hẹn giờ của pha cũ (`clearTimers`, kể cả hẹn giờ của bot), nên hẹn giờ
+ * không bao giờ "bắn nhầm" sang pha khác; mỗi callback hẹn giờ vẫn tự kiểm tra lại pha cho chắc.
+ *
+ * Bot (CR-016, ADR 0014): ghế do server chơi thay, quản lý ở `BotDriver`. Ghế tính cả bot
+ * (≤ MAX_PLAYERS); bot nhường ghế cho người thật ở phòng chờ, không làm chủ phòng; hết người thật
+ * thì phòng đóng.
  */
 export class PartyRoom extends Room<{ state: PartyState }> {
   override maxClients = MAX_PLAYERS;
@@ -95,6 +109,21 @@ export class PartyRoom extends Room<{ state: PartyState }> {
   private matchRecorded = false;
   /** Chat trong phòng (CR-011): giới hạn tần suất, lọc, 30 tin gần nhất trong RAM. */
   private chat = new ChatRelay();
+  /** Bot của phòng (CR-016): danh sách, hành vi theo pha, hẹn giờ trả lời trên `this.clock`. */
+  private bots = new BotDriver({
+    state: this.state,
+    judge: this.judge,
+    setTimeout: (fn, ms) => this.clock.setTimeout(fn, ms),
+    judgeRound: () => this.judgeRound(),
+    applyOutcome: (p, outcome) => this.applyOutcome(p, outcome),
+    sendChat: (p, quickId) => this.sendBotChat(p, quickId),
+    freeColor: (preferred) => this.freeColor(preferred),
+  });
+  /**
+   * Bot xin kèm lúc tạo phòng ("Chơi với máy"), chờ người tạo vào rồi mới thêm (xem `onJoin`):
+   * thêm trước thì bot lấy mất màu và nhân vật trong hồ sơ của người tạo.
+   */
+  private pendingBots: RoomBotsOption | undefined;
 
   override messages = {
     // ------------------------------------------------------------ phòng chờ
@@ -198,8 +227,9 @@ export class PartyRoom extends Room<{ state: PartyState }> {
       if (!this.parse(client, StartRoundSchema, raw) || !this.requireHost(client)) return;
       if (!this.requirePhase(client, "game-intro")) return;
       // Chủ phòng bấm "Bắt đầu chơi" tức là chủ phòng đã hiểu; chỉ chờ những người còn lại.
+      // Không chờ bot (CR-016): bot tự "Đã hiểu" sau vài giây, chủ phòng không phải đợi.
       const waiting = [...this.state.players.values()].some(
-        (p) => p.id !== this.state.hostId && !p.introReady,
+        (p) => p.id !== this.state.hostId && !p.isBot && !p.introReady,
       );
       if (waiting) {
         this.sendError(client, { code: "not-ready", message: "Chờ mọi người bấm Đã hiểu." });
@@ -248,15 +278,43 @@ export class PartyRoom extends Room<{ state: PartyState }> {
       if (!msg || !this.requireHost(client, "chat")) return;
       this.state.chatEnabled = msg.enabled;
     },
+
+    // ------------------------------------------------------------ bot (CR-016)
+
+    [ClientMessage.AddBot]: (client: Client, raw: unknown) => {
+      const msg = this.parse(client, AddBotSchema, raw);
+      if (!msg || !this.requireHost(client) || !this.requirePhase(client, "lobby")) return;
+      // Ghế tính cả bot (FR-PH-22).
+      if (this.state.players.size >= MAX_PLAYERS) {
+        this.sendError(client, { code: "invalid", message: "Phòng đã hết ghế." });
+        return;
+      }
+      this.bots.add(msg.level);
+    },
+
+    [ClientMessage.RemoveBot]: (client: Client, raw: unknown) => {
+      const msg = this.parse(client, RemoveBotSchema, raw);
+      if (!msg || !this.requireHost(client) || !this.requirePhase(client, "lobby")) return;
+      if (this.requireBot(client, msg.playerId)) this.removeBot(msg.playerId);
+    },
+
+    [ClientMessage.SetBotLevel]: (client: Client, raw: unknown) => {
+      const msg = this.parse(client, SetBotLevelSchema, raw);
+      if (!msg || !this.requireHost(client) || !this.requirePhase(client, "lobby")) return;
+      if (this.requireBot(client, msg.playerId)) this.bots.setLevel(msg.playerId, msg.level);
+    },
   };
 
   // ---------------------------------------------------------------- lifecycle
 
-  override async onCreate() {
+  override async onCreate(options: unknown) {
     this.roomId = await this.uniqueRoomCode();
     this.state.code = this.roomId;
     // Phòng riêng: chỉ vào được bằng mã, không bị ghép ngẫu nhiên.
     await this.setPrivate(true);
+    // "Chơi với máy" (FR-PH-21): tạo phòng kèm bot. `bots` sai thì bị bỏ như không gửi.
+    // Chỉ ghi nhớ ở đây; bot vào ngay sau người tạo (onJoin).
+    this.pendingBots = CreateOptionsSchema.parse(options).bots;
   }
 
   override onJoin(client: Client, options: unknown) {
@@ -264,6 +322,15 @@ export class PartyRoom extends Room<{ state: PartyState }> {
       throw new Error("Phòng đang chơi, vui lòng chờ hết trận.");
     }
     const opts = JoinOptionsSchema.parse(options ?? {});
+    // Ghế tính cả bot (FR-PH-22): đủ ghế thì bot thêm gần nhất nhường chỗ cho người thật.
+    let yielded: Omit<BotYieldedPayload, "playerId" | "playerName"> | undefined;
+    if (this.state.players.size >= MAX_PLAYERS) {
+      const botId = this.bots.newest();
+      const bot = botId ? this.state.players.get(botId) : undefined;
+      if (!botId || !bot) throw new Error("Phòng đã đầy.");
+      yielded = { botId, botAvatar: isCharacterId(bot.avatar) ? bot.avatar : "khoi" };
+      this.removeBot(botId);
+    }
     const player = new Player();
     player.id = client.sessionId;
     player.name = opts.name;
@@ -272,6 +339,22 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     player.difficulty = opts.difficulty;
     this.state.players.set(client.sessionId, player);
     if (!this.state.hostId) this.setHost(client.sessionId);
+    // Bot của "Chơi với máy" vào SAU người tạo: `freeColor` và chọn nhân vật thấy người tạo nên
+    // tránh màu + nhân vật của họ. Người tạo đã là chủ phòng nên bot không bao giờ làm chủ.
+    if (this.pendingBots) {
+      const { count, level } = this.pendingBots;
+      this.pendingBots = undefined;
+      for (let i = 0; i < count; i++) this.bots.add(level);
+    }
+    if (yielded) {
+      // Chỉ báo những người đã ở trong phòng; người vừa vào không nhận toast này.
+      const payload: BotYieldedPayload = {
+        ...yielded,
+        playerId: client.sessionId,
+        playerName: player.name,
+      };
+      this.broadcast(ServerMessage.BotYielded, payload, { except: client });
+    }
     if (opts.accessToken) this.authenticate(client.sessionId, opts.accessToken);
     // Gửi trong onJoin: Colyseus giữ lại tới khi client xác nhận vào phòng rồi mới phát.
     client.send(ServerMessage.ChatHistory, this.chat.history());
@@ -304,12 +387,18 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     this.userIds.delete(id);
     this.pendingAuth.delete(id);
     this.chat.forget(id);
-    // Hẹn giờ của pha hiện tại (vòng quay, tự bắt đầu, hết giờ) vẫn chạy tiếp,
-    // nên phòng không bị kẹt khi chủ phòng rời giữa chừng.
-    if (this.state.hostId === id) {
-      const next = this.state.players.keys().next().value;
-      this.setHost(next ?? "");
+    // Bot không giữ phòng (FR-PH-23): hết người thật, kể cả người đang giữ chỗ, thì dọn bot và đóng
+    // phòng. Phòng không có bot thì Colyseus tự huỷ khi trống như trước.
+    if (!this.firstHumanId() && this.bots.count > 0) {
+      this.clearTimers();
+      for (const bot of this.bots.ids()) this.removeBot(bot);
+      this.setHost("");
+      void this.disconnect();
+      return;
     }
+    // Hẹn giờ của pha hiện tại (vòng quay, tự bắt đầu, hết giờ) vẫn chạy tiếp,
+    // nên phòng không bị kẹt khi chủ phòng rời giữa chừng. Quyền chủ phòng chỉ sang người thật.
+    if (this.state.hostId === id) this.setHost(this.firstHumanId() ?? "");
   }
 
   override onDispose() {
@@ -368,6 +457,8 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     this.state.phase = "game-intro";
     // Hết hạn thì tự bắt đầu, kể cả khi chưa ai bấm "Đã hiểu" (FR-VC-19).
     this.schedule(INTRO_AUTO_START_MS, () => this.startRound());
+    // Bot bấm "Đã hiểu" sau vài giây (FR-PH-23).
+    this.bots.onIntro();
   }
 
   private startRound() {
@@ -409,6 +500,9 @@ export class PartyRoom extends Room<{ state: PartyState }> {
       if (this.state.phase !== "countdown") return;
       this.state.phase = "playing";
       this.schedule(game.durationMs + LATE_ANSWER_GRACE_MS, () => this.endRound());
+      // Hẹn giờ của bot đặt SAU hẹn hết giờ: cùng tới hạn trong một tick thì bot được chấm trước
+      // (đồng hồ Colyseus chạy hẹn giờ mới đặt trước).
+      this.bots.onPlaying();
     });
   }
 
@@ -429,11 +523,15 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     if (!p) return;
     const outcome = this.judge.judge(client.sessionId, p, this.judgeRound(), msg);
     if (!outcome) return;
-    if (outcome.correct) {
-      p.roundScore += outcome.points;
-      p.roundCorrect += 1;
-    }
+    this.applyOutcome(p, outcome);
     client.send(ServerMessage.AnswerResult, outcome.result);
+  }
+
+  /** Cộng kết quả một câu đã chấm vào điểm vòng — dùng chung cho người và bot (CR-016). */
+  private applyOutcome(p: Player, outcome: JudgeOutcome) {
+    if (!outcome.correct) return;
+    p.roundScore += outcome.points;
+    p.roundCorrect += 1;
   }
 
   /** Hết giờ: xếp hạng có hoà, cộng điểm trận, luôn sang bảng điểm vòng (kể cả vòng cuối). */
@@ -441,7 +539,9 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     if (this.state.phase !== "playing") return;
     this.clearTimers();
     const category = isGameId(this.state.gameId) ? getGame(this.state.gameId).category : null;
+    const winners = new Set<string>();
     for (const { player, rank } of rankByRound([...this.state.players.values()])) {
+      if (rank === 0) winners.add(player.id);
       player.lastPoints = placementPoints(rank);
       player.matchPoints += player.lastPoints;
       player.totalScore += player.roundScore;
@@ -452,6 +552,7 @@ export class PartyRoom extends Room<{ state: PartyState }> {
       }
     }
     this.state.phase = "round-results";
+    this.bots.onRoundResults(winners);
   }
 
   private nextRound() {
@@ -459,6 +560,7 @@ export class PartyRoom extends Room<{ state: PartyState }> {
       this.clearTimers();
       this.state.phase = "podium";
       this.recordMatch();
+      this.bots.onPodium();
       return;
     }
     this.state.round += 1;
@@ -481,13 +583,19 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     this.state.introEndsAt = 0;
     for (const p of this.state.players.values()) {
       this.resetPlayerScores(p);
-      p.ready = false;
+      // Bot giữ ghế qua Về phòng chờ và luôn sẵn sàng (CR-016).
+      p.ready = p.isBot;
     }
   }
 
   /** Chủ phòng nhắc một người về độ khó đa số; tối đa 1 lần / NUDGE_COOLDOWN_MS / người. */
   private nudge(host: Client, targetId: string) {
-    if (targetId === this.state.hostId || !this.state.players.has(targetId)) {
+    // Bot không bị nhắc độ khó (FR-PH-23): độ khó của bot cố định theo mức.
+    if (
+      targetId === this.state.hostId ||
+      !this.state.players.has(targetId) ||
+      this.bots.has(targetId)
+    ) {
       this.sendError(host, { code: "invalid", message: "Không nhắc được người này." });
       return;
     }
@@ -496,8 +604,9 @@ export class PartyRoom extends Room<{ state: PartyState }> {
       this.sendError(host, { code: "rate-limited", message: "Vừa nhắc người này, chờ một chút." });
       return;
     }
+    // Độ khó đa số chỉ tính người thật (FR-PH-23).
     const difficulty = majorityDifficulty(
-      [...this.state.players.values()].map((p) => p.difficulty),
+      [...this.state.players.values()].filter((p) => !p.isBot).map((p) => p.difficulty),
     );
     if (difficulty === null) {
       this.sendError(host, { code: "invalid", message: "Cả phòng chưa có mức độ khó chung." });
@@ -533,6 +642,16 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     }
   }
 
+  /**
+   * Biểu cảm nhanh của bot (FR-PH-25): cùng luật chat với người — chat tắt hoặc sai pha thì im,
+   * giới hạn tần suất của `ChatRelay`; tin mang `bot: true`. Bị chặn thì bỏ, không báo lỗi.
+   */
+  private sendBotChat(bot: Player, quickId: ChatQuickId) {
+    if (!this.state.chatEnabled || !isChatPhase(this.state.phase)) return;
+    const outcome = this.chat.accept(bot, { kind: "quick", id: quickId }, Date.now());
+    if (outcome.ok) this.broadcast(ServerMessage.Chat, outcome.message);
+  }
+
   // ---------------------------------------------------------------- tài khoản (ADR 0011)
 
   /** Xác thực token chạy nền: không chặn vào phòng; token sai vẫn chơi, chỉ không ghi kết quả. */
@@ -553,8 +672,11 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     const roomCode = this.state.code;
     const rounds = this.state.round;
     const games = [...this.matchGames];
+    const seats = [...this.state.players.values()];
+    // Bot tính vào `players` (tổng ghế) nhưng không có dòng riêng (không có tài khoản), CR-016.
+    const botCount = seats.filter((p) => p.isBot).length;
     // Chốt bảng xếp hạng ngay lúc vào podium (người rời sau đó vẫn được ghi đúng hạng).
-    const ranked = rankByMatch([...this.state.players.values()]).map(({ player, rank }) => ({
+    const ranked = rankByMatch(seats).map(({ player, rank }) => ({
       id: player.id,
       placement: rank,
       matchPoints: player.matchPoints,
@@ -580,6 +702,7 @@ export class PartyRoom extends Room<{ state: PartyState }> {
             roomCode,
             placement: r.placement,
             players: ranked.length,
+            botCount,
             matchPoints: r.matchPoints,
             totalScore: r.totalScore,
             rounds,
@@ -615,6 +738,21 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     this.state.wheelSpinMs = 0;
   }
 
+  /** Người thật đầu tiên còn trong phòng (kể cả đang giữ chỗ); bot không bao giờ làm chủ phòng. */
+  private firstHumanId(): string | undefined {
+    for (const p of this.state.players.values()) if (!p.isBot) return p.id;
+    return undefined;
+  }
+
+  /** Bỏ một bot khỏi phòng (chủ phòng bỏ, nhường ghế, đóng phòng). */
+  private removeBot(id: string) {
+    this.bots.remove(id);
+    this.state.votes.delete(id);
+    this.judge.forget(id);
+    this.lastNudgeAt.delete(id);
+    this.chat.forget(id);
+  }
+
   private setHost(id: string) {
     this.state.hostId = id;
     // Chủ phòng không bỏ phiếu: người vừa nhận quyền mất phiếu đang có.
@@ -634,9 +772,11 @@ export class PartyRoom extends Room<{ state: PartyState }> {
     this.timers.push(this.clock.setTimeout(fn, ms));
   }
 
+  /** Huỷ hẹn giờ của pha hiện tại, gồm cả hẹn giờ của bot (trả lời, "Đã hiểu", biểu cảm). */
   private clearTimers() {
     for (const t of this.timers) t.clear();
     this.timers = [];
+    this.bots.clear();
   }
 
   private async uniqueRoomCode(): Promise<string> {
@@ -679,6 +819,13 @@ export class PartyRoom extends Room<{ state: PartyState }> {
       code: "not-ready",
       message: `Cần ít nhất ${MIN_PLAYERS_TO_START} người để bắt đầu.`,
     });
+    return false;
+  }
+
+  /** `playerId` phải là bot của phòng (lệnh removeBot, setBotLevel). */
+  private requireBot(client: Client, playerId: string) {
+    if (this.bots.has(playerId)) return true;
+    this.sendError(client, { code: "invalid", message: "Không có bot này trong phòng." });
     return false;
   }
 

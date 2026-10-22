@@ -3,13 +3,17 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 interface ReadyMeterProps {
+  /** Số ghế đã có người, gồm cả bot (CR-016). */
   players: number;
+  /** Số người sẵn sàng; bot luôn sẵn sàng nên được tính. */
   ready: number;
+  /** Số bot: có bot thì máy tính thêm dòng nhắc "tính cả bot". */
+  bots?: number;
   className?: string;
 }
 
 /** Bộ đếm "Người chơi x/8", "Sẵn sàng y/x" và thanh tiến độ sẵn sàng, viết thẳng trên bảng. */
-export function ReadyMeter({ players, ready, className }: ReadyMeterProps) {
+export function ReadyMeter({ players, ready, bots = 0, className }: ReadyMeterProps) {
   const { t } = useTranslation();
   const pct = players > 0 ? (ready / players) * 100 : 0;
 
@@ -52,6 +56,12 @@ export function ReadyMeter({ players, ready, className }: ReadyMeterProps) {
           style={{ width: `${pct}%` }}
         />
       </span>
+      {/* Chỉ khi màn đủ rộng (cột chat chiếm chỗ thì bỏ, không bóp thanh tiến độ). */}
+      {bots > 0 && (
+        <span className="hidden text-[13px] font-semibold whitespace-nowrap text-chalk-muted @min-[66rem]:lg:inline">
+          {t("bots.meterHint")}
+        </span>
+      )}
     </div>
   );
 }

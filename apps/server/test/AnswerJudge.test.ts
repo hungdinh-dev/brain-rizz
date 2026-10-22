@@ -3,6 +3,7 @@ import {
   type GameId,
   type JudgeRound,
   LATE_ANSWER_GRACE_MS,
+  MAX_ANSWERS_PER_SECOND,
   WRONG_ANSWER_LOCK_MS,
 } from "@brain-rizz/shared";
 import { describe, expect, it } from "vitest";
@@ -99,5 +100,113 @@ describe("AnswerJudge.resume — nối lại giữa vòng", () => {
     const a = answerRight(judge, who, live, START + 4_200);
     const b = answerRight(twin, twinWho, live, START + 4_200);
     expect(a).toEqual(b);
+  });
+});
+
+describe("AnswerJudge.judgeBot — bot chấm cùng luật với người (CR-016)", () => {
+  it("giờ hiện câu: câu đầu là startAt, câu đúng thì là lúc trả lời; cập nhật progress/streak", () => {
+    const round = roundOf("odd-one-out");
+    const judge = new AnswerJudge();
+    const bot = contestant(1);
+    expect(judge.shownAtOf("bot-1", round)).toBe(START);
+
+    const at = START + 2_000;
+    const outcome = judge.judgeBot("bot-1", bot, round, { index: 0, correct: true }, at);
+    expect(outcome?.correct).toBe(true);
+    expect(outcome?.points).toBeGreaterThan(0);
+    expect(bot).toMatchObject({ progress: 1, streak: 1 });
+    expect(judge.shownAtOf("bot-1", round)).toBe(at);
+  });
+
+  it("câu sai: khoá WRONG_ANSWER_LOCK_MS, trả lời trong lúc khoá bị bỏ qua, câu kế hiện lúc hết khoá", () => {
+    const round = roundOf("odd-one-out");
+    const judge = new AnswerJudge();
+    const bot = contestant(1);
+    const at = START + 1_000;
+    const wrong = judge.judgeBot("bot-1", bot, round, { index: 0, correct: false }, at);
+    expect(wrong?.correct).toBe(false);
+    expect(wrong?.result.lockedUntil).toBe(at + WRONG_ANSWER_LOCK_MS);
+    expect(bot).toMatchObject({ progress: 1, streak: 0 });
+    expect(judge.shownAtOf("bot-1", round)).toBe(at + WRONG_ANSWER_LOCK_MS);
+
+    // Đang khoá: bỏ qua, không đổi tiến độ.
+    expect(judge.judgeBot("bot-1", bot, round, { index: 1, correct: true }, at + 10)).toBeNull();
+    expect(bot.progress).toBe(1);
+    // Hết khoá thì chấm bình thường.
+    const after = at + WRONG_ANSWER_LOCK_MS + 500;
+    expect(judge.judgeBot("bot-1", bot, round, { index: 1, correct: true }, after)?.correct).toBe(
+      true,
+    );
+  });
+
+  it("bỏ qua khi index khác câu đang làm, ngoài pha chơi hoặc quá endsAt + LATE_ANSWER_GRACE_MS", () => {
+    const round = roundOf("odd-one-out");
+    const judge = new AnswerJudge();
+    const bot = contestant(1);
+    expect(judge.judgeBot("bot-1", bot, round, { index: 3, correct: true }, START + 1)).toBeNull();
+    expect(
+      judge.judgeBot(
+        "bot-1",
+        bot,
+        roundOf("odd-one-out", false),
+        { index: 0, correct: true },
+        START + 1,
+      ),
+    ).toBeNull();
+    const tooLate = round.endsAt + LATE_ANSWER_GRACE_MS + 1;
+    expect(judge.judgeBot("bot-1", bot, round, { index: 0, correct: true }, tooLate)).toBeNull();
+    expect(bot).toMatchObject({ progress: 0, streak: 0 });
+  });
+
+  it("game có hạn trả lời: kế hoạch đúng nhưng tới quá hạn vẫn bị chấm sai như người", () => {
+    const round = roundOf("aim-trainer");
+    const judge = new AnswerJudge();
+    const bot = contestant(1);
+    const late = judge.judgeBot("bot-1", bot, round, { index: 0, correct: true }, START + EDGE + 1);
+    expect(late?.correct).toBe(false);
+    expect(late?.points).toBe(0);
+
+    const twin = new AnswerJudge();
+    const twinBot = contestant(1);
+    const inTime = twin.judgeBot(
+      "bot-1",
+      twinBot,
+      round,
+      { index: 0, correct: true },
+      START + EDGE,
+    );
+    expect(inTime?.correct).toBe(true);
+  });
+
+  it.each<[GameId, Difficulty]>([
+    ["odd-one-out", 1],
+    ["aim-trainer", 2],
+    ["balance", 3],
+  ])("%s mức %i: cùng giờ trả lời và cùng đúng → bot được đúng số điểm của người", (gameId, d) => {
+    const round = roundOf(gameId);
+    const human = new AnswerJudge();
+    const bots = new AnswerJudge();
+    const who = contestant(d);
+    const bot = contestant(d);
+    let at = START;
+    for (let i = 0; i < 6; i++) {
+      at += 700 + i * 150;
+      const a = answerRight(human, who, round, at);
+      const b = bots.judgeBot("bot-1", bot, round, { index: i, correct: true }, at);
+      expect(b).toEqual(a);
+    }
+    expect(bot).toEqual(who);
+  });
+
+  it("không qua bộ chống spam của người (server tự hẹn giờ, mỗi câu một lần)", () => {
+    const round = roundOf("odd-one-out");
+    const judge = new AnswerJudge();
+    const bot = contestant(0);
+    const n = MAX_ANSWERS_PER_SECOND + 5;
+    for (let i = 0; i < n; i++) {
+      const outcome = judge.judgeBot("bot-1", bot, round, { index: i, correct: true }, START + i);
+      expect(outcome).not.toBeNull();
+    }
+    expect(bot.progress).toBe(n);
   });
 });

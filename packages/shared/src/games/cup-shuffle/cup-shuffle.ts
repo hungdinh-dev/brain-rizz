@@ -385,6 +385,11 @@ export const cupShuffle: MinigameDef<CupShufflePuzzle, CupShuffleAnswer> = {
    * giữ 1 để hệ số không giảm khi lên mức.
    */
   difficultyMultiplier: { 0: 1, 1: 1, 2: 1.45, 3: 2.35 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): xem +
+  // tráo + chọn + 0,3 s chuyển câu.
+  expectedSolveMs: { 0: 5_000, 1: 4_500, 2: 4_720, 3: 5_520 },
+  // Bot (CR-016): tỉ lệ đúng chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.85, 1: 0.9, 2: 0.8, 3: 0.7 },
 
   generate(roundSeed, index, difficulty) {
     const level = CUP_SHUFFLE_LEVELS[difficulty];

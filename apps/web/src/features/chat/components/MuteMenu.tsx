@@ -2,6 +2,7 @@ import type { ChatMessagePayload } from "@brain-rizz/shared";
 import { CrownIcon, VolumeXIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { BotBadge, chatSender, joinName, usePlayerName } from "@/components/characters";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import {
   DropdownMenu,
@@ -12,7 +13,7 @@ import {
 import { useChat } from "@/stores/chat.store";
 
 interface MuteMenuProps {
-  sender: Pick<ChatMessagePayload, "playerId" | "name" | "avatar" | "colorIndex">;
+  sender: Pick<ChatMessagePayload, "playerId" | "name" | "avatar" | "colorIndex" | "bot">;
   isHost: boolean;
 }
 
@@ -25,16 +26,23 @@ export function MuteMenu({ sender, isHost }: MuteMenuProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const mute = useChat((s) => s.mute);
+  // Bot (CR-016): tên dịch theo nhân vật, kể cả tin của bot đã bị bỏ khỏi phòng.
+  const { parts } = usePlayerName();
+  const nameParts = parts(chatSender(sender));
+  const name = joinName(nameParts);
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label={t("chat.options", { name: sender.name })}
+          aria-label={t("chat.options", { name })}
           className="row-span-2 -mt-1.5 -ml-1.5 grid size-11 cursor-pointer place-items-center rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         >
-          <PlayerAvatar avatar={sender.avatar} colorIndex={sender.colorIndex} size="sm" />
+          <span className="relative flex">
+            <PlayerAvatar avatar={sender.avatar} colorIndex={sender.colorIndex} size="sm" />
+            {sender.bot && <BotBadge size="xs" />}
+          </span>
         </button>
       </DropdownMenuTrigger>
       {/* Bấm tên cũng mở menu; bàn phím / trình đọc màn hình dùng nút avatar ở trên. */}
@@ -45,7 +53,14 @@ export function MuteMenu({ sender, isHost }: MuteMenuProps) {
         onClick={() => setOpen(true)}
         className="-my-3 -ml-1.5 flex min-h-11 cursor-pointer items-center gap-1 justify-self-start rounded-[10px] px-1.5"
       >
-        <span className="font-display text-[15px] leading-none font-extrabold">{sender.name}</span>
+        <span className="font-display text-[15px] leading-none font-extrabold">
+          {nameParts.name}
+        </span>
+        {nameParts.suffix && (
+          <span className="text-xs leading-none font-semibold text-muted-foreground">
+            {nameParts.suffix}
+          </span>
+        )}
         {isHost && <CrownIcon aria-hidden className="size-3.5" strokeWidth={2.8} />}
       </button>
       <DropdownMenuContent
@@ -57,10 +72,10 @@ export function MuteMenu({ sender, isHost }: MuteMenuProps) {
           className="min-h-11 gap-2.5 rounded-[10px] bg-muted px-2.5 text-[15px] font-bold"
         >
           <VolumeXIcon aria-hidden className="size-4.5" />
-          {t("chat.mute", { name: sender.name })}
+          {t("chat.mute", { name })}
         </DropdownMenuItem>
         <p className="mx-2.5 mt-1.5 mb-1 text-xs leading-snug text-muted-foreground">
-          {t("chat.muteHint", { name: sender.name })}
+          {t("chat.muteHint", { name })}
         </p>
       </DropdownMenuContent>
     </DropdownMenu>

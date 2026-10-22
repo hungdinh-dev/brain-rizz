@@ -71,6 +71,13 @@ export const oddOneOut: MinigameDef<OddOneOutPuzzle, OddOneOutAnswer> = {
   id: "odd-one-out",
   category: "identify",
   durationMs: 45_000,
+  // Bot (CR-016): ước lượng CHƯA ĐO (đặc tả › Cân bằng). Thường 1,3 s theo GDD, các mức khác tỉ lệ
+  // với số ô của `GRID_BY_DIFFICULTY` so với lưới 4×4; Mầm theo trẻ 7 tuổi (× 2,6 người lớn); cộng
+  // 0,2 s hiệu ứng chuyển câu; làm tròn tới 50 ms.
+  expectedSolveMs: { 0: 2_100, 1: 1_500, 2: 2_250, 3: 3_150 },
+  // Bot (CR-016): ước lượng chưa đo, 1 − tỉ lệ sai ở đặc tả › Cân bằng. Thường 96 % theo GDD
+  // (Kiểm tra não); Mầm, Khó, Siêu khó theo các game Nhận diện khác (khác biệt chỉ còn ở độ sáng).
+  expectedAccuracy: { 0: 0.9, 1: 0.96, 2: 0.9, 3: 0.85 },
 
   generate(roundSeed, index, difficulty) {
     const rng = createRng(deriveSeed(roundSeed, index));

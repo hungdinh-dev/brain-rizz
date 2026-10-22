@@ -43,6 +43,36 @@ export const RECONNECT_WINDOW_S = 45;
 /** Giới hạn số đáp án mỗi giây của một người. */
 export const MAX_ANSWERS_PER_SECOND = 10;
 
+/**
+ * Bot (CR-016, docs/01-product/bot-players.md): thời gian giải ước lượng (ms) cho game chưa khai
+ * báo `expectedSolveMs`, trước khi nhân hệ số độ khó của game và cộng miễn trừ. Bằng trung vị của
+ * (thời gian một câu ở Thường − miễn trừ) trên các game đã khai báo.
+ */
+export const BOT_BASE_SOLVE_MS = 2_800;
+/**
+ * Bot: tỉ lệ đúng của "người chơi chuẩn" (người lớn chọn đúng sức) ở game chưa khai báo
+ * `expectedAccuracy`. Cũng là mốc của bảng mức bot: `BOT_LEVEL_SPECS[mức].accuracy` là tỉ lệ đúng
+ * của bot ở game có tỉ lệ chuẩn đúng bằng số này (`relativeAccuracy`, `src/bots/levels.ts`).
+ */
+export const BOT_BASE_ACCURACY = 0.9;
+/**
+ * Bot: trần của tỉ lệ đúng chuẩn `A` (`expectedAccuracy` của game) TRƯỚC khi nhân hệ số sai trong
+ * `relativeAccuracy`. Với `A` = 1 (game không có cách sai) thì 1 − A = 0, hệ số sai mất tác dụng:
+ * mọi mức bot cùng chạm trần `BOT_MAX_ACCURACY`, bot Dễ đúng như bot Siêu. Kẹp `A` ở 98 % giữ bot
+ * Dễ sai ít nhất 4,4 % và bot Siêu 1,6 % ở mọi game. Đặc tả game nên khai báo `A` không quá số này.
+ */
+export const BOT_MAX_BASE_ACCURACY = 0.98;
+/** Bot: trần tỉ lệ đúng sau khi quy theo game, để bot (và người mô phỏng) không bao giờ đúng tuyệt đối. */
+export const BOT_MAX_ACCURACY = 0.99;
+/** Bot: thời gian phản xạ tối thiểu (ms) sau khi hết miễn trừ (trình chiếu) mới được trả lời. */
+export const BOT_MIN_REACTION_MS = 600;
+/** Bot: bấm "Đã hiểu" ở màn hướng dẫn sau một khoảng ngẫu nhiên trong [min, max] ms. */
+export const BOT_INTRO_READY_MS = [1_000, 3_000] as const;
+/** Bot: xác suất gửi một biểu cảm ở bảng điểm vòng và vinh danh. */
+export const BOT_CHAT_CHANCE = 0.35;
+/** Bot: biểu cảm (nếu có) gửi sau một khoảng ngẫu nhiên trong [min, max] ms kể từ đầu pha. */
+export const BOT_CHAT_DELAY_MS = [800, 3_000] as const;
+
 export const DEFAULT_TOTAL_ROUNDS = 3;
 /** Số vòng chủ phòng được đặt cho một trận (FR-VC-01). */
 export const MIN_TOTAL_ROUNDS = 1;

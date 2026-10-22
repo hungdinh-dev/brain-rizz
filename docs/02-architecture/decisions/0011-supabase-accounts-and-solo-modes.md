@@ -42,7 +42,7 @@ Thiếu biến → tính năng tài khoản **tắt êm**: web ẩn đăng nhậ
 | `profiles` | `id` (= `auth.users.id`), `display_name` (1–16 ký tự), `avatar`, `updated_at` | Client, chỉ dòng của mình | Chỉ chủ. Tên + nhân vật của người khác chỉ đọc được qua RPC bảng xếp hạng (`security definer`) |
 | `brain_tests` | `id`, `user_id`, `brain_score`, `difficulty`, `rules_version` (= `BRAIN_TEST_RULES_VERSION`), `skills` (jsonb 5 nhóm → điểm), `created_at` | Server | Chỉ chủ |
 | `brain_test_games` | `id`, `brain_test_id`, `user_id`, `game_id`, `category`, `score`, `correct`, `created_at` | Server | Chỉ chủ |
-| `match_results` | `id`, `user_id`, `room_code`, `placement` (0 = nhất), `players`, `match_points`, `total_score`, `rounds`, `games` (text[]), `category_scores` (jsonb), `category_titles` (text[]) — hai cột sau thêm ở CR-010, `created_at` | Server | Chỉ chủ |
+| `match_results` | `id`, `user_id`, `room_code`, `placement` (0 = nhất), `players`, `match_points`, `total_score`, `rounds`, `games` (text[]), `category_scores` (jsonb), `category_titles` (text[]) — hai cột sau thêm ở CR-010, `bot_count` (số bot trong trận, thêm ở CR-016, [ADR 0014](0014-server-side-bots.md)), `created_at` | Server | Chỉ chủ |
 | `practice_bests` | khoá (`user_id`, `game_id`, `difficulty`), `best_score`, `best_correct`, `plays`, `updated_at` | Client qua RPC | Chỉ chủ |
 
 Mọi khoá ngoại tới `auth.users` (và `brain_test_games` → `brain_tests`) đều `on delete cascade`: xoá tài khoản Auth là xoá sạch dữ liệu của người đó. RPC bảng xếp hạng trả `user_id` (định danh giả, không gắn email) để web tô dòng của mình; ngoài ra chỉ lộ tên hiển thị + nhân vật.

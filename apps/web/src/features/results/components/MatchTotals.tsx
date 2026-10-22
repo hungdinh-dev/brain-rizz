@@ -1,6 +1,7 @@
 import { type PlayerView, placementPoints } from "@brain-rizz/shared";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { BotBadge, PlayerName } from "@/components/characters";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { RankBadge } from "@/components/common/RankBadge";
 import { ReactionBubble } from "@/features/chat";
@@ -66,8 +67,12 @@ function TotalRow({
   const gainPct = (p.lastPoints / scale) * 100;
 
   const name = (
-    <span className="flex min-w-0 items-baseline gap-1">
-      <span className="truncate font-display text-lg font-extrabold lg:text-2xl">{p.name}</span>
+    <span className="flex min-w-0 items-baseline gap-1 overflow-x-clip">
+      <PlayerName
+        player={p}
+        className="truncate font-display text-lg font-extrabold lg:text-2xl"
+        suffixClassName="text-[11.5px] opacity-80 lg:text-sm"
+      />
       {isMe && (
         <span className="shrink-0 text-[11.5px] font-semibold opacity-80 lg:text-xs">
           {t("lobby.you")}
@@ -131,6 +136,7 @@ function TotalRow({
             size="md"
             className="size-9 lg:size-13.5"
           />
+          {p.isBot && <BotBadge size="sm" />}
           <ReactionBubble playerId={p.id} placement="corner" />
         </span>
         <span className="flex min-w-0 flex-1 lg:w-32.5 lg:flex-none">{name}</span>

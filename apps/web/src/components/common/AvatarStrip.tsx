@@ -1,5 +1,6 @@
 import type { PlayerView } from "@brain-rizz/shared";
 import type { ReactNode } from "react";
+import { BotBadge, PlayerName } from "@/components/characters";
 import { cn } from "@/lib/utils";
 import { PlayerAvatar } from "./PlayerAvatar";
 
@@ -7,7 +8,7 @@ interface AvatarStripProps {
   players: PlayerView[];
   /** Dòng chữ nhỏ dưới tên (vd. độ khó); bỏ trống thì không có */
   sub?(player: PlayerView): ReactNode;
-  /** Huy hiệu nhỏ góc dưới phải avatar (vd. dấu "đã hiểu") */
+  /** Huy hiệu nhỏ góc dưới phải avatar (vd. dấu "đã hiểu"); bỏ trống thì bot có huy hiệu máy */
   badge?(player: PlayerView): ReactNode;
   /** Ẩn tên (chỉ còn avatar) */
   hideNames?: boolean;
@@ -25,10 +26,16 @@ export function AvatarStrip({ players, sub, badge, hideNames, className }: Avata
         >
           <span className="relative flex">
             <PlayerAvatar avatar={p.avatar} colorIndex={p.colorIndex} size="md" />
-            {badge?.(p)}
+            {badge?.(p) ?? (p.isBot && <BotBadge size="sm" />)}
           </span>
           {!hideNames && (
-            <span className="max-w-20 truncate text-[13px] font-bold text-chalk">{p.name}</span>
+            <span className="flex max-w-24 min-w-0 items-baseline gap-0.5 overflow-x-clip">
+              <PlayerName
+                player={p}
+                className="truncate text-[13px] font-bold text-chalk"
+                suffixClassName="text-[11px] text-chalk-muted"
+              />
+            </span>
           )}
           {sub && <span className="text-[11px] text-chalk-muted">{sub(p)}</span>}
         </li>

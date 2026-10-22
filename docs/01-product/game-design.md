@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Thiết kế — phần luật chơi và cảm giác chơi |
-| Phiên bản tài liệu | 1.4 · 2026-10-20 — danh mục 31 minigame và điểm chuẩn Kiểm tra não theo [CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014) |
+| Phiên bản tài liệu | 1.6 · 2026-10-21 — mục Bot: tỉ lệ đúng của bot theo từng game, nới bot Dễ, mô phỏng mới theo [CR-016](../00-tracking/change-requests.md#cr-016) |
 | Liên quan | [SRS](srs.md) (yêu cầu), [UI/UX](ui-ux.md) (màn hình), [Minigame](../04-minigames/README.md) (đặc tả từng game) |
 | Cập nhật khi | Đổi luật, điểm, độ khó, chế độ chơi — đổi luật nào cũng phải ghi [CR](../00-tracking/change-requests.md) |
 
@@ -45,6 +45,7 @@ Một trận mặc định 3 vòng; mỗi vòng khoảng 1,5 phút kể cả ch�
 | **Đấu nhóm** (chính) | Chủ phòng chọn 1–10 vòng (mặc định 3), mỗi vòng một minigame chọn bằng vòng quay hoặc chủ phòng chọn | 2–8, cùng lúc | GĐ 0–1 |
 | **Luyện tập** | Chơi tự do từng minigame, chọn độ khó; client tự chấm nên không lên bảng xếp hạng | 1 | GĐ 1–2 ([CR-009](../00-tracking/change-requests.md#cr-009)) |
 | **Kiểm tra não** | 5 game, mỗi nhóm kỹ năng một game, độ khó cố định, server chấm → "Điểm Não" + biểu đồ 5 cạnh. Luật: [mục dưới](#kiểm-tra-não) | 1 | GĐ 1–2 (CR-009) |
+| **Chơi với máy** | Phòng Đấu nhóm có bot ngồi ghế trống, 4 mức Dễ · Vừa · Khó · Siêu. Luật: [mục dưới](#bot) | ≥ 1 người thật, tổng ≤ 8 tính cả bot | GĐ 1 ([CR-016](../00-tracking/change-requests.md#cr-016)) |
 | **Đấu bóng ma** | Lưu lượt chơi; bạn bè đấu lại bất cứ lúc nào, không cần online cùng lúc | 1 vs bản ghi | GĐ 3 |
 | **Bảng xếp hạng** | Điểm Não toàn cầu và từng minigame, lấy từ các lượt Kiểm tra não | — | GĐ 1–2 (CR-009) |
 | Thử thách hôm nay, Tìm trận | Có trong bản thiết kế menu, chưa nằm trong phạm vi 1.0 | — | Chờ [CR-003](../00-tracking/change-requests.md#cr-003) |
@@ -112,7 +113,7 @@ Hai nhánh nối trơn tại `r = 1` (cùng độ dốc). Nhánh trên giảm d�
 
 | Nhóm | Game | Thời lượng | Giả định ở Thường (theo đặc tả): thời gian mỗi câu · tỉ lệ sai | Câu · đúng | **Điểm chuẩn** | Nhanh hơn 30 % | Chậm hơn 40 % |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Nhận diện | Kẻ lạc đàn | 30 s | 1,3 s · 4 % (ước; đặc tả chưa có bảng Cân bằng) | 17,4 · 16,7 | **3 350** | × 1,33 | × 0,73 |
+| Nhận diện | Kẻ lạc đàn | 30 s | 1,3 s · 4 % (ước, chưa đo; đặc tả › Cân bằng) | 17,4 · 16,7 | **3 350** | × 1,33 | × 0,73 |
 | Nhận diện | Bóng của ai | 30 s | 2,0 s · 8 % | 12,2 · 11,2 | **2 050** | × 1,41 | × 0,68 |
 | Nhận diện | Luyện ngắm | 30 s | 0,675 s · 2 % (bỏ lỡ tốn trọn 1,5 s; bia mới hiện ngay, 0–0,05 s) | 39,8 · 39,1 | **8 350** | × 1,38 | × 0,72 |
 | Nhận diện | Tìm bạn | 30 s | 2,5 s · 7 % | 10,0 · 9,3 | **1 600** | × 1,47 | × 0,66 |
@@ -162,6 +163,45 @@ Hai nhánh nối trơn tại `r = 1` (cùng độ dốc). Nhánh trên giảm d�
 - Đa giác lượt này tô màu trong mờ, viền đậm. Có lượt trước thì vẽ thêm đa giác lượt trước chỉ bằng viền nét đứt để so.
 - Điểm Não hiện to ở giữa hoặc trên biểu đồ, kèm "/ 1 000".
 - Biểu đồ vẽ bằng React + SVG (bất biến 4, ADR 0010), không dùng canvas.
+
+### Bot
+
+Bot là người chơi máy do game server điều khiển, ngồi một ghế trong phòng Đấu nhóm ([CR-016](../00-tracking/change-requests.md#cr-016)). Kế hoạch đầy đủ, luật phòng và giao diện: [Kế hoạch chơi với bot](bot-players.md).
+
+**Bot mô phỏng kết quả, không giải câu đố.** Với mỗi câu, server bốc bot trả lời sau bao lâu và đúng hay sai, rồi chấm qua cùng luật của người: thưởng tốc độ sau miễn trừ, combo, khoá 1,5 giây khi sai, hạn trả lời (bia Luyện ngắm). Vì thế game mới tự có bot, không cần viết hàm giải.
+
+- **Thời gian nghĩ** = thời gian một câu dự kiến của game (`expectedSolveMs`, chép từ bảng Cân bằng của đặc tả) × hệ số của mức × nhiễu log-normal (σ = 0,25, cắt ở ±3σ). Không bao giờ sớm hơn miễn trừ của câu + 0,6 giây phản xạ, để bot không trả lời khi câu còn đang trình chiếu.
+- **Đúng hay sai** bốc theo tỉ lệ đúng của mức, **quy theo từng game** (dưới bảng). Bot trả lời quá hạn thì bị chấm sai như người.
+- **Tất định:** RNG của bot lấy seed từ (seed vòng, mã bot, số câu), tách khỏi seed câu đố (bất biến 1). Cùng vòng thì bot chơi giống hệt nhau.
+- **Mạnh đều ở mọi game so với người chơi của game đó:** chưa có tính cách theo nhóm kỹ năng. Code có registry model (`BOT_MODELS`) để thêm model sau.
+
+**Bốn mức** (`BOT_LEVEL_SPECS` trong `packages/shared/src/bots/levels.ts`). Mốc là người chơi mục tiêu ở độ khó đó: Mầm theo trẻ 7 tuổi, các mức khác theo người lớn chọn đúng sức, giống cách tính hệ số điểm. `T` là thời gian một câu (`expectedSolveMs`), `A` là tỉ lệ đúng (`expectedAccuracy`, 1 − tỉ lệ sai ở bảng Cân bằng; game không khai báo thì 90 %).
+
+| Mức bot | Độ khó câu đố | Thời gian nghĩ | Tỉ lệ đúng ở game có `A` = 90 % | Hệ số sai | Ý đồ |
+| --- | --- | --- | --- | --- | --- |
+| Dễ | Mầm | T × 1,2 | 78 % | × 2,2 | Trẻ em, người mới thắng được |
+| Vừa | Thường | T × 1 | 90 % | × 1 | Đúng bằng người lớn chơi bình thường: thắng khoảng nửa số vòng |
+| Khó | Khó | T × 0,9 | 90 % | × 1 | Người đã quen phải tập trung |
+| Siêu | Siêu khó | T × 0,8 | 92 % | × 0,8 | Người giỏi cố gắng vẫn thắng được |
+
+**Tỉ lệ đúng quy theo game** (`relativeAccuracy`): bot sai bằng "hệ số sai" lần người chuẩn của game, tức tỉ lệ đúng = 1 − (1 − `A`) × hệ số sai, kẹp trong [0, 99 %]. `A` được kẹp về tối đa 98 % (`BOT_MAX_BASE_ACCURACY`) trước khi nhân, để game khai báo người chuẩn gần như không sai (như Luyện ngắm) vẫn có khoảng cách giữa các mức bot. Ví dụ Lật cặp ở Siêu khó có `A` = 68 % thì bot Siêu đúng 74,4 %; Luyện ngắm ở Siêu khó có `A` = 92 % thì bot Siêu đúng 93,6 %. Cách này giữ thứ tự các mức ở mọi game và không bao giờ vượt 100 %.
+
+**Mô phỏng cân bằng** (`packages/shared/src/bots/balance-sim.test.ts`, 1 000 vòng mỗi game và mỗi mức, chấm bằng chính các hàm điểm của server; người mô phỏng cũng quy tỉ lệ đúng theo game):
+
+- Người chơi chuẩn (Thường, `T`, `A`) thắng bot Vừa 48,6–52,3 % số vòng.
+- "Người giỏi" (Siêu khó, 0,8 `T`, sai bằng nửa người chuẩn: 95 % ở game chuẩn 90 %, Lật cặp 84 %) thắng bot Siêu 60–80 % (trung vị 65 %).
+- Trẻ 7 tuổi (Mầm, `T` và `A` của Mầm) thắng bot Dễ 89–96 % (trung vị 93 %).
+- Người chuẩn thắng bot Khó 18–48 %, bot Siêu 3–25 % số vòng.
+- Điểm vòng trung bình so với bot Vừa, 29 game: Dễ 0,48 (0,29–0,66), Khó 1,13 (1,05–1,18), Siêu 1,40 (1,24–1,46).
+- Kẻ lạc đàn là ngoại lệ (Khó 0,72, Siêu 0,62 lần Vừa), xem hạn chế dưới.
+
+**Hạn chế đã biết**
+
+- **Kẻ lạc đàn:** thời gian và tỉ lệ đúng là ước lượng chưa đo, và game còn dùng hệ số điểm chung 0,8 / 1 / 1,25 / 1,5. Theo ước lượng, người đúng sức ở Khó, Siêu khó chỉ được ~63 %, ~44 % điểm ở Thường, nên bot Khó và Siêu ở game này được ít điểm hơn bot Vừa. Hệ số riêng đề xuất (Mầm 1, Khó 2,25, Siêu khó 3,85) ở [đặc tả › Cân bằng](../04-minigames/odd-one-out.md#cân-bằng), chờ chủ dự án duyệt.
+- Khó chỉ hơn Vừa ~13 % điểm, vì bot Khó sai như người đúng sức ở Khó của từng game. Nếu chơi thử thấy khó phân biệt Khó với Vừa, núm chỉnh là Khó T × 0,85 (mô phỏng: 1,09–1,28 lần Vừa, các tiêu chí khác vẫn đạt).
+- Ở game có thời gian trình chiếu thay đổi theo câu (Lật cặp: câu đầu bàn phải xem bàn), `T` là trung bình nên bot đi đều tay hơn người: câu đầu bàn bị chặn ở miễn trừ + 0,6 giây, các câu sau chậm hơn người. Điểm trung bình vẫn sát.
+
+Chỉnh số sau chơi thử: chỉ sửa `BOT_LEVEL_SPECS`, chạy lại mô phỏng, cập nhật bảng trên và bảng 3.1 của kế hoạch. Game chưa khai báo `expectedSolveMs` (hiện không có) dùng ước lượng chung `BOT_BASE_SOLVE_MS` (2,8 giây) × hệ số độ khó của game + miễn trừ; chưa khai báo `expectedAccuracy` thì dùng 90 % (`BOT_BASE_ACCURACY`).
 
 ## 4. Năm nhóm kỹ năng
 
@@ -318,5 +358,7 @@ Mỗi nhân vật có 7 biểu cảm dùng chung (`idle` bình thường, `happy
 | 1.2 | 2026-10-12 | Hệ số điểm theo từng game, miễn trừ thời gian cho thưởng tốc độ, trần combo × 1,5, vòng 60 giây cho game mới, hiện đáp án đúng khi sai | [CR-006](../00-tracking/change-requests.md#cr-006) |
 | 1.3 | 2026-10-16 | Luật Kiểm tra não: độ khó cố định Thường, thời lượng theo nhóm, cách chọn game, điểm chuẩn từng game, thang kỹ năng 0–200 và Điểm Não 0–1 000, biểu đồ 5 cạnh; Luyện tập và Bảng xếp hạng lên GĐ 1–2 | [CR-009](../00-tracking/change-requests.md#cr-009) |
 | 1.4 | 2026-10-20 | Danh mục §5 thêm 14 game của kế hoạch mở rộng (tổng 31); bảng điểm chuẩn Kiểm tra não thêm 14 dòng, phiên bản luật 4; hạn chế đã biết về game đo thời gian phía client và game có pha trình chiếu ngoài nhóm Ghi nhớ | [CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014) |
+| 1.5 | 2026-10-21 | Chế độ Chơi với máy và mục Bot: bot mô phỏng kết quả (không giải câu đố), 4 mức Dễ · Vừa · Khó · Siêu, `expectedSolveMs` theo bảng Cân bằng, kết quả mô phỏng và hạn chế đã biết | [CR-016](../00-tracking/change-requests.md#cr-016) |
+| 1.6 | 2026-10-21 | Bot: tỉ lệ đúng tương đối theo `expectedAccuracy` của từng game (giữ tỉ số tỉ lệ sai so với người chuẩn), Dễ nới thành T × 1,2 / 78 %, Kẻ lạc đàn có thời gian ước lượng; hạn chế mới: hệ số điểm chung của Kẻ lạc đàn | [CR-016](../00-tracking/change-requests.md#cr-016) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

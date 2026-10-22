@@ -768,6 +768,11 @@ export const beadPattern: MinigameDef<BeadPatternPuzzle, BeadPatternAnswer> = {
   category: "analyze",
   durationMs: 60_000,
   difficultyMultiplier: MULTIPLIER_BY_DIFFICULTY,
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): giữa
+  // khoảng + 0,3 s hiệu ứng chuyển câu.
+  expectedSolveMs: { 0: 4_100, 1: 3_300, 2: 4_900, 3: 6_700 },
+  // Bot (CR-016): tỉ lệ đúng = 1 − tỉ lệ sai ở bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.9, 1: 0.92, 2: 0.88, 3: 0.85 },
 
   generate(roundSeed, index, difficulty) {
     const rng = createRng(deriveSeed(roundSeed, index));

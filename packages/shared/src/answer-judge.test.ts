@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   gameAnswerWindowMs,
   initialJudgeState,
+  type Judgement,
   type JudgeRound,
   type JudgeState,
   judgeAnswer,
+  judgeBotAnswer,
 } from "./answer-judge";
 import { LATE_ANSWER_GRACE_MS, MAX_ANSWERS_PER_SECOND, WRONG_ANSWER_LOCK_MS } from "./constants";
 import type { Difficulty } from "./difficulty";
@@ -181,5 +183,131 @@ describe("judgeAnswer — hạn trả lời của game (answerWindowMs, CR-012)"
     }
     expect(gameAnswerWindowMs({}, null, D)).toBeUndefined();
     expect(gameAnswerWindowMs({ answerWindowMs: () => 1_500 }, null, D)).toBe(1_500);
+  });
+});
+
+describe("judgeBotAnswer — bot chấm cùng đường với người (CR-016)", () => {
+  type GameKey = "odd-one-out" | "balance" | "aim-trainer";
+  const SOLVE: Record<GameKey, (seed: number, index: number, d: Difficulty) => unknown> = {
+    "odd-one-out": (s, i, d) => GAMES["odd-one-out"].generate(s, i, d).oddIndex,
+    balance: (s, i, d) => GAMES.balance.generate(s, i, d).answer,
+    "aim-trainer": (s, i, d) => {
+      const p = GAMES["aim-trainer"].generate(s, i, d);
+      return { x: p.x, y: p.y };
+    },
+  };
+  /** Đáp án đúng kiểu nhưng sai: lấy đáp án đúng của câu khác mà `check` chấm sai. */
+  function wrongFor(gameId: GameKey, seed: number, index: number, d: Difficulty): unknown {
+    const game = GAMES[gameId];
+    const puzzle = game.generate(seed, index, d);
+    for (let k = 1; k < 200; k++) {
+      const candidate = SOLVE[gameId](seed, index + k, d);
+      if (
+        game.isAnswer(candidate) &&
+        !(game.check as (p: unknown, a: unknown) => boolean)(puzzle, candidate)
+      ) {
+        return candidate;
+      }
+    }
+    throw new Error(`Không tìm được đáp án sai cho ${gameId}`);
+  }
+
+  /** Bỏ bộ đếm chống spam (bot không dùng) để so phần còn lại của state. */
+  const core = ({ recentAnswers: _, ...rest }: JudgeState) => rest;
+
+  /**
+   * Chạy cùng một kịch bản (trả lời sau `afterMs` kể từ lúc câu hiện, đúng hay sai) cho người và
+   * cho bot; mỗi bước kết quả và state (trừ chống spam) phải giống hệt nhau.
+   */
+  function replay(gameId: GameKey, d: Difficulty, steps: [afterMs: number, correct: boolean][]) {
+    const r: JudgeRound = { ...round, gameId, endsAt: round.startAt + 600_000 };
+    let human = initialJudgeState();
+    let bot = initialJudgeState();
+    const outcomes: Judgement["outcome"][] = [];
+    for (const [afterMs, correct] of steps) {
+      const index = human.progress;
+      const now = (human.shownAt ?? r.startAt) + afterMs;
+      const value = correct ? SOLVE[gameId](r.seed, index, d) : wrongFor(gameId, r.seed, index, d);
+      // Kịch bản gửi ít hơn MAX_ANSWERS_PER_SECOND câu mỗi giây nên người không vướng chống spam.
+      const h = judgeAnswer(r, d, human, { round: r.round, index, answer: value }, now);
+      const b = judgeBotAnswer(r, d, bot, { index, correct }, now);
+      expect(b.outcome).toEqual(h.outcome);
+      expect(core(b.next)).toEqual(core(h.next));
+      expect(b.next.recentAnswers).toEqual([]);
+      outcomes.push(b.outcome);
+      human = h.next;
+      bot = b.next;
+    }
+    return outcomes;
+  }
+
+  it("combo: chuỗi đúng dài cho cùng số điểm (kể cả trần × 1,5), sai thì mất chuỗi như người", () => {
+    const steps: [number, boolean][] = [
+      ...Array.from({ length: 9 }, (_, i): [number, boolean] => [1_200 + i * 150, true]),
+      [2_000, false],
+      [1_500, true],
+      [1_100, true],
+    ];
+    const out = replay("odd-one-out", D, steps);
+    expect(out.every((o) => o !== null)).toBe(true);
+    expect(out.slice(0, 9).every((o) => o?.correct && o.points > 0)).toBe(true);
+    expect(out[9]).toMatchObject({ correct: false, points: 0 });
+  });
+
+  it("hệ số + miễn trừ của game (Cân thăng bằng, Siêu khó) giống hệt người", () => {
+    const out = replay("balance", 3, [
+      [4_000, true],
+      [9_000, true],
+      [3_000, false],
+      [6_500, true],
+    ]);
+    expect(out.map((o) => o?.correct)).toEqual([true, true, false, true]);
+  });
+
+  it("game có hạn trả lời (Luyện ngắm): trong hạn đúng, muộn thì sai và khoá như người", () => {
+    const life = GAMES["aim-trainer"].generate(round.seed, 0, D).lifeMs;
+    expect(life).toBeGreaterThan(0);
+    const out = replay("aim-trainer", D, [
+      [600, true],
+      [life + LATE_ANSWER_GRACE_MS + 1, true], // muộn 1 ms: kế hoạch đúng vẫn bị chấm sai
+      [700, false],
+      [800, true],
+    ]);
+    expect(out.map((o) => o?.correct)).toEqual([true, false, false, true]);
+  });
+
+  it("bỏ qua: không ở pha chơi, game lạ, sai index, quá giờ + dung sai, đang khoá; state giữ nguyên", () => {
+    const s = initialJudgeState();
+    const ok = { index: 0, correct: true };
+    expect(judgeBotAnswer({ ...round, playing: false }, D, s, ok, 101_000)).toEqual({
+      outcome: null,
+      next: s,
+    });
+    expect(judgeBotAnswer({ ...round, gameId: "tetris" }, D, s, ok, 101_000).outcome).toBeNull();
+    expect(judgeBotAnswer(round, D, s, { index: 1, correct: true }, 101_000).outcome).toBeNull();
+    const late = round.endsAt + LATE_ANSWER_GRACE_MS;
+    expect(judgeBotAnswer(round, D, s, ok, late + 1).outcome).toBeNull();
+    expect(judgeBotAnswer(round, D, s, ok, late).outcome).not.toBeNull();
+
+    const wrong = judgeBotAnswer(round, D, s, { index: 0, correct: false }, 101_000).next;
+    const locked = { index: 1, correct: true };
+    expect(judgeBotAnswer(round, D, wrong, locked, 101_000 + WRONG_ANSWER_LOCK_MS - 1)).toEqual({
+      outcome: null,
+      next: wrong,
+    });
+    expect(
+      judgeBotAnswer(round, D, wrong, locked, 101_000 + WRONG_ANSWER_LOCK_MS).outcome?.correct,
+    ).toBe(true);
+  });
+
+  it("không qua chống spam: nhiều câu trong 1 giây vẫn được chấm (server tự hẹn giờ cho bot)", () => {
+    let s = initialJudgeState();
+    for (let i = 0; i <= MAX_ANSWERS_PER_SECOND; i++) {
+      const out = judgeBotAnswer(round, D, s, { index: i, correct: true }, 101_000 + i);
+      expect(out.outcome?.correct).toBe(true);
+      s = out.next;
+    }
+    expect(s.progress).toBe(MAX_ANSWERS_PER_SECOND + 1);
+    expect(s.recentAnswers).toEqual([]);
   });
 });

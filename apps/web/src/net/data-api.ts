@@ -81,6 +81,11 @@ export interface MatchRow {
   categoryScores: Partial<Record<Category, number>>;
   /** Thể loại mình giành danh hiệu "giỏi nhất" trong trận (không trùng, thứ tự CATEGORIES). */
   categoryTitles: Category[];
+  /**
+   * Số bot trong trận (CR-016); `players` đã gồm cả bot. Trận cũ (trước cột `bot_count`) hoặc
+   * giá trị lạ là 0 = chỉ có người thật.
+   */
+  botCount: number;
   createdAt: string;
 }
 
@@ -250,26 +255,31 @@ export function fetchMatchHistory(limit = 50): Promise<DataResult<MatchRow[]>> {
       sb
         .from("match_results")
         .select(
-          "id, room_code, placement, players, match_points, total_score, rounds, games, category_scores, category_titles, created_at",
+          "id, room_code, placement, players, match_points, total_score, rounds, games, category_scores, category_titles, bot_count, created_at",
         )
         .order("created_at", { ascending: false })
         .limit(limit),
-    (data) =>
-      ((data as Row[] | null) ?? []).map((r) => ({
-        id: str(r.id),
-        roomCode: str(r.room_code),
-        placement: num(r.placement),
-        players: num(r.players),
-        matchPoints: num(r.match_points),
-        totalScore: num(r.total_score),
-        rounds: num(r.rounds),
-        games: (Array.isArray(r.games) ? r.games : []).filter(isGameId),
-        categoryScores: toSkills(r.category_scores),
-        categoryTitles: toCategories(r.category_titles),
-        createdAt: str(r.created_at),
-      })),
+    (data) => ((data as Row[] | null) ?? []).map(toMatchRow),
     true,
   );
+}
+
+/** Chuẩn hoá một dòng `match_results` (thiếu cột / sai kiểu → giá trị an toàn). */
+export function toMatchRow(r: Row): MatchRow {
+  return {
+    id: str(r.id),
+    roomCode: str(r.room_code),
+    placement: num(r.placement),
+    players: num(r.players),
+    matchPoints: num(r.match_points),
+    totalScore: num(r.total_score),
+    rounds: num(r.rounds),
+    games: (Array.isArray(r.games) ? r.games : []).filter(isGameId),
+    categoryScores: toSkills(r.category_scores),
+    categoryTitles: toCategories(r.category_titles),
+    botCount: Math.max(0, Math.trunc(num(r.bot_count))),
+    createdAt: str(r.created_at),
+  };
 }
 
 /** Kỷ lục luyện tập trên tài khoản. */

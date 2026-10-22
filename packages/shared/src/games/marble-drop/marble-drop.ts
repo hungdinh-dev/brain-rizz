@@ -274,6 +274,11 @@ export const marbleDrop: MinigameDef<MarbleDropPuzzle, MarbleDropAnswer> = {
   category: "analyze",
   durationMs: 60_000,
   difficultyMultiplier: MULTIPLIER_BY_DIFFICULTY,
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): thời
+  // gian giải + 0,3 s hiệu ứng chuyển câu.
+  expectedSolveMs: { 0: 3_500, 1: 2_800, 2: 4_800, 3: 6_800 },
+  // Bot (CR-016): tỉ lệ đúng chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.85, 1: 0.9, 2: 0.8, 3: 0.75 },
 
   generate(roundSeed, index, difficulty) {
     const level = LEVELS[difficulty];

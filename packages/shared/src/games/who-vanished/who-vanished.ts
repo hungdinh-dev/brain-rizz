@@ -150,6 +150,11 @@ export const whoVanished: MinigameDef<WhoVanishedPuzzle, WhoVanishedAnswer> = {
    * Mầm (trẻ 7 tuổi) 1,41 → giữ 1 (Mầm = min(mô phỏng, 1)); Khó 1,53; Siêu khó 2,26.
    */
   difficultyMultiplier: { 0: 1, 1: 1, 2: 1.55, 3: 2.25 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): xem +
+  // che + chọn + 0,3 s chuyển câu.
+  expectedSolveMs: { 0: 5_900, 1: 5_200, 2: 5_700, 3: 6_300 },
+  // Bot (CR-016): tỉ lệ đúng chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.85, 1: 0.9, 2: 0.8, 3: 0.7 },
 
   generate(roundSeed, index, difficulty) {
     const level = LEVELS[difficulty];

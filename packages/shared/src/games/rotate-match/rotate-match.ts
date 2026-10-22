@@ -115,6 +115,11 @@ export const rotateMatch: MinigameDef<RotateMatchPuzzle, RotateMatchAnswer> = {
   // phỏng từ bảng Cân bằng của đặc tả). Mầm = min(mô phỏng cho trẻ 7 tuổi, 1) theo quy tắc chung
   // của PM: 0,86 → 0,85. Chốt lại sau buổi chơi thử.
   difficultyMultiplier: { 0: 0.85, 1: 1, 2: 2, 3: 3.3 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): giữa
+  // khoảng + 0,35 s hiệu ứng chuyển câu.
+  expectedSolveMs: { 0: 2_850, 1: 3_100, 2: 4_600, 3: 6_350 },
+  // Bot (CR-016): tỉ lệ đúng = 1 − tỉ lệ sai ở bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.9, 1: 0.9, 2: 0.87, 3: 0.83 },
   // Không khai báo `speedAllowanceMs`: thưởng tốc độ chung đã hợp với game này (đặc tả, CR-006).
 
   generate(roundSeed, index, difficulty) {

@@ -6,6 +6,7 @@ import {
   type CharacterId,
   MAX_ACCESS_TOKEN_LENGTH,
   MAX_NAME_LENGTH,
+  MAX_PLAYERS,
   MAX_TOTAL_ROUNDS,
   MIN_TOTAL_ROUNDS,
 } from "./constants";
@@ -82,6 +83,15 @@ export const ClientMessage = {
   Chat: "chat",
   /** Chủ phòng, mọi pha: bật/tắt chat cả phòng (CR-011). */
   SetChatEnabled: "setChatEnabled",
+  /**
+   * Chủ phòng, pha `lobby` (CR-016): thêm một bot ở mức `level` vào ghế trống. Hết ghế
+   * (người thật + bot = `MAX_PLAYERS`) thì `invalid`.
+   */
+  AddBot: "addBot",
+  /** Chủ phòng, pha `lobby` (CR-016): bỏ bot `playerId`. Id không phải bot thì `invalid`. */
+  RemoveBot: "removeBot",
+  /** Chủ phòng, pha `lobby` (CR-016): đổi mức bot `playerId`. Id không phải bot thì `invalid`. */
+  SetBotLevel: "setBotLevel",
 } as const;
 
 /** Các trường hồ sơ người chơi, chưa gắn giá trị mặc định. */
@@ -95,6 +105,15 @@ const profileFields = {
   difficulty: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
   avatar: z.enum(CHARACTER_IDS),
 };
+
+/** Id người chơi trong tin nhắn (sessionId hoặc id ghế bot `bot-<n>`). */
+const playerIdField = z.string().min(1).max(64);
+
+/**
+ * Mức bot (CR-016): 0 Dễ, 1 Vừa, 2 Khó, 3 Siêu. Khai báo tại chỗ để giao thức không phụ thuộc
+ * `./bots`; cùng kiểu với `BotLevel` ở đó.
+ */
+const botLevelField = z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]);
 
 /**
  * JWT phiên Supabase (ADR 0011), tuỳ chọn. Sai kiểu hoặc dài quá giới hạn thì bị bỏ (coi như không gửi),
@@ -156,7 +175,7 @@ export type SetDifficultyPayload = z.infer<typeof SetDifficultySchema>;
 export const IntroReadySchema = z.object({ ready: z.boolean() });
 export type IntroReadyPayload = z.infer<typeof IntroReadySchema>;
 
-export const NudgeDifficultySchema = z.object({ playerId: z.string().min(1).max(64) });
+export const NudgeDifficultySchema = z.object({ playerId: playerIdField });
 export type NudgeDifficultyPayload = z.infer<typeof NudgeDifficultySchema>;
 
 /** Game đã chốt ở pha `game-select`, nên bắt đầu vòng không cần nội dung. */
@@ -191,6 +210,41 @@ export type ChatSendPayload = z.infer<typeof ChatSendSchema>;
 export const SetChatEnabledSchema = z.object({ enabled: z.boolean() });
 export type SetChatEnabledPayload = z.infer<typeof SetChatEnabledSchema>;
 
+// ---------- Bot (CR-016, ADR 0014) ----------
+
+export const AddBotSchema = z.object({ level: botLevelField });
+export type AddBotPayload = z.infer<typeof AddBotSchema>;
+
+export const RemoveBotSchema = z.object({ playerId: playerIdField });
+export type RemoveBotPayload = z.infer<typeof RemoveBotSchema>;
+
+export const SetBotLevelSchema = z.object({ playerId: playerIdField, level: botLevelField });
+export type SetBotLevelPayload = z.infer<typeof SetBotLevelSchema>;
+
+/** Bot kèm theo khi tạo phòng ("Chơi với máy"): 1 → `MAX_PLAYERS - 1` bot, cùng một mức. */
+export const RoomBotsOptionSchema = z.object({
+  count: z
+    .number()
+    .int()
+    .min(1)
+    .max(MAX_PLAYERS - 1),
+  level: botLevelField,
+});
+export type RoomBotsOption = z.infer<typeof RoomBotsOptionSchema>;
+
+/**
+ * Tùy chọn chỉ dùng lúc TẠO phòng party (`client.create(ROOM_NAME, { ...JoinOptions, bots })`),
+ * server đọc ở `onCreate`; `onJoin` không đọc. Bot được thêm ngay SAU khi người tạo vào phòng, để
+ * người tạo giữ đúng màu và nhân vật của mình, bot tránh cả hai. `bots` sai kiểu hoặc ngoài khoảng
+ * thì bị bỏ (coi như không gửi), không làm hỏng việc tạo phòng; trường lạ bị bỏ.
+ */
+export const CreateOptionsSchema = z
+  .object({ bots: RoomBotsOptionSchema.optional().catch(undefined) })
+  .catch({ bots: undefined });
+export interface CreateOptions {
+  bots?: RoomBotsOption;
+}
+
 // ---------- Server → Client ----------
 
 export const ServerMessage = {
@@ -208,6 +262,12 @@ export const ServerMessage = {
    * (bỏ trùng, giữ thứ tự cũ → mới, tối đa 50 tin gần nhất), không xoá tin cũ hơn bộ đệm server.
    */
   ChatHistory: "chatHistory",
+  /**
+   * Bot nhường ghế (CR-016) — `BotYieldedPayload`. Người thật vào phòng đủ ghế ở `lobby` nên bot
+   * thêm gần nhất rời phòng. Gửi một lần cho những người ĐÃ ở trong phòng, không gửi người vừa vào;
+   * web hiện toast "<tên> vào phòng · <bot> nhường ghế".
+   */
+  BotYielded: "botYielded",
 } as const;
 
 export interface RoundStartPayload {
@@ -255,11 +315,31 @@ export interface ChatMessagePayload {
   quickId?: ChatQuickId;
   /** Giờ server (ms epoch). */
   at: number;
+  /**
+   * Người gửi là bot (CR-016): web dịch tên theo `avatar` (`name` của bot là `""`), kể cả khi
+   * bot đã bị bỏ khỏi phòng. Không có = người thật.
+   */
+  bot?: true;
 }
 
 export interface ChatHistoryPayload {
   /** Cũ → mới. */
   messages: ChatMessagePayload[];
+}
+
+/**
+ * Tin `botYielded` (CR-016). Không có chữ giao diện: web dịch tên bot theo `botAvatar` (bot đã rời
+ * state lúc tin tới nên không tra lại được), tên người vào lấy từ `playerName`.
+ */
+export interface BotYieldedPayload {
+  /** Id ghế bot vừa rời (`bot-<n>`). */
+  botId: string;
+  /** Nhân vật của bot vừa rời. */
+  botAvatar: CharacterId;
+  /** sessionId của người thật vừa vào. */
+  playerId: string;
+  /** Tên người thật vừa vào (đã qua schema: cắt khoảng trắng hai đầu). */
+  playerName: string;
 }
 
 export interface ErrorPayload {
@@ -313,6 +393,13 @@ export interface PlayerView {
   /** Số câu đã trả lời trong vòng, đúng hoặc sai (cũng là index câu đang làm). */
   progress: number;
   streak: number;
+  /**
+   * Ghế do server chơi thay (CR-016, ADR 0014). Bot có `name = ""` (web dịch theo nhân vật), luôn
+   * `ready` và `connected`, không bao giờ là chủ phòng, không bỏ phiếu.
+   */
+  isBot: boolean;
+  /** Mức bot: 0 Dễ, 1 Vừa, 2 Khó, 3 Siêu (`BotLevel`). Người thật luôn là 0. */
+  botLevel: 0 | 1 | 2 | 3;
 }
 
 export interface PartyStateView {
