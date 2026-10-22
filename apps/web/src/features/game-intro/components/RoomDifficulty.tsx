@@ -11,6 +11,7 @@ import {
 import { CheckIcon, CrownIcon, TriangleAlertIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { BotBadge, PlayerName, usePlayerName } from "@/components/characters";
 import { DifficultyChip } from "@/components/common/MatchChips";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,8 @@ export function RoomDifficulty({
 }: RoomDifficultyProps) {
   const { t } = useTranslation();
   const fmt = useNumberFormat();
+  const { full } = usePlayerName();
+  // "Đã hiểu" tính cả bot (bot tự bấm sau 1–3 giây).
   const understood = players.filter((p) => p.isHost || p.introReady).length;
   const [nudged, setNudged] = useState<Record<string, true>>({});
   // Mỗi người một hẹn giờ: nhắc người sau không kéo dài thời gian khoá nút của người trước.
@@ -68,6 +71,12 @@ export function RoomDifficulty({
     }, NUDGE_COOLDOWN_MS);
     timers.current.set(playerId, id);
   }
+
+  // Bot (CR-016): độ khó theo mức, không bị đánh dấu lệch, không bị nhắc.
+  const isOff = (p: PlayerView) => !p.isBot && majority !== null && p.difficulty !== majority;
+  // Cột nút "Nhắc" chỉ giữ chỗ khi có người nhắc được; phòng toàn bot + chủ phòng (điện thoại
+  // rất hẹp) thì nhường chỗ cho tên "Fen · máy".
+  const nudgeColumn = isHost && players.some((p) => isOff(p) && !p.isHost);
 
   const game = getGame(gameId);
   const multipliers = DIFFICULTIES.map(
@@ -99,7 +108,7 @@ export function RoomDifficulty({
       </div>
       <ul className="flex flex-col gap-1">
         {players.map((p) => {
-          const off = majority !== null && p.difficulty !== majority;
+          const off = isOff(p);
           const canNudge = isHost && off && !p.isHost;
           return (
             <li
@@ -126,18 +135,26 @@ export function RoomDifficulty({
                     <CrownIcon aria-hidden className="size-2.5" strokeWidth={3} />
                   </span>
                 )}
+                {p.isBot && <BotBadge size="sm" />}
               </span>
               <span className="flex min-w-0 flex-1 flex-col gap-0.5 leading-tight lg:w-43 lg:flex-none">
-                <span className="flex min-w-0 items-baseline gap-1.5">
-                  <span className="truncate font-display text-base font-extrabold lg:text-lg">
-                    {p.name}
-                  </span>
+                <span className="flex min-w-0 items-baseline gap-1.5 overflow-x-clip">
+                  <PlayerName
+                    player={p}
+                    className="truncate font-display text-base font-extrabold lg:text-lg"
+                    suffixClassName="text-xs text-muted-foreground"
+                  />
                   {p.id === sessionId && (
                     <span className="shrink-0 text-xs font-semibold text-muted-foreground">
                       {t("lobby.you")}
                     </span>
                   )}
                 </span>
+                {p.isBot && (
+                  <span className="truncate text-[11.5px] text-muted-foreground">
+                    {t("bots.introLevel", { level: t(`bots.level.${p.botLevel}`) })}
+                  </span>
+                )}
                 {off && (
                   <span className="inline-flex items-center gap-1 self-start rounded-full bg-identify px-2 py-px text-[11px] font-bold text-ink">
                     <TriangleAlertIcon aria-hidden className="size-3" strokeWidth={2.6} />
@@ -164,14 +181,14 @@ export function RoomDifficulty({
                   {t("intro.reading")}
                 </span>
               )}
-              {isHost && (
+              {nudgeColumn && (
                 <span className="flex w-18 shrink-0 justify-end lg:w-21">
                   {canNudge && (
                     <Button
                       variant="outline"
                       size="sm"
                       className="min-h-11 rounded-xl px-3 text-base"
-                      aria-label={t("intro.nudgeLabel", { name: p.name })}
+                      aria-label={t("intro.nudgeLabel", { name: full(p) })}
                       disabled={!!nudged[p.id]}
                       onClick={() => nudge(p.id)}
                     >

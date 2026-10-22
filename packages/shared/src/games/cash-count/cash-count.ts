@@ -179,6 +179,11 @@ export const cashCount: MinigameDef<CashCountPuzzle, CashCountAnswer> = {
    * hơn Thường (PM chốt chung: hệ số không giảm khi lên mức). Chốt lại sau buổi chơi thử.
    */
   difficultyMultiplier: { 0: 1, 1: 1, 2: 1.4, 3: 1.8 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): trung
+  // bình + 0,25 s chuyển câu.
+  expectedSolveMs: { 0: 5_850, 1: 5_250, 2: 6_150, 3: 7_150 },
+  // Bot (CR-016): tỉ lệ đúng = 1 − tỉ lệ sai ở bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.9, 1: 0.93, 2: 0.9, 3: 0.88 },
 
   /** Miễn trừ thưởng tốc độ (CR-006): 0,5 s mỗi tờ sau tờ thứ hai, thêm 2 s cho phép trừ tiền thối. */
   speedAllowanceMs(puzzle) {

@@ -49,14 +49,26 @@ Các điều trên phải được kiểm bằng test ≥ 10.000 seed × 4 độ
 
 ## Cân bằng
 
-| Mức | Thời gian giải dự kiến mỗi câu | Số câu dự kiến mỗi vòng |
-| --- | --- | --- |
-| Mầm | | |
-| Thường | | |
-| Khó | | |
-| Siêu khó | | |
+| Mức | Thời gian giải dự kiến mỗi câu | Tỉ lệ sai | Số câu dự kiến mỗi vòng |
+| --- | --- | --- | --- |
+| Mầm | | | |
+| Thường | | | |
+| Khó | | | |
+| Siêu khó | | | |
 
 Ở Siêu khó vẫn phải còn ≥ 8 câu mỗi vòng.
+
+**Thời gian và tỉ lệ đúng cho bot** ([CR-016](../00-tracking/change-requests.md#cr-016)), khai báo trong định nghĩa game, chép từ bảng trên. Mầm theo trẻ 7 tuổi, các mức khác theo người lớn:
+
+- `expectedSolveMs` (ms, trung vị hoặc giữa khoảng): phải **cộng cả trình chiếu và hiệu ứng chuyển câu** (server đo từ lúc trả lời câu trước), không tính khoá khi sai. Thời gian giảm khi lên mức (Thường → Siêu khó) thì ghi lý do ở đây.
+- `expectedAccuracy` (0–0,98] = 1 − tỉ lệ sai ở bảng trên (số lớn hơn 0,98 bị bot kẹp về 0,98). Không tăng từ Thường lên Siêu khó. Bot quy tỉ lệ đúng của mức theo số này; không khai báo thì bot coi như 90 %.
+
+| Mức | `expectedSolveMs` | `expectedAccuracy` | Cách tính |
+| --- | --- | --- | --- |
+| Mầm | | | |
+| Thường | | | |
+| Khó | | | |
+| Siêu khó | | | |
 
 **Hệ số điểm và miễn trừ thời gian** ([CR-006](../00-tracking/change-requests.md#cr-006), khai báo trong định nghĩa game):
 

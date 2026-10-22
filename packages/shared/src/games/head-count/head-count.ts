@@ -313,6 +313,11 @@ export const headCount: MinigameDef<HeadCountPuzzle, HeadCountAnswer> = {
    * Mầm (trẻ 7 tuổi) cần 1,29 → giữ 1 (Mầm = min(mô phỏng, 1)); Khó 1,25; Siêu khó 1,75.
    */
   difficultyMultiplier: { 0: 1, 1: 1, 2: 1.25, 3: 1.75 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): trình
+  // chiếu + chọn + 0,3 s chuyển câu.
+  expectedSolveMs: { 0: 6_850, 1: 6_300, 2: 6_400, 3: 6_550 },
+  // Bot (CR-016): tỉ lệ đúng = 1 − tỉ lệ sai ở bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.9, 1: 0.92, 2: 0.85, 3: 0.75 },
 
   generate(roundSeed, index, difficulty) {
     const level = HEAD_COUNT_LEVELS[difficulty];

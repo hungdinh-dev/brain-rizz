@@ -785,6 +785,11 @@ export const numberPath: MinigameDef<NumberPathPuzzle, NumberPathAnswer> = {
   durationMs: 60_000,
   // Đặc tả mục Cân bằng: mô phỏng 4 000 vòng mỗi mức, cho điểm vòng ≈ người lớn ở Thường.
   difficultyMultiplier: { 0: 1, 1: 1, 2: 1.5, 3: 1.95 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): trung
+  // bình + 0,3 s hiệu ứng chuyển câu.
+  expectedSolveMs: { 0: 5_400, 1: 4_800, 2: 5_900, 3: 6_900 },
+  // Bot (CR-016): tỉ lệ đúng = 1 − tỉ lệ sai ở bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.9, 1: 0.92, 2: 0.9, 3: 0.87 },
 
   generate(roundSeed, index, difficulty) {
     return numberPathTryGenerate(roundSeed, index, difficulty) ?? numberPathFallback(difficulty);

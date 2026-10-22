@@ -23,6 +23,7 @@ Khác với các tài liệu theo dõi khác:
 | [2026-10-16](2026-10-16.md) | DR-20261016 | GĐ 1 | CR-009: Luyện tập, Kiểm tra não, Tài khoản Supabase, Bảng xếp hạng (ADR 0011, 0012); QA PASS, chờ kiểm với Supabase thật; chưa commit |
 | [2026-10-19](2026-10-19.md) | DR-20261019 | GĐ 1 | CR-010: nút Hiệu ứng, vinh danh hồi hộp, điểm/danh hiệu theo thể loại; Supabase thật đã nối; `pnpm share`; merge vào `main`, tạo `dev` |
 | [2026-10-20](2026-10-20.md) | DR-20261020 | GĐ 1 | Bóng của ai, Kẻ lạc đàn khó bằng sắc độ, chat real-time (CR-011), Luyện ngắm + Phấn trượt (CR-012, 17 game), hạn trả lời + đồng bộ khi nối lại; merge vào `dev`/`main` |
+| [2026-10-21](2026-10-21.md) | DR-20261021 | GĐ 1 | Chơi với bot (CR-016, UC-23): kế hoạch, duyệt, code shared/server/web bằng `/feature`, cân bằng bằng mô phỏng, 2 đợt sửa QA |
 
 Ngày 2026-10-11 không có phiên làm việc.
 

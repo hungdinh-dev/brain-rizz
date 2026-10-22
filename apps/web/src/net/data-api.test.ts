@@ -51,3 +51,44 @@ describe("data-api khi chưa cấu hình Supabase (FR-MR-15)", { timeout: 30_000
     ).resolves.toEqual(notConfigured);
   });
 });
+
+describe("lịch sử trận party: bot_count (CR-016)", { timeout: 30_000 }, () => {
+  beforeEach(() => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  const ROW = {
+    id: "m1",
+    room_code: "ABCD",
+    placement: 1,
+    players: 5,
+    match_points: 18,
+    total_score: 1234,
+    rounds: 3,
+    games: ["odd-one-out", "khong-co"],
+    category_scores: { identify: 300 },
+    category_titles: ["identify"],
+    created_at: "2026-10-21T08:00:00Z",
+  };
+
+  it("đọc bot_count; players vẫn là tổng số ghế gồm cả bot", async () => {
+    const { api } = await loadModules();
+    const row = api.toMatchRow({ ...ROW, bot_count: 3 });
+    expect(row.botCount).toBe(3);
+    expect(row.players).toBe(5);
+    expect(row.games).toEqual(["odd-one-out"]);
+  });
+
+  it("trận cũ chưa có cột hoặc giá trị lạ thì là 0 (chỉ có người thật)", async () => {
+    const { api } = await loadModules();
+    expect(api.toMatchRow(ROW).botCount).toBe(0);
+    expect(api.toMatchRow({ ...ROW, bot_count: null }).botCount).toBe(0);
+    expect(api.toMatchRow({ ...ROW, bot_count: "2" }).botCount).toBe(2);
+    expect(api.toMatchRow({ ...ROW, bot_count: -1 }).botCount).toBe(0);
+    expect(api.toMatchRow({ ...ROW, bot_count: "abc" }).botCount).toBe(0);
+  });
+});

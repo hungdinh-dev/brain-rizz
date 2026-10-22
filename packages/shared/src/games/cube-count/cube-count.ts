@@ -104,6 +104,11 @@ export const cubeCount: MinigameDef<CubeCountPuzzle, CubeCountAnswer> = {
   // CR-006: mỗi mức tính để người chơi đúng sức được điểm vòng xấp xỉ người lớn ở Thường (mô
   // phỏng theo bảng Cân bằng của đặc tả). Mầm = min(mô phỏng cho trẻ 7 tuổi, 1).
   difficultyMultiplier: { 0: 1, 1: 1, 2: 1.7, 3: 2.45 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): trung
+  // vị + 0,35 s hiệu ứng chuyển câu.
+  expectedSolveMs: { 0: 4_450, 1: 4_050, 2: 5_350, 3: 6_650 },
+  // Bot (CR-016): tỉ lệ đúng = 1 − tỉ lệ sai ở bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.88, 1: 0.92, 2: 0.88, 3: 0.85 },
   // Không khai báo `speedAllowanceMs`: không có pha trình chiếu, một chạm là chốt (đặc tả).
 
   generate(roundSeed, index, difficulty) {

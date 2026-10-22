@@ -308,6 +308,11 @@ export const pourLine: MinigameDef<PourLinePuzzle, PourLineAnswer> = {
 
   // Đặc tả, mục Cân bằng: mô phỏng 20 000 vòng 60 s mỗi mức. Mầm theo trần chung = min(…, 1).
   difficultyMultiplier: { 0: 1, 1: 1, 2: 1.4, 3: 2.55 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): bấm +
+  // giữ + 0,3 s hiệu ứng (cột "Một câu").
+  expectedSolveMs: { 0: 3_050, 1: 2_000, 2: 2_000, 3: 3_000 },
+  // Bot (CR-016): tỉ lệ đúng = 1 − tỉ lệ sai ở bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.925, 1: 0.94, 2: 0.84, 3: 0.81 },
 
   generate(roundSeed, index, difficulty) {
     const level = LEVELS[difficulty];

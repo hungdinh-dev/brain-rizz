@@ -1,6 +1,7 @@
 import type { CategoryLeader, PlayerView } from "@brain-rizz/shared";
 import type { Ref } from "react";
 import { useTranslation } from "react-i18next";
+import { usePlayerName } from "@/components/characters";
 import { CategoryChip } from "@/components/common/MatchChips";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { useNumberFormat } from "@/hooks/use-number-format";
@@ -43,6 +44,7 @@ export function CategoryBest({
 }: CategoryBestProps) {
   const { t } = useTranslation();
   const fmt = useNumberFormat();
+  const { full } = usePlayerName();
   if (leaders.length === 0) return null;
   const enter = (normal: string, fade: string) =>
     instant ? "" : reduced ? cn("animate-in fade-in", fade) : normal;
@@ -86,7 +88,7 @@ export function CategoryBest({
   }
 
   const nameOf = (p: PlayerView) =>
-    p.id === sessionId ? t("results.bestYou", { name: p.name }) : p.name;
+    p.id === sessionId ? t("results.bestYou", { name: p.name }) : full(p);
 
   return (
     <section

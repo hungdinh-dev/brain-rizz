@@ -1,5 +1,5 @@
 import { DIFFICULTIES, GAME_IDS, GAMES, type GameId } from "@brain-rizz/shared";
-import { BrainIcon, HousePlusIcon, TargetIcon } from "lucide-react";
+import { BotIcon, BrainIcon, HousePlusIcon, TargetIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { BrainRadar } from "@/components/common/BrainRadar";
@@ -95,6 +95,25 @@ function TableBox({ children }: { children: ReactNode }) {
 
 const TH = "h-9 px-2 text-left text-xs font-bold whitespace-nowrap text-muted-foreground";
 const TD = "h-11 border-t-2 border-dashed border-border/15 px-2 text-sm whitespace-nowrap";
+
+/**
+ * Nhãn "Đấu với máy" dưới mã phòng (CR-016): trận có bot. Nằm ở cột thứ 2 nên điện thoại cuộn
+ * ngang vẫn thấy; có chữ (không chỉ icon), số bot đọc cho trình đọc màn hình.
+ */
+function VsBotsTag({ count }: { count: number }) {
+  const { t } = useTranslation();
+  const detail = t("account.vsBotsCount", { count });
+  return (
+    <span
+      title={detail}
+      className="inline-flex h-5.5 items-center gap-1 rounded-full border-2 border-sticker bg-bot px-2 text-[11.5px] font-bold text-bot-foreground"
+    >
+      <BotIcon aria-hidden className="size-3.25" strokeWidth={2.6} />
+      {t("account.vsBots")}
+      <span className="sr-only">({detail})</span>
+    </span>
+  );
+}
 
 function GameDots({ games }: { games: { gameId: GameId }[] }) {
   return (
@@ -276,8 +295,11 @@ function PartyTab({ sessionKey, go }: { sessionKey: string; go(s: Screen): void 
             {rows.map((m) => (
               <tr key={m.id}>
                 <td className={TD}>{date.short(m.createdAt)}</td>
-                <td className={cn(TD, "font-display font-extrabold tracking-wider")}>
-                  {m.roomCode}
+                <td className={TD}>
+                  <span className="flex flex-col items-start gap-1">
+                    <span className="font-display font-extrabold tracking-wider">{m.roomCode}</span>
+                    {m.botCount > 0 && <VsBotsTag count={m.botCount} />}
+                  </span>
                 </td>
                 <td className={TD}>
                   <span className="flex items-center gap-1.5">

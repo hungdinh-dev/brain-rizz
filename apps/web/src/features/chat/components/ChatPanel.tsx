@@ -1,6 +1,7 @@
 import { RefreshCwIcon, VolumeXIcon } from "lucide-react";
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
+import { chatSender, usePlayerName } from "@/components/characters";
 import { useChat } from "@/stores/chat.store";
 import { useGame } from "@/stores/game.store";
 import { ChatComposer } from "./ChatComposer";
@@ -64,11 +65,14 @@ function MutedStrip() {
   const unmuteAll = useChat((s) => s.unmuteAll);
   const players = useGame((s) => s.party?.players);
   const messages = useChat((s) => s.messages);
+  const { full } = usePlayerName();
   if (muted.length === 0) return null;
 
-  // Tên lấy từ phòng; người đã rời thì lấy từ tin cũ của họ.
+  // Tên lấy từ phòng; người đã rời thì lấy từ tin cũ của họ (bot dịch theo nhân vật, CR-016).
   const first = muted[0] ?? "";
-  const name = players?.[first]?.name ?? messages.findLast((m) => m.playerId === first)?.name ?? "";
+  const inRoom = players?.[first];
+  const lastMsg = messages.findLast((m) => m.playerId === first);
+  const name = inRoom ? full(inRoom) : lastMsg ? full(chatSender(lastMsg)) : "";
   const text =
     muted.length === 1 && name
       ? t("chat.mutedOne", { name })

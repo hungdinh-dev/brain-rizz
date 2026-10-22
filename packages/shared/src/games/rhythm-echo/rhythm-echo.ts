@@ -292,6 +292,11 @@ export const rhythmEcho: MinigameDef<RhythmEchoPuzzle, RhythmEchoAnswer> = {
    * Siêu khó cao vì câu dài gấp rưỡi Thường (5–6 tiếng, có nghỉ) nên mỗi vòng ít câu hơn hẳn.
    */
   difficultyMultiplier: { 0: 1, 1: 1, 2: 2.45, 3: 2.7 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): nghe +
+  // chờ + gõ + 0,3 s chuyển câu.
+  expectedSolveMs: { 0: 4_800, 1: 5_100, 2: 7_100, 3: 7_000 },
+  // Bot (CR-016): tỉ lệ đúng chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.91, 1: 0.96, 2: 0.78, 3: 0.73 },
 
   generate(roundSeed, index, difficulty) {
     const level = LEVELS[difficulty];

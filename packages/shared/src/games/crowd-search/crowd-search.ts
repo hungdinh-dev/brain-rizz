@@ -238,6 +238,11 @@ export const crowdSearch: MinigameDef<CrowdSearchPuzzle, CrowdSearchAnswer> = {
   durationMs: 60_000,
   // Bảng Cân bằng trong đặc tả: điểm vòng người lớn ở mỗi mức ≈ người lớn ở Thường.
   difficultyMultiplier: { 0: 1, 1: 1, 2: 2.2, 3: 3.45 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): giữa
+  // khoảng + 0,3 s hiệu ứng chuyển câu.
+  expectedSolveMs: { 0: 2_900, 1: 2_800, 2: 4_300, 3: 5_700 },
+  // Bot (CR-016): tỉ lệ đúng chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.9, 1: 0.93, 2: 0.88, 3: 0.84 },
 
   generate(roundSeed, index, difficulty) {
     const level = LEVELS[difficulty];

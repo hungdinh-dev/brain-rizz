@@ -2,7 +2,7 @@
 
 Bản đồ toàn bộ repo `brain-rizz`: mỗi file làm gì, và **muốn sửa một thứ thì mở file nào**. Không liệt kê `node_modules/`, `dist/`, `.turbo/` (sinh tự động, không sửa tay).
 
-Cập nhật: 2026-10-16. Khi thêm, xoá hay đổi tên thư mục thì sửa lại file này.
+Cập nhật: 2026-10-21 (CR-016 chơi với bot). Khi thêm, xoá hay đổi tên thư mục thì sửa lại file này.
 
 ## Tổng quan
 
@@ -63,10 +63,16 @@ brain-rizz/
 │  ├─ protocol.test.ts         Test schema tài khoản + Kiểm tra não (accessToken, brainReady)
 │  ├─ answer-judge.ts          judgeAnswer: luật chấm một câu (index, hết giờ + dung sai, khoá khi sai, chống spam,
 │  │                           sinh lại câu, check, điểm, giờ hiện câu, chuỗi) — hàm thuần, nhận `now`; server
-│  │                           (AnswerJudge) và Luyện tập trên web dùng chung; answer-judge.test.ts
+│  │                           (AnswerJudge) và Luyện tập trên web dùng chung; judgeBotAnswer (bot, CR-016) đi chung
+│  │                           đường tính điểm qua settleAnswer; answer-judge.test.ts
 │  ├─ chat/                    Chat trong phòng (CR-011), hàm thuần dùng chung server + web: constants.ts (120 ký tự,
 │  │                           30 tin, CHAT_RATE, CHAT_PHASES, CHAT_QUICK_IDS), profanity.ts (lọc từ tục vi + en),
 │  │                           sanitize.ts (làm sạch + cắt), rate-limit.ts (token bucket) + chat.test.ts
+│  ├─ bots/                    Bot (CR-016, ADR 0014), hàm thuần tất định, không giải câu đố: types.ts (BotLevel 0–3,
+│  │                           BotModel.planAnswer → { delayMs, correct }), levels.ts (BOT_LEVEL_SPECS: bảng 4 mức),
+│  │                           models/basic.ts (model v1, nhiễu log-normal), simulate.ts (mô phỏng cân bằng), index.ts
+│  │                           (registry BOT_MODELS, planBotAnswer, botSeed, botExpectedSolveMs); bots.test.ts,
+│  │                           balance-sim.test.ts (1 000 vòng × mỗi game × mỗi mức). Thêm model: file mới + 1 dòng BOT_MODELS
 │  ├─ brain-test.ts            Kiểm tra não: chọn 5 game (pickBrainTestGames), thời lượng, Điểm Não
 │  │                           (computeBrainResult), BRAIN_TEST_RULES_VERSION — server và web dùng chung
 │  ├─ scoring.ts               Công thức điểm: điểm gốc, thưởng tốc độ, combo (có trần), hệ số và
@@ -94,6 +100,9 @@ brain-rizz/
 │  │  │                        bộ đếm chống spam của từng người — dùng chung cho cả hai phòng
 │  │  ├─ rooms/ChatRelay.ts    Chat của một phòng (CR-011): giới hạn tần suất, làm sạch + lọc, gắn danh tính người
 │  │  │                        gửi từ PlayerState, giữ 30 tin gần nhất trong RAM (không DB, không vào state)
+│  │  ├─ rooms/BotDriver.ts    Bot của một phòng (CR-016): danh sách bot (mức, model, RNG), hành vi theo pha (sẵn sàng,
+│  │  │                        "Đã hiểu" sau 1–3 giây, trả lời theo planBotAnswer + judgeBotAnswer, biểu cảm qua
+│  │  │                        ChatRelay), hẹn giờ trên this.clock (PartyRoom huỷ cùng clearTimers)
 │  │  ├─ rooms/messages.ts     parseMessage (zod → lỗi invalid), sendError, replyPong dùng chung
 │  │  ├─ rooms/schema/PartyState.ts   Dữ liệu đồng bộ xuống mọi máy (phòng + người chơi)
 │  │  ├─ rooms/schema/BrainState.ts   State phòng Kiểm tra não (khớp BrainStateView)
@@ -105,6 +114,9 @@ brain-rizz/
 │  ├─ test/PartyRoom.test.ts   Test phòng chơi với server thật
 │  ├─ test/PartyChat.test.ts   Test chat: phát tin, lọc, giới hạn tần suất, chat tắt, pha chơi, lịch sử khi nối lại
 │  ├─ test/PartyResults.test.ts  Test ghi match_results (một lần mỗi trận, chỉ người có token hợp lệ)
+│  ├─ test/PartyBots.test.ts  Test bot (CR-016): quyền + pha của addBot/removeBot/setBotLevel, bot nhường ghế (+ tin
+│  │                           botYielded), người tạo giữ màu/nhân vật, không làm chủ phòng, hết người thật thì đóng
+│  │                           phòng, điểm khớp planBotAnswer, ghi botCount
 │  ├─ test/BrainTestRoom.test.ts  Test Kiểm tra não: đủ 5 game, chấm, hết giờ, lưu/guest/no-db/failed, rớt mạng
 │  ├─ test/helpers.ts          Tiện ích test: SOLVE (đáp án đúng mọi game), until, advance, freezeNow…
 │  ├─ loadtest/party.ts        Thử tải bằng nhiều bot
@@ -126,12 +138,15 @@ brain-rizz/
 │  │  │                        thiếu thì dùng tiếng tổng hợp; README.md: bảng tên file ↔ lúc phát, gợi ý bộ Kenney (CC0)
 │  │  ├─ features/             ★ MỖI MÀN HÌNH MỘT FEATURE — feature khác chỉ import qua index.ts
 │  │  │  ├─ home/              HomeScreen (giới thiệu → menu ⇄ chọn bạn đồng hành; bước lưu ở nav.store), profile.ts
-│  │  │  │                     (nhớ hồ sơ), components/IntroScreen, MenuScreen (4 thẻ + Bảng xếp hạng, Tài khoản & lịch sử,
-│  │  │  │                     ô "Sắp có"), MenuCard, ProfileScreen, SkillChips
+│  │  │  │                     (nhớ hồ sơ), components/IntroScreen, MenuScreen (4 thẻ + thẻ "Chơi với máy", Bảng xếp hạng,
+│  │  │  │                     Tài khoản & lịch sử, ô "Sắp có"), MenuCard, ProfileScreen, SkillChips, BotDialog (hộp thoại
+│  │  │  │                     "Chơi với máy": số bot + mức chung, CR-016), bot-setup.ts (mặc định, tùy chọn bots) + test
 │  │  │  ├─ lobby/             LobbyScreen — phòng chờ 2D: mã phòng ẩn/hiện + sao chép, 8 ô người chơi,
 │  │  │  │                     đổi nhân vật, sẵn sàng, chủ phòng đặt số vòng + bắt đầu trận;
 │  │  │  │                     components/RoomCodePanel, ReadyMeter, PlayerSlot (+ ô trống), CharacterPicker,
-│  │  │  │                     MatchSetupCard (+ HostStatusCard)
+│  │  │  │                     MatchSetupCard (+ HostStatusCard), BotSlot (ô bot: đổi mức / bỏ; AddBotSlot: ô trống của
+│  │  │  │                     chủ phòng thêm bot, CR-016), use-inline-panel.ts (bảng chọn mở trong ô: focus, Esc, bấm ra
+│  │  │  │                     ngoài); bot-slot.test.tsx (dựng tĩnh bằng react-dom/server, không cần DOM)
 │  │  │  ├─ music/             Nhạc nền (FR-GD-10): music.store.ts (một thẻ <audio> dùng chung, phát lần lượt, nhỏ tiếng
 │  │  │  │                     lúc chơi) + test, audio-output.ts (âm lượng qua GainNode Web Audio — chạy cả trên iPhone; không
 │  │  │  │                     có Web Audio thì dùng audio.volume), track-list.ts (import.meta.glob src/assets/music), tracks.ts (tên bài, bài kế)
@@ -167,7 +182,8 @@ brain-rizz/
 │  │  │  │                     mất / có lại kết nối và câu server đang chờ: bridge.watchConnection, serverSync) + test,
 │  │  │  │                     components/GameFrame (thẻ giấy chứa
 │  │  │  │                     Phaser), FrameOverlays (khoá, +điểm, hết giờ, mất kết nối, tải/lỗi), RoundTimer,
-│  │  │  │                     ScoreStrip, Scoreboard, MyScore, RoundInfo, ComboChip
+│  │  │  │                     ScoreStrip, Scoreboard, MyScore, RoundInfo, ComboChip; scoreboard.test.ts (tên bot đủ,
+│  │  │  │                     "(bạn)" chỉ cho trình đọc màn hình, nhãn độ khó có title)
 │  │  │  ├─ results/           ResultsScreen (bảng điểm vòng → cộng điểm trận), PodiumScreen (vinh danh hồi hộp: hạng 4+ →
 │  │  │  │                     3 → 2 → trống → 1), podium-timeline.ts (lịch hiện, hàm thuần) + test, standings.ts (hạng
 │  │  │  │                     trước/sau vòng, bục) + test, components/RoundResults, MatchTotals, CategoryBest (thẻ
@@ -225,14 +241,18 @@ brain-rizz/
 │  │  │  └─ types.ts           MinigameBridge (React ↔ Phaser), GameLocale (+ levelHints: câu nhắc theo mức), GameClient,
 │  │  │                        khung 720×1280
 │  │  ├─ components/
-│  │  │  ├─ ui/                Component shadcn đã chỉnh kiểu nhãn dán (button, input, card, toggle-group, tabs, alert-dialog, skeleton, slider, sheet, switch…)
-│  │  │  ├─ characters/        ★ NHÂN VẬT: Character (6 con vật × 7 biểu cảm, SVG + hoạt ảnh), specs.tsx
+│  │  │  ├─ ui/                Component shadcn đã chỉnh kiểu nhãn dán (button, input, card, toggle-group, tabs, alert-dialog, dialog, skeleton, slider, sheet, switch…)
+│  │  │  ├─ characters/        ★ NHÂN VẬT: Character (6 con vật × 7 biểu cảm, SVG + hoạt ảnh), specs.tsx; BotBadge (huy hiệu
+│  │  │  │                     máy, CR-016), bot-name.ts (tên bot "Fen · máy", đánh số khi trùng nhân vật, tin chat có cờ bot)
+│  │  │  │                     + test, PlayerName (usePlayerName + tên hai phần: tên cắt được, hậu tố "· máy" luôn giữ;
+│  │  │  │                     `compact` cho chỗ chật đã có huy hiệu: ẩn hậu tố khỏi mắt, giữ số "Fen 2") + player-name.test.tsx
 │  │  │  ├─ brand/             Logo chữ nhún, linh vật BrainMascot, hình vẽ phấn ChalkDoodle + ChalkDefs
 │  │  │  └─ common/            Dùng ở nhiều feature: PlayerAvatar (nhân vật trong khung tròn), DifficultyPicker, ConnectionBanner,
 │  │  │                        ThemeToggle, LanguageToggle, RankBadge (huy hiệu hạng), MatchChips (nhãn vòng, nhóm kỹ năng,
 │  │  │                        độ khó; màu + biểu tượng nhóm), HostWaitCard ("Chờ chủ phòng…"), AvatarStrip (hàng nhân vật cả phòng),
 │  │  │                        ScreenHeader (nút quay lại + tiêu đề phấn), EmptyState + DataProblemState (trống / lỗi + Thử lại /
-│  │  │                        chưa kết nối máy chủ dữ liệu), QuitDialog ("Bỏ lượt này?"), BrainRadar (biểu đồ 5 cạnh SVG)
+│  │  │                        chưa kết nối máy chủ dữ liệu), QuitDialog ("Bỏ lượt này?"), BrainRadar (biểu đồ 5 cạnh SVG),
+│  │  │                        BotLevel (mức bot: BotLevelChip, BotLevelPicker radio, BotLevelButtons thêm bot; CR-016)
 │  │  ├─ i18n/
 │  │  │  ├─ index.ts           Khởi tạo i18next (chỉ namespace `common` trong gói đầu), chọn ngôn ngữ lần đầu
 │  │  │  ├─ solo.ts            loadSoloLocales: tải lười chữ 4 màn một mình (locales/solo/) gộp vào `common`
@@ -250,11 +270,15 @@ brain-rizz/
 │  │  ├─ lib/                  utils.ts (cn), storage.ts (localStorage an toàn + tên khoá), avatar.ts,
 │  │  │                        supabase.ts (client tải lười, thiếu biến → null; đọc lỗi quay về từ Google) + test,
 │  │  │                        audio-context.ts (một AudioContext dùng chung cho nhạc nền + âm thanh hiệu ứng, mở khoá/resume)
-│  │  ├─ net/connection.ts     Mọi thứ liên quan mạng: tạo/vào/rời phòng party (kèm accessToken), phòng Kiểm tra não
-│  │  │                        (startBrainTest/leaveBrainTest/sendBrain), gửi tin, nối lại, đồng bộ giờ
+│  │  ├─ net/connection.ts     Mọi thứ liên quan mạng: tạo/vào/rời phòng party (kèm accessToken; tạo phòng kèm `bots` và
+│  │  │                        huỷ giữa chừng, CR-016), phòng Kiểm tra não (startBrainTest/leaveBrainTest/sendBrain), gửi tin,
+│  │  │                        nối lại, đồng bộ giờ; create-party.test.ts (giả lập Colyseus)
 │  │  ├─ net/brain-leave.ts    Phòng Kiểm tra não đóng vì để quá lâu ở intro (close code riêng) → về màn giới thiệu + test
+│  │  ├─ net/bot-yielded.ts    Câu toast bot nhường ghế (tin `botYielded`, CR-016), tên bot dịch theo `botAvatar`; test gồm
+│  │  │                        cả connection nghe tin và hiện toast 3 giây (giả lập Colyseus)
 │  │  ├─ net/data-api.ts       Đọc/ghi Supabase: bảng xếp hạng, hạng của mình, lịch sử 3 loại, gửi kỷ lục luyện tập
-│  │  │                        (trả DataResult: not-configured / no-session / error, không ném lỗi) + test (thiếu biến môi trường)
+│  │  │                        (trả DataResult: not-configured / no-session / error, không ném lỗi) + test (thiếu biến môi trường,
+│  │  │                        toMatchRow đọc bot_count)
 │  │  ├─ stores/
 │  │  │  ├─ auth.store.ts      Phiên Supabase (khách lười / Google): ensureSession, linkGoogle, signInGoogle, signOut,
 │  │  │  │                     deleteMyData, syncProfile (tên + nhân vật lên `profiles`)
@@ -290,8 +314,10 @@ brain-rizz/
 ├─ supabase/migrations/       SQL tạo bảng, RLS, RPC bảng xếp hạng (chạy theo docs/03-guides/supabase-setup.md)
 │  ├─ 20261016000000_accounts.sql  5 bảng (profiles, brain_tests, brain_test_games, match_results,
 │  │                           practice_bests), index, RLS, 6 RPC
-│  └─ 20261019000000_match_category_scores.sql  match_results thêm category_scores (jsonb),
-│                              category_titles (text[]) — CR-010
+│  ├─ 20261019000000_match_category_scores.sql  match_results thêm category_scores (jsonb),
+│  │                           category_titles (text[]) — CR-010
+│  └─ 20261021000000_match_bot_count.sql  match_results thêm bot_count (smallint, mặc định 0) — CR-016;
+│                              chạy trước khi deploy server mới
 │
 ├─ docs/                       Tài liệu, chia theo chủ đề — mục lục: docs/README.md
 │  ├─ README.md                Mục lục tài liệu, bản đồ SDLC, quy ước đặt tài liệu mới
@@ -310,7 +336,8 @@ brain-rizz/
 │  │  ├─ game-design.md        GDD: vòng lặp chơi, chế độ, điểm, độ khó, nhân vật
 │  │  ├─ ui-ux.md              Bản đồ màn hình, link canvas, hệ thống thiết kế
 │  │  ├─ roadmap.md            Mốc thời gian, cổng kiểm tra, checklist giai đoạn
-│  │  └─ minigame-expansion.md Kế hoạch mở rộng minigame 17 → 31 (đề xuất, chưa duyệt)
+│  │  ├─ minigame-expansion.md Kế hoạch mở rộng minigame 17 → 31 (đề xuất, chưa duyệt)
+│  │  └─ bot-players.md        Kế hoạch chơi với bot (đã duyệt CR-016)
 │  ├─ 02-architecture/         KIẾN TRÚC
 │  │  ├─ README.md             Mục lục thư mục
 │  │  ├─ overview.md           Kiến trúc, luồng phòng chơi, giao thức tin nhắn
@@ -371,6 +398,7 @@ brain-rizz/
 | Đổi số người tối đa, thời gian đếm ngược, thời gian khoá khi sai, màu avatar | `packages/shared/src/constants.ts` |
 | Đổi luật phòng (ai được bắt đầu, khi nào hết vòng, chuyển chủ phòng) | `apps/server/src/rooms/PartyRoom.ts` |
 | Thêm thông tin cần hiện cho mọi người (vd. số câu đúng) | `apps/server/src/rooms/schema/PartyState.ts` **và** `PlayerView`/`PartyStateView` trong `packages/shared/src/protocol.ts` |
+| Sửa bot (CR-016): mức, model, hành vi, giao diện | Thông số 4 mức: `packages/shared/src/bots/levels.ts` (chỉ đổi số, rồi cập nhật bảng 3.1 của `docs/01-product/bot-players.md`); model mới: `bots/models/<id>.ts` + `BOT_MODELS`; hành vi theo pha: `apps/server/src/rooms/BotDriver.ts`; luật ghế / chủ phòng: `PartyRoom.ts`; web: `components/characters/{BotBadge,bot-name,PlayerName}`, `components/common/BotLevel.tsx`, `features/home/components/BotDialog.tsx`, `features/lobby/components/BotSlot.tsx`, khoá i18n `bots.*` |
 | Sửa chat trong phòng (CR-011) | Luật/lọc: `packages/shared/src/chat/`; server: `apps/server/src/rooms/ChatRelay.ts` + `handleChat` trong `PartyRoom.ts`; web: `apps/web/src/features/chat/`, `stores/chat.store.ts`, đăng ký tin trong `net/connection.ts` |
 | Thêm một hành động mới (vd. đổi avatar) | `protocol.ts` → xử lý trong `PartyRoom.ts` (mục `messages`) → hàm gửi trong `apps/web/src/net/connection.ts` → nút bấm trong `apps/web/src/features/<màn hình>/` |
 | Sửa giao diện trang chủ, phòng chờ, chọn game, hướng dẫn, lúc chơi, kết quả, vinh danh | `apps/web/src/features/{home,lobby,game-select,game-intro,play,results}/` |

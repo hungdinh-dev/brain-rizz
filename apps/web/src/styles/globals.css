@@ -98,6 +98,11 @@
   /* Chat trong phòng (CR-011): bong bóng tin của chính mình. Tin người khác dùng bg-muted. */
   --color-bubble-mine: var(--bubble-mine);
   --color-bubble-mine-foreground: var(--bubble-mine-foreground);
+
+  /* Chơi với máy (CR-016): huy hiệu máy (BotBadge), nhãn "Đấu với máy", thẻ "Chơi với máy" ở menu.
+     Màu thép nhạt kiểu nhãn dán: luôn có viền sticker, giữ nguyên ở sáng/tối như màu nhóm kỹ năng. */
+  --color-bot: var(--bot);
+  --color-bot-foreground: var(--bot-foreground);
 }
 
 :root {
@@ -133,6 +138,10 @@
   /* Chữ ink trên nền này: 14:1 */
   --bubble-mine: #ffecc6;
   --bubble-mine-foreground: #1f1b3a;
+
+  /* Icon/chữ mực trên nền này: 9,6:1. Nền so với thẻ giấy chỉ 1,6:1 nên luôn kèm viền sticker. */
+  --bot: #b9c7dc;
+  --bot-foreground: #1f1b3a;
 }
 
 .dark {
@@ -168,6 +177,10 @@
   /* Chữ giấy trên nền này: 8:1 */
   --bubble-mine: #5c4b22;
   --bubble-mine-foreground: #fff8ef;
+
+  /* Giữ như chế độ sáng (nhãn dán): icon mực 9,6:1; nền so với thẻ tối 7,8:1 */
+  --bot: #b9c7dc;
+  --bot-foreground: #1f1b3a;
 }
 
 @layer base {

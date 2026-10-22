@@ -33,6 +33,10 @@ export const Player = schema(
     roundCorrect: t.uint16().default(0),
     progress: t.uint16().default(0),
     streak: t.uint8().default(0),
+    /** Ghế do server chơi thay (CR-016): `name = ""`, luôn sẵn sàng, không làm chủ phòng. */
+    isBot: t.boolean().default(false),
+    /** Mức bot 0 Dễ … 3 Siêu (`BotLevel`); người thật luôn 0. */
+    botLevel: t.uint8().default(0),
   },
   "Player",
 );

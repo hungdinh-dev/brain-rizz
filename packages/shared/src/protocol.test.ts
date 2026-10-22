@@ -1,15 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { CHAT_MAX_INPUT_LENGTH, CHAT_QUICK_IDS } from "./chat/constants";
-import { BRAIN_TEST_ROOM_NAME, MAX_ACCESS_TOKEN_LENGTH, ROOM_NAME } from "./constants";
+import { BRAIN_TEST_ROOM_NAME, MAX_ACCESS_TOKEN_LENGTH, MAX_PLAYERS, ROOM_NAME } from "./constants";
 import {
+  AddBotSchema,
   BRAIN_SAVE_STATUSES,
   BrainClientMessage,
   BrainJoinOptionsSchema,
   BrainReadySchema,
   ChatSendSchema,
   ClientMessage,
+  CreateOptionsSchema,
   JoinOptionsSchema,
+  RemoveBotSchema,
   ServerMessage,
+  SetBotLevelSchema,
   SetChatEnabledSchema,
 } from "./protocol";
 
@@ -103,5 +107,81 @@ describe("giao thức chat (CR-011)", () => {
     expect(SetChatEnabledSchema.parse({ enabled: false })).toEqual({ enabled: false });
     expect(SetChatEnabledSchema.safeParse({ enabled: "no" }).success).toBe(false);
     expect(SetChatEnabledSchema.safeParse({}).success).toBe(false);
+  });
+});
+
+describe("giao thức bot (CR-016)", () => {
+  it("tên lệnh", () => {
+    expect(ClientMessage.AddBot).toBe("addBot");
+    expect(ClientMessage.RemoveBot).toBe("removeBot");
+    expect(ClientMessage.SetBotLevel).toBe("setBotLevel");
+    expect(new Set(Object.values(ClientMessage)).size).toBe(Object.values(ClientMessage).length);
+    expect(ServerMessage.BotYielded).toBe("botYielded");
+    expect(new Set(Object.values(ServerMessage)).size).toBe(Object.values(ServerMessage).length);
+  });
+
+  it("mức bot chỉ là 0–3 (số nguyên, không nhận chuỗi)", () => {
+    for (const level of [0, 1, 2, 3]) {
+      expect(AddBotSchema.parse({ level })).toEqual({ level });
+      expect(SetBotLevelSchema.parse({ playerId: "bot-1", level })).toEqual({
+        playerId: "bot-1",
+        level,
+      });
+    }
+    for (const level of [-1, 4, 1.5, "2", null, undefined]) {
+      expect(AddBotSchema.safeParse({ level }).success).toBe(false);
+      expect(SetBotLevelSchema.safeParse({ playerId: "bot-1", level }).success).toBe(false);
+    }
+    expect(AddBotSchema.safeParse(undefined).success).toBe(false);
+  });
+
+  it("playerId: chuỗi 1–64 ký tự; trường lạ bị bỏ", () => {
+    expect(RemoveBotSchema.parse({ playerId: "bot-3", level: 9 })).toEqual({ playerId: "bot-3" });
+    for (const playerId of ["", "x".repeat(65), 7, null]) {
+      expect(RemoveBotSchema.safeParse({ playerId }).success).toBe(false);
+      expect(SetBotLevelSchema.safeParse({ playerId, level: 1 }).success).toBe(false);
+    }
+    expect(RemoveBotSchema.safeParse({}).success).toBe(false);
+  });
+
+  it(`tùy chọn tạo phòng: 1 → ${MAX_PLAYERS - 1} bot cùng một mức`, () => {
+    expect(CreateOptionsSchema.parse({ bots: { count: 3, level: 1 } })).toEqual({
+      bots: { count: 3, level: 1 },
+    });
+    expect(CreateOptionsSchema.parse({ bots: { count: MAX_PLAYERS - 1, level: 3 } }).bots).toEqual({
+      count: MAX_PLAYERS - 1,
+      level: 3,
+    });
+    // Gửi kèm join options (tên, nhân vật…) thì chỉ giữ `bots`.
+    expect(
+      CreateOptionsSchema.parse({ name: "An", avatar: "bo", bots: { count: 1, level: 0 } }),
+    ).toEqual({ bots: { count: 1, level: 0 } });
+  });
+
+  it("tùy chọn bots sai thì bỏ như không gửi, không làm hỏng việc tạo phòng", () => {
+    for (const bots of [
+      { count: 0, level: 1 },
+      { count: MAX_PLAYERS, level: 1 },
+      { count: 2.5, level: 1 },
+      { count: 2, level: 4 },
+      { count: "3", level: 1 },
+      { count: 3 },
+      "3",
+      null,
+      undefined,
+    ]) {
+      const parsed = CreateOptionsSchema.safeParse({ name: "An", bots });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data?.bots).toBeUndefined();
+    }
+    for (const options of [undefined, null, "party", 42, []]) {
+      expect(CreateOptionsSchema.parse(options)).toEqual({ bots: undefined });
+    }
+  });
+
+  it("join options không đọc bots (onJoin bỏ trường này)", () => {
+    expect(
+      JoinOptionsSchema.parse({ name: "An", bots: { count: 3, level: 1 } }),
+    ).not.toHaveProperty("bots");
   });
 });

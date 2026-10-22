@@ -1,6 +1,7 @@
 import { LATE_ANSWER_GRACE_MS, MAX_ANSWERS_PER_SECOND, WRONG_ANSWER_LOCK_MS } from "./constants";
 import type { Difficulty } from "./difficulty";
 import { getGame, isGameId } from "./games";
+import type { AnyMinigame } from "./games/types";
 import type { AnswerPayload, AnswerResultPayload } from "./protocol";
 import { gameMultiplier, gameSpeedAllowanceMs, pointsForCorrect } from "./scoring";
 
@@ -16,6 +17,9 @@ import { gameMultiplier, gameSpeedAllowanceMs, pointsForCorrect } from "./scorin
  *
  * Game có hạn trả lời (`answerWindowMs`, CR-012: vật biến mất như bia Luyện ngắm): đáp án tới
  * muộn hơn lúc câu bắt đầu + hạn + `LATE_ANSWER_GRACE_MS` bị chấm SAI như bỏ lỡ, dù `check` đúng.
+ *
+ * Bot (CR-016, ADR 0014) chấm bằng `judgeBotAnswer`: bỏ `isAnswer`/`check` và chống spam, còn lại
+ * (giờ hiện câu, hạn trả lời, thưởng tốc độ, hệ số, combo, khoá khi sai) đi CÙNG đường với người.
  */
 
 /** Vòng/game đang chơi. */
@@ -97,13 +101,68 @@ export function judgeAnswer(
   const game = getGame(round.gameId);
   if (!game.isAnswer(msg.answer)) return ignore(counted);
 
-  const puzzle = game.generate(round.seed, msg.index, difficulty);
+  return settleAnswer(
+    round,
+    difficulty,
+    counted,
+    game,
+    (puzzle) => game.check(puzzle, msg.answer),
+    now,
+  );
+}
+
+/** Câu trả lời của bot (CR-016): server đã bốc trước đúng hay sai, không có đáp án thật. */
+export interface BotAnswer {
+  /** Câu bot trả lời; phải bằng `state.progress`, khác thì bỏ qua. */
+  index: number;
+  /** Đúng hay sai theo kế hoạch của model bot. Tới muộn hơn hạn trả lời thì vẫn bị chấm sai. */
+  correct: boolean;
+}
+
+/**
+ * Chấm một câu của bot (CR-016). Bỏ qua `isAnswer`/`check` (bot không gửi đáp án) và bộ chống
+ * spam (server tự hẹn giờ, mỗi câu một lần); `recentAnswers` giữ nguyên. Vẫn bỏ qua (`outcome =
+ * null`) khi: không ở pha chơi, `index` khác câu đang làm, quá `endsAt + LATE_ANSWER_GRACE_MS`,
+ * đang bị khoá. Phần còn lại (giờ hiện câu, hạn trả lời, thưởng tốc độ, hệ số + miễn trừ, combo,
+ * khoá khi sai, sang câu kế) dùng chung `settleAnswer` với `judgeAnswer`, nên cùng thời gian và
+ * cùng đúng/sai thì bot được đúng số điểm của người.
+ */
+export function judgeBotAnswer(
+  round: JudgeRound,
+  difficulty: Difficulty,
+  state: JudgeState,
+  answer: BotAnswer,
+  now: number,
+): Judgement {
+  const ignore: Judgement = { outcome: null, next: state };
+  if (!round.playing || !isGameId(round.gameId)) return ignore;
+  if (answer.index !== state.progress) return ignore;
+  if (now > round.endsAt + LATE_ANSWER_GRACE_MS) return ignore;
+  if (state.lockedUntil > now) return ignore;
+  return settleAnswer(round, difficulty, state, getGame(round.gameId), () => answer.correct, now);
+}
+
+/**
+ * Phần chung sau khi đáp án đã qua các bước bỏ qua: sinh lại câu `state.progress`, xét hạn trả
+ * lời, chấm (`solved` chỉ được gọi khi chưa muộn), tính điểm theo hệ số + miễn trừ + combo,
+ * khoá khi sai, sang câu kế.
+ */
+function settleAnswer(
+  round: JudgeRound,
+  difficulty: Difficulty,
+  state: JudgeState,
+  game: AnyMinigame,
+  solved: (puzzle: unknown) => boolean,
+  now: number,
+): Judgement {
+  const index = state.progress;
+  const puzzle = game.generate(round.seed, index, difficulty);
   const shownAt = state.shownAt ?? round.startAt;
   const windowMs = gameAnswerWindowMs(game, puzzle, difficulty);
   const late = windowMs !== undefined && now - shownAt > windowMs + LATE_ANSWER_GRACE_MS;
-  const correct = !late && game.check(puzzle, msg.answer);
-  const result: AnswerResultPayload = { index: msg.index, correct, points: 0 };
-  const next: JudgeState = { ...counted, progress: state.progress + 1 };
+  const correct = !late && solved(puzzle);
+  const result: AnswerResultPayload = { index, correct, points: 0 };
+  const next: JudgeState = { ...state, progress: index + 1 };
 
   if (correct) {
     // Hệ số và miễn trừ thời gian riêng của game (CR-006), tính trên câu vừa sinh lại;

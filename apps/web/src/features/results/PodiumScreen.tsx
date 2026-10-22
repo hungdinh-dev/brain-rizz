@@ -9,7 +9,7 @@ import {
 import { CrownIcon, DoorOpenIcon, HouseIcon, RotateCcwIcon } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Character } from "@/components/characters";
+import { BotBadge, Character, PlayerName, usePlayerName } from "@/components/characters";
 import { HostWaitCard } from "@/components/common/HostWaitCard";
 import { RoundChip } from "@/components/common/MatchChips";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
@@ -72,6 +72,7 @@ function marksOf(timeline: PodiumTimeline, youAt: number | null): number[] {
  */
 export function PodiumScreen() {
   const { t } = useTranslation();
+  const { full } = usePlayerName();
   const party = useGame((s) => s.party)!;
   const sessionId = useGame((s) => s.sessionId);
   const reduced = useReducedMotion();
@@ -155,7 +156,7 @@ export function PodiumScreen() {
     if (ms !== undefined) {
       events.push({
         at: ms,
-        text: t("results.revealLive", { rank: r + 1, name: p.name, count: p.matchPoints }),
+        text: t("results.revealLive", { rank: r + 1, name: full(p), count: p.matchPoints }),
       });
     }
   });
@@ -167,7 +168,7 @@ export function PodiumScreen() {
         at: ms,
         text: t("results.revealLive", {
           rank: r + 1,
-          name: group.map((p) => p.name).join(", "),
+          name: group.map(full).join(", "),
           count: top.matchPoints,
         }),
       });
@@ -351,10 +352,15 @@ export function PodiumScreen() {
                         size="md"
                         className="size-9.5"
                       />
+                      {p.isBot && <BotBadge size="sm" />}
                       {shown && <ReactionBubble playerId={p.id} placement="corner" />}
                     </span>
-                    <span className="flex-1 truncate font-display text-lg font-extrabold">
-                      {p.name}
+                    <span className="flex min-w-0 flex-1 items-baseline gap-1 overflow-x-clip">
+                      <PlayerName
+                        player={p}
+                        className="truncate font-display text-lg font-extrabold"
+                        suffixClassName="text-xs text-muted-foreground"
+                      />
                     </span>
                     <span className="font-display text-xl font-extrabold tabular-nums">
                       {p.matchPoints}
@@ -415,6 +421,7 @@ function PodiumColumn({
   compact: boolean;
 }) {
   const { t } = useTranslation();
+  const { full } = usePlayerName();
   const top = group[0];
   const width = cn("w-27.5 lg:w-55", compact && "xl:w-auto xl:min-w-0 xl:max-w-40 xl:flex-1");
   if (!top) return <div className={width} />;
@@ -456,7 +463,7 @@ function PodiumColumn({
             mood="win"
             size={150}
             animated={shown && idle && !reduced}
-            label={t("results.winnerLabel", { name: top.name })}
+            label={t("results.winnerLabel", { name: full(top) })}
             className={cn("max-lg:[&_svg]:size-21", compact && !winner && "xl:[&_svg]:size-30")}
           />
         </span>
@@ -495,11 +502,18 @@ function PodiumColumn({
           )}
         >
           {group.map((p) => (
+            // Bot: huy hiệu đứng trước tên (nhân vật trên bục không có khung tròn). Bậc hẹp (máy
+            // tính có cột chat) thì "· máy" xuống dòng thay vì cắt mất tên.
             <span
               key={p.id}
-              className="max-w-full truncate px-1 font-display text-[15px] leading-none font-extrabold lg:text-2xl"
+              className="flex max-w-full min-w-0 flex-wrap items-center justify-center gap-x-1 gap-y-px px-1"
             >
-              {p.name}
+              {p.isBot && <BotBadge size="sm" inline />}
+              <PlayerName
+                player={p}
+                className="max-w-full truncate font-display text-[15px] leading-none font-extrabold lg:text-2xl"
+                suffixClassName="text-[11px] leading-none lg:text-sm"
+              />
             </span>
           ))}
           <span className="text-xs font-bold lg:text-[15px]">

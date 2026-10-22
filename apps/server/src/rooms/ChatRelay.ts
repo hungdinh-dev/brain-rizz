@@ -14,6 +14,8 @@ export interface ChatSender {
   name: string;
   colorIndex: number;
   avatar: string;
+  /** Bot (CR-016): tin mang `bot: true` để web dịch tên theo nhân vật, kể cả khi bot đã bị bỏ. */
+  isBot?: boolean;
 }
 
 /** Kết quả nhận một tin: tin đã sẵn sàng phát, hoặc lý do từ chối. */
@@ -36,12 +38,17 @@ export class ChatRelay {
   accept(sender: ChatSender, msg: ChatSendPayload, now: number): ChatOutcome {
     // Trừ lượt trước khi làm sạch: tin rỗng gửi dồn cũng bị giới hạn.
     if (!this.limiter.consume(sender.id, now)) return { ok: false, reason: "rate-limited" };
-    const base: Pick<ChatMessagePayload, "playerId" | "name" | "colorIndex" | "avatar" | "at"> = {
+    const base: Pick<
+      ChatMessagePayload,
+      "playerId" | "name" | "colorIndex" | "avatar" | "at" | "bot"
+    > = {
       playerId: sender.id,
       name: sender.name,
       colorIndex: sender.colorIndex,
       avatar: isCharacterId(sender.avatar) ? sender.avatar : "khoi",
       at: now,
+      // Người thật không có trường `bot` (không gửi `bot: false`).
+      ...(sender.isBot ? { bot: true as const } : {}),
     };
     let message: ChatMessagePayload;
     if (msg.kind === "quick") {

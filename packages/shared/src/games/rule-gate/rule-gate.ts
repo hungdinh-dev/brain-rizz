@@ -437,6 +437,12 @@ export const ruleGate: MinigameDef<RuleGatePuzzle, RuleGateAnswer> = {
   // Bảng Cân bằng của đặc tả (mô phỏng 200 000 vòng mỗi mức, làm tròn 0,05): trẻ 7 tuổi ở Mầm cần
   // 2,24 → chặn trần 1; Khó cần 2,05; Siêu khó cần 2,39 (có gợi ý luật sau 2 câu sai liền ở FE).
   difficultyMultiplier: { 0: 1, 1: 1, 2: 2.05, 3: 2.4 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): giữa
+  // khoảng (gồm câu đầu khối) + 0,3 s hiệu ứng chuyển câu.
+  expectedSolveMs: { 0: 2_500, 1: 1_550, 2: 2_250, 3: 1_600 },
+  // Bot (CR-016): tỉ lệ đúng = 1 − tỉ lệ sai chung (gồm câu đầu khối) ở bảng Cân bằng của đặc tả
+  // (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.92, 1: 0.95, 2: 0.91, 3: 0.74 },
   // Không khai báo `speedAllowanceMs` / `answerWindowMs`: bạn hiện là chạm được ngay, không có pha
   // trình chiếu, không có vật biến mất.
 

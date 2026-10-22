@@ -232,6 +232,8 @@ describe("PartyRoom", () => {
         roundCorrect: true,
         progress: true,
         streak: true,
+        isBot: true,
+        botLevel: true,
       } satisfies Record<keyof PlayerView, true>;
 
       const { room, host } = await setup(["An"]);
@@ -240,6 +242,8 @@ describe("PartyRoom", () => {
       expect(Object.keys(json.players[host.sessionId] ?? {}).sort()).toEqual(
         Object.keys(PLAYER_KEYS).sort(),
       );
+      // Người thật: không phải bot, mức 0 (CR-016).
+      expect(json.players[host.sessionId]).toMatchObject({ isBot: false, botLevel: 0 });
       expect(json.pickMode).toBe("wheel");
       expect(json.votes).toEqual({});
       expect(json.playedGames).toEqual([]);

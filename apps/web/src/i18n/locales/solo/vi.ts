@@ -151,6 +151,10 @@ export const viSolo = {
     bestTag: "Cao nhất",
     rankOf_one: "/ {{count}} người",
     rankOf_other: "/ {{count}} người",
+    /** Trận có bot (CR-016): nhãn dưới mã phòng. */
+    vsBots: "Đấu với máy",
+    vsBotsCount_one: "Có {{count}} bot trong trận",
+    vsBotsCount_other: "Có {{count}} bot trong trận",
     practiceSummary_one: "Kỷ lục theo độ khó · {{count}} game đã chơi",
     practiceSummary_other: "Kỷ lục theo độ khó · {{count}} game đã chơi",
     playsCount_one: "{{count}} lượt",

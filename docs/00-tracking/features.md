@@ -2,14 +2,14 @@
 
 Bảng theo dõi **cái gì đã xong, cái gì chưa** ở mức người dùng nhìn thấy. Mỗi dòng trỏ về use case (UC) hoặc yêu cầu (FR) trong [SRS](../01-product/srs.md); muốn biết chi tiết hành vi thì mở SRS, muốn biết tiến độ thì xem ở đây.
 
-Cập nhật lần cuối: **2026-10-20** · Phiên bản code: 0.1.0 (chưa gắn tag)
+Cập nhật lần cuối: **2026-10-21** · Phiên bản code: 0.1.0 (chưa gắn tag)
 
 ## Tổng quan
 
 | Nhóm | Xong | Một phần | Chưa làm | Ý tưởng / chờ duyệt |
 | --- | --- | --- | --- | --- |
 | E1 Hồ sơ & vào game | 1 | 0 | 0 | 0 |
-| E2 Phòng chơi | 9 | 1 | 0 | 0 |
+| E2 Phòng chơi | 10 | 1 | 0 | 0 |
 | E3 Vòng chơi & chấm điểm | 7 | 0 | 0 | 0 |
 | E4 Minigame | 5 game | 8 game (🚧 chờ chơi thử) | 2 game | 0 |
 | E5 Giao diện & trải nghiệm | 8 | 0 | 2 | 0 (+1 huỷ) |
@@ -40,6 +40,7 @@ Cập nhật lần cuối: **2026-10-20** · Phiên bản code: 0.1.0 (chưa g�
 | FR-PH-12 | Phòng chờ 2D: 8 ô người chơi, đếm sẵn sàng x/y, gỡ sân khấu 3D | 1 | ✅ | 0.1.0 | Kiểm tay; đã gỡ three.js (ADR 0010) |
 | FR-PH-13 | Ẩn/hiện + sao chép mã phòng; đổi nhân vật trong phòng chờ | 1 | ✅ | 0.1.0 | Kiểm tay |
 | UC-22 | Chat trong phòng: chữ 120 ký tự + 6 biểu cảm/câu chọn sẵn, bong bóng trên avatar, lọc từ tục, chủ phòng tắt chat, tắt tiếng trên máy mình, 30 tin gần nhất khi vào/nối lại; ẩn lúc đếm ngược/đang chơi (FR-PH-14 → 19, NFR-SEC-04) | 1 | ✅ | chưa phát hành | [CR-011](change-requests.md#cr-011) · `packages/shared/src/chat/chat.test.ts`, `PartyChat.test.ts`, `stores/chat.store.test.ts`; kiểm Chrome headless 390/1280 px với bot Colyseus (gửi, lọc, giới hạn tần suất, tắt tiếng, tắt chat, ẩn ở countdown/playing) · **chưa thử 2 điện thoại thật, chưa thử bàn phím ảo iOS** |
+| UC-23 | Chơi với bot: chủ phòng thêm bot 4 mức (Dễ, Vừa, Khó, Siêu) vào ô trống, nút "Chơi với máy" ở menu (1–7 bot, một mức chung), bot nhường ghế cho người thật, biểu cảm nhanh, lịch sử gắn nhãn "Đấu với máy" (FR-PH-20 → 26) | 1 | ✅ | chưa phát hành | [CR-016](change-requests.md#cr-016) · [Kế hoạch chơi với bot](../01-product/bot-players.md) · [ADR 0014](../02-architecture/decisions/0014-server-side-bots.md) · `packages/shared/src/bots/bots.test.ts`, `bots/balance-sim.test.ts` (mô phỏng 1 000 vòng × 30 game × 4 mức), `answer-judge.test.ts`, `protocol.test.ts`, `apps/server/test/PartyBots.test.ts`, web: `components/characters/bot-name.test.ts`, `features/home/bot-setup.test.ts`, `features/lobby/bot-slot.test.tsx`, `net/create-party.test.ts`, `net/data-api.test.ts`, `net/bot-yielded.test.ts`; kiểm Chrome 390/1280 px: tạo phòng 7 bot, đổi mức / bỏ / thêm bot, chơi 3 vòng tới vinh danh, người thật vào phòng đầy thì bot nhường ghế và người cũ thấy toast, người tạo giữ màu + nhân vật · **phải chạy migration `20261021000000_match_bot_count.sql` trên Supabase thật TRƯỚC khi deploy server (thiếu cột thì mọi lần ghi `match_results` lỗi, web đọc lịch sử cũng lỗi)** · nhãn "Đấu với máy" chưa xem trên trình duyệt (cần Supabase có cột mới) |
 
 ## E3 — Vòng chơi & chấm điểm
 

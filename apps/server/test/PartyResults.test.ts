@@ -154,6 +154,7 @@ describe("PartyRoom — kết quả trận", () => {
         roomCode: room.state.code,
         placement: 0,
         players: 4,
+        botCount: 0,
         matchPoints: pc?.matchPoints,
         totalScore: pc?.totalScore,
         rounds: 2,
@@ -167,6 +168,7 @@ describe("PartyRoom — kết quả trận", () => {
         roomCode: room.state.code,
         placement: 1,
         players: 4,
+        botCount: 0,
         matchPoints: pa?.matchPoints,
         totalScore: pa?.totalScore,
         rounds: 2,
@@ -205,6 +207,29 @@ describe("PartyRoom — kết quả trận", () => {
     );
     expect(store.matchResults[1]?.[1]?.categoryScores.identify).toBe(0);
   }, 30_000);
+
+  it("trận có bot: players tính cả bot, botCount = số bot, bot không có dòng riêng (CR-016)", async () => {
+    const store = new MemoryResultStore(new Map([[TOKEN_A, USER_A]]));
+    setResultStore(store);
+    const room = (await colyseus.createRoom(ROOM_NAME, {
+      bots: { count: 2, level: 1 },
+    })) as PartyRoom;
+    const a = await join(room, "An", { accessToken: TOKEN_A });
+    expect(players(room).filter((p) => p.isBot)).toHaveLength(2);
+    a.send(ClientMessage.SetRounds, { totalRounds: 1 });
+    await until(() => room.state.totalRounds === 1);
+    a.send(ClientMessage.Ready, { ready: true });
+    await until(() => players(room).every((p) => p.ready));
+    a.send(ClientMessage.StartMatch, {});
+    await until(() => room.state.phase === "game-select");
+    await playRound(room, [a], "odd-one-out", [[a, 1]]);
+    a.send(ClientMessage.NextRound, {});
+    await until(() => room.state.phase === "podium");
+    await until(() => store.matchResults.length === 1);
+    expect(store.matchResults[0]?.map((r) => [r.userId, r.players, r.botCount])).toEqual([
+      [USER_A, 3, 2],
+    ]);
+  });
 
   it("ghi lỗi chỉ log, trận vẫn chạy; không có máy chủ dữ liệu thì bỏ qua", async () => {
     const store = new MemoryResultStore(new Map([[TOKEN_A, USER_A]]));

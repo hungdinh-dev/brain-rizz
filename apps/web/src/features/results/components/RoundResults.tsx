@@ -7,7 +7,7 @@ import {
 } from "@brain-rizz/shared";
 import { CrownIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Character } from "@/components/characters";
+import { BotBadge, Character, PlayerName, usePlayerName } from "@/components/characters";
 import { DifficultyChip } from "@/components/common/MatchChips";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { RankBadge } from "@/components/common/RankBadge";
@@ -62,9 +62,16 @@ export function RoundResults({ gameId, players, sessionId }: RoundResultsProps) 
                     size="md"
                     className="size-12"
                   />
+                  {p.isBot && <BotBadge size="sm" />}
                   <ReactionBubble playerId={p.id} placement="corner" />
                 </span>
-                <span className="truncate font-display text-[22px] font-extrabold">{p.name}</span>
+                <span className="flex min-w-0 items-baseline gap-1 overflow-x-clip">
+                  <PlayerName
+                    player={p}
+                    className="truncate font-display text-[22px] font-extrabold"
+                    suffixClassName="text-sm text-muted-foreground"
+                  />
+                </span>
                 {p.isHost && (
                   <CrownIcon
                     role="img"
@@ -111,11 +118,16 @@ export function RoundResults({ gameId, players, sessionId }: RoundResultsProps) 
                 size="md"
                 className="size-10"
               />
+              {p.isBot && <BotBadge size="sm" />}
               <ReactionBubble playerId={p.id} placement="corner" />
             </span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5 leading-tight">
-              <span className="flex min-w-0 items-baseline gap-1">
-                <span className="truncate font-display text-lg font-extrabold">{p.name}</span>
+              <span className="flex min-w-0 items-baseline gap-1 overflow-x-clip">
+                <PlayerName
+                  player={p}
+                  className="truncate font-display text-lg font-extrabold"
+                  suffixClassName="text-[11.5px] opacity-80"
+                />
                 {p.id === sessionId && (
                   <span className="shrink-0 text-[11.5px] font-semibold opacity-80">
                     {t("lobby.you")}
@@ -141,10 +153,11 @@ export function RoundResults({ gameId, players, sessionId }: RoundResultsProps) 
 function WinnerCard({ gameId, players, sessionId }: RoundResultsProps) {
   const { t } = useTranslation();
   const fmt = useNumberFormat();
+  const { full } = usePlayerName();
   const winners = roundWinners(players);
   const top = winners[0];
   if (!top) return null;
-  const names = winners.map((p) => p.name).join(" & ");
+  const names = winners.map(full).join(" & ");
   const iWon = winners.some((p) => p.id === sessionId);
 
   return (
@@ -156,7 +169,7 @@ function WinnerCard({ gameId, players, sessionId }: RoundResultsProps) {
         id={top.avatar}
         mood="win"
         size={140}
-        label={t("results.winnerLabel", { name: top.name })}
+        label={t("results.winnerLabel", { name: full(top) })}
         className="shrink-0 max-lg:size-28 max-lg:[&_svg]:size-full"
       />
       <span className="flex min-w-0 flex-col items-start gap-1 lg:items-center">

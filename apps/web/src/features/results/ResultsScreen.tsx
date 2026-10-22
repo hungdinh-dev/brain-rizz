@@ -2,6 +2,7 @@ import { ClientMessage, GAMES, type GameId, isGameId, type PlayerView } from "@b
 import { ArrowRightIcon, TimerIcon, TrendingUpIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { usePlayerName } from "@/components/characters";
 import { HostWaitCard } from "@/components/common/HostWaitCard";
 import { CategoryChip, RoundChip } from "@/components/common/MatchChips";
 import { Button } from "@/components/ui/button";
@@ -112,6 +113,7 @@ function TotalView({
   onBack(): void;
 }) {
   const { t } = useTranslation();
+  const { full } = usePlayerName();
   const party = useGame((s) => s.party)!;
   const legend = usePlacementLegend();
   const rows = matchRows(players);
@@ -172,7 +174,7 @@ function TotalView({
         <span className="hidden flex-1 text-sm text-chalk-muted lg:block">
           {climber &&
             t("results.climb", {
-              name: climber.player.name,
+              name: full(climber.player),
               count: climber.prevRank - climber.rank,
               game: gameTitle,
             })}

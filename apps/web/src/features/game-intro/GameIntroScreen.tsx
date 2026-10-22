@@ -8,6 +8,7 @@ import {
 } from "@brain-rizz/shared";
 import { CheckIcon, LightbulbIcon, PlayIcon, TimerIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { BotBadge } from "@/components/characters";
 import { CategoryChip, RoundChip } from "@/components/common/MatchChips";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { Button } from "@/components/ui/button";
@@ -49,9 +50,11 @@ function IntroView({ gameId }: { gameId: GameId }) {
   const tip = me && game.levelHints ? countdownHint(game, me.difficulty, touch) : undefined;
 
   const players = Object.values(party.players).sort((a, b) => Number(b.isHost) - Number(a.isHost));
-  const majority = majorityDifficulty(players.map((p) => p.difficulty));
+  // Độ khó đa số chỉ tính người thật (CR-016): độ khó của bot theo mức, không đổi được.
+  const humans = players.filter((p) => !p.isBot);
+  const majority = majorityDifficulty(humans.map((p) => p.difficulty));
   const majorityCount =
-    majority === null ? 0 : players.filter((p) => p.difficulty === majority).length;
+    majority === null ? 0 : humans.filter((p) => p.difficulty === majority).length;
   // Chủ phòng bấm "Bắt đầu chơi" tức là đã hiểu → chỉ chờ những người còn lại.
   const understood = players.filter((p) => p.isHost || p.introReady).length;
   const othersReady = players.every((p) => p.isHost || p.introReady);
@@ -187,6 +190,8 @@ function IntroView({ gameId }: { gameId: GameId }) {
             {players.map((p) => (
               <li key={p.id} className={cn("relative flex", !p.connected && "opacity-50")}>
                 <PlayerAvatar avatar={p.avatar} colorIndex={p.colorIndex} size="md" />
+                {/* Góc dưới phải đã dành cho dấu "Đã hiểu" nên huy hiệu máy sang góc dưới trái. */}
+                {p.isBot && <BotBadge size="sm" className="right-auto -left-1" />}
                 {(p.isHost || p.introReady) && (
                   <span className="absolute -right-1.5 -bottom-1 grid size-5 place-items-center rounded-full border-2 border-sticker bg-compute text-ink">
                     <CheckIcon

@@ -194,6 +194,11 @@ export const stackRecall: MinigameDef<StackRecallPuzzle, StackRecallAnswer> = {
    * Mầm (trẻ 7 tuổi) cần 1,22 → giữ 1 (Mầm = min(mô phỏng, 1)); Khó 1,41; Siêu khó 2,20.
    */
   difficultyMultiplier: { 0: 1, 1: 1, 2: 1.4, 3: 2.2 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): xem +
+  // che + nhập + 0,3 s chuyển câu.
+  expectedSolveMs: { 0: 5_400, 1: 5_200, 2: 5_500, 3: 6_500 },
+  // Bot (CR-016): tỉ lệ đúng chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.85, 1: 0.9, 2: 0.8, 3: 0.7 },
 
   generate(roundSeed, index, difficulty) {
     const level = LEVELS[difficulty];

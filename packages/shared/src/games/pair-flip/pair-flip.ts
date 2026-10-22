@@ -130,6 +130,11 @@ export const pairFlip: MinigameDef<PairFlipPuzzle, PairFlipAnswer> = {
    * chung (người lớn chọn Mầm đã được 108 % điểm Thường với hệ số 1).
    */
   difficultyMultiplier: { 0: 1, 1: 1, 2: 1.45, 3: 1.95 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): trung
+  // bình mỗi câu kể cả chia và xem bàn (câu sau bắt đầu ngay).
+  expectedSolveMs: { 0: 4_800, 1: 3_400, 2: 3_600, 3: 3_700 },
+  // Bot (CR-016): tỉ lệ đúng chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.85, 1: 0.88, 2: 0.78, 3: 0.68 },
 
   generate(roundSeed, index, difficulty) {
     const level = LEVELS[difficulty];

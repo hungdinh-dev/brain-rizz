@@ -1,10 +1,12 @@
 import {
+  type BotLevel,
   type CharacterId,
   ClientMessage,
   MAX_PLAYERS,
   MIN_PLAYERS_TO_START,
 } from "@brain-rizz/shared";
-import { ArrowLeftIcon, CheckIcon, UserPlusIcon } from "lucide-react";
+import { ArrowLeftIcon, CheckIcon, InfoIcon, UserPlusIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -12,18 +14,23 @@ import { ChatSettingRow } from "@/features/chat";
 import { loadProfile, saveProfile } from "@/features/home";
 import { usePendingAction } from "@/hooks/use-pending-action";
 import { cn } from "@/lib/utils";
-import { leaveParty, send } from "@/net/connection";
+import { leaveParty, SERVER_ERROR_TOAST_ID, send } from "@/net/connection";
 import { useAuth } from "@/stores/auth.store";
 import { useGame, useMe } from "@/stores/game.store";
+import { AddBotSlot, BotSlot } from "./components/BotSlot";
 import { CharacterPicker } from "./components/CharacterPicker";
 import { HostStatusCard, MatchSetupCard } from "./components/MatchSetupCard";
 import { EmptySlot, PlayerSlot } from "./components/PlayerSlot";
 import { ReadyMeter } from "./components/ReadyMeter";
 import { RoomCodePanel } from "./components/RoomCodePanel";
 
+/** Server chưa thêm bot sau ngần này ms (tin mất lúc rớt mạng) thì mở khoá ô chọn mức. */
+const ADD_BOT_TIMEOUT_MS = 5_000;
+
 /**
  * Phòng chờ 2D (khu 5): mã phòng, 8 ô người chơi, đổi nhân vật, sẵn sàng; chủ phòng thiết lập trận.
  * Điện thoại một cột; máy tính chia lưới: người chơi bên trái, thẻ thiết lập bên phải.
+ * Bot (CR-016): chủ phòng thêm bot ở ô trống, đổi mức / bỏ bot ngay trong ô bot.
  */
 export function LobbyScreen() {
   const { t } = useTranslation();
@@ -32,14 +39,58 @@ export function LobbyScreen() {
   const reconnecting = useGame((s) => s.connection === "reconnecting");
   const me = useMe();
 
-  // Chủ phòng đứng đầu, còn lại giữ thứ tự vào phòng.
+  // Chủ phòng đứng đầu, còn lại giữ thứ tự vào phòng (bot cũng vậy, đổi mức không đổi ghế).
   const players = Object.values(party.players).sort((a, b) => Number(b.isHost) - Number(a.isHost));
+  // Bot luôn sẵn sàng và được tính vào "Người chơi" / "Sẵn sàng" (CR-016).
   const readyCount = players.filter((p) => p.ready).length;
+  const botCount = players.filter((p) => p.isBot).length;
+  const emptyCount = Math.max(0, MAX_PLAYERS - players.length);
   const isHost = party.hostId === sessionId;
   const hostName = party.players[party.hostId]?.name ?? "";
   const inviteUrl = `${location.origin}/r/${party.code}`;
   // Bấm đúp "Bắt đầu" không gửi hai lần (lần hai server báo sai pha).
   const startMatch = usePendingAction(party.phase);
+
+  // Ô đang mở bảng chọn mức (mỗi lúc một ô): `add:<i>` = ô trống thứ i, còn lại = id bot.
+  const [openSlot, setOpenSlot] = useState<string | null>(null);
+  const errorSeq = useGame((s) => s.errorSeq);
+  // Đang chờ server thêm bot: xong khi số bot đổi, hỏng khi server báo lỗi, quá 5 giây thì mở khoá.
+  const [adding, setAdding] = useState<{ level: BotLevel; bots: number; errorSeq: number } | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!adding) return;
+    if (botCount !== adding.bots) {
+      setAdding(null);
+      setOpenSlot(null);
+      return;
+    }
+    if (errorSeq !== adding.errorSeq) {
+      setAdding(null);
+      setOpenSlot(null);
+      // Thay câu lỗi chung ("Dữ liệu không hợp lệ") bằng câu rõ hơn: thường là vừa có người vào.
+      toast.error(t("bots.addFailed"), { id: SERVER_ERROR_TOAST_ID });
+      return;
+    }
+    const id = setTimeout(() => setAdding(null), ADD_BOT_TIMEOUT_MS);
+    return () => clearTimeout(id);
+  }, [adding, botCount, errorSeq, t]);
+
+  // Ô trống vừa có người vào thì bảng thêm bot trong ô đó đóng theo.
+  useEffect(() => {
+    if (!openSlot?.startsWith("add:")) return;
+    if (Number(openSlot.slice(4)) >= emptyCount || !isHost) setOpenSlot(null);
+  }, [openSlot, emptyCount, isHost]);
+
+  function addBot(level: BotLevel) {
+    if (adding) return;
+    setAdding({ level, bots: botCount, errorSeq });
+    send(ClientMessage.AddBot, { level });
+  }
+
+  const slotOpenChange = (key: string) => (open: boolean) =>
+    setOpenSlot((cur) => (open ? key : cur === key ? null : cur));
 
   async function share() {
     try {
@@ -108,20 +159,58 @@ export function LobbyScreen() {
         thay vì nằm cạnh nhau, theo bề rộng thật của màn (container query).
       */}
       <div className="flex flex-1 flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_21.25rem] lg:grid-rows-[auto_auto_1fr_auto] lg:gap-x-5 lg:gap-y-3.5 lg:[grid-template-areas:'meter_meter_setup'_'grid_grid_setup'_'chars_chars_setup'_'ready_ready_setup'] @min-[66rem]:lg:grid-rows-[auto_auto_1fr] @min-[66rem]:lg:[grid-template-areas:'meter_meter_setup'_'grid_grid_setup'_'chars_ready_setup']">
-        <ReadyMeter players={players.length} ready={readyCount} className="lg:[grid-area:meter]" />
+        <ReadyMeter
+          players={players.length}
+          ready={readyCount}
+          bots={botCount}
+          className="lg:[grid-area:meter]"
+        />
 
-        <section
-          aria-label={t("lobby.playersLabel")}
-          className="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:auto-rows-[9.25rem] lg:gap-x-4 lg:gap-y-4.5 lg:pt-1 lg:[grid-area:grid]"
-        >
-          {players.map((p) => (
-            <PlayerSlot key={p.id} player={p} isMe={p.id === sessionId} />
-          ))}
-          {Array.from({ length: Math.max(0, MAX_PLAYERS - players.length) }, (_, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: ô trống không có danh tính riêng
-            <EmptySlot key={`empty-${i}`} onInvite={() => void share()} />
-          ))}
-        </section>
+        <div className="flex flex-col gap-2.5 lg:gap-3 lg:[grid-area:grid]">
+          {/* Điện thoại: ô đang mở bảng chọn mức cao hơn, ô bên cạnh giữ 60 px (items-start). */}
+          <section
+            aria-label={t("lobby.playersLabel")}
+            className="grid grid-cols-2 items-start gap-2.5 lg:grid-cols-4 lg:auto-rows-[9.25rem] lg:items-stretch lg:gap-x-4 lg:gap-y-4.5 lg:pt-1"
+          >
+            {players.map((p) =>
+              p.isBot ? (
+                <BotSlot
+                  key={p.id}
+                  player={p}
+                  canEdit={isHost}
+                  open={openSlot === p.id}
+                  onOpenChange={slotOpenChange(p.id)}
+                />
+              ) : (
+                <PlayerSlot key={p.id} player={p} isMe={p.id === sessionId} />
+              ),
+            )}
+            {Array.from({ length: emptyCount }, (_, i) =>
+              isHost ? (
+                <AddBotSlot
+                  // biome-ignore lint/suspicious/noArrayIndexKey: ô trống không có danh tính riêng
+                  key={`empty-${i}`}
+                  open={openSlot === `add:${i}`}
+                  onOpenChange={slotOpenChange(`add:${i}`)}
+                  onAdd={addBot}
+                  pending={adding && openSlot === `add:${i}` ? adding.level : null}
+                />
+              ) : (
+                // biome-ignore lint/suspicious/noArrayIndexKey: ô trống không có danh tính riêng
+                <EmptySlot key={`empty-${i}`} onInvite={() => void share()} />
+              ),
+            )}
+          </section>
+          {emptyCount === 0 && botCount > 0 && (
+            <p
+              role="note"
+              className="flex items-start gap-2 text-[13px] leading-snug font-semibold text-chalk-muted lg:text-sm"
+            >
+              <InfoIcon aria-hidden className="mt-px size-4 shrink-0 text-chalk" />
+              {t("bots.full", { max: MAX_PLAYERS })}
+            </p>
+          )}
+        </div>
 
         <div className="lg:[grid-area:setup]">
           {isHost ? (
@@ -131,6 +220,7 @@ export function LobbyScreen() {
               minPlayers={MIN_PLAYERS_TO_START}
               players={players.length}
               ready={readyCount}
+              bots={botCount}
               onStart={() => startMatch.run(() => send(ClientMessage.StartMatch, {}))}
               pending={startMatch.pending}
               chatSetting={<ChatSettingRow />}
@@ -148,6 +238,7 @@ export function LobbyScreen() {
                 minPlayers={MIN_PLAYERS_TO_START}
                 players={players.length}
                 ready={readyCount}
+                bots={botCount}
                 className="hidden h-full lg:flex"
               />
             </>

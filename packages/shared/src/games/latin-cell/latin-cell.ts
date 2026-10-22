@@ -334,6 +334,11 @@ export const latinCell: MinigameDef<LatinCellPuzzle, LatinCellAnswer> = {
   // Bảng Cân bằng của đặc tả (mô phỏng 200 000 vòng mỗi mức): Mầm tính ra 1,04, chặn trần 1;
   // Khó 1,92 → 1,9; Siêu khó 3,10 → 3,1.
   difficultyMultiplier: { 0: 1, 1: 1, 2: 1.9, 3: 3.1 },
+  // Bot (CR-016): thời gian một câu chép từ bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi): giữa
+  // khoảng + 0,3 s hiệu ứng chuyển câu.
+  expectedSolveMs: { 0: 3_500, 1: 3_550, 2: 5_050, 3: 6_800 },
+  // Bot (CR-016): tỉ lệ đúng = 1 − tỉ lệ sai ở bảng Cân bằng của đặc tả (Mầm theo trẻ 7 tuổi).
+  expectedAccuracy: { 0: 0.9, 1: 0.92, 2: 0.88, 3: 0.85 },
   // Không khai báo `speedAllowanceMs`: lưới hiện đủ ngay, chạm được từ khung hình đầu.
 
   generate(roundSeed, index, difficulty) {
