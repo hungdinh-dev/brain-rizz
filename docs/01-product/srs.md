@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Phân tích yêu cầu |
-| Phiên bản tài liệu | 1.12 · 2026-11-19 — Trống quay dọc, phòng 12 người, trang quản trị theo [CR-017](../00-tracking/change-requests.md#cr-017), [CR-018](../00-tracking/change-requests.md#cr-018), [CR-019](../00-tracking/change-requests.md#cr-019) |
+| Phiên bản tài liệu | 1.13 · 2026-11-19 — Game yêu thích, hướng dẫn động, tách URL theo [CR-020](../00-tracking/change-requests.md#cr-020), [CR-021](../00-tracking/change-requests.md#cr-021), [CR-022](../00-tracking/change-requests.md#cr-022) |
 | Đầu vào | [Yêu cầu nghiệp vụ](brd.md) |
 | Đầu ra cho | [Thiết kế game](game-design.md), [UI/UX](ui-ux.md), [Kiến trúc](../02-architecture/overview.md), [Kiểm thử](../03-guides/testing.md) |
 | Cập nhật khi | Thêm/đổi use case hoặc yêu cầu — tăng phiên bản tài liệu và ghi vào [Lịch sử thay đổi](#9-lịch-sử-thay-đổi-tài-liệu) |
@@ -558,6 +558,8 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-GD-10 | Nhạc nền nhiều bài: thanh nhạc trên header (phát/dừng, bài kế; máy tính thêm tên bài và âm lượng); phát lần lượt, hết danh sách thì lặp lại; mặc định bật, bắt đầu phát ở lần chạm đầu; nhớ bật/tắt, âm lượng, bài đang nghe; nhỏ còn một nửa khi đếm ngược và đang chơi; tạm dừng khi tab ẩn; danh sách bài lấy tự động từ thư mục nhạc, thêm bài không cần sửa code ([CR-007](../00-tracking/change-requests.md#cr-007)) | UC-11 | S | 1 |
 | FR-GD-11 | Rung phản hồi khi trả lời; giữ màn hình sáng khi chơi (Wake Lock) — tách từ FR-GD-07 (CR-008) | UC-07 | S | 2 |
 | FR-GD-12 | Nút **Hiệu ứng** trên hàng nút: "Theo hệ thống" (mặc định, giảm chuyển động khi máy báo `prefers-reduced-motion: reduce`) / "Luôn bật"; nhớ trên máy. Một nguồn "giảm chuyển động" cho cả giao diện React, CSS và scene minigame. Giảm chuyển động giữ nguyên nhịp hiện, chỉ thay trượt/nảy bằng mờ dần, bỏ pháo giấy; vòng quay dừng ngay ở kết quả ([CR-010](../00-tracking/change-requests.md#cr-010)) | UC-11, UC-08, UC-20 | S | 1 |
+| FR-GD-13 | Màn hướng dẫn (party, Luyện tập, Kiểm tra não): khung minh hoạ lớn, nút "Phóng to" toàn màn, hình động diễn cách chơi (SVG, chỉ `transform`/`opacity`, một demo mỗi lúc, dừng khi ẩn tab hoặc giảm chuyển động); game chưa có demo dùng hình tĩnh; thẻ nhỏ luôn dùng hình tĩnh ([CR-021](../00-tracking/change-requests.md#cr-021)) | UC-21, UC-13, UC-14 | S | 1–2 |
+| FR-GD-14 | Mỗi màn ngoài phòng có đường dẫn riêng (`/practice[/<game>]`, `/brain-test`, `/leaderboard[/<game>]`, `/account`, `/profile`, `/admin/<mục>`); Back/Forward/F5 giữ đúng màn; trong phòng giữ `/r/<mã>`, Back hỏi "Rời phòng?"; đường dẫn lạ → `/` ([CR-022](../00-tracking/change-requests.md#cr-022)) | UC-11, UC-13, UC-19 | S | 1–2 |
 
 ### 4.6 Chế độ mở rộng & tài khoản (MR)
 
@@ -578,6 +580,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-MR-13 | Hiện hạng của mình (tô nổi bật trong top hoặc ghim dòng riêng khi ngoài top) | UC-19 | S | 1–2 |
 | FR-MR-14 | Bảng xếp hạng bạn bè — chờ tính năng kết bạn (CR mới) | UC-19 | C | — |
 | FR-MR-15 | Thiếu biến môi trường Supabase hoặc Supabase không truy cập được: mọi chế độ vẫn chơi được, phần lưu/bảng xếp hạng báo "Chưa kết nối máy chủ dữ liệu" | UC-13, UC-14, UC-16, UC-19 | M | 1–2 |
+| FR-MR-17 | Game yêu thích ở Luyện tập: ⭐ trên thẻ game và ở màn hướng dẫn Luyện tập, mục "Yêu thích" đầu danh sách + chip lọc; lưu trên máy ngay, đồng bộ lên tài khoản khi có phiên (`practice_favorites`, tối đa 64), không có phiên thì chỉ lưu máy ([CR-020](../00-tracking/change-requests.md#cr-020)) | UC-13 | S | 1–2 |
 | FR-MR-16 | Kết quả trận party ghi thêm điểm theo thể loại (`match_results.category_scores`) và các thể loại người đó giành danh hiệu (`category_titles`) theo FR-VC-21; màn Tài khoản hiện thế mạnh party theo thể loại (số danh hiệu, điểm trung bình trên các trận có chơi thể loại đó) — CR-010 | UC-16 | S | 1–2 |
 
 ### 4.7 Quản trị (QT) — [CR-019](../00-tracking/change-requests.md#cr-019)
@@ -650,6 +653,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | Quản trị viên, cấu hình trận party (có phiên bản) và lịch sử thay đổi ([CR-019](../00-tracking/change-requests.md#cr-019)) | Supabase Postgres (`admins`, `party_settings`, `party_settings_history`), migration `20261119000000_admin_console.sql`; bản chụp mỗi trận: RAM `PartyRoom` + state (`scoringJson`, `disabledGames`, `configVersion`) | Lâu dài; bản chụp tới khi trận kết thúc |
 | Sự kiện đăng nhập (loại, khách/Google, trình duyệt · hệ điều hành; không IP) | Supabase Postgres (`login_events`) | Lâu dài, tới khi người chơi xoá |
 | Phiên bản cấu hình của mỗi trận party | Supabase Postgres, cột `match_results.settings_version` (mặc định 0) | Lâu dài, tới khi người chơi xoá |
+| Game yêu thích ở Luyện tập ([CR-020](../00-tracking/change-requests.md#cr-020)) | `localStorage` `brain-rizz:favorites`; khi có phiên: Supabase `practice_favorites` (migration `20261119100000_practice_favorites.sql`) | Lâu dài; tài khoản: tới khi người chơi xoá |
 | Lượt chơi bóng ma (GĐ 3) | Supabase Postgres | Lâu dài |
 
 ## 8. Ma trận truy vết
@@ -671,6 +675,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | BR-01, BR-11 | UC-22 | FR-PH-14 → FR-PH-19, NFR-SEC-04 | `packages/shared/src/chat/chat.test.ts` (lọc từ tục, làm sạch, token bucket), `protocol.test.ts` (schema chat); `apps/server/test/PartyChat.test.ts` (danh tính do server gắn, rate limit, lọc + cắt, bật/tắt + `not-host`, `bad-phase`, 30 tin cho người vào sau / nối lại) |
 | BR-10 | UC-23 | FR-PH-20 → FR-PH-26 | `packages/shared/src/bots/bots.test.ts`, `bots/balance-sim.test.ts`, `answer-judge.test.ts` (`judgeBotAnswer`), `protocol.test.ts` (lệnh bot); `apps/server/test/PartyBots.test.ts`; web `bot-name.test.ts`, `bot-setup.test.ts`, `bot-slot.test.tsx`, `create-party.test.ts`, `data-api.test.ts` (CR-016) |
 | BR-07, BR-12 | UC-24 | FR-QT-01 → FR-QT-10 | `packages/shared/src/party-config.test.ts`, `misc.test.ts` / `answer-judge.test.ts` (cấu hình điểm, điểm thứ hạng co giãn); `apps/server/test` (cấu hình phòng, game tắt, 12 người, route admin); web `features/admin` (CR-018, CR-019) |
+| BR-10, BR-03 | UC-13, UC-21, UC-19 | FR-MR-17, FR-GD-13, FR-GD-14 | web `features/practice` (yêu thích), `games/_shared/demo`, `stores/nav.store.test.ts` (URL) (CR-020 → CR-022) |
 | BR-12 | — | NFR-COST-01 | — |
 
 ## 9. Lịch sử thay đổi tài liệu
@@ -690,5 +695,6 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | 1.10 | 2026-10-20 | Danh mục minigame 17 → 31 (14 game của kế hoạch mở rộng, hai đợt 7 game): sửa FR-MG-05 | [CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014) |
 | 1.11 | 2026-10-21 | Chơi với bot: thêm UC-23, FR-PH-20 → FR-PH-26, thuật ngữ "Bot", dòng Dữ liệu (`match_results.bot_count`, bot trong RAM phòng), ma trận truy vết | [CR-016](../00-tracking/change-requests.md#cr-016) |
 | 1.12 | 2026-11-19 | Trống quay dọc (UC-20, FR-VC-14, FR-VC-16); phòng 12 người + điểm thứ hạng co giãn (UC-03, UC-08, FR-PH-03/21/22, NFR-REL-02); trang quản trị: tác nhân Quản trị viên, UC-24, FR-QT-01 → 10, dòng Dữ liệu, truy vết | [CR-017](../00-tracking/change-requests.md#cr-017), [CR-018](../00-tracking/change-requests.md#cr-018), [CR-019](../00-tracking/change-requests.md#cr-019) |
+| 1.13 | 2026-11-19 | Game yêu thích (FR-MR-17), hướng dẫn động (FR-GD-13), tách URL theo màn (FR-GD-14), dòng Dữ liệu `practice_favorites`, truy vết | [CR-020](../00-tracking/change-requests.md#cr-020), [CR-021](../00-tracking/change-requests.md#cr-021), [CR-022](../00-tracking/change-requests.md#cr-022) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

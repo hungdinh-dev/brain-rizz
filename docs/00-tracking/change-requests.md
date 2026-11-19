@@ -45,6 +45,9 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 | [CR-017](#cr-017) | Trống quay dọc vô hạn kiểu bộ chọn giờ iPhone thay vòng quay tròn, mỗi game có biểu tượng, ẩn danh sách "Trong vòng quay" | 2026-11-19 | Thay đổi thiết kế | +1 ngày | Duyệt (2026-11-19) |
 | [CR-018](#cr-018) | Phòng party tối đa 12 người, điểm trận theo thứ hạng co giãn theo số người | 2026-11-19 | Đổi luật | +1 ngày | Duyệt (2026-11-19) |
 | [CR-019](#cr-019) | Trang quản trị: cấu hình điểm + hệ số trận party, bật/tắt game, lịch sử đăng nhập, người chơi, trận đấu, tổng quan, phòng đang mở, quản trị viên | 2026-11-19 | Thêm tính năng | +3–4 ngày công (2 ngày lịch khi chạy song song) | Duyệt (2026-11-19) |
+| [CR-020](#cr-020) | Game yêu thích ở Luyện tập (⭐, mục Yêu thích đầu danh sách, đồng bộ tài khoản) | 2026-11-19 | Thêm tính năng | +0,5–1 ngày | Duyệt (2026-11-19) |
+| [CR-021](#cr-021) | Màn hướng dẫn: khung minh hoạ to hơn, nút Phóng to, hình động diễn cách chơi (đợt đầu 5 game MVP) | 2026-11-19 | Thêm tính năng + thay đổi thiết kế | +1,5 ngày (5 game), +3 ngày cho 25 game còn lại | Duyệt (2026-11-19) |
+| [CR-022](#cr-022) | Tách URL theo màn ngoài phòng (Back/Forward/F5 giữ màn, link sâu) | 2026-11-19 | Kỹ thuật + thay đổi thiết kế | +1 ngày | Duyệt (2026-11-19) |
 
 ---
 
@@ -483,6 +486,58 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 - **Quyết định:** **Duyệt** (2026-11-19).
 - **Tài liệu kéo theo:** SRS (tác nhân Quản trị viên, UC-24, FR-QT-01 → 10, Dữ liệu, truy vết), UI-UX, overview, supabase-setup, folder-structure, features.md, changelog.
 - **Kết quả:** đang làm trên nhánh `feat/admin-12-players`. **Thứ tự triển khai:** chạy migration trên Supabase thật **trước** khi deploy server mới (server luôn ghi `settings_version`), rồi thêm admin đầu tiên bằng SQL.
+
+---
+
+### CR-020
+
+**Game yêu thích ở Luyện tập**
+
+- **Ngày mở:** 2026-11-19 · **Loại:** Thêm tính năng · **Người đề xuất:** chủ dự án. Kế hoạch: [Yêu thích, hướng dẫn động, tách URL](../01-product/practice-favorites-howto-routes.md)
+- **Mô tả:** người chơi bấm ⭐ để ghim game ở màn Luyện tập; mục **Yêu thích** đứng đầu danh sách và có chip lọc riêng, đỡ phải tìm từng game trong 30 game.
+- **Lý do:** BR-10 (có lý do quay lại luyện tập), danh mục đã lên 30 game.
+- **Phân tích tác động:**
+  - *Kỹ thuật:* web (`features/practice`, `net/data-api.ts`, khoá `brain-rizz:favorites`); Supabase bảng `practice_favorites` + 3 RPC (migration `20261119100000_practice_favorites.sql`). Không đụng server game, giao thức, seed.
+  - *Hiệu năng:* không đáng kể (danh sách id, một lần đọc khi mở Luyện tập).
+  - *Chi phí:* 0 đồng. *Lịch:* +0,5–1 ngày.
+- **Quyết định:** **Duyệt** (2026-11-19) — lưu máy + đồng bộ tài khoản khi có phiên, không tạo phiên khách chỉ để lưu.
+- **Tài liệu kéo theo:** SRS (FR-MR-17, Dữ liệu), UI-UX 6.10, supabase-setup, features.md, changelog.
+- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`. Chạy migration trên Supabase trước khi deploy web mới (thiếu RPC thì yêu thích chỉ lưu trên máy, không lỗi).
+
+---
+
+### CR-021
+
+**Hướng dẫn to hơn và có chuyển động**
+
+- **Ngày mở:** 2026-11-19 · **Loại:** Thêm tính năng + thay đổi thiết kế · **Người đề xuất:** chủ dự án. Kế hoạch: [Yêu thích, hướng dẫn động, tách URL](../01-product/practice-favorites-howto-routes.md)
+- **Mô tả:** màn Hướng dẫn (party, Luyện tập, Kiểm tra não) có khung minh hoạ to hơn, nút **Phóng to** toàn màn, và hình động diễn cách chơi (tay chạm đáp án, ✓, sang câu kế, lặp).
+- **Lý do:** người chơi khó hình dung luật từ hình tĩnh nhỏ (BR-03, BR-04); trụ cột "Vào là chơi".
+- **Các phương án:** A. SVG động với khung diễn dùng chung (chọn); B. chạy scene Phaser tự chơi (nặng: thêm canvas WebGL, cần hàm giải cho 30 game); C. video quay sẵn (6–15 MB). Chi tiết ở kế hoạch mục 2.
+- **Phân tích tác động:**
+  - *Kỹ thuật:* web: `GameClient.Demo` tuỳ chọn, khung diễn `games/_shared/demo/`, 5 demo đầu, `GuideCard`, `PracticeSetup`, `BrainGameIntro`. Thẻ nhỏ vẫn dùng hình tĩnh. Không đổi giao thức, seed, bộ sinh.
+  - *Hiệu năng:* chỉ animate `transform`/`opacity`, một demo mỗi lúc, dừng khi ẩn tab / ra khỏi màn / giảm chuyển động; vài KB mỗi game, tải lười cùng gói game.
+  - *Chi phí:* 0 đồng. *Lịch:* +1,5 ngày cho khung + 5 game MVP; 25 game còn lại khoảng 3 ngày, làm sau khi chủ dự án duyệt đợt đầu.
+- **Quyết định:** **Duyệt** (2026-11-19) phương án A, đợt đầu 5 game MVP.
+- **Tài liệu kéo theo:** SRS (FR-GD-13), UI-UX 6.11, folder-structure, features.md, changelog.
+- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`.
+
+---
+
+### CR-022
+
+**Tách URL theo màn**
+
+- **Ngày mở:** 2026-11-19 · **Loại:** Kỹ thuật + thay đổi thiết kế · **Người đề xuất:** chủ dự án. Kế hoạch: [Yêu thích, hướng dẫn động, tách URL](../01-product/practice-favorites-howto-routes.md) mục 3.4
+- **Mô tả:** mỗi màn ngoài phòng có đường dẫn riêng (`/practice`, `/practice/<game>`, `/brain-test`, `/leaderboard[/<game>]`, `/account`, `/profile`, `/admin/<mục>`); Back/Forward/F5 giữ đúng màn, gửi được link sâu. Trong phòng giữ `/r/<mã>`; Back trong phòng hỏi "Rời phòng?".
+- **Lý do:** trước đây gần như mọi màn ở `/`: Back thoát app, F5 về màn đầu, không chia sẻ được link tới một game.
+- **Phân tích tác động:**
+  - *Kỹ thuật:* chỉ web: `nav.store` đồng bộ History API (mở rộng phần `/admin` của CR-019), `App.tsx`, Luyện tập, Bảng xếp hạng, trang quản trị. **Không** thêm thư viện router. Cloudflare Pages `_redirects` đã trả `index.html` cho mọi đường dẫn.
+  - *Hiệu năng:* 0 KB thêm; các màn vẫn tải lười như cũ (react-router sẽ thêm ~20 KB gzip, không cần).
+  - *Chi phí:* 0 đồng. *Lịch:* +1 ngày.
+- **Quyết định:** **Duyệt** (2026-11-19).
+- **Tài liệu kéo theo:** SRS (FR-GD-14), overview (điều hướng), folder-structure, features.md, changelog.
+- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`.
 
 ---
 
