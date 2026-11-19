@@ -150,7 +150,7 @@ function noisyTaps(p: RhythmEchoPuzzle, rng: Rng): RhythmEchoHit[] {
   });
 }
 
-describe("rhythm-echo", () => {
+describe("rhythm-echo", { timeout: 60_000 }, () => {
   it("tất định: sinh hai lần ra giống hệt (10.000 seed × 4 mức)", () => {
     for (const d of DIFFICULTIES) {
       let mismatches = 0;

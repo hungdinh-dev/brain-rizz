@@ -31,7 +31,12 @@ export function ScoreStrip({ opponents }: { opponents: Standing[] }) {
           )}
         >
           <span className="relative flex shrink-0">
-            <PlayerAvatar avatar={p.avatar} colorIndex={p.colorIndex} size="sm" />
+            <PlayerAvatar
+              avatar={p.avatar}
+              accessories={p.accessories}
+              colorIndex={p.colorIndex}
+              size="sm"
+            />
             <RankBadge rank={rank} size="xs" className="absolute -top-1.5 -left-1.5" />
             {p.isBot && <BotBadge size="xs" />}
             {/* Thẻ hẹp: lửa combo đè góc trên phải avatar để điểm 4–5 chữ số không tràn cột. */}

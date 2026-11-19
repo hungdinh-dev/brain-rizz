@@ -55,6 +55,21 @@ export const vi = {
       soonToast: "Tính năng này đang được làm, sắp ra mắt!",
       howToToast:
         "Mỗi vòng là một minigame ngắn: trả lời đúng và nhanh để ghi điểm, sai sẽ bị khoá vài giây.",
+      /** Thẻ Máy quay phụ kiện, chip số dư, quà mỗi ngày (CR-023, ui-ux 6.12 "Menu"). */
+      gacha: {
+        title: "Máy quay phụ kiện",
+        desc: "Đổi phấn lấy mũ, kính, khăn cho bạn đồng hành",
+        balanceAria: "{{amount}} phấn, mở Máy quay phụ kiện",
+        claim: "Nhận quà hôm nay",
+        claimAria: "Nhận quà hôm nay, {{amount}} phấn",
+        claimed: "Đã nhận quà hôm nay",
+        offline: "Cần máy chủ dữ liệu",
+        wardrobe: "Tủ đồ",
+        claimedToast: "Đã nhận {{amount}} phấn quà hôm nay.",
+        alreadyToast: "Hôm nay bạn đã nhận quà rồi.",
+        offlineToast: "Chưa kết nối máy chủ dữ liệu, chưa nhận quà được.",
+        errorToast: "Chưa nhận được quà. Thử lại sau nhé.",
+      },
     },
     profile: {
       title: "Hồ sơ của bạn",
@@ -66,6 +81,7 @@ export const vi = {
       accountGuest: "Tài khoản khách",
       accountLocal: "Chỉ lưu trên máy này",
       account: "Tài khoản & lịch sử",
+      wardrobe: "Phụ kiện · Tủ đồ",
       confirm: "Xác nhận",
       back: "Quay lại",
     },
@@ -77,6 +93,105 @@ export const vi = {
     bap: { name: "Bắp", species: "Gà con" },
     cam: { name: "Cam", species: "Cáo lửa" },
     tron: { name: "Tròn", species: "Gấu trúc" },
+    // 6 bạn đồng hành mở khoá bằng thành tích (CR-024)
+    pin: { name: "Pin", species: "Chim cánh cụt" },
+    op: { name: "Ộp", species: "Ếch xanh" },
+    thong: { name: "Thông", species: "Cú mèo" },
+    gai: { name: "Gai", species: "Nhím con" },
+    may: { name: "Mây", species: "Gấu koala" },
+    lua: { name: "Lửa", species: "Rồng con" },
+  },
+  /**
+   * Bạn đồng hành khoá theo thành tích (CR-024, ui-ux 6.12). Điều kiện dựng từ luật
+   * `UNLOCK_RULES` (features/pets/unlock-text.ts): mỗi `rule.*` là một mệnh đề chữ thường đầu câu,
+   * code tự nối bằng "và", viết hoa chữ đầu, thêm dấu chấm.
+   */
+  pets: {
+    locked: "Chưa mở khoá",
+    lockedAria: "{{name}}, chưa mở khoá: {{condition}}",
+    lockedShort: "{{name}}, chưa mở khoá — xem cách mở",
+    lockedName: "{{name}}, chưa mở khoá",
+    howTo: "Cách mở khoá",
+    progress: "Tiến độ",
+    progressAria: "Tiến độ mở {{name}}",
+    partsLabel: "Từng điều kiện",
+    noData: "Chưa có dữ liệu",
+    noDataHint: "Chưa tải được tiến độ từ máy chủ dữ liệu. Cứ chơi tiếp, thành tích vẫn được ghi.",
+    close: "Đóng",
+    cta: {
+      practice: "Luyện ngay",
+      party: "Chơi party",
+      brain: "Kiểm tra não",
+    },
+    picked: "Đã chọn {{name}}",
+    isNew: "Mới!",
+    wasLocked: "Đã mở khoá",
+    unlockedCount: "Đã mở {{count}}/{{total}}.",
+    unlockedNote: "Bạn đồng hành khoá mở bằng thành tích khi chơi, không cần phấn.",
+    sentence: "{{text}}.",
+    rule: {
+      partyMatches_one: "chơi xong {{target}} trận party",
+      partyMatches_other: "chơi xong {{target}} trận party",
+      partyWins_one: "về nhất {{target}} trận party",
+      partyWins_other: "về nhất {{target}} trận party",
+      practiceBest: "kỷ lục Luyện tập {{game}} từ {{target}} điểm ở mức {{level}} trở lên",
+      practiceBestAny: "kỷ lục Luyện tập {{game}} từ {{target}} điểm",
+      practiceCategoryAvg_one:
+        "trung bình {{count}} kỷ lục Luyện tập cao nhất nhóm {{category}} từ {{target}} điểm (cần kỷ lục ở ít nhất {{count}} game của nhóm, {{levels}})",
+      practiceCategoryAvg_other:
+        "trung bình {{count}} kỷ lục Luyện tập cao nhất nhóm {{category}} từ {{target}} điểm (cần kỷ lục ở ít nhất {{count}} game của nhóm, {{levels}})",
+      levelsAll: "tính cả mức {{level}}",
+      levelsFrom: "từ mức {{level}} trở lên",
+      partyCategoryAvg_one:
+        "trung bình điểm nhóm {{category}} mỗi trận party từ {{target}} (ít nhất {{count}} trận)",
+      partyCategoryAvg_other:
+        "trung bình điểm nhóm {{category}} mỗi trận party từ {{target}} (ít nhất {{count}} trận)",
+      partyCategoryGroup_one:
+        "trung bình điểm mỗi trận party từ {{target}} ở {{categories}} (mỗi nhóm ít nhất {{count}} trận)",
+      partyCategoryGroup_other:
+        "trung bình điểm mỗi trận party từ {{target}} ở {{categories}} (mỗi nhóm ít nhất {{count}} trận)",
+      allCategories_one: "cả {{count}} nhóm",
+      allCategories_other: "cả {{count}} nhóm",
+      brainScore: "Điểm Não từ {{target}} trong một lượt Kiểm tra não",
+    },
+    /** Nhãn tiến độ ngắn trên thẻ (một dòng) và cạnh thanh tiến độ. */
+    short: {
+      matches: "{{current}}/{{target}} trận",
+      wins: "Nhất {{current}}/{{target}} trận",
+      score: "{{current}}/{{target}}",
+      games: "{{current}}/{{target}} game",
+      goals: "Đạt {{current}}/{{target}} mục",
+    },
+    hint: {
+      partyMatches: "Trận có máy cũng tính.",
+      partyWins: "Trận chỉ có bạn với máy cũng tính.",
+      practiceBest: "Chọn mức {{level}} trở lên khi luyện.",
+      practiceCategory: "Đã có kỷ lục ở {{current}}/{{target}} game nhóm {{category}}.",
+      brainScore: "Điểm Não cao nhất của bạn: {{current}}.",
+      groups: "✓ là điều kiện đã đạt; số là mức hiện tại.",
+    },
+    /** Tên từng điều kiện con của luật nhiều điều kiện (Lửa). */
+    part: {
+      done: "✓",
+      partyMatches: "Trận party",
+      partyWins: "Về nhất",
+      brainScore: "Điểm Não",
+    },
+    celebrate: {
+      chip: "Vừa mở khoá",
+      title: "Bạn đồng hành mới!",
+      achieved: "Đã đạt: {{condition}}",
+      choose: "Chọn {{name}} làm bạn đồng hành",
+      later: "Để sau",
+    },
+  },
+  /** "+N phấn" sau trận party / Kiểm tra não (CR-023, ui-ux 6.12). */
+  rewards: {
+    amount: "+{{n}} phấn",
+    live: "Bạn nhận {{n}} phấn",
+    wallet: "Đã cộng vào ví",
+    /** Chạm trần phấn party trong ngày: chip "+0 phấn" + dòng này (không đỏ, ui-ux 6.12). */
+    capped: "Hôm nay đã đủ phấn từ trận party",
   },
   lobby: {
     title: "Phòng chờ",

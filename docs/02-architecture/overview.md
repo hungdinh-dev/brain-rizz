@@ -80,7 +80,7 @@ flowchart LR
   GEN --> RNG
 ```
 
-Quy tắc phụ thuộc: `web` và `server` được import `shared`; `shared` không import gì từ hai app. Phòng chơi không gọi Supabase trực tiếp mà qua `ResultStore` (`verifyToken`, `saveBrainTest`, `saveMatchResults`, `loadPartyConfig`, `isAdmin`): bản thật dùng `SUPABASE_URL` + `SUPABASE_SECRET_KEY`, thiếu biến thì là bản rỗng (log một lần), test dùng bản trong RAM (không gọi mạng). Scene Phaser không biết mạng là gì — nó chỉ nhận `MinigameBridge` (seed, độ khó, hàm `submit`, và `unlockDelay` để biết khi nào server hết khoá sau câu sai).
+Quy tắc phụ thuộc: `web` và `server` được import `shared`; `shared` không import gì từ hai app. Phòng chơi không gọi Supabase trực tiếp mà qua `ResultStore` (`verifyToken`, `saveBrainTest`, `saveMatchResults`, `loadCosmetics`, `grantChalk`, `loadPartyConfig`, `isAdmin`): bản thật dùng `SUPABASE_URL` + `SUPABASE_SECRET_KEY`, thiếu biến thì là bản rỗng (log một lần), test dùng bản trong RAM (không gọi mạng). Scene Phaser không biết mạng là gì — nó chỉ nhận `MinigameBridge` (seed, độ khó, hàm `submit`, và `unlockDelay` để biết khi nào server hết khoá sau câu sai).
 
 ## Vòng đời một phòng
 
@@ -185,10 +185,10 @@ Game không khai báo hai trường CR-006 (như Kẻ lạc đàn) được ch�
 
 | Chiều | Tin nhắn | Nội dung | Ai được gửi, khi nào |
 | --- | --- | --- | --- |
-| C → S | join options | `name`, `colorIndex`, `difficulty`, `avatar` (mặc định `khoi`), `accessToken?` (JWT Supabase, ≤ 4 096 ký tự; sai kiểu/quá dài thì bị bỏ) | Khi tạo/vào phòng, chỉ ở pha `lobby` |
+| C → S | join options | `name`, `colorIndex`, `difficulty`, `avatar` (mặc định `khoi`; 12 nhân vật, thú khoá do server kiểm), `accessories?` (≤ 3 id, mỗi id ≤ 40 ký tự; sai thì bỏ như không gửi), `accessToken?` (JWT Supabase, ≤ 4 096 ký tự; sai kiểu/quá dài thì bị bỏ) | Khi tạo/vào phòng, chỉ ở pha `lobby`. Không bao giờ bị từ chối vì nhân vật / phụ kiện ([Thú khoá + phụ kiện](#thú-khoá--phụ-kiện-cr-023-cr-024)) |
 | C → S | create options | thêm `bots?: { count, level }` (`count` 1 – `MAX_PLAYERS − 1` = 11, `level` 0–3; `CreateOptionsSchema`, sai thì bỏ như không gửi) | Chỉ khi tạo phòng ("Chơi với máy"); server đọc ở `onCreate`, `onJoin` không đọc. Bot được thêm ngay sau khi người tạo vào phòng (người tạo giữ màu + nhân vật, bot tránh cả hai) |
 | C → S | `ready` | `{ ready }` | Mọi người, ở `lobby` |
-| C → S | `setProfile` | tên, màu, độ khó, nhân vật (tuỳ chọn; trường không gửi giữ nguyên) | Mọi người, ở `lobby`; không làm mất trạng thái sẵn sàng |
+| C → S | `setProfile` | tên, màu, độ khó, nhân vật, `accessories` (≤ 3 id, `[]` = tháo hết; quá giới hạn → `invalid`) — tuỳ chọn, trường không gửi giữ nguyên | Mọi người, ở `lobby`; không làm mất trạng thái sẵn sàng. Nhân vật / phụ kiện qua cùng bước kiểm sở hữu như lúc vào phòng |
 | C → S | `setRounds` | `{ totalRounds }` (1–10) | Chủ phòng, ở `lobby` |
 | C → S | `startMatch` | `{}` | Chủ phòng, ở `lobby`; cần ≥ `MIN_PLAYERS_TO_START` (2) người và tất cả (kể cả chủ phòng) `ready`, nếu không → `not-ready` |
 | C → S | `setPickMode` | `{ mode: "wheel" \| "pick" }` | Chủ phòng, ở `game-select`, khi vòng quay chưa quay |
@@ -217,6 +217,7 @@ Game không khai báo hai trường CR-006 (như Kẻ lạc đàn) được ch�
 | S → C | `chat` | `ChatMessagePayload`: `{ id, playerId, name, colorIndex, avatar, kind, text?, quickId?, at, bot? }` (`bot: true` khi người gửi là bot, `name` rỗng, web dịch tên theo `avatar`) | Phát cho cả phòng (kể cả người gửi) khi một tin chat được nhận |
 | S → C | `chatHistory` | `{ messages: ChatMessagePayload[] }` (tối đa 30, cũ → mới) | Gửi riêng khi vào phòng và khi nối lại thành công; client gộp vào danh sách đang có theo `id` (bỏ trùng, cũ → mới, giữ tối đa 50 tin), không xoá tin cũ hơn bộ đệm server |
 | S → C | `botYielded` | `BotYieldedPayload`: `{ botId, botAvatar, playerId, playerName }` (web dịch tên bot theo `botAvatar`, vì bot đã rời state) | Một lần, khi người thật vào phòng đủ ghế ở `lobby` và bot thêm gần nhất nhường chỗ (CR-016); gửi những người đã ở trong phòng, không gửi người vừa vào. Web hiện toast `bots.yielded` |
+| S → C | `reward` | `RewardPayload`: `{ chalk }` — số phấn thực cộng, đã kẹp trần ngày (0 = chạm trần) | Riêng từng người đã xác thực, một lần mỗi trận, sau khi vào `podium` và ghi `match_results` + `grant_chalk` xong (CR-023); ghi phấn lỗi (`grantChalk` trả `null`) thì không gửi; khách không phiên không nhận; đang rớt mạng thì lỡ |
 | S → C | `error` | `{ code, message, source? }`; `code`: `not-host`, `bad-phase`, `invalid`, `rate-limited`, `not-ready`, `chat-disabled`; `source: "chat"` khi lỗi đến từ `chat` / `setChatEnabled` | Khi tin nhắn bị từ chối |
 
 Tin không có nội dung (`{}`) chấp nhận cả `undefined`/`null`; trường lạ bị bỏ.
@@ -311,11 +312,14 @@ stateDiagram-v2
 | `no-db` | Server chưa cấu hình Supabase → không lưu (hiện ngay từ đầu lượt) |
 | `failed` | Ghi lỗi (Supabase tạm dừng, mạng…) |
 
+- **Phấn** (CR-023): sau `saved`, server gọi `grantChalk(user, "brain", <brain_tests.id>, brainChalkReward(Điểm Não))` rồi đặt `chalkEarned` = số thực cộng (đã kẹp trần 3 lượt/ngày). Khách, chưa lưu, phấn lỗi → 0; lỗi phấn không đổi `saveStatus`.
+- **Nhân vật**: thú khoá (CR-024) hiện `khoi` tới khi token hợp lệ và `loadCosmetics` cho thấy đã mở (nạp nền), như party.
+
 **Tin nhắn** (`BrainClientMessage` trong `protocol.ts`; `answer` và `ping` dùng chung tên và schema với party):
 
 | Chiều | Tin nhắn | Nội dung | Khi nào |
 | --- | --- | --- | --- |
-| C → S | join options | `name`, `avatar` (mặc định `khoi`), `accessToken?` (`BrainJoinOptionsSchema`) | `client.create("brain-test", …)` |
+| C → S | join options | `name`, `avatar` (mặc định `khoi`; thú khoá chưa mở → `khoi`), `accessToken?` (`BrainJoinOptionsSchema`) | `client.create("brain-test", …)` |
 | C → S | `brainReady` | `{}` | Pha `intro`: bắt đầu đếm ngược game hiện tại; sai pha → `bad-phase` |
 | C → S | `answer` | `{ round, index, answer }`, `round` = thứ tự game (1–5) | Pha `playing` |
 | C → S | `ping` | `{ clientTime }` | Bất cứ lúc nào |
@@ -323,11 +327,21 @@ stateDiagram-v2
 | S → C | `roundStart` | `{ round, gameId, seed, startAt, durationMs }` | Đầu mỗi game (vào `countdown`) |
 | S → C | `answerResult`, `pong`, `error` | như party | |
 
-**State** (`apps/server/src/rooms/schema/BrainState.ts`, khớp `BrainStateView`; test so khoá trong `test/BrainTestRoom.test.ts`): `phase`, `name`, `avatar`, `difficulty`, `games` (5 × `{ gameId, category, score, correct }`, điểm cập nhật trực tiếp khi chơi), `round` (1–5), `gameId`, `seed`, `startAt`, `endsAt` (0 ở `intro`), `resultEndsAt` (pha `game-result`: lúc tự sang game kế), `progress`, `streak`, `brainScore` và `skills` (nhóm → điểm; 0/rỗng tới khi `finished`), `saveStatus`. Token và `user_id` **không bao giờ** nằm trong state.
+**State** (`apps/server/src/rooms/schema/BrainState.ts`, khớp `BrainStateView`; test so khoá trong `test/BrainTestRoom.test.ts`): `phase`, `name`, `avatar`, `difficulty`, `games` (5 × `{ gameId, category, score, correct }`, điểm cập nhật trực tiếp khi chơi), `round` (1–5), `gameId`, `seed`, `startAt`, `endsAt` (0 ở `intro`), `resultEndsAt` (pha `game-result`: lúc tự sang game kế), `progress`, `streak`, `brainScore` và `skills` (nhóm → điểm; 0/rỗng tới khi `finished`), `saveStatus`, `chalkEarned` (phấn của lượt, 0 tới khi ghi phấn xong). Token và `user_id` **không bao giờ** nằm trong state.
 
 ## Kết quả trận party
 
 Join options của party nhận `accessToken?`. `PartyRoom` xác thực nền khi vào phòng (token sai vẫn cho chơi), giữ `user_id` trong `Map` riêng theo `sessionId` (giữ qua nối lại, xoá khi rời hẳn). Khi trận vào `podium`, phòng ghi `match_results` **một lần mỗi trận** (chơi lại là trận mới) cho mỗi người còn trong phòng có `user_id`: `placement` theo `rankByMatch` (0 = nhất), `players` (số ghế lúc vào podium, gồm cả bot), `bot_count` (số bot, CR-016; bot không có dòng riêng), `match_points`, `total_score`, `rounds`, `games` (game đã chơi theo thứ tự), `category_scores` (tổng điểm vòng theo thể loại, chỉ thể loại đã chơi), `category_titles` (thể loại người đó giành danh hiệu theo `categoryLeaders`, CR-010) và `settings_version` (`party_settings.version` trận đó dùng, CR-019; 0 = mặc định trong code). Việc ghi chạy nền, lỗi chỉ log.
+
+**Phấn party** (CR-023): `saveMatchResults` trả **mã trận** (bản thật: `created_at` chung của các dòng vừa ghi). Ghi xong, với mỗi tài khoản đã xác thực: `partyChalkReward({ rounds, placement, humans })` (`humans` = số ghế không phải bot lúc vào `podium`, kể cả khách chưa phiên; ≤ 1 → × 0,5) → `grantChalk(user, "party", "<room_code>:<mã trận>", số)` → gửi riêng `reward { chalk }` (số thực cộng) cho các phiên của tài khoản đó còn kết nối. `ref` theo bản ghi đã lưu nên `grant_chalk` idempotent; một tài khoản mở hai thẻ chỉ được cộng một lần (theo hạng tốt hơn). Ghi trận lỗi → không cộng phấn; phấn lỗi → `reward { chalk: 0 }`, trận không bị ảnh hưởng.
+
+## Thú khoá + phụ kiện (CR-023, CR-024)
+
+Hợp đồng ở [kế hoạch gacha](../01-product/gacha-pets-unlocks.md) mục 5.2.
+
+- **Kiểm sở hữu** (`rooms/loadout.ts` → `resolveLoadout`): 6 nhân vật cũ luôn được; thú khoá cần quyền đã nạp + `isCharacterUnlocked(stats)`, không thì `khoi`; phụ kiện qua `sanitizeLoadout(ids, items)` (id lạ, món chưa có, trùng chỗ bị bỏ; thứ tự đầu → mặt → cổ), chưa có quyền thì không đeo gì. Không bao giờ từ chối vào phòng.
+- **Không chậm lúc vào phòng**: `onJoin` / `setProfile` áp ngay bản an toàn theo quyền đang có, rồi nếu người đó đã xác thực và xin thú khoá / phụ kiện thì nạp nền `loadCosmetics(userId)` (`unlock_stats_for` + `user_items`, khoá secret; đệm 60 giây theo người trong `store/cosmetics-cache.ts`, ghi trận / Kiểm tra não xong thì bỏ đệm người đó). Nạp xong thì áp lại yêu cầu **mới nhất** — bỏ qua nếu người đó đã rời hoặc đã có lượt nạp mới hơn. Store lỗi → giữ quyền đã nạp trước đó (chưa có thì vẫn bản an toàn).
+- Yêu cầu (nhân vật + phụ kiện xin) và quyền đã nạp giữ trong `Map` riêng theo `sessionId` (giữ qua nối lại, xoá khi rời hẳn), không đồng bộ. Bot: chỉ 6 nhân vật cũ, không phụ kiện.
 
 ## State đồng bộ
 
@@ -338,11 +352,11 @@ Join options của party nhận `accessToken?`. `PartyRoom` xác thực nền kh
 - Hướng dẫn: `introEndsAt` (hạn tự bắt đầu ở `game-intro`, 0 ở pha khác).
 - Chat: `chatEnabled` (mặc định `true`, chủ phòng đổi). Nội dung chat **không** nằm trong state ([Chat trong phòng](#chat-trong-phòng)).
 - Cấu hình party của trận (CR-019, [mục dưới](#cấu-hình-party-và-http-quản-trị-cr-019)): `disabledGames` (game bị tắt), `scoringJson` (`JSON.stringify(ScoringConfig)`, web đọc bằng `parseScoringJson`), `configVersion` (`party_settings.version`, 0 = mặc định).
-- Người chơi (`players: Map<sessionId, Player>`): `name`, `colorIndex`, `avatar`, `difficulty` (của vòng hiện tại), `ready` (phòng chờ), `introReady` ("Đã hiểu"), `connected`, `isHost`, `matchPoints`, `lastPoints` (điểm trận vừa cộng ở vòng gần nhất), `totalScore` (tổng điểm vòng cả trận, phá hoà chung cuộc), `roundScore`, `roundCorrect` (số câu đúng trong vòng), `progress`, `streak`, `isBot` và `botLevel` (CR-016; người thật là `false`/0). Khoá của bot là `bot-<n>` thay vì sessionId.
+- Người chơi (`players: Map<sessionId, Player>`): `name`, `colorIndex`, `avatar` (đã kiểm sở hữu), `accessories` (id phụ kiện đã lọc, ≤ 3, CR-023), `difficulty` (của vòng hiện tại), `ready` (phòng chờ), `introReady` ("Đã hiểu"), `connected`, `isHost`, `matchPoints`, `lastPoints` (điểm trận vừa cộng ở vòng gần nhất), `totalScore` (tổng điểm vòng cả trận, phá hoà chung cuộc), `roundScore`, `roundCorrect` (số câu đúng trong vòng), `progress`, `streak`, `isBot` và `botLevel` (CR-016; người thật là `false`/0). Khoá của bot là `bot-<n>` thay vì sessionId.
 
 Test "state khớp hình dạng PartyStateView" trong `apps/server/test/PartyRoom.test.ts` so khoá của `state.toJSON()` với `PartyStateView`/`PlayerView`, nên thêm trường ở một bên mà quên bên kia sẽ báo lỗi.
 
-Thông tin chỉ server cần (giờ hiện câu của từng người, thời điểm hết khoá, bộ đếm chống spam — trong `AnswerJudge`; lần nhắc độ khó gần nhất, `user_id` Supabase, lượt chat còn lại và 30 tin chat gần nhất trong `ChatRelay`) giữ trong `Map` riêng của phòng, không đồng bộ xuống client.
+Thông tin chỉ server cần (giờ hiện câu của từng người, thời điểm hết khoá, bộ đếm chống spam — trong `AnswerJudge`; lần nhắc độ khó gần nhất, `user_id` Supabase, nhân vật / phụ kiện xin và quyền đồ trang trí đã nạp, lượt chat còn lại và 30 tin chat gần nhất trong `ChatRelay`) giữ trong `Map` riêng của phòng, không đồng bộ xuống client.
 
 ## Cấu hình party và HTTP quản trị (CR-019)
 

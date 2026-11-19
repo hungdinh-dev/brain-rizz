@@ -205,7 +205,12 @@ function IntroView({ gameId }: { gameId: GameId }) {
           <ul className="flex flex-wrap gap-2.5">
             {players.map((p) => (
               <li key={p.id} className={cn("relative flex", !p.connected && "opacity-50")}>
-                <PlayerAvatar avatar={p.avatar} colorIndex={p.colorIndex} size="md" />
+                <PlayerAvatar
+                  avatar={p.avatar}
+                  accessories={p.accessories}
+                  colorIndex={p.colorIndex}
+                  size="md"
+                />
                 {/* Góc dưới phải đã dành cho dấu "Đã hiểu" nên huy hiệu máy sang góc dưới trái. */}
                 {p.isBot && <BotBadge size="sm" className="right-auto -left-1" />}
                 {(p.isHost || p.introReady) && (

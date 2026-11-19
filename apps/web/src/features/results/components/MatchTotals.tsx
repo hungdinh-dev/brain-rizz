@@ -110,7 +110,13 @@ function CompactTotalRow({
         {showMovement && <Movement prevRank={row.prevRank} rank={row.rank} compact />}
       </span>
       <span className="relative flex shrink-0">
-        <PlayerAvatar avatar={p.avatar} colorIndex={p.colorIndex} size="sm" className="size-7" />
+        <PlayerAvatar
+          avatar={p.avatar}
+          accessories={p.accessories}
+          colorIndex={p.colorIndex}
+          size="sm"
+          className="size-7"
+        />
         {p.isBot && <BotBadge size="xs" />}
         <ReactionBubble playerId={p.id} placement="corner" />
       </span>
@@ -244,6 +250,7 @@ function TotalRow({
         <span className="relative flex shrink-0">
           <PlayerAvatar
             avatar={p.avatar}
+            accessories={p.accessories}
             colorIndex={p.colorIndex}
             size="md"
             className="size-9 lg:size-13.5"

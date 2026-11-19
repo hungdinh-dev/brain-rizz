@@ -102,14 +102,33 @@ export const AVATAR_COLORS = [
 /**
  * Nhân vật đại diện người chơi chọn. Được phép trùng giữa người chơi (màu vẫn là thứ phân biệt).
  * Tên hiển thị nằm ở i18n của web.
- * - khoi: Khói (mèo)
- * - bo: Bơ (chó)
- * - mochi: Mochi (thỏ)
- * - bap: Bắp (gà con)
- * - cam: Cam (cáo)
- * - tron: Tròn (gấu trúc)
+ *
+ * 6 nhân vật đầu luôn mở (`BASE_CHARACTER_IDS`, bot chỉ dùng các nhân vật này):
+ * - khoi: Khói (mèo) · bo: Bơ (chó) · mochi: Mochi (thỏ)
+ * - bap: Bắp (gà con) · cam: Cam (cáo) · tron: Tròn (gấu trúc)
+ *
+ * 6 bạn đồng hành sau khoá tới khi đạt thành tích (CR-024, `PET_CHARACTER_IDS` và `UNLOCK_RULES`
+ * trong `cosmetics/unlocks.ts`; server thay bằng nhân vật mặc định nếu chưa mở):
+ * - pin: Pin (cánh cụt) · op: Ộp (ếch) · thong: Thông (cú)
+ * - gai: Gai (nhím) · may: Mây (koala) · lua: Lửa (rồng con)
+ *
+ * Giữ thứ tự: 6 cũ trước, 6 mới sau (test `unlocks.test.ts` kiểm bằng `BASE_CHARACTER_IDS` +
+ * `PET_CHARACTER_IDS`).
  */
-export const CHARACTER_IDS = ["khoi", "bo", "mochi", "bap", "cam", "tron"] as const;
+export const CHARACTER_IDS = [
+  "khoi",
+  "bo",
+  "mochi",
+  "bap",
+  "cam",
+  "tron",
+  "pin",
+  "op",
+  "thong",
+  "gai",
+  "may",
+  "lua",
+] as const;
 export type CharacterId = (typeof CHARACTER_IDS)[number];
 
 export function isCharacterId(v: unknown): v is CharacterId {

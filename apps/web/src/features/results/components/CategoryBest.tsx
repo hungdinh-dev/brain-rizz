@@ -152,6 +152,7 @@ export function CategoryBest({
                     <PlayerAvatar
                       key={p.id}
                       avatar={p.avatar}
+                      accessories={p.accessories}
                       colorIndex={p.colorIndex}
                       size="sm"
                       className={cn("size-7 [&_svg]:size-11", k > 0 && "-ml-2.25")}

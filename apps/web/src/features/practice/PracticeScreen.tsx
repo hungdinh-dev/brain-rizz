@@ -6,7 +6,7 @@ import { QuitDialog } from "@/components/common/QuitDialog";
 import { CountdownStage, SoloPlayView, waitAnswerOutcome, waitUnlockDelay } from "@/features/play";
 import type { MinigameBridge } from "@/games/types";
 import { useNumberFormat } from "@/hooks/use-number-format";
-import { restoreEntry, setBackGuard, useNav } from "@/stores/nav.store";
+import { type PracticeFilter, restoreEntry, setBackGuard, useNav } from "@/stores/nav.store";
 import { PracticePick } from "./components/PracticePick";
 import { PracticeResult } from "./components/PracticeResult";
 import { PracticeSetup } from "./components/PracticeSetup";
@@ -17,14 +17,17 @@ import { bestFor } from "./records";
  * Luyện tập (UC-13, khu 13): chọn game → hướng dẫn & độ khó → đếm ngược 3 giây → chơi → kết quả.
  * Chạy hoàn toàn trên máy (seed và chấm điểm ở client, cùng luật với party), không cần server.
  *
- * Đường dẫn (CR-022): `/practice` = chọn game, `/practice/<gameId>` = hướng dẫn game đó; đếm ngược,
- * chơi, kết quả vẫn ở URL này (không đẩy lịch sử). Back lúc đếm ngược / đang chơi = nút Thoát.
+ * Đường dẫn (CR-022): `/practice` = chọn game (`?cat=` = chip lọc đang chọn), `/practice/<gameId>` =
+ * hướng dẫn game đó (`?d=` = mức tối thiểu chọn sẵn); đếm ngược, chơi, kết quả vẫn ở URL này (không
+ * đẩy lịch sử). Back lúc đếm ngược / đang chơi = nút Thoát.
  */
 export function PracticeScreen() {
   const s = usePractice();
   const go = useNav((n) => n.go);
   const goBack = useNav((n) => n.goBack);
   const routeGame = useNav((n) => (n.route.screen === "practice" ? n.route.gameId : undefined));
+  const routeLevel = useNav((n) => (n.route.screen === "practice" ? n.route.level : undefined));
+  const filter = useNav((n) => (n.route.screen === "practice" && n.route.filter) || "all");
   const { t } = useTranslation();
   const fmt = useNumberFormat();
   const [confirmQuit, setConfirmQuit] = useState(false);
@@ -39,15 +42,15 @@ export function PracticeScreen() {
   }, []);
 
   // Đường dẫn → bước: có `gameId` thì mở hướng dẫn game đó (giữ nguyên nếu đang chơi / xem kết quả
-  // của chính game này), không có thì về lưới chọn game.
+  // của chính game này; `?d=` = mức tối thiểu chọn sẵn), không có thì về lưới chọn game.
   useLayoutEffect(() => {
     const p = usePractice.getState();
     if (routeGame) {
-      if (p.step === "pick" || p.gameId !== routeGame) p.pickGame(routeGame);
+      if (p.step === "pick" || p.gameId !== routeGame) p.pickGame(routeGame, routeLevel);
     } else if (p.step !== "pick") {
       p.backToPick();
     }
-  }, [routeGame]);
+  }, [routeGame, routeLevel]);
 
   // Back của trình duyệt lúc đếm ngược / đang chơi → giữ URL, hỏi "Bỏ lượt này?" như nút Thoát.
   useEffect(() => {
@@ -82,9 +85,22 @@ export function PracticeScreen() {
   // Chọn game → đẩy `/practice/<gameId>`; "Chọn game khác" → về `/practice`.
   const pick = (gameId: GameId) => go({ screen: "practice", gameId });
   const otherGame = () => goBack({ screen: "practice" });
+  // Đổi chip lọc → `/practice?cat=<nhóm|fav>` bằng replace (không chất lịch sử theo từng chip).
+  const changeFilter = (next: PracticeFilter | "all") =>
+    go(next === "all" ? { screen: "practice" } : { screen: "practice", filter: next }, {
+      replace: true,
+    });
 
   if (s.step === "pick" || !s.gameId) {
-    return <PracticePick records={s.records} onPick={pick} onBack={leave} />;
+    return (
+      <PracticePick
+        records={s.records}
+        filter={filter}
+        onFilter={changeFilter}
+        onPick={pick}
+        onBack={leave}
+      />
+    );
   }
 
   if (s.step === "setup" || !round || !bridge) {

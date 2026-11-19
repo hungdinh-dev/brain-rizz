@@ -65,17 +65,21 @@ export interface SimRoundResult {
   correct: number;
 }
 
-/** Điểm một vòng của `player` ở game `gameId`, seed vòng `roundSeed`. */
+/**
+ * Điểm một vòng của `player` ở game `gameId`, seed vòng `roundSeed`. `durationMs` mặc định là
+ * thời lượng vòng party của game; Kiểm tra não truyền `brainTestDurationMs` (mô phỏng kinh tế phấn).
+ */
 export function simulateRound(
   gameId: GameId,
   roundSeed: number,
   player: SimPlayer,
   cache: QuestionInfoCache,
+  durationMs?: number,
 ): SimRoundResult {
   const game = getGame(gameId);
   const { difficulty } = player;
   const multiplier = gameMultiplier(game, difficulty);
-  const endsAt = game.durationMs;
+  const endsAt = durationMs ?? game.durationMs;
   let shownAt = 0;
   let streak = 0;
   const result: SimRoundResult = { score: 0, answered: 0, correct: 0 };

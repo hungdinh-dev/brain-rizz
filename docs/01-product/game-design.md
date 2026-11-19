@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Thiết kế — phần luật chơi và cảm giác chơi |
-| Phiên bản tài liệu | 1.7 · 2026-11-19 — phòng 12 người, điểm thứ hạng co giãn theo số người ([CR-018](../00-tracking/change-requests.md#cr-018)); công thức điểm + hệ số + game bật/tắt của trận party do quản trị viên chỉnh ([CR-019](../00-tracking/change-requests.md#cr-019)) |
+| Phiên bản tài liệu | 1.8 · 2026-11-20 — mục Kinh tế: phấn, máy quay phụ kiện, bạn đồng hành khoá theo thành tích ([CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024)); 12 nhân vật |
 | Liên quan | [SRS](srs.md) (yêu cầu), [UI/UX](ui-ux.md) (màn hình), [Minigame](../04-minigames/README.md) (đặc tả từng game) |
 | Cập nhật khi | Đổi luật, điểm, độ khó, chế độ chơi — đổi luật nào cũng phải ghi [CR](../00-tracking/change-requests.md) |
 
@@ -344,16 +344,22 @@ Ví dụ (hệ số mặc định, không miễn trừ thời gian — như Kẻ
 
 - **Phong cách:** "bảng phấn lớp học" — nền bảng xanh trong khung gỗ, nội dung trên thẻ giấy dán viền mực, chữ phấn. Quyết định: [ADR 0009](../02-architecture/decisions/0009-chalkboard-style-and-characters.md). Hệ thống thiết kế: [UI/UX](ui-ux.md).
 - **Linh vật:** "Bộ não" giáo sư dẫn dắt ở menu và mẹo chơi.
-- **Bạn đồng hành:** 6 nhân vật chibi, người chơi chọn một; được phép trùng nhau, màu avatar phân biệt người chơi.
+- **Bạn đồng hành:** 12 nhân vật chibi, người chơi chọn một; được phép trùng nhau, màu avatar phân biệt người chơi. 6 nhân vật đầu luôn mở; 6 nhân vật sau **khoá** tới khi đạt thành tích ([CR-024](../00-tracking/change-requests.md#cr-024), điều kiện ở [mục Kinh tế](#kinh-tế-phấn-máy-quay-bạn-đồng-hành-khoá)). Bot chỉ dùng 6 nhân vật luôn mở.
 
-| ID | Tên | Loài |
-| --- | --- | --- |
-| `khoi` | Khói | Mèo tai cụp (mặc định) |
-| `bo` | Bơ | Cún tai xù |
-| `mochi` | Mochi | Thỏ trắng |
-| `bap` | Bắp | Gà con |
-| `cam` | Cam | Cáo lửa |
-| `tron` | Tròn | Gấu trúc |
+| ID | Tên | Loài | Mở |
+| --- | --- | --- | --- |
+| `khoi` | Khói | Mèo tai cụp (mặc định) | Luôn mở |
+| `bo` | Bơ | Cún tai xù | Luôn mở |
+| `mochi` | Mochi | Thỏ trắng | Luôn mở |
+| `bap` | Bắp | Gà con | Luôn mở |
+| `cam` | Cam | Cáo lửa | Luôn mở |
+| `tron` | Tròn | Gấu trúc | Luôn mở |
+| `pin` | Pin | Cánh cụt | 10 trận party |
+| `op` | Ộp | Ếch | Kỷ lục luyện tập Bóng bay số ≥ 2 200 (Thường trở lên) |
+| `thong` | Thông | Cú | Trung bình 3 kỷ lục cao nhất nhóm Phân tích ≥ 2 500 |
+| `gai` | Gai | Nhím | Về nhất 5 trận party |
+| `may` | Mây | Koala | Điểm Não ≥ 530 |
+| `lua` | Lửa | Rồng con | 120 trận party và trung bình mỗi nhóm ≥ 1 600 |
 
 Mỗi nhân vật có 7 biểu cảm dùng chung (`idle` bình thường, `happy` vui, `sad` buồn, `surprised` ngạc nhiên, `angry` tức, `thinking` suy nghĩ, `win` chiến thắng), hoạt ảnh CSS, tự tắt khi người dùng bật giảm chuyển động.
 
@@ -377,8 +383,37 @@ Mỗi nhân vật có 7 biểu cảm dùng chung (`idle` bình thường, `happy
 ## 10. Giữ chân người chơi (GĐ 3)
 
 - Lịch sử điểm theo từng minigame và biểu đồ 5 kỹ năng.
-- Mũ phần thưởng khi lập kỷ lục, đội trên nhân vật ở phòng chờ.
+- Phụ kiện đeo trên nhân vật (cả phòng thấy) và bạn đồng hành khoá theo thành tích: [mục dưới](#kinh-tế-phấn-máy-quay-bạn-đồng-hành-khoá) (CR-023, CR-024, làm sớm hơn GĐ 3).
 - Đấu bóng ma để thách bạn bè dù không online cùng lúc.
+
+### Kinh tế (phấn, máy quay, bạn đồng hành khoá)
+
+[CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024). Kế hoạch, hợp đồng và bảng mô phỏng đầy đủ: [gacha-pets-unlocks.md](gacha-pets-unlocks.md). Cài đặt: `packages/shared/src/cosmetics/` (`economy.ts`, `unlocks.ts`, `catalog.ts`); số dư, quay, kẹp trần chạy trong Postgres.
+
+**Nguyên tắc:** không tiền thật (phấn chỉ kiếm bằng chơi); tỉ lệ công khai; có bảo hiểm; trùng món đổi lại phấn; không đồng hồ đếm ngược, không sự kiện giới hạn, không phạt mất chuỗi; server quyết; trần phấn mỗi ngày theo nguồn.
+
+**Kiếm phấn** (trần tính theo ngày giờ VN):
+
+| Nguồn | Phấn | Trần mỗi ngày |
+| --- | --- | --- |
+| Trận party | 10 + 5 × số vòng + thưởng hạng (nhất 20, nhì 12, ba 8); trận chỉ 1 người thật (còn lại bot) × 0,5. Trận 3 vòng: 45 / 37 / 33 / 25 | 300 phấn |
+| Kiểm tra não | 30 + Điểm Não / 20 (30 – 80) | 3 lượt |
+| Luyện tập | 5 mỗi lượt | 10 lượt |
+| Quà mỗi ngày | 20 | 1 lần, không có chuỗi |
+
+**Máy quay phụ kiện:** 1 lần 100 phấn, 10 lần 900 phấn (chắc ≥ 1 món Hiếm). Tỉ lệ Thường 60 % · Hiếm 30 % · Sử thi 8 % · Huyền thoại 2 %; lần thứ 15 kể từ Sử thi trở lên gần nhất chắc Sử thi trở lên, lần thứ 60 kể từ Huyền thoại gần nhất chắc Huyền thoại. Trong một độ hiếm bốc đều 24 món (9 / 8 / 4 / 3), riêng Huyền thoại không trùng tới khi đủ cả 3 món; trùng đổi lại 10 / 30 / 80 / 200 phấn.
+
+**Nhịp tiến độ** (mô phỏng `economy-sim.test.ts`, người lớn điển hình = người chơi chuẩn của mô phỏng bot):
+
+| Kiểu chơi | Phấn / ngày | Lượt quay đầu | Đủ 24 món (trung vị) |
+| --- | --- | --- | --- |
+| Nhẹ: 2 trận | 90 | ngày 2 | ~4 tháng |
+| Vừa: 5 trận + 1 Kiểm tra não + 5 luyện tập | 237 | ngày 1 | ~50 ngày (p90 79) |
+| Nhiều: chạm mọi trần | 528 | ngày 1 | ~23 ngày |
+
+**Bạn đồng hành khoá** (bảng ở [mục 8](#8-nhân-vật--phong-cách-hình-ảnh)): ba thú "chăm chơi" (`pin` số trận, `gai` số trận về nhất — phòng bot Dễ cũng tính, `thong` luyện tập nhóm Phân tích — tính cả Mầm) mở trong vài ngày với mọi người kể cả trẻ em; `op` (kỷ lục một game ở Thường+) và `may` (Điểm Não) cần chơi tốt ở mức người lớn, người chơi vừa mở trong ~2 ngày và ~1 tuần; `lua` là thú khó nhất: 120 trận party (~3,5 tuần chơi vừa) và không bỏ nhóm nào (trung bình mỗi nhóm ≥ 1 600). Mỗi thú có thanh tiến độ và nút **Luyện ngay** / **Chơi party** dẫn tới đúng màn.
+
+**Thiết kế để không ai bị kẹt:** điều kiện số trận / số trận thắng / luyện tập Mầm cho ai chịu chơi cũng đạt; điều kiện kỹ năng đặt quanh p90 của người lớn điển hình (vài lượt thử là chạm), không đặt ở mức chỉ người giỏi đạt. Chỉnh số: sửa `economy.ts` / `UNLOCK_RULES`, chạy lại mô phỏng, cập nhật bảng ở kế hoạch, ở đây, và migration Supabase (test shared đọc file SQL).
 
 ## 11. Lịch sử thay đổi tài liệu
 
@@ -392,5 +427,6 @@ Mỗi nhân vật có 7 biểu cảm dùng chung (`idle` bình thường, `happy
 | 1.5 | 2026-10-21 | Chế độ Chơi với máy và mục Bot: bot mô phỏng kết quả (không giải câu đố), 4 mức Dễ · Vừa · Khó · Siêu, `expectedSolveMs` theo bảng Cân bằng, kết quả mô phỏng và hạn chế đã biết | [CR-016](../00-tracking/change-requests.md#cr-016) |
 | 1.6 | 2026-10-21 | Bot: tỉ lệ đúng tương đối theo `expectedAccuracy` của từng game (giữ tỉ số tỉ lệ sai so với người chuẩn), Dễ nới thành T × 1,2 / 78 %, Kẻ lạc đàn có thời gian ước lượng; hạn chế mới: hệ số điểm chung của Kẻ lạc đàn | [CR-016](../00-tracking/change-requests.md#cr-016) |
 | 1.7 | 2026-11-19 | Đấu nhóm 2–12 người; điểm trận theo hạng co giãn `max(1, N − hạng) + thưởng top`; cấu hình trận party của quản trị viên (công thức điểm, hệ số, thưởng top, game bật/tắt), game bị tắt không lên vòng quay | [CR-018](../00-tracking/change-requests.md#cr-018), [CR-019](../00-tracking/change-requests.md#cr-019) |
+| 1.8 | 2026-11-20 | Mục Kinh tế (§10): nguồn phấn + trần ngày, giá / tỉ lệ / bảo hiểm / phấn trùng của máy quay, nhịp tiến độ theo mô phỏng; 6 bạn đồng hành khoá theo thành tích (§8), bot chỉ dùng 6 nhân vật luôn mở | [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

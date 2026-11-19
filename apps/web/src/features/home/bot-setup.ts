@@ -1,7 +1,7 @@
 import {
   AVATAR_COLORS,
+  BASE_CHARACTER_IDS,
   type BotLevel,
-  CHARACTER_IDS,
   type CharacterId,
   MAX_PLAYERS,
   type RoomBotsOption,
@@ -45,7 +45,8 @@ export interface SeatFace {
  * nhân vật của mình, màu khác màu của mình. Bot thật do server chọn lúc tạo phòng.
  */
 export function previewBotFaces(me: SeatFace, count: number): SeatFace[] {
-  const avatars = CHARACTER_IDS.filter((id) => id !== me.avatar);
+  // Bot chỉ dùng 6 nhân vật cũ (thú khoá CR-024 không bao giờ là bot).
+  const avatars: CharacterId[] = BASE_CHARACTER_IDS.filter((id) => id !== me.avatar);
   const colors = AVATAR_COLORS.map((_, i) => i).filter((i) => i !== me.colorIndex);
   return Array.from({ length: clampBotCount(count) }, (_, i) => ({
     avatar: avatars[i % avatars.length] ?? me.avatar,

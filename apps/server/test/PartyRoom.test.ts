@@ -222,6 +222,7 @@ describe("PartyRoom", () => {
         name: true,
         colorIndex: true,
         avatar: true,
+        accessories: true,
         difficulty: true,
         ready: true,
         introReady: true,
@@ -245,8 +246,12 @@ describe("PartyRoom", () => {
       expect(Object.keys(json.players[host.sessionId] ?? {}).sort()).toEqual(
         Object.keys(PLAYER_KEYS).sort(),
       );
-      // Người thật: không phải bot, mức 0 (CR-016).
-      expect(json.players[host.sessionId]).toMatchObject({ isBot: false, botLevel: 0 });
+      // Người thật: không phải bot, mức 0 (CR-016); chưa đeo phụ kiện (CR-023).
+      expect(json.players[host.sessionId]).toMatchObject({
+        isBot: false,
+        botLevel: 0,
+        accessories: [],
+      });
       expect(json.pickMode).toBe("wheel");
       expect(json.votes).toEqual({});
       expect(json.playedGames).toEqual([]);

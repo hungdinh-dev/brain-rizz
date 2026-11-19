@@ -1,7 +1,8 @@
-import type { RoomBotsOption } from "@brain-rizz/shared";
+import type { PetId, RoomBotsOption } from "@brain-rizz/shared";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { UnlockCelebration } from "@/features/pets";
 import { playSfx } from "@/features/sfx";
 import { createParty, joinParty } from "@/net/connection";
 import { useAuth } from "@/stores/auth.store";
@@ -117,6 +118,15 @@ export function HomeScreen() {
     }
   }
 
+  /** "Chọn X làm bạn đồng hành" ở hộp chúc mừng mở thú mới (CR-024). */
+  function choosePet(pet: PetId) {
+    const next = { ...profile, avatar: pet };
+    saveProfile(next);
+    setProfile(next);
+    void useAuth.getState().syncProfile(next);
+    toast(t("pets.picked", { name: t(`characters.${pet}.name`) }), { duration: 2_200 });
+  }
+
   if (step === "intro") return <IntroScreen onStart={() => go("menu")} />;
 
   if (step === "profile") {
@@ -134,18 +144,22 @@ export function HomeScreen() {
   }
 
   return (
-    <MenuScreen
-      profile={profile}
-      inviteCode={inviteCode}
-      busy={busy}
-      onEditProfile={() => go("profile")}
-      onCreate={() => withProfile((p) => createParty(p))}
-      onJoin={(code) => withProfile((p) => joinParty(code, p))}
-      onPractice={() => withProfile(async () => go("practice"))}
-      onBrainTest={() => withProfile(async () => go("brain-test"))}
-      onLeaderboard={() => go("leaderboard")}
-      onAccount={() => go("account")}
-      onPlayBots={playBots}
-    />
+    <>
+      <MenuScreen
+        profile={profile}
+        inviteCode={inviteCode}
+        busy={busy}
+        onEditProfile={() => go("profile")}
+        onCreate={() => withProfile((p) => createParty(p))}
+        onJoin={(code) => withProfile((p) => joinParty(code, p))}
+        onPractice={() => withProfile(async () => go("practice"))}
+        onBrainTest={() => withProfile(async () => go("brain-test"))}
+        onLeaderboard={() => go("leaderboard")}
+        onAccount={() => go("account")}
+        onPlayBots={playBots}
+      />
+      {/* Thú vừa mở khoá (so với danh sách đã thấy trên máy) → hộp chúc mừng, lần lượt từng con. */}
+      <UnlockCelebration onChoose={choosePet} />
+    </>
   );
 }

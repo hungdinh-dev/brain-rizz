@@ -14,6 +14,7 @@ import { MusicBar, useMusicAutoplay } from "@/features/music";
 import { SfxToggle, useSfxEffects } from "@/features/sfx";
 import { i18n } from "@/i18n";
 import { loadAdminLocales } from "@/i18n/admin";
+import { loadGachaLocales } from "@/i18n/gacha";
 import { loadSoloLocales } from "@/i18n/solo";
 import { cn } from "@/lib/utils";
 import { resumeParty } from "@/net/connection";
@@ -54,6 +55,22 @@ const LeaderboardScreen = lazy(() =>
 );
 
 /*
+ * Máy quay phụ kiện và Tủ đồ (CR-023, CR-024): chunk riêng kèm chữ 24 món / độ hiếm
+ * (i18n/gacha.ts). Tủ đồ còn có tab Bạn đồng hành ghi điều kiện mở theo tên minigame nên tải thêm
+ * chữ các màn một mình (kèm registry minigame).
+ */
+const GachaScreen = lazy(() =>
+  Promise.all([import("@/features/gacha"), loadGachaLocales()]).then(([m]) => ({
+    default: m.GachaScreen,
+  })),
+);
+const WardrobeScreen = lazy(() =>
+  Promise.all([import("@/features/wardrobe"), loadGachaLocales(), loadSoloLocales()]).then(
+    ([m]) => ({ default: m.WardrobeScreen }),
+  ),
+);
+
+/*
  * Trang quản trị `/admin` (CR-019): chunk riêng kèm chữ của trang (i18n/admin.ts); người chơi
  * thường không bao giờ tải. Có thanh trên riêng nên không hiện hàng nút nhạc/ngôn ngữ chung.
  */
@@ -68,6 +85,8 @@ const SOLO_SCREENS: Partial<Record<Screen, React.ComponentType>> = {
   "brain-test": BrainTestScreen,
   account: AccountScreen,
   leaderboard: LeaderboardScreen,
+  gacha: GachaScreen,
+  wardrobe: WardrobeScreen,
 };
 
 /** Pha cần tập trung: ẩn nút ngôn ngữ/theme/nhạc để nhường chỗ, nhạc nền nhỏ lại. */

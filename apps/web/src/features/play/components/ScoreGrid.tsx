@@ -51,6 +51,7 @@ export function ScoreGrid({ standings, meId }: { standings: Standing[]; meId: st
               <span className="relative mt-0.5 flex">
                 <PlayerAvatar
                   avatar={p.avatar}
+                  accessories={p.accessories}
                   colorIndex={p.colorIndex}
                   size="sm"
                   className="size-6.5"

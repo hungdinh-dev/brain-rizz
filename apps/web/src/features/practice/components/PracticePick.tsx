@@ -1,6 +1,5 @@
 import { CATEGORIES, type Category, GAME_IDS, GAMES, type GameId } from "@brain-rizz/shared";
 import { StarIcon, TrophyIcon } from "lucide-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CATEGORY_BG, CATEGORY_FG, CATEGORY_ICON } from "@/components/common/MatchChips";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
@@ -9,16 +8,21 @@ import { GAME_CLIENTS } from "@/games/registry";
 import { useGameTextLookup } from "@/hooks/use-game-text";
 import { useNumberFormat } from "@/hooks/use-number-format";
 import { cn } from "@/lib/utils";
+import type { PracticeFilter } from "@/stores/nav.store";
 import { useFavorites } from "../favorites";
 import type { PracticeRecords } from "../records";
 import { topBestOfGame } from "../records";
 import { TileFavoriteStar } from "./FavoriteStar";
 
 /** `fav` = chỉ mục Yêu thích (CR-020). */
-type Filter = Category | "all" | "fav";
+type Filter = PracticeFilter | "all";
 
 interface PracticePickProps {
   records: PracticeRecords;
+  /** Chip lọc đang chọn, đọc từ đường dẫn (`/practice?cat=<nhóm|fav>`; không có = Tất cả). */
+  filter: Filter;
+  /** Đổi chip: cập nhật đường dẫn (thay mục lịch sử). */
+  onFilter(filter: Filter): void;
   onPick(gameId: GameId): void;
   onBack(): void;
 }
@@ -27,9 +31,14 @@ interface PracticePickProps {
  * Luyện tập · chọn game (khu 13, khu 27): lọc theo nhóm / Yêu thích, thẻ game kèm kỷ lục cao nhất
  * của mình và nút ⭐. Lọc "Tất cả" thì mục Yêu thích đứng đầu (chưa có thì một dòng gợi ý).
  */
-export function PracticePick({ records, onPick, onBack }: PracticePickProps) {
+export function PracticePick({
+  records,
+  filter,
+  onFilter: setFilter,
+  onPick,
+  onBack,
+}: PracticePickProps) {
   const { t } = useTranslation();
-  const [filter, setFilter] = useState<Filter>("all");
   const favorites = useFavorites((s) => s.ids);
   const groups = CATEGORIES.filter((c) => filter === "all" || filter === c);
 

@@ -1,4 +1,9 @@
-import { CHARACTER_IDS, CreateOptionsSchema, MAX_PLAYERS } from "@brain-rizz/shared";
+import {
+  BASE_CHARACTER_IDS,
+  CreateOptionsSchema,
+  MAX_PLAYERS,
+  PET_CHARACTER_IDS,
+} from "@brain-rizz/shared";
 import { createInstance, type TFunction } from "i18next";
 import { beforeAll, describe, expect, it } from "vitest";
 import { en } from "@/i18n/locales/en";
@@ -50,8 +55,14 @@ describe("hộp thoại Chơi với máy (CR-016)", () => {
     expect(faces).toHaveLength(11);
     expect(1 + faces.length + freeSeats(11)).toBe(MAX_PLAYERS);
     // Không lặp lại nhân vật / màu của mình khi còn lựa chọn khác.
-    expect(faces.slice(0, CHARACTER_IDS.length - 1).every((f) => f.avatar !== me.avatar)).toBe(
+    expect(faces.slice(0, BASE_CHARACTER_IDS.length - 1).every((f) => f.avatar !== me.avatar)).toBe(
       true,
+    );
+    // Bot chỉ là 6 nhân vật cũ, không bao giờ là thú khoá (CR-024).
+    const pets: readonly string[] = PET_CHARACTER_IDS;
+    expect(faces.every((f) => !pets.includes(f.avatar))).toBe(true);
+    expect(new Set(faces.map((f) => f.avatar))).toEqual(
+      new Set(BASE_CHARACTER_IDS.filter((id) => id !== me.avatar)),
     );
     expect(faces.every((f) => f.colorIndex !== me.colorIndex)).toBe(true);
   });

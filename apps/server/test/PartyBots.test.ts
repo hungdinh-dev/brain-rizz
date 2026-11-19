@@ -1,10 +1,10 @@
 import {
+  BASE_CHARACTER_IDS,
   BOT_CHAT_DELAY_MS,
   BOT_INTRO_READY_MS,
   type BotLevel,
   type BotYieldedPayload,
   botDifficulty,
-  CHARACTER_IDS,
   type ChatMessagePayload,
   ClientMessage,
   COUNTDOWN_MS,
@@ -245,7 +245,7 @@ describe("PartyRoom — chơi với bot (CR-016)", () => {
 
     it("Chơi với máy: người tạo giữ màu + nhân vật trong hồ sơ, bot tránh cả hai", async () => {
       // Đủ bot để dùng hết nhân vật còn trống, rồi đủ MAX_PLAYERS ghế (nhân vật phải dùng lại).
-      const freeCharacters = CHARACTER_IDS.length - 1;
+      const freeCharacters = BASE_CHARACTER_IDS.length - 1;
       for (const count of [Math.min(freeCharacters, MAX_PLAYERS - 1), MAX_PLAYERS - 1]) {
         // Màu 0 là ca lỗi cũ: bot đầu tiên lấy màu trống từ 0 nên người tạo bị đổi màu.
         for (const [colorIndex, avatar] of [
@@ -282,6 +282,9 @@ describe("PartyRoom — chơi với bot (CR-016)", () => {
           const whileFree = bots(room).slice(0, freeCharacters);
           expect(whileFree.some((b) => b.avatar === avatar)).toBe(false);
           expect(new Set(whileFree.map((b) => b.avatar)).size).toBe(whileFree.length);
+          // Bot chỉ dùng 6 nhân vật luôn mở, không dùng thú khoá (CR-024).
+          const base: readonly string[] = BASE_CHARACTER_IDS;
+          expect(bots(room).every((b) => base.includes(b.avatar))).toBe(true);
           await me.leave();
         }
       }

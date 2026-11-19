@@ -49,6 +49,7 @@ export function AvatarStrip({
             <span className="relative flex">
               <PlayerAvatar
                 avatar={p.avatar}
+                accessories={p.accessories}
                 colorIndex={p.colorIndex}
                 size="sm"
                 className="size-7.5 shadow-[0_0_0_2px_var(--color-board)] lg:size-10 lg:border-[3px] lg:shadow-none"
@@ -80,7 +81,12 @@ export function AvatarStrip({
           className={cn("flex min-w-0 flex-col items-center gap-0.5", !p.connected && "opacity-50")}
         >
           <span className="relative flex">
-            <PlayerAvatar avatar={p.avatar} colorIndex={p.colorIndex} size="md" />
+            <PlayerAvatar
+              avatar={p.avatar}
+              accessories={p.accessories}
+              colorIndex={p.colorIndex}
+              size="md"
+            />
             {badge?.(p) ?? (p.isBot && <BotBadge size="sm" />)}
           </span>
           {!hideNames && (

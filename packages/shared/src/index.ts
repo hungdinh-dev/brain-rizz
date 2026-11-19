@@ -5,6 +5,7 @@ export * from "./brain-test";
 export * from "./chat";
 export * from "./clock";
 export * from "./constants";
+export * from "./cosmetics";
 export * from "./difficulty";
 export * from "./games";
 export * from "./match";

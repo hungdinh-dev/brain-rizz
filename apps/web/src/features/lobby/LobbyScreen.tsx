@@ -114,9 +114,10 @@ export function LobbyScreen() {
   }
 
   function pickCharacter(avatar: CharacterId) {
-    send(ClientMessage.SetProfile, { avatar });
     // Nhớ cho lần sau vào phòng (hồ sơ lưu ở máy) và đồng bộ lên tài khoản nếu có phiên.
     const next = { ...loadProfile(), avatar };
+    // Gửi kèm phụ kiện đang đeo (CR-023): server kiểm lại cả hai theo quyền sở hữu.
+    send(ClientMessage.SetProfile, { avatar, accessories: next.accessories });
     saveProfile(next);
     void useAuth.getState().syncProfile(next);
   }

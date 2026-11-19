@@ -158,6 +158,7 @@ export function RoomDifficulty({
                 <span className="relative flex">
                   <PlayerAvatar
                     avatar={p.avatar}
+                    accessories={p.accessories}
                     colorIndex={p.colorIndex}
                     size="sm"
                     className="size-9"
@@ -293,7 +294,13 @@ function CompactRow({
       )}
     >
       <span className="relative flex shrink-0">
-        <PlayerAvatar avatar={p.avatar} colorIndex={p.colorIndex} size="sm" className="size-7" />
+        <PlayerAvatar
+          avatar={p.avatar}
+          accessories={p.accessories}
+          colorIndex={p.colorIndex}
+          size="sm"
+          className="size-7"
+        />
         {p.isHost && (
           <span
             role="img"

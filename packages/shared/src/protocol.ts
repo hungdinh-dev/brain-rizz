@@ -10,6 +10,7 @@ import {
   MAX_TOTAL_ROUNDS,
   MIN_TOTAL_ROUNDS,
 } from "./constants";
+import { MAX_ACCESSORIES, MAX_COSMETIC_ID_LENGTH } from "./cosmetics/catalog";
 import type { Difficulty } from "./difficulty";
 import { GAME_IDS, type GameId } from "./games";
 import type { Category } from "./games/types";
@@ -104,6 +105,12 @@ const profileFields = {
     .max(AVATAR_COLORS.length - 1),
   difficulty: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
   avatar: z.enum(CHARACTER_IDS),
+  /**
+   * Phụ kiện muốn đeo (CR-023): tối đa `MAX_ACCESSORIES` id, mỗi id ≤ `MAX_COSMETIC_ID_LENGTH` ký
+   * tự. Không kiểm id có trong danh mục ở đây: server lọc lại bằng `sanitizeLoadout(ids, món đã
+   * sở hữu)` (id lạ, món chưa có, trùng chỗ đều bị bỏ).
+   */
+  accessories: z.array(z.string().min(1).max(MAX_COSMETIC_ID_LENGTH)).max(MAX_ACCESSORIES),
 };
 
 /** Id người chơi trong tin nhắn (sessionId hoặc id ghế bot `bot-<n>`). */
@@ -125,7 +132,13 @@ export const JoinOptionsSchema = z.object({
   name: profileFields.name,
   colorIndex: profileFields.colorIndex.default(0),
   difficulty: profileFields.difficulty.default(1),
+  /**
+   * Nhân vật muốn dùng. Thú khoá (CR-024) chỉ được khi có token hợp lệ và đã mở; chưa thì server
+   * thay bằng `khoi` (không từ chối vào phòng).
+   */
   avatar: profileFields.avatar.default("khoi"),
+  /** Phụ kiện muốn đeo (CR-023). Sai kiểu / quá giới hạn thì bị bỏ (coi như không gửi). */
+  accessories: profileFields.accessories.optional().catch(undefined),
   accessToken: accessTokenField,
 });
 export type JoinOptions = z.input<typeof JoinOptionsSchema>;
@@ -145,6 +158,8 @@ export type ReadyPayload = z.infer<typeof ReadySchema>;
 
 /**
  * Mọi trường đều tuỳ chọn và KHÔNG có mặc định: trường không gửi thì giữ nguyên.
+ * `avatar` / `accessories` qua cùng bước kiểm sở hữu như lúc vào phòng (thú khoá chưa mở → `khoi`,
+ * phụ kiện chưa có → bỏ). `accessories: []` = tháo hết.
  * (Không dùng `JoinOptionsSchema.partial()` vì zod 4 vẫn điền `.default()` trong trường optional,
  * khiến đổi tên cũng làm reset màu/độ khó/nhân vật.)
  */
@@ -268,6 +283,12 @@ export const ServerMessage = {
    * web hiện toast "<tên> vào phòng · <bot> nhường ghế".
    */
   BotYielded: "botYielded",
+  /**
+   * Phấn vừa nhận sau trận party (CR-023) — `RewardPayload`. Gửi riêng cho từng người đã xác thực,
+   * sau khi vào `podium` và ghi `match_results` + `grant_chalk` xong; khách không phiên không nhận.
+   * Mỗi trận tối đa một lần mỗi người; đang rớt mạng lúc đó thì lỡ (không gửi lại khi nối lại).
+   */
+  Reward: "reward",
 } as const;
 
 export interface RoundStartPayload {
@@ -342,6 +363,15 @@ export interface BotYieldedPayload {
   playerName: string;
 }
 
+/** Tin `reward` (CR-023). Không có chữ giao diện: web hiện "+N phấn". */
+export interface RewardPayload {
+  /**
+   * Số phấn thực cộng vào ví, đã kẹp trần ngày (`grant_chalk`). `0` = đã chạm trần hôm nay hoặc
+   * ghi lỗi — web nên ẩn.
+   */
+  chalk: number;
+}
+
 export interface ErrorPayload {
   /**
    * `not-ready`: chưa đủ người, chưa ai cũng sẵn sàng / chưa ai cũng "Đã hiểu".
@@ -363,8 +393,17 @@ export interface PlayerView {
   id: string;
   name: string;
   colorIndex: number;
-  /** Nhân vật đại diện (được phép trùng giữa người chơi). */
+  /**
+   * Nhân vật đại diện (được phép trùng giữa người chơi). Server đã kiểm: thú khoá chưa mở (hoặc
+   * chưa nạp xong quyền) hiện `khoi`.
+   */
   avatar: CharacterId;
+  /**
+   * Phụ kiện đang đeo (CR-023), đã lọc bằng `sanitizeLoadout` theo món đã sở hữu: tối đa
+   * `MAX_ACCESSORIES`, thứ tự đầu → mặt → cổ. Rỗng khi không đeo, không có phiên, chưa nạp xong
+   * quyền; luôn rỗng với bot.
+   */
+  accessories: string[];
   /** Độ khó của người này cho vòng hiện tại (chọn lại ở pha `game-intro`; mặc định mức lần trước). */
   difficulty: 0 | 1 | 2 | 3;
   /** Sẵn sàng ở phòng chờ. */
@@ -467,6 +506,7 @@ export type BrainSaveStatus = (typeof BRAIN_SAVE_STATUSES)[number];
 /** Join options của phòng Kiểm tra não (tạo bằng `client.create(BRAIN_TEST_ROOM_NAME, …)`). */
 export const BrainJoinOptionsSchema = z.object({
   name: profileFields.name,
+  /** Thú khoá chưa mở (hoặc không có phiên hợp lệ) → server dùng `khoi`, như phòng party. */
   avatar: profileFields.avatar.default("khoi"),
   accessToken: accessTokenField,
 });
@@ -522,4 +562,9 @@ export interface BrainStateView {
   /** Điểm 5 kỹ năng; rỗng tới khi `finished`. */
   skills: Partial<Record<Category, number>>;
   saveStatus: BrainSaveStatus;
+  /**
+   * Phấn nhận được từ lượt này (CR-023), đã kẹp trần ngày (`grant_chalk`). 0 khi chưa xong / chưa
+   * ghi phấn xong / khách không phiên / đã chạm trần / ghi lỗi. Cập nhật sau `saveStatus = "saved"`.
+   */
+  chalkEarned: number;
 }

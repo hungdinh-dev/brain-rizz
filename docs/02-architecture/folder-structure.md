@@ -73,6 +73,12 @@ brain-rizz/
 │  │                           models/basic.ts (model v1, nhiễu log-normal), simulate.ts (mô phỏng cân bằng), index.ts
 │  │                           (registry BOT_MODELS, planBotAnswer, botSeed, botExpectedSolveMs); bots.test.ts,
 │  │                           balance-sim.test.ts (1 000 vòng × mỗi game × mỗi mức). Thêm model: file mới + 1 dòng BOT_MODELS
+│  ├─ cosmetics/               Phấn, máy quay phụ kiện, bạn đồng hành khoá (CR-023, CR-024; docs/01-product/
+│  │                           gacha-pets-unlocks.md): catalog.ts (24 phụ kiện, sanitizeLoadout), economy.ts (giá, tỉ
+│  │                           lệ, bảo hiểm, trần ngày, partyChalkReward/brainChalkReward, thuật toán quay tham chiếu
+│  │                           rollGachaBatch, ECONOMY_SQL_CONSTANTS), unlocks.ts (BASE/PET_CHARACTER_IDS, UNLOCK_RULES,
+│  │                           parseUnlockStats, evaluateUnlock, unlockedCharacters) + test; economy-sim.test.ts (mô
+│  │                           phỏng kinh tế), migration.test.ts (đối chiếu migration gacha.sql qua dấu `@economy`)
 │  ├─ brain-test.ts            Kiểm tra não: chọn 5 game (pickBrainTestGames), thời lượng, Điểm Não
 │  │                           (computeBrainResult), BRAIN_TEST_RULES_VERSION — server và web dùng chung
 │  ├─ scoring.ts               Công thức điểm: điểm gốc, thưởng tốc độ, combo (có trần), hệ số và
@@ -85,7 +91,7 @@ brain-rizz/
 │  ├─ match.ts                 Luật một trận: xếp hạng có hoà (rankByRound, rankByMatch), game còn chơi
 │  │                           được (availableGames), độ khó đa số (majorityDifficulty)
 │  ├─ constants.ts             Số người tối đa (12, CR-018), thời gian đếm ngược, hướng dẫn, vòng quay, khoá khi sai,
-│  │                           màu avatar, danh sách nhân vật (CHARACTER_IDS)…
+│  │                           màu avatar, danh sách nhân vật (CHARACTER_IDS: 6 luôn mở + 6 khoá)…
 │  ├─ difficulty.ts            4 mức độ khó và hệ số nhân điểm (tên hiển thị nằm ở i18n của web)
 │  ├─ rng.ts                   Bộ sinh số ngẫu nhiên theo seed (KHÔNG sửa thuật toán)
 │  ├─ rng.test.ts, misc.test.ts  Test cho rng, mã phòng, tính điểm, đồng bộ giờ, schema tin nhắn
@@ -109,14 +115,18 @@ brain-rizz/
 │  │  │                        "Đã hiểu" sau 1–3 giây, trả lời theo planBotAnswer + judgeBotAnswer, biểu cảm qua
 │  │  │                        ChatRelay), hẹn giờ trên this.clock (PartyRoom huỷ cùng clearTimers)
 │  │  ├─ rooms/messages.ts     parseMessage (zod → lỗi invalid), sendError, replyPong dùng chung
+│  │  ├─ rooms/loadout.ts      Kiểm sở hữu nhân vật + phụ kiện (CR-023, CR-024): resolveLoadout (thú khoá chưa mở
+│  │  │                        → khoi, phụ kiện lọc theo món đã có), dùng chung cho cả hai phòng
 │  │  ├─ rooms/schema/PartyState.ts   Dữ liệu đồng bộ xuống mọi máy (phòng + người chơi)
 │  │  ├─ rooms/schema/BrainState.ts   State phòng Kiểm tra não (khớp BrainStateView)
-│  │  ├─ store/ResultStore.ts  Interface ghi kết quả (verifyToken, saveBrainTest, saveMatchResults, loadPartyConfig,
-│  │  │                        isAdmin), bản rỗng
+│  │  ├─ store/ResultStore.ts  Interface ghi kết quả (verifyToken, saveBrainTest, saveMatchResults, loadCosmetics,
+│  │  │                        grantChalk, loadPartyConfig, isAdmin), bản rỗng
 │  │  │                        (thiếu biến môi trường), bản RAM cho test, getResultStore/setResultStore
 │  │  ├─ store/SupabaseResultStore.ts  Bản thật: supabase-js + khoá secret, xác thực token bằng getClaims;
-│  │  │                        đọc `party_settings`, `admins` (CR-019)
+│  │  │                        đọc `party_settings`, `admins` (CR-019); RPC `unlock_stats_for`, `grant_chalk`,
+│  │  │                        bảng `user_items` (CR-023, CR-024)
 │  │  ├─ store/party-config-cache.ts  Đệm cấu hình trận party 30 giây (loadPartyConfig, invalidatePartyConfig)
+│  │  ├─ store/cosmetics-cache.ts     Đệm quyền đồ trang trí (thành tích + món) 60 giây theo người
 │  │  ├─ admin/routes.ts       Route admin (CR-019): GET /admin/rooms, POST /admin/config/reload; Bearer token
 │  │  │                        Supabase + isAdmin, CORS, 401/403/503
 │  │  ├─ app.config.ts         Đăng ký room, route /healthz, /monitor, /playground, /admin/*
@@ -131,6 +141,10 @@ brain-rizz/
 │  │                           botYielded), người tạo giữ màu/nhân vật, không làm chủ phòng, hết người thật thì đóng
 │  │                           phòng, điểm khớp planBotAnswer, ghi botCount
 │  ├─ test/BrainTestRoom.test.ts  Test Kiểm tra não: đủ 5 game, chấm, hết giờ, lưu/guest/no-db/failed, rớt mạng
+│  ├─ test/Cosmetics.test.ts  Test resolveLoadout, đệm quyền 60 s, grantChalk của store RAM (CR-023, CR-024)
+│  ├─ test/PartyCosmetics.test.ts  Test thú khoá + phụ kiện khi vào phòng / setProfile (có/không token, store lỗi,
+│  │                           nạp xong khi đã rời, bot), phấn party (reward đúng người/số, kẹp trần, hai thẻ),
+│  │                           phấn + nhân vật ở Kiểm tra não
 │  ├─ test/helpers.ts          Tiện ích test: SOLVE (đáp án đúng mọi game), until, advance, freezeNow…
 │  ├─ loadtest/party.ts        Thử tải bằng nhiều bot
 │  ├─ Dockerfile               Đóng gói để deploy
@@ -151,8 +165,8 @@ brain-rizz/
 │  │  │                        thiếu thì dùng tiếng tổng hợp; README.md: bảng tên file ↔ lúc phát, gợi ý bộ Kenney (CC0)
 │  │  ├─ features/             ★ MỖI MÀN HÌNH MỘT FEATURE — feature khác chỉ import qua index.ts
 │  │  │  ├─ home/              HomeScreen (giới thiệu → menu ⇄ chọn bạn đồng hành; bước lưu ở nav.store), profile.ts
-│  │  │  │                     (nhớ hồ sơ), components/IntroScreen, MenuScreen (4 thẻ + thẻ "Chơi với máy", Bảng xếp hạng,
-│  │  │  │                     Tài khoản & lịch sử, ô "Sắp có"), MenuCard, ProfileScreen, SkillChips, BotDialog (hộp thoại
+│  │  │  │                     (xuất lại `@/lib/profile`), components/IntroScreen, MenuScreen (4 thẻ + thẻ "Chơi với máy", Bảng xếp hạng,
+│  │  │  │                     Tài khoản & lịch sử, ô "Sắp có"), MenuCard, GachaMenuCard (máy quay + quà ngày, CR-023), ProfileScreen, SkillChips, BotDialog (hộp thoại
 │  │  │  │                     "Chơi với máy": số bot + mức chung, CR-016), bot-setup.ts (mặc định, tùy chọn bots) + test
 │  │  │  ├─ lobby/             LobbyScreen — phòng chờ 2D: mã phòng ẩn/hiện + sao chép, 12 ô người chơi (gọn từ 8 người, CR-018),
 │  │  │  │                     đổi nhân vật, sẵn sàng, chủ phòng đặt số vòng + bắt đầu trận;
@@ -203,7 +217,7 @@ brain-rizz/
 │  │  │  │                     "(bạn)" chỉ cho trình đọc màn hình, nhãn độ khó có title)
 │  │  │  ├─ results/           ResultsScreen (bảng điểm vòng → cộng điểm trận), PodiumScreen (vinh danh hồi hộp: hạng 4+ →
 │  │  │  │                     3 → 2 → trống → 1), podium-timeline.ts (lịch hiện, hàm thuần) + test, standings.ts (hạng
-│  │  │  │                     trước/sau vòng, bục) + test, components/RoundResults, MatchTotals, CategoryBest (thẻ
+│  │  │  │                     trước/sau vòng, bục) + test, components/RoundResults, RewardChip ("+N phấn" / "+0" khi chạm trần, CR-023) + reward-chip.test, MatchTotals, CategoryBest (thẻ
 │  │  │  │                     Giỏi nhất mỗi thể loại), Confetti (export qua index cho Luyện tập)
 │  │  │  ├─ practice/          Luyện tập (UC-13, chạy trên máy): PracticeScreen (chọn game → hướng dẫn → đếm ngược → chơi →
 │  │  │  │                     kết quả), practice.store.ts (lượt, hẹn giờ, lưu + đồng bộ kỷ lục), judge.ts (gọi judgeAnswer
@@ -218,6 +232,16 @@ brain-rizz/
 │  │  │  │                     liệu, hộp "Google đã có dữ liệu"), components/HistoryTabs (3 tab + bảng kỷ lục luyện tập),
 │  │  │  │                     ScoreTrend (đường tiến bộ SVG), PartyStrengths (thẻ Thế mạnh trong trận party, CR-010);
 │  │  │  │                     strengths.ts (danh hiệu, TB điểm theo thể loại) + test
+│  │  │  ├─ gacha/             Máy quay phụ kiện `/gacha` (UC-25, CR-023, tải lười): GachaScreen, pulls.ts (gom kết quả
+│  │  │  │                     quay) + test, gacha.css, components/{GachaMachine, WalletCards (số dư, bảo hiểm, cách kiếm), Reveal
+│  │  │  │                     (mở viên nang lần lượt, Mở hết, Mới!/+N), OddsPanel (tỉ lệ + 24 món + lịch sử)}
+│  │  │  ├─ wardrobe/          Tủ đồ `/wardrobe`, `/wardrobe/pets` (CR-023): WardrobeScreen, components/AccessoriesTab (xem
+│  │  │  │                     trước, 3 chỗ, Không đeo); tab Bạn đồng hành = PetsTab của features/pets
+│  │  │  ├─ pets/              Bạn đồng hành khoá (UC-26, CR-024): pets.store + use-pet-unlocks (my_unlock_stats), unlock-text
+│  │  │  │                     + use-unlock-text (chữ điều kiện theo loại luật), pet-info, open-goal (Luyện ngay →
+│  │  │  │                     `/practice/<game>?d=`, `/practice?cat=`), seen (thú đã thấy theo người dùng,
+│  │  │  │                     `brain-rizz:pets-seen`), components/{PetGrid, PetLockSheet, PetsTab, LockParts,
+│  │  │  │                     UnlockCelebration} + test
 │  │  │  ├─ admin/             Trang quản trị `/admin` (UC-24, CR-019, tải lười): AdminScreen (cổng quyền + khung), admin.store.ts,
 │  │  │  │                     sections.ts, draft.ts (bản nháp cấu hình, kiểm bằng ScoringConfigSchema, ≥ 2 game bật) + test,
 │  │  │  │                     format.ts + test, stats.ts, hooks/use-admin-data, components/{kit, AdminChrome, SaveBar, BarChart,
@@ -274,23 +298,27 @@ brain-rizz/
 │  │  │  ├─ characters/        ★ NHÂN VẬT: Character (6 con vật × 7 biểu cảm, SVG + hoạt ảnh), specs.tsx; BotBadge (huy hiệu
 │  │  │  │                     máy, CR-016), bot-name.ts (tên bot "Fen · máy", đánh số khi trùng nhân vật, tin chat có cờ bot)
 │  │  │  │                     + test, PlayerName (usePlayerName + tên hai phần: tên cắt được, hậu tố "· máy" luôn giữ;
-│  │  │  │                     `compact` cho chỗ chật đã có huy hiệu: ẩn hậu tố khỏi mắt, giữ số "Fen 2") + player-name.test.tsx
+│  │  │  │                     `compact` cho chỗ chật đã có huy hiệu: ẩn hậu tố khỏi mắt, giữ số "Fen 2") + player-name.test.tsx;
+│  │  │  │                     accessories.tsx (CR-023: 24 phụ kiện SVG quanh điểm neo, AccessoryIcon, wornAccessories) + test
 │  │  │  ├─ brand/             Logo chữ nhún, linh vật BrainMascot, hình vẽ phấn ChalkDoodle + ChalkDefs
 │  │  │  └─ common/            Dùng ở nhiều feature: PlayerAvatar (nhân vật trong khung tròn), DifficultyPicker, ConnectionBanner,
 │  │  │                        ThemeToggle, LanguageToggle, RankBadge (huy hiệu hạng), MatchChips (nhãn vòng, nhóm kỹ năng,
 │  │  │                        độ khó; màu + biểu tượng nhóm), HostWaitCard ("Chờ chủ phòng…"), AvatarStrip (hàng nhân vật cả phòng),
 │  │  │                        ScreenHeader (nút quay lại + tiêu đề phấn), EmptyState + DataProblemState (trống / lỗi + Thử lại /
 │  │  │                        chưa kết nối máy chủ dữ liệu), QuitDialog ("Bỏ lượt này?"; tiêu đề/nút tuỳ chọn, dùng cả cho "Rời phòng?" khi Back trong phòng), BrainRadar (biểu đồ 5 cạnh SVG),
-│  │  │                        BotLevel (mức bot: BotLevelChip, BotLevelPicker radio, BotLevelButtons thêm bot; CR-016)
+│  │  │                        BotLevel (mức bot: BotLevelChip, BotLevelPicker radio, BotLevelButtons thêm bot; CR-016),
+│  │  │                        RarityBadge (độ hiếm: màu + hạt ◆ + tên), ChalkChip + ChalkIcon (số phấn, "+N phấn"; CR-023)
 │  │  ├─ i18n/
 │  │  │  ├─ index.ts           Khởi tạo i18next (chỉ namespace `common` trong gói đầu), chọn ngôn ngữ lần đầu
 │  │  │  ├─ admin.ts           Tải lười chữ trang quản trị (locales/admin/)
+│  │  │  ├─ gacha.ts           Tải lười chữ máy quay, tủ đồ, 24 phụ kiện, độ hiếm (locales/gacha/, CR-023)
 │  │  │  ├─ solo.ts            loadSoloLocales: tải lười chữ 4 màn một mình (locales/solo/) gộp vào `common`
 │  │  │  ├─ games.ts           registerGameLocales: gom `src/games/<id>/locales.ts` vào namespace `games` (gọi từ chunk lười)
 │  │  │  ├─ languages.ts       Danh sách ngôn ngữ (vi, en)
 │  │  │  ├─ locales/vi.ts, en.ts  Bản dịch giao diện (vi là nguồn chuẩn, en bị ép đủ khoá)
 │  │  │  ├─ locales/solo/vi.ts, en.ts  Chữ Luyện tập, Kiểm tra não, Tài khoản, Bảng xếp hạng (tải lười, en bị ép đủ khoá)
 │  │  │  ├─ locales/admin/vi.ts, en.ts  Chữ trang quản trị (tải lười, en bị ép đủ khoá)
+│  │  │  ├─ locales/gacha/vi.ts, en.ts  Chữ máy quay + tủ đồ (tải lười, en bị ép đủ khoá)
 │  │  │  └─ i18next.d.ts       Kiểu cho khoá dịch
 │  │  ├─ hooks/                use-game-text (chữ của game theo ngôn ngữ, câu nhắc theo mức), use-media-query (bố cục điện thoại/máy tính, chạm/chuột),
 │  │  │                        use-number-format (1.180 / 1,2 theo ngôn ngữ), use-server-clock, use-server-time-reached
@@ -299,7 +327,8 @@ brain-rizz/
 │  │  │                        đang tải / xong / chưa kết nối / chưa có phiên / lỗi + reload), use-date-format (16/10),
 │  │  │                        use-count-up (số đếm lên, tắt khi giảm chuyển động), use-room-scoring (cấu hình điểm
 │  │  │                        của phòng từ `scoringJson`, CR-019)
-│  │  ├─ lib/                  utils.ts (cn), storage.ts (localStorage an toàn + tên khoá), avatar.ts,
+│  │  ├─ lib/                  utils.ts (cn), storage.ts (localStorage an toàn + tên khoá), avatar.ts, profile.ts (hồ sơ
+│  │  │                        trên máy: tên, nhân vật, độ khó, phụ kiện — dùng chung, `@/features/home` xuất lại) + test,
 │  │  │                        supabase.ts (client tải lười, thiếu biến → null; đọc lỗi quay về từ Google) + test,
 │  │  │                        audio-context.ts (một AudioContext dùng chung cho nhạc nền + âm thanh hiệu ứng, mở khoá/resume),
 │  │  │                        room-size.ts (bố cục theo số ghế, CR-018) + test, device-label.ts ("trình duyệt · hệ điều
@@ -308,6 +337,9 @@ brain-rizz/
 │  │  │                        huỷ giữa chừng, CR-016), phòng Kiểm tra não (startBrainTest/leaveBrainTest/sendBrain), gửi tin,
 │  │  │                        nối lại (dùng chung một lần resume, handler chỉ nhận phòng hiện tại), đồng bộ giờ; create-party.test.ts,
 │  │  │                        resume-party.test.ts (giả lập Colyseus)
+│  │  ├─ net/gacha-api.ts      RPC phấn + máy quay (my_wallet, claim_daily_chalk, gacha_pull, my_items, gacha_history) + test
+│  │  ├─ net/unlocks-api.ts    RPC my_unlock_stats → parseUnlockStats (CR-024) + test; net/party-cosmetics.test.ts (gửi
+│  │  │                        accessories, nhận tin Reward)
 │  │  ├─ net/server-url.ts     SERVER_URL (Colyseus) và SERVER_HTTP_URL (route admin) dùng chung
 │  │  ├─ net/admin-api.ts      Gọi RPC `admin_*` của Supabase và route admin của game server (DataResult, ánh xạ lỗi
 │  │  │                        forbidden / not-found / self / last-admin) + test
@@ -322,7 +354,7 @@ brain-rizz/
 │  │  │  │                     deleteMyData, syncProfile (tên + nhân vật lên `profiles`), ghi sự kiện đăng nhập
 │  │  │  │                     (`log_login`, CR-019)
 │  │  │  ├─ nav.store.ts       Màn ngoài phòng + URL (CR-022, History API, không thư viện router): screenForPath /
-│  │  │  │                     pathForScreen (`/practice[/<game>]`, `/brain-test`, `/leaderboard[/<game>]`, `/account`,
+│  │  │  │                     pathForScreen (`/practice[?cat=]`, `/practice/<game>[?d=]`, `/brain-test`, `/leaderboard[/<game>]`, `/account`,
 │  │  │  │                     `/profile`, `/admin/<mục>`), push/replace, popstate (Back/Forward/F5), chặn Back trong phòng
 │  │  │  │                     (mục `/r/<mã>` + hỏi Rời phòng), danh sách mục quản trị; cờ tập trung khi đang chơi + test
 │  │  │  ├─ game.store.ts      State phòng chơi (Zustand): phòng party hoặc Kiểm tra não (`brain`), độ lệch giờ, kết quả
@@ -332,6 +364,7 @@ brain-rizz/
 │  │  │  ├─ chat.store.ts      Chat (CR-011): tin nhận (gộp lịch sử, bỏ trùng, giữ 50), số chưa đọc, bong bóng đang hiện,
 │  │  │  │                     tắt tiếng theo mã phòng (localStorage), giới hạn tần suất phía client, bản nháp
 │  │  │  ├─ chat.store.test.ts Test hàm thuần + store chat
+│  │  │  ├─ wallet.store.ts    Số dư phấn, bảo hiểm, quà ngày (CR-023) + test; hook use-claim-daily ở hooks/
 │  │  │  └─ theme.store.ts     Giao diện sáng/tối/theo hệ thống
 │  │  ├─ styles/
 │  │  │  ├─ globals.css        Token màu bảng phấn sáng/tối, màu thương hiệu, font, utility chalkboard/sticker-text
@@ -363,8 +396,13 @@ brain-rizz/
 │  ├─ 20261119000000_admin_console.sql  Trang quản trị (CR-019): admins, party_settings (+ history), login_events,
 │  │                           match_results.settings_version, RPC is_admin, log_login, admin_*; chạy trước khi
 │  │                           deploy server mới
-│  └─ 20261119100000_practice_favorites.sql  Game yêu thích (CR-020): practice_favorites + RPC practice_favorites_get /
-│                              _set / _merge; chạy trước khi deploy web mới
+│  ├─ 20261119100000_practice_favorites.sql  Game yêu thích (CR-020): practice_favorites + RPC practice_favorites_get /
+│  │                           _set / _merge; chạy trước khi deploy web mới
+│  └─ 20261120000000_gacha.sql  Phấn + máy quay + mở khoá thú (CR-023/024, ADR 0016): chalk_ledger, cosmetic_items
+│                              (seed 24 món), user_items, gacha_state, gacha_pulls; RPC my_wallet, claim_daily_chalk,
+│                              gacha_pull, my_items, gacha_history, my_unlock_stats, grant_chalk + unlock_stats_for
+│                              (service role), thay submit_practice_result; hằng số đánh dấu /* @economy … */ (test
+│                              shared cosmetics/migration.test.ts so với economy.ts); chạy trước khi deploy server + web
 │
 ├─ docs/                       Tài liệu, chia theo chủ đề — mục lục: docs/README.md
 │  ├─ README.md                Mục lục tài liệu, bản đồ SDLC, quy ước đặt tài liệu mới
@@ -457,7 +495,7 @@ brain-rizz/
 | Thêm component UI (dialog, select, tabs…) | `pnpm dlx shadcn@latest add <tên>` trong `apps/web` → `src/components/ui/` (xem [ADR 0006](decisions/0006-ui-shadcn-and-theme-tokens.md)) |
 | Đổi màu (sáng/tối), font | `apps/web/src/styles/globals.css` (font: `apps/web/index.html`) |
 | Đổi kiểu nút, ô nhập, thẻ… | `apps/web/src/components/ui/<tên>.tsx` |
-| Thêm/sửa nhân vật, biểu cảm | Hình dạng: `apps/web/src/components/characters/specs.tsx`; biểu cảm chung: `Character.tsx`; id mới: `CHARACTER_IDS` trong `packages/shared/src/constants.ts` + tên trong i18n (`characters.<id>`). Xem [ADR 0009](decisions/0009-chalkboard-style-and-characters.md) |
+| Thêm/sửa nhân vật, biểu cảm | Hình dạng: `apps/web/src/components/characters/specs.tsx`; biểu cảm chung: `Character.tsx`; id mới: `CHARACTER_IDS` trong `packages/shared/src/constants.ts` + tên trong i18n (`characters.<id>`). Phụ kiện: hình ở `components/characters/accessories.tsx` (id theo `COSMETIC_ITEMS`), chỗ đặt theo `anchors` của loài trong `specs.tsx`. Xem [ADR 0009](decisions/0009-chalkboard-style-and-characters.md) |
 | Màn giới thiệu, menu chính, chọn nhân vật | `apps/web/src/features/home/components/{IntroScreen,MenuScreen,ProfileScreen}.tsx` |
 | Bục vinh danh, pháo giấy, nhịp lật | `apps/web/src/features/results/PodiumScreen.tsx`, `podium-timeline.ts` (mốc ms), `components/Confetti.tsx`, `components/CategoryBest.tsx` (2D, không 3D — ADR 0010); keyframes `fx-*` trong `styles/characters.css` |
 | Bật/tắt hiệu ứng chuyển động, đọc "giảm chuyển động" | `apps/web/src/features/motion/` (không tự đọc `matchMedia`); biến thể `motion-safe`/`motion-reduce` trong `styles/globals.css` |
@@ -465,6 +503,7 @@ brain-rizz/
 | Trống quay dọc chọn game (CR-017) | Hình học: `apps/web/src/features/game-select/drum.ts`; hiển thị: `components/Drum.tsx`; biểu tượng riêng cho game: trường `Icon` của `GameClient` (`games/<id>/index.ts`), không có thì dùng `Illustration` |
 | Danh mục 15 game ở màn Chọn game (thẻ "Sắp có") | `apps/web/src/features/game-select/catalog.ts` + tên ở i18n `catalog.<id>` |
 | Đổi luật Kiểm tra não (chọn game, thời lượng, Điểm Não) | `packages/shared/src/brain-test.ts` (đổi điểm chuẩn thì tăng `BRAIN_TEST_RULES_VERSION`); luồng phòng: `apps/server/src/rooms/BrainTestRoom.ts` |
+| Đổi thưởng phấn, giá / tỉ lệ / bảo hiểm máy quay, điều kiện mở thú | `packages/shared/src/cosmetics/economy.ts`, `unlocks.ts` (`UNLOCK_RULES`); chạy lại `economy-sim.test.ts`, sửa số trong migration Supabase (dấu `@economy`, test `migration.test.ts`), bảng ở `docs/01-product/gacha-pets-unlocks.md` mục 3.2 + 4 và GDD mục Kinh tế |
 | Đổi cách chấm một câu (khoá khi sai, chống spam, dung sai) | `packages/shared/src/answer-judge.ts` (party, Kiểm tra não và Luyện tập cùng dùng) |
 | Bảng, quyền đọc/ghi, bảng xếp hạng trên Supabase | Thêm migration mới trong `supabase/migrations/` (không sửa file đã chạy); server ghi qua `apps/server/src/store/` |
 | Lỗi kết nối, nối lại phòng, đồng hồ lệch | `apps/web/src/net/connection.ts` (client); `onDrop`/`onReconnect`/`onLeave` trong `PartyRoom.ts` (server) |

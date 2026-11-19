@@ -1,11 +1,11 @@
 import {
+  BASE_CHARACTER_IDS,
   BOT_CHAT_CHANCE,
   BOT_CHAT_DELAY_MS,
   BOT_INTRO_READY_MS,
   type BotLevel,
   type BotModelId,
   botDifficulty,
-  CHARACTER_IDS,
   type CharacterId,
   type ChatQuickId,
   DEFAULT_BOT_MODEL_ID,
@@ -226,6 +226,7 @@ export class BotDriver {
   /**
    * Nhân vật cho bot mới: ưu tiên nhân vật chưa bot nào dùng, rồi nhân vật người thật chưa dùng;
    * còn hoà thì bốc ngẫu nhiên. Web dịch tên bot theo nhân vật nên ít trùng thì dễ phân biệt.
+   * Chỉ 6 nhân vật luôn mở (`BASE_CHARACTER_IDS`), không dùng thú khoá (CR-024).
    */
   private pickAvatar(): CharacterId {
     const botUses = new Map<string, number>();
@@ -235,8 +236,8 @@ export class BotDriver {
       uses.set(p.avatar, (uses.get(p.avatar) ?? 0) + 1);
     }
     const score = (c: CharacterId) => (botUses.get(c) ?? 0) * 100 + (humanUses.get(c) ?? 0);
-    const best = Math.min(...CHARACTER_IDS.map(score));
-    const candidates = CHARACTER_IDS.filter((c) => score(c) === best);
+    const best = Math.min(...BASE_CHARACTER_IDS.map(score));
+    const candidates = BASE_CHARACTER_IDS.filter((c) => score(c) === best);
     return candidates[Math.floor(Math.random() * candidates.length)] ?? "khoi";
   }
 

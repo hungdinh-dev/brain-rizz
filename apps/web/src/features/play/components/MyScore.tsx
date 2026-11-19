@@ -44,7 +44,12 @@ export function MyScoreCard({ me, rank, className }: MyScoreProps) {
       className={cn("gap-2.5 rounded-[22px] border-4 px-4 py-3.5", className)}
     >
       <div className="flex items-center gap-3">
-        <PlayerAvatar avatar={me.avatar} colorIndex={me.colorIndex} size="md" />
+        <PlayerAvatar
+          avatar={me.avatar}
+          accessories={me.accessories}
+          colorIndex={me.colorIndex}
+          size="md"
+        />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5 leading-tight">
           <span className="flex items-baseline gap-1.5">
             <span className="truncate font-display text-[22px] font-extrabold">{me.name}</span>

@@ -17,9 +17,11 @@ import {
   type NudgePayload,
   type PartyStateView,
   type PongPayload,
+  type RewardPayload,
   ROOM_NAME,
   type RoomBotsOption,
   ServerMessage,
+  sanitizeLoadout,
 } from "@brain-rizz/shared";
 import { Client, type Room } from "@colyseus/sdk";
 import { toast } from "sonner";
@@ -42,8 +44,11 @@ import { SERVER_URL } from "./server-url";
 
 const TOKEN_KEY = STORAGE_KEYS.reconnect;
 
-/** Chờ tạo phiên Supabase tối đa ngần này ms rồi vào phòng không token (Supabase tạm dừng, mạng chậm). */
-const ACCESS_TOKEN_WAIT_MS = 4_000;
+/**
+ * Chờ tạo phiên Supabase (phiên khách nếu chưa có) tối đa ngần này ms rồi vào phòng không token
+ * (Supabase tạm dừng, mạng chậm). Có phiên thì ai cũng nhận phấn sau trận (CR-023, kế hoạch 5.4).
+ */
+export const ACCESS_TOKEN_WAIT_MS = 3_000;
 
 const client = new Client(SERVER_URL);
 let room: Room | null = null;
@@ -60,10 +65,30 @@ async function accessToken(profile: { name: string; avatar?: JoinOptions["avatar
     .getState()
     .ensureSession({ name: profile.name, avatar: profile.avatar ?? "khoi" })
     .catch(() => null);
-  const timeout = new Promise<null>((resolve) =>
-    setTimeout(() => resolve(null), ACCESS_TOKEN_WAIT_MS),
-  );
-  return (await Promise.race([ensure, timeout])) ?? undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), ACCESS_TOKEN_WAIT_MS);
+  });
+  try {
+    return (await Promise.race([ensure, timeout])) ?? undefined;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Hồ sơ gửi khi vào phòng party: đúng các trường của `JoinOptions` (không kéo theo trường lạ của
+ * hồ sơ trên máy), phụ kiện đã làm sạch (`sanitizeLoadout`); server lọc lại theo món đã sở hữu.
+ */
+function partyJoinOptions(options: JoinOptions): JoinOptions {
+  const { name, colorIndex, difficulty, avatar, accessories } = options;
+  return {
+    name,
+    ...(colorIndex === undefined ? {} : { colorIndex }),
+    ...(difficulty === undefined ? {} : { difficulty }),
+    ...(avatar === undefined ? {} : { avatar }),
+    accessories: sanitizeLoadout(accessories ?? []),
+  };
 }
 
 interface CreatePartyExtra {
@@ -77,7 +102,11 @@ export async function createParty(options: JoinOptions, extra: CreatePartyExtra 
   const token = await accessToken(options);
   if (extra.signal?.aborted) return;
   const create: CreateOptions = extra.bots ? { bots: extra.bots } : {};
-  const r = await client.create(ROOM_NAME, { ...options, ...create, accessToken: token });
+  const r = await client.create(ROOM_NAME, {
+    ...partyJoinOptions(options),
+    ...create,
+    accessToken: token,
+  });
   if (extra.signal?.aborted) {
     // Không còn người thật nào trong phòng nên server đóng phòng (kể cả bot).
     void r.leave().catch(() => {});
@@ -88,7 +117,7 @@ export async function createParty(options: JoinOptions, extra: CreatePartyExtra 
 
 export async function joinParty(code: string, options: JoinOptions) {
   const token = await accessToken(options);
-  attachParty(await client.joinById(code, { ...options, accessToken: token }));
+  attachParty(await client.joinById(code, { ...partyJoinOptions(options), accessToken: token }));
 }
 
 let resuming: Promise<boolean> | null = null;
@@ -241,6 +270,14 @@ function attachParty(r: Room) {
         sentence: (name, bot) => i18n.t("bots.yielded", { name, bot }),
       });
       toast(text, { duration: BOT_YIELDED_TOAST_MS });
+    }),
+  );
+  // Phấn vừa nhận sau trận (CR-023): màn vinh danh hiện "+N phấn" ở chỗ của mình (0 thì ẩn).
+  r.onMessage(
+    ServerMessage.Reward,
+    whileCurrent(r, (msg: RewardPayload) => {
+      const chalk = typeof msg?.chalk === "number" ? msg.chalk : 0;
+      useGame.getState().setReward(chalk);
     }),
   );
   r.onReconnect(whileCurrent(r, () => safeSession.set(TOKEN_KEY, r.reconnectionToken)));

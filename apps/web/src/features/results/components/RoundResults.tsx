@@ -93,6 +93,7 @@ export function RoundResults({ gameId, players, sessionId }: RoundResultsProps) 
                         <span className="relative flex shrink-0">
                           <PlayerAvatar
                             avatar={p.avatar}
+                            accessories={p.accessories}
                             colorIndex={p.colorIndex}
                             size="sm"
                             className="size-9 border-[2.5px]"
@@ -171,6 +172,7 @@ export function RoundResults({ gameId, players, sessionId }: RoundResultsProps) 
                   <span className="relative flex shrink-0">
                     <PlayerAvatar
                       avatar={p.avatar}
+                      accessories={p.accessories}
                       colorIndex={p.colorIndex}
                       size="md"
                       className="size-12"
@@ -239,6 +241,7 @@ export function RoundResults({ gameId, players, sessionId }: RoundResultsProps) 
               <span className="relative flex shrink-0">
                 <PlayerAvatar
                   avatar={p.avatar}
+                  accessories={p.accessories}
                   colorIndex={p.colorIndex}
                   size="md"
                   className={crowded ? "size-8.5 border-[2.5px]" : "size-10"}
@@ -320,6 +323,7 @@ function WinnerCard({
       </span>
       <Character
         id={top.avatar}
+        accessories={top.accessories}
         mood="win"
         size={compact ? 132 : 140}
         label={t("results.winnerLabel", { name: full(top) })}

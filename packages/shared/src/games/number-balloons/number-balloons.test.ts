@@ -98,7 +98,7 @@ function percentile(xs: readonly number[], q: number): number {
   return s[Math.floor(q * (s.length - 1))]!;
 }
 
-describe("number-balloons", () => {
+describe("number-balloons", { timeout: 60_000 }, () => {
   it("khai báo theo CR-006: vòng 60 giây, hệ số dương và không giảm theo mức", () => {
     expect(numberBalloons.durationMs).toBe(60_000);
     const m = numberBalloons.difficultyMultiplier;

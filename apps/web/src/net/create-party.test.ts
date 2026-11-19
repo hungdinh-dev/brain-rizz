@@ -66,6 +66,7 @@ describe("createParty kèm bot (CR-016)", { timeout: 30_000 }, () => {
     expect(createMock).toHaveBeenCalledTimes(1);
     expect(createMock).toHaveBeenCalledWith(ROOM_NAME, {
       ...PROFILE,
+      accessories: [],
       bots: { count: 3, level: 1 },
       accessToken: undefined,
     });

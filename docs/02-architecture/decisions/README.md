@@ -19,6 +19,7 @@ Mỗi file ghi một quyết định kỹ thuật: bối cảnh, lựa chọn, l
 | [0013](0013-client-timed-answers.md) | Đáp án đo thời gian phía client (Rót vừa vạch, Nhại nhịp): tin số đo như Luyện ngắm, chấm thời lượng/khoảng cách, server không đổi (bổ sung 0003) | Đã chấp nhận |
 | [0014](0014-server-side-bots.md) | Bot chạy trên game server, mô phỏng kết quả (thời gian nghĩ, đúng/sai) và chấm cùng luật với người, không giải câu đố (CR-016) | Đã chấp nhận |
 | [0015](0015-admin-console.md) | Trang quản trị: quyền qua bảng `admins` + RPC `security definer`, route admin trên game server xác thực token Supabase, cấu hình trận party có phiên bản, chụp mỗi trận (CR-019) | Đã chấp nhận |
+| [0016](0016-chalk-economy-in-postgres.md) | Sổ phấn, trần ngày và máy quay phụ kiện chạy trong Postgres (RPC `security definer`, khoá theo người, idempotent theo `ref`); không tiền thật; hằng số SQL đối chiếu với shared bằng test (CR-023, CR-024) | Đã chấp nhận |
 
 Mẫu cho ADR mới: [_template.md](_template.md).
 

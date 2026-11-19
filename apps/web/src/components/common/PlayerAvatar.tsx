@@ -28,11 +28,28 @@ const avatarVariants = cva(
 interface PlayerAvatarProps extends VariantProps<typeof avatarVariants> {
   avatar: CharacterId;
   colorIndex: number;
+  /**
+   * Phụ kiện đang đeo (`PlayerView.accessories`, CR-023) để cả phòng thấy. Server đã lọc; id lạ bị
+   * bỏ qua. Bỏ trống = không đeo (bot, bảng xếp hạng…).
+   */
+  accessories?: readonly string[];
+  /**
+   * Ẩn món chỗ mặt (kính, mặt nạ) cho mặt khỏi rối ở avatar nhỏ ≤ 46 px (ui-ux 6.12). Mặc định:
+   * ẩn ở cỡ `sm` / `md`, vẽ đủ ở `lg`. Chỗ ghi đè cỡ bằng className thì truyền rõ.
+   */
+  hideFaceAccessory?: boolean;
   className?: string;
 }
 
 /** Avatar tròn: nhân vật người chơi chọn trên nền màu của người chơi (màu do server cấp, không trùng). */
-export function PlayerAvatar({ avatar, colorIndex, size, className }: PlayerAvatarProps) {
+export function PlayerAvatar({
+  avatar,
+  colorIndex,
+  accessories,
+  hideFaceAccessory,
+  size,
+  className,
+}: PlayerAvatarProps) {
   return (
     <span
       aria-hidden
@@ -47,6 +64,8 @@ export function PlayerAvatar({ avatar, colorIndex, size, className }: PlayerAvat
       <Character
         id={avatar}
         animated={false}
+        accessories={accessories}
+        hideFaceAccessory={hideFaceAccessory ?? size !== "lg"}
         className="absolute top-1/2 left-1/2 size-[160%] -translate-x-1/2 -translate-y-[43%] [&>svg]:size-full"
       />
     </span>

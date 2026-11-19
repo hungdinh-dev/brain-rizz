@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CHAT_MAX_INPUT_LENGTH, CHAT_QUICK_IDS } from "./chat/constants";
 import { BRAIN_TEST_ROOM_NAME, MAX_ACCESS_TOKEN_LENGTH, MAX_PLAYERS, ROOM_NAME } from "./constants";
+import { MAX_ACCESSORIES, MAX_COSMETIC_ID_LENGTH, PET_CHARACTER_IDS } from "./cosmetics";
 import {
   AddBotSchema,
   BRAIN_SAVE_STATUSES,
@@ -15,6 +16,7 @@ import {
   ServerMessage,
   SetBotLevelSchema,
   SetChatEnabledSchema,
+  SetProfileSchema,
 } from "./protocol";
 
 describe("giao thức tài khoản + Kiểm tra não (CR-009)", () => {
@@ -183,5 +185,55 @@ describe("giao thức bot (CR-016)", () => {
     expect(
       JoinOptionsSchema.parse({ name: "An", bots: { count: 3, level: 1 } }),
     ).not.toHaveProperty("bots");
+  });
+});
+
+describe("giao thức phụ kiện + phấn (CR-023, CR-024)", () => {
+  const tooLongId = "x".repeat(MAX_COSMETIC_ID_LENGTH + 1);
+  const tooMany = Array.from({ length: MAX_ACCESSORIES + 1 }, (_, i) => `item-${i}`);
+
+  it("join options: accessories tuỳ chọn; id lạ vẫn qua (server lọc), không ép danh mục", () => {
+    expect(JoinOptionsSchema.parse({ name: "An" }).accessories).toBeUndefined();
+    expect(
+      JoinOptionsSchema.parse({ name: "An", accessories: ["crown", "khong-co-mon-nay"] })
+        .accessories,
+    ).toEqual(["crown", "khong-co-mon-nay"]);
+    expect(JoinOptionsSchema.parse({ name: "An", accessories: [] }).accessories).toEqual([]);
+    const max = "x".repeat(MAX_COSMETIC_ID_LENGTH);
+    expect(JoinOptionsSchema.parse({ name: "An", accessories: [max] }).accessories).toEqual([max]);
+  });
+
+  it("join options: accessories sai thì bỏ như không gửi, không làm hỏng việc vào phòng", () => {
+    for (const accessories of [tooMany, [tooLongId], [""], [42], "crown", { 0: "crown" }, null]) {
+      const parsed = JoinOptionsSchema.safeParse({ name: "An", accessories });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data?.accessories).toBeUndefined();
+      expect(parsed.data?.name).toBe("An");
+    }
+  });
+
+  it("join options nhận cả 12 nhân vật (thú khoá do server kiểm sở hữu)", () => {
+    for (const avatar of PET_CHARACTER_IDS) {
+      expect(JoinOptionsSchema.parse({ name: "An", avatar }).avatar).toBe(avatar);
+      expect(BrainJoinOptionsSchema.parse({ name: "An", avatar }).avatar).toBe(avatar);
+    }
+  });
+
+  it("setProfile: accessories tuỳ chọn, không mặc định; sai giới hạn thì từ chối (invalid)", () => {
+    expect(SetProfileSchema.parse({ name: "An" })).toEqual({ name: "An" });
+    expect(SetProfileSchema.parse({ accessories: [] })).toEqual({ accessories: [] });
+    expect(SetProfileSchema.parse({ accessories: ["crown", "scarf"], avatar: "pin" })).toEqual({
+      accessories: ["crown", "scarf"],
+      avatar: "pin",
+    });
+    for (const accessories of [tooMany, [tooLongId], [""], [1], "crown", null]) {
+      expect(SetProfileSchema.safeParse({ accessories }).success).toBe(false);
+    }
+  });
+
+  it("tin reward là tin S → C riêng, không trùng tên", () => {
+    expect(ServerMessage.Reward).toBe("reward");
+    expect(new Set(Object.values(ServerMessage)).size).toBe(Object.values(ServerMessage).length);
+    expect(Object.values(ClientMessage)).not.toContain(ServerMessage.Reward);
   });
 });

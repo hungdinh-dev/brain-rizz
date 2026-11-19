@@ -167,6 +167,7 @@ describe("BrainTestRoom", () => {
       brainScore: true,
       skills: true,
       saveStatus: true,
+      chalkEarned: true,
     } satisfies Record<keyof BrainStateView, true>;
     const GAME_KEYS = {
       gameId: true,
@@ -194,6 +195,7 @@ describe("BrainTestRoom", () => {
       brainScore: 0,
       skills: {},
       saveStatus: "no-db",
+      chalkEarned: 0,
     });
   });
 

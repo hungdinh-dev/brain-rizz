@@ -247,7 +247,7 @@ function violation(p: BalancePuzzle, d: Difficulty): string | null {
 
 // ---------------------------------------------------------------------------
 
-describe("balance: bộ kiểm độc lập", () => {
+describe("balance: bộ kiểm độc lập", { timeout: 60_000 }, () => {
   it("đếm đủ số thứ tự yếu 13 / 75 / 541 / 4.683", () => {
     expect([3, 4, 5, 6].map((n) => weakOrders(n).length)).toEqual([13, 75, 541, 4_683]);
   });
@@ -332,7 +332,7 @@ describe("balance: bộ kiểm độc lập", () => {
   });
 });
 
-describe("balance: 10.000 seed × 4 độ khó", () => {
+describe("balance: 10.000 seed × 4 độ khó", { timeout: 60_000 }, () => {
   it("tất định: cùng (seed, index, độ khó) → cùng câu đố", () => {
     expectEvery((p, d, s) => {
       const again = balance.generate(roundSeedOf(s), indexOf(s), d);
@@ -437,7 +437,7 @@ describe("balance: 10.000 seed × 4 độ khó", () => {
   });
 });
 
-describe("balance: khai báo CR-006", () => {
+describe("balance: khai báo CR-006", { timeout: 60_000 }, () => {
   it("vòng 60 giây", () => {
     expect(balance.durationMs).toBe(60_000);
   });

@@ -29,6 +29,7 @@ const BOT: PlayerView = {
   name: "",
   colorIndex: 1,
   avatar: "bo",
+  accessories: [],
   isHost: false,
   ready: true,
   connected: true,

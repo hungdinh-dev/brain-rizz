@@ -59,4 +59,9 @@ export const STORAGE_KEYS = {
   oauthFlow: "brain-rizz:oauth-flow",
   /** Mục trang quản trị đang mở lần trước (CR-019, chỉ trên máy này). */
   adminSection: "brain-rizz:admin-section",
+  /**
+   * Bạn đồng hành đã thấy mở khoá trên máy này (CR-024, JSON mảng id thú): thú mới mở mà chưa có ở
+   * đây thì hiện hộp chúc mừng. Chưa có khoá = lần đầu (ghi lại, không chúc mừng thú mở sẵn).
+   */
+  petsSeen: "brain-rizz:pets-seen",
 } as const;

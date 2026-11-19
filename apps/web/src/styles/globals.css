@@ -114,6 +114,15 @@
      Màu thép nhạt kiểu nhãn dán: luôn có viền sticker, giữ nguyên ở sáng/tối như màu nhóm kỹ năng. */
   --color-bot: var(--bot);
   --color-bot-foreground: var(--bot-foreground);
+
+  /* Độ hiếm phụ kiện (CR-023, ui-ux 6.12): nền nhãn/ô/viên nang kiểu nhãn dán, luôn kèm viền
+     sticker + số hạt ◆ (1–4) + chữ tên độ hiếm, không chỉ dựa vào màu. Chữ/icon trên nền này dùng
+     `text-rarity-foreground`. */
+  --color-rarity-common: var(--rarity-common);
+  --color-rarity-rare: var(--rarity-rare);
+  --color-rarity-epic: var(--rarity-epic);
+  --color-rarity-legendary: var(--rarity-legendary);
+  --color-rarity-foreground: var(--rarity-foreground);
 }
 
 :root {
@@ -153,6 +162,14 @@
   /* Icon/chữ mực trên nền này: 9,6:1. Nền so với thẻ giấy chỉ 1,6:1 nên luôn kèm viền sticker. */
   --bot: #b9c7dc;
   --bot-foreground: #1f1b3a;
+
+  /* Độ hiếm: chữ mực trên nền — Thường 11,4:1 · Hiếm 9,1:1 · Sử thi 8:1 · Huyền thoại 11,5:1.
+     Nền gần giấy (1,4–2,2:1 so với thẻ) nên luôn có viền sticker. */
+  --rarity-common: #dcd6c8;
+  --rarity-rare: #8ec5ff;
+  --rarity-epic: #c3a6ff;
+  --rarity-legendary: #ffd166;
+  --rarity-foreground: #1f1b3a;
 }
 
 .dark {
@@ -192,6 +209,14 @@
   /* Giữ như chế độ sáng (nhãn dán): icon mực 9,6:1; nền so với thẻ tối 7,8:1 */
   --bot: #b9c7dc;
   --bot-foreground: #1f1b3a;
+
+  /* Độ hiếm giữ như sáng (nhãn dán, như màu nhóm kỹ năng): chữ mực 8–11,5:1; nền so với thẻ tối
+     6,5–9,3:1, so với bảng tối 7,5–10,8:1 nên nổi rõ không cần đổi màu. */
+  --rarity-common: #dcd6c8;
+  --rarity-rare: #8ec5ff;
+  --rarity-epic: #c3a6ff;
+  --rarity-legendary: #ffd166;
+  --rarity-foreground: #1f1b3a;
 }
 
 @layer base {

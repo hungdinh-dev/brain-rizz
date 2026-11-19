@@ -11,8 +11,16 @@ export const Player = schema(
     id: t.string(),
     name: t.string(),
     colorIndex: t.uint8(),
-    /** CharacterId — được phép trùng giữa người chơi. */
+    /**
+     * CharacterId — được phép trùng giữa người chơi. Đã kiểm sở hữu: thú khoá chưa mở (hoặc chưa
+     * nạp xong quyền) là `khoi` (CR-024).
+     */
     avatar: t.string().default("khoi"),
+    /**
+     * Id phụ kiện đang đeo (CR-023), đã lọc bằng `sanitizeLoadout` theo món đã có: ≤ 3, thứ tự
+     * đầu → mặt → cổ. Rỗng khi chưa có quyền; bot luôn rỗng.
+     */
+    accessories: t.array("string"),
     /** Độ khó cho vòng hiện tại; chọn lại ở pha game-intro. */
     difficulty: t.uint8().default(1),
     ready: t.boolean().default(false),

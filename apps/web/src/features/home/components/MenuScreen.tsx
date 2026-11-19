@@ -23,7 +23,7 @@ import {
   TrophyIcon,
   UserRoundIcon,
 } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { BrainMascot, Logo } from "@/components/brand";
@@ -40,8 +40,10 @@ import { hasStoredSession } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { fetchBrainHistory } from "@/net/data-api";
 import { useAuth } from "@/stores/auth.store";
+import { useWallet } from "@/stores/wallet.store";
 import type { Profile } from "../profile";
 import { BotDialog } from "./BotDialog";
+import { GachaMenuCard, MenuChalkChip } from "./GachaMenuCard";
 import { MenuCard } from "./MenuCard";
 
 const SKILL_DOTS = ["bg-identify", "bg-memorize", "bg-analyze", "bg-compute", "bg-visualize"];
@@ -84,6 +86,10 @@ export function MenuScreen({
   const authStatus = useAuth((s) => s.status);
   // "Cao nhất 742" trên thẻ Kiểm tra não: chỉ hỏi khi máy đã có phiên (không tạo phiên mới).
   const history = useData(() => fetchBrainHistory(50), [authStatus], hasStoredSession());
+  // Ví phấn (chip số dư, quà mỗi ngày): chưa có phiên thì không gọi mạng, không tải supabase-js.
+  useEffect(() => {
+    if (authStatus !== "unknown") void useWallet.getState().load();
+  }, [authStatus]);
   const brainBest =
     history.status === "ok" && history.data.length > 0
       ? Math.max(...history.data.map((r) => r.brainScore))
@@ -115,22 +121,32 @@ export function MenuScreen({
         <Logo size="sm" className="hidden md:flex" />
         {/* Trên điện thoại logo ẩn đi; vẫn giữ một h1 cho trình đọc màn hình */}
         <h1 className="sr-only md:hidden">Brain Rizz</h1>
-        <button
-          type="button"
-          onClick={onEditProfile}
-          className="flex min-w-0 items-center gap-2 rounded-full border-[3px] border-sticker bg-card py-1 pr-4 pl-1 text-left text-card-foreground shadow-sticker-sm transition-transform hover:-translate-y-0.5 active:translate-y-1 active:shadow-none"
-        >
-          <PlayerAvatar avatar={profile.avatar} colorIndex={profile.colorIndex} />
-          <span className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate font-display text-lg font-extrabold">
-              {profile.name || t(`characters.${profile.avatar}.name`)}
+        <div className="flex min-w-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={onEditProfile}
+            className="flex min-w-0 items-center gap-2 rounded-full border-[3px] border-sticker bg-card py-1 pr-4 pl-1 text-left text-card-foreground shadow-sticker-sm transition-transform hover:-translate-y-0.5 active:translate-y-1 active:shadow-none"
+          >
+            {/* Avatar 44 px: đeo phụ kiện như trong phòng, ẩn món chỗ mặt cho khỏi rối (ui-ux 6.12) */}
+            <PlayerAvatar
+              avatar={profile.avatar}
+              colorIndex={profile.colorIndex}
+              accessories={profile.accessories}
+              hideFaceAccessory
+            />
+            <span className="flex min-w-0 flex-col leading-tight">
+              <span className="truncate font-display text-lg font-extrabold">
+                {profile.name || t(`characters.${profile.avatar}.name`)}
+              </span>
+              <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                <PencilIcon aria-hidden className="size-3" />
+                {t("home.menu.editProfile")}
+              </span>
             </span>
-            <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
-              <PencilIcon aria-hidden className="size-3" />
-              {t("home.menu.editProfile")}
-            </span>
-          </span>
-        </button>
+          </button>
+          {/* Số dư phấn (CR-023) → Máy quay; chưa có ví / chưa kết nối thì ẩn */}
+          <MenuChalkChip />
+        </div>
         {/* Điện thoại: hàng nút lên dòng riêng phía trên (như các màn khác), nhường chỗ cho nút hồ sơ;
             màn hẹp (320 px) không đủ chỗ thì nút xuống dòng, căn phải — không thu nhỏ nút */}
         <div className="order-first flex w-full shrink-0 flex-wrap justify-end gap-2 md:order-none md:w-auto">
@@ -253,6 +269,7 @@ export function MenuScreen({
             me={{ avatar: profile.avatar, colorIndex: profile.colorIndex }}
             onStart={onPlayBots}
           />
+          <GachaMenuCard profile={profile} />
           <button
             type="button"
             onClick={soon}

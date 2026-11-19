@@ -266,7 +266,12 @@ function HostStatus({ party, status }: { party: PartyStateView; status: WheelSta
     >
       {host && (
         <span className="relative flex">
-          <PlayerAvatar avatar={host.avatar} colorIndex={host.colorIndex} size="md" />
+          <PlayerAvatar
+            avatar={host.avatar}
+            accessories={host.accessories}
+            colorIndex={host.colorIndex}
+            size="md"
+          />
           <span
             role="img"
             aria-label={t("lobby.host")}

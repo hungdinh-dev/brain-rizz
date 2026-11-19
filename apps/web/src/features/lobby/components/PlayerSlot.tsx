@@ -71,6 +71,7 @@ export function PlayerSlot({
         {compact ? (
           <PlayerAvatar
             avatar={player.avatar}
+            accessories={player.accessories}
             colorIndex={player.colorIndex}
             size="md"
             className="size-9 lg:size-13"
@@ -79,12 +80,14 @@ export function PlayerSlot({
           <>
             <PlayerAvatar
               avatar={player.avatar}
+              accessories={player.accessories}
               colorIndex={player.colorIndex}
               size="md"
               className="lg:hidden"
             />
             <PlayerAvatar
               avatar={player.avatar}
+              accessories={player.accessories}
               colorIndex={player.colorIndex}
               size="lg"
               className="hidden lg:inline-block"

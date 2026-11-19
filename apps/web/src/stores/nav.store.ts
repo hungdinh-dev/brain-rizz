@@ -1,4 +1,13 @@
-import { type GameId, isGameId, normalizeRoomCode } from "@brain-rizz/shared";
+import {
+  CATEGORIES,
+  type Category,
+  type CosmeticId,
+  type Difficulty,
+  type GameId,
+  isDifficulty,
+  isGameId,
+  normalizeRoomCode,
+} from "@brain-rizz/shared";
 import { create } from "zustand";
 
 /**
@@ -6,6 +15,8 @@ import { create } from "zustand";
  * viện router. Bản đồ URL: docs/01-product/practice-favorites-howto-routes.md mục 3.4.
  *
  * - Người dùng chuyển màn → `pushState`; sửa đường dẫn sai / chuyển hướng → `replaceState`.
+ * - Luyện tập có thêm tham số: `/practice?cat=<nhóm|fav>` (lọc lưới chọn game), `/practice/<game>?d=<0–3>`
+ *   (mức tối thiểu chọn sẵn). Giá trị lạ bị bỏ bằng replace; tham số khác (vd. `?code=`) giữ nguyên.
  * - Back/Forward (`popstate`) → đổi màn, không đẩy thêm lịch sử. Màn đang chơi / đang trong phòng
  *   chặn được Back (`setBackGuard`) để hỏi trước, rồi đẩy lại mục vừa rời (`restoreEntry`).
  * - Trong phòng giữ một URL, không tách theo pha (pha do server quyết): party `/r/<mã>`, Kiểm tra
@@ -19,7 +30,12 @@ export type Screen =
   | "brain-test"
   | "account"
   | "leaderboard"
-  | "admin";
+  | "admin"
+  | "gacha"
+  | "wardrobe";
+
+/** Tab của Tủ đồ (CR-023, CR-024): `/wardrobe` = Phụ kiện, `/wardrobe/pets` = Bạn đồng hành. */
+export type WardrobeTab = "accessories" | "pets";
 
 /** 8 mục của trang quản trị (ui-ux 6.9) theo thứ tự menu, cũng là `<mục>` trong `/admin/<mục>`. */
 export const ADMIN_SECTIONS = [
@@ -39,27 +55,71 @@ export function isAdminSection(value: unknown): value is AdminSection {
   return typeof value === "string" && (ADMIN_SECTIONS as readonly string[]).includes(value);
 }
 
+/** Lọc ở lưới chọn game Luyện tập (`/practice?cat=`): một nhóm, hoặc `fav` = Yêu thích (CR-020). */
+export type PracticeFilter = Category | "fav";
+
+export function isPracticeFilter(value: unknown): value is PracticeFilter {
+  return (
+    value === "fav" ||
+    (typeof value === "string" && (CATEGORIES as readonly string[]).includes(value))
+  );
+}
+
 /** Màn + tham số trên đường dẫn. */
 export interface Route {
   screen: Screen;
   /** `/practice/<gameId>` (hướng dẫn game đó), `/leaderboard/<gameId>` (bảng theo game). */
   gameId?: GameId;
+  /**
+   * `/practice?cat=<nhóm|fav>`: lưới chọn game lọc sẵn (nút "Luyện ngay" của thú khoá theo nhóm;
+   * đổi chip thì thay mục lịch sử). Bỏ trống = Tất cả. Chỉ đi với `/practice` (không có `gameId`).
+   */
+  filter?: PracticeFilter;
+  /**
+   * `/practice/<gameId>?d=<0–3>`: mức tối thiểu chọn sẵn ở màn hướng dẫn lần này (nút "Luyện ngay"
+   * của thú cần "Thường trở lên"). Mức đang nhớ thấp hơn thì nâng lên; không ghi gì vào kỷ lục.
+   */
+  level?: Difficulty;
   /** `/admin/<mục>`. */
   section?: AdminSection;
   /** Menu mở từ link mời `/r/<mã>` (mã điền sẵn). */
   room?: string;
+  /** `/wardrobe/pets` → `"pets"`; bỏ trống = tab Phụ kiện. */
+  tab?: WardrobeTab;
+  /**
+   * Nút "Mặc thử" ở màn mở quà: món Tủ đồ đeo thử ngay và mở đúng chỗ của món. Chỉ trong bộ nhớ,
+   * không lên đường dẫn (tải lại trang thì thôi).
+   */
+  tryOn?: CosmeticId;
 }
 
-/** Màn cần hồ sơ (tên + bạn đồng hành) trước khi vào, như nút ở menu. */
-const PROFILE_SCREENS: readonly Screen[] = ["practice", "brain-test"];
+/** Màn cần hồ sơ (tên + bạn đồng hành) trước khi vào, như nút ở menu. Tủ đồ sửa hồ sơ nên cũng cần. */
+const PROFILE_SCREENS: readonly Screen[] = ["practice", "brain-test", "wardrobe"];
 
 const HOME: Route = { screen: "intro" };
 
 /**
- * Đường dẫn → màn + tham số (hàm thuần, có test). Không phân biệt hoa thường, bỏ qua `/` thừa.
- * `gameId` / mục lạ → màn cha (`/practice`, `/leaderboard`, `/admin`); đường dẫn lạ → `/`.
+ * Tham số truy vấn thuộc nav (`?cat=`, `?d=`): đọc / sửa theo bản đồ URL. Tham số khác (vd. `?code=`
+ * khi quay về từ Google) không phải của nav: thay mục lịch sử thì giữ nguyên cho supabase-js.
  */
-export function screenForPath(pathname: string): Route {
+const NAV_PARAMS: readonly string[] = ["cat", "d"];
+
+function parseLevel(raw: string | null): Difficulty | undefined {
+  if (raw === null || !/^\d$/.test(raw)) return undefined;
+  const level = Number(raw);
+  return isDifficulty(level) ? level : undefined;
+}
+
+/**
+ * Đường dẫn (có thể kèm `?truy-vấn`, `#hash`) → màn + tham số (hàm thuần, có test). Không phân biệt
+ * hoa thường, bỏ qua `/` thừa. `gameId` / mục lạ → màn cha (`/practice`, `/leaderboard`, `/admin`);
+ * đường dẫn lạ → `/`. Tham số lạ (`?cat=` không phải nhóm, `?d=` ngoài 0–3, tham số sai màn) bị bỏ.
+ */
+export function screenForPath(path: string): Route {
+  const beforeHash = path.split("#", 1)[0] ?? "";
+  const q = beforeHash.indexOf("?");
+  const pathname = q < 0 ? beforeHash : beforeHash.slice(0, q);
+  const query = new URLSearchParams(q < 0 ? "" : beforeHash.slice(q));
   const [head = "", param, ...rest] = pathname.split("/").filter(Boolean);
   if (rest.length > 0) return HOME;
   const arg = param?.toLowerCase();
@@ -71,8 +131,16 @@ export function screenForPath(pathname: string): Route {
       return param && /^[a-z0-9]{4}$/i.test(param)
         ? { screen: "menu", room: normalizeRoomCode(param) }
         : HOME;
-    case "practice":
-      return isGameId(arg) ? { screen: "practice", gameId: arg } : { screen: "practice" };
+    case "practice": {
+      if (isGameId(arg)) {
+        const level = parseLevel(query.get("d"));
+        return level === undefined
+          ? { screen: "practice", gameId: arg }
+          : { screen: "practice", gameId: arg, level };
+      }
+      const filter = param === undefined ? query.get("cat")?.toLowerCase() : undefined;
+      return isPracticeFilter(filter) ? { screen: "practice", filter } : { screen: "practice" };
+    }
     case "leaderboard":
       return isGameId(arg) ? { screen: "leaderboard", gameId: arg } : { screen: "leaderboard" };
     case "admin":
@@ -83,12 +151,20 @@ export function screenForPath(pathname: string): Route {
       return param === undefined ? { screen: "brain-test" } : HOME;
     case "account":
       return param === undefined ? { screen: "account" } : HOME;
+    case "gacha":
+      return param === undefined ? { screen: "gacha" } : HOME;
+    case "wardrobe":
+      // Tab lạ → tab Phụ kiện (như game lạ → màn cha).
+      return arg === "pets" ? { screen: "wardrobe", tab: "pets" } : { screen: "wardrobe" };
     default:
       return HOME;
   }
 }
 
-/** Màn + tham số → đường dẫn chuẩn (hàm thuần, có test). Giới thiệu và menu cùng là `/`. */
+/**
+ * Màn + tham số → đường dẫn chuẩn, kèm `?cat=` / `?d=` của Luyện tập (hàm thuần, có test). Giới
+ * thiệu và menu cùng là `/`.
+ */
 export function pathForScreen(route: Route): string {
   switch (route.screen) {
     case "intro":
@@ -96,10 +172,18 @@ export function pathForScreen(route: Route): string {
     case "menu":
       return route.room ? `/r/${route.room}` : "/";
     case "practice":
+      if (route.gameId) {
+        return route.level === undefined
+          ? `/practice/${route.gameId}`
+          : `/practice/${route.gameId}?d=${route.level}`;
+      }
+      return route.filter ? `/practice?cat=${route.filter}` : "/practice";
     case "leaderboard":
-      return route.gameId ? `/${route.screen}/${route.gameId}` : `/${route.screen}`;
+      return route.gameId ? `/leaderboard/${route.gameId}` : "/leaderboard";
     case "admin":
       return route.section ? `/admin/${route.section}` : "/admin";
+    case "wardrobe":
+      return route.tab === "pets" ? "/wardrobe/pets" : "/wardrobe";
     default:
       return `/${route.screen}`;
   }
@@ -142,9 +226,34 @@ function sameState(a: EntryState, b: EntryState): boolean {
 }
 
 /** Màn của một mục lịch sử: như `screenForPath`, riêng `/` có dấu `menu` thì là menu. */
-function routeForEntry(pathname: string, state: EntryState): Route {
-  const route = screenForPath(pathname);
+function routeForEntry(path: string, state: EntryState): Route {
+  const route = screenForPath(path);
   return route.screen === "intro" && state.menu ? { screen: "menu" } : route;
+}
+
+/** Các phần `k=v` của `location.search`, chia theo tham số của nav hay không (giữ nguyên mã hoá). */
+function searchParts(): { nav: string[]; other: string[] } {
+  const nav: string[] = [];
+  const other: string[] = [];
+  for (const part of location.search.replace(/^\?/, "").split("&")) {
+    if (!part) continue;
+    const key = (part.split("=", 1)[0] ?? "").toLowerCase();
+    (NAV_PARAMS.includes(key) ? nav : other).push(part);
+  }
+  return { nav, other };
+}
+
+/** Đường dẫn đang ở, chỉ kèm tham số của nav: so với `pathForScreen` để biết cần đẩy / sửa. */
+function locationPath(): string {
+  const { nav } = searchParts();
+  return nav.length > 0 ? `${location.pathname}?${nav.join("&")}` : location.pathname;
+}
+
+/** Thay mục: đường dẫn chuẩn + tham số không phải của nav (`?code=` cho supabase-js) + `#hash`. */
+function withKeptSearch(path: string): string {
+  const { other } = searchParts();
+  const search = other.length > 0 ? `${path.includes("?") ? "&" : "?"}${other.join("&")}` : "";
+  return path + search + location.hash;
 }
 
 /** Màn quay về sau khi xong hồ sơ (đọc từ `next`); mặc định menu. */
@@ -153,9 +262,14 @@ function returnRoute(next: string | undefined): Route {
   return route.screen === "intro" || route.screen === "profile" ? { screen: "menu" } : route;
 }
 
-/** Khoá so sánh hai mục: menu (có hay không có mã mời) coi là một. */
+/**
+ * Khoá so sánh hai mục: menu (có hay không có mã mời) coi là một; tham số `?cat=` / `?d=` không
+ * tính ("Chọn game khác" quay lại đúng mục lưới Luyện tập, giữ lọc đang chọn).
+ */
 function keyOf(route: Route): string {
-  return route.screen === "menu" ? "menu" : `${route.screen}|${pathForScreen(route)}`;
+  if (route.screen === "menu") return "menu";
+  const [pathname] = pathForScreen(route).split("?", 1);
+  return `${route.screen}|${pathname}`;
 }
 
 function toRoute(to: Screen | Route): Route {
@@ -188,15 +302,18 @@ function needsProfile(route: Route) {
   return PROFILE_SCREENS.includes(route.screen) && !hasProfile();
 }
 
-/** Ghi một mục lịch sử. Thay mục (`replace`) thì giữ `?query#hash` (quay về từ Google còn `?code=`). */
+/**
+ * Ghi một mục lịch sử. Thay mục (`replace`) thì giữ tham số không phải của nav và `#hash` (quay về
+ * từ Google còn `?code=`); tham số của nav lấy theo đường dẫn chuẩn (giá trị lạ bị bỏ).
+ */
 function commit(mode: "push" | "replace", path: string, extra: EntryState, key: string) {
   const idx = mode === "push" ? index + 1 : index;
   const state: EntryState = { ...extra, idx };
   if (mode === "push") {
     history.pushState(state, "", path);
     keys.length = idx;
-  } else if (path !== location.pathname || !sameState(readState(history.state), state)) {
-    history.replaceState(state, "", path + location.search + location.hash);
+  } else if (path !== locationPath() || !sameState(readState(history.state), state)) {
+    history.replaceState(state, "", withKeptSearch(path));
   }
   index = idx;
   keys[idx] = key;
@@ -207,7 +324,7 @@ function commit(mode: "push" | "replace", path: string, extra: EntryState, key: 
 function write(mode: "push" | "replace", route: Route, extra: EntryState = {}) {
   if (!canUseHistory()) return;
   const path = pathForScreen(route);
-  const push = mode === "push" && path !== location.pathname;
+  const push = mode === "push" && path !== locationPath();
   const state = route.screen === "menu" ? { ...extra, menu: true } : extra;
   commit(push ? "push" : "replace", path, state, keyOf(route));
 }
@@ -245,9 +362,10 @@ function onPopState() {
   const left = current;
   const state = readState(history.state);
   if (state.idx !== undefined) index = state.idx;
-  const target = routeForEntry(location.pathname, state);
+  const path = locationPath();
+  const target = routeForEntry(path, state);
   keys[index] = keyOf(target);
-  current = { path: location.pathname, state };
+  current = { path, state };
   // Nhớ mục vừa rời trước khi hỏi guard (guard có thể `restoreEntry()` ngay). Bấm Back nhiều lần khi
   // hộp xác nhận đang mở: vẫn nhớ mục ban đầu.
   blocked ??= left;
@@ -267,8 +385,9 @@ export function initNav(options: { hasProfile?(): boolean } = {}): () => void {
   index = state.idx ?? 0;
   keys = [];
   blocked = null;
-  current = { path: location.pathname, state };
-  apply(routeForEntry(location.pathname, state), state);
+  const path = locationPath();
+  current = { path, state };
+  apply(routeForEntry(path, state), state);
   if (typeof window === "undefined") return () => {};
   window.addEventListener("popstate", onPopState);
   return () => window.removeEventListener("popstate", onPopState);
@@ -336,7 +455,7 @@ interface NavStore {
 }
 
 function initialRoute(): Route {
-  return canUseHistory() ? routeForEntry(location.pathname, readState(history.state)) : HOME;
+  return canUseHistory() ? routeForEntry(locationPath(), readState(history.state)) : HOME;
 }
 
 export const useNav = create<NavStore>((set, get) => ({

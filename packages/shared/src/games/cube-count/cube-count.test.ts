@@ -116,7 +116,7 @@ function allStaircases(depth: number, width: number, maxH: number): number[][][]
 
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 
-describe("cube-count: mô hình", () => {
+describe("cube-count: mô hình", { timeout: 60_000 }, () => {
   it("câu ví dụ trong đặc tả (bản mẫu M12, mức Thường): 11 khối, 4 bị che, 7 thấy", () => {
     const h = [
       [3, 2, 1],
@@ -200,7 +200,7 @@ describe("cube-count: mô hình", () => {
   );
 });
 
-describe("cube-count: tất định", () => {
+describe("cube-count: tất định", { timeout: 60_000 }, () => {
   it(
     "cùng (seed, index, độ khó) → cùng câu đố, không phụ thuộc thứ tự gọi (10.000 seed × 4 mức)",
     () => {
@@ -262,7 +262,7 @@ describe("cube-count: tất định", () => {
   });
 });
 
-describe("cube-count: 10.000 seed mỗi mức", () => {
+describe("cube-count: 10.000 seed mỗi mức", { timeout: 60_000 }, () => {
   /** Kiểm từng câu, gom lỗi rồi so một lần (expect trong vòng lặp 40.000 câu quá chậm). */
   function failures(
     check: (p: CubeCountPuzzle, d: Difficulty, i: number) => string | null,

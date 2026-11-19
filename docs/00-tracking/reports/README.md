@@ -25,6 +25,7 @@ Khác với các tài liệu theo dõi khác:
 | [2026-10-20](2026-10-20.md) | DR-20261020 | GĐ 1 | Bóng của ai, Kẻ lạc đàn khó bằng sắc độ, chat real-time (CR-011), Luyện ngắm + Phấn trượt (CR-012, 17 game), hạn trả lời + đồng bộ khi nối lại; merge vào `dev`/`main` |
 | [2026-10-21](2026-10-21.md) | DR-20261021 | GĐ 1 | Chơi với bot (CR-016, UC-23): kế hoạch, duyệt, code shared/server/web bằng `/feature`, cân bằng bằng mô phỏng, 2 đợt sửa QA |
 | [2026-11-19](2026-11-19.md) | DR-20261119 | GĐ 1 | Trống quay dọc (CR-017), phòng 12 người + điểm thứ hạng co giãn (CR-018), trang quản trị + ghi đăng nhập (CR-019, ADR 0015); 2 đợt song song, QA 3 vòng; chưa commit, migration chưa chạy thử |
+| [2026-11-20](2026-11-20.md) | DR-20261120 | GĐ 1 | Game yêu thích, hướng dẫn động 5 game, tách URL (CR-020 → 022); phấn, máy quay phụ kiện, tủ đồ, 6 bạn đồng hành mở khoá (CR-023/024, ADR 0016); QA 4 vòng; 2 migration chờ áp |
 
 Ngày 2026-10-11 không có phiên làm việc.
 

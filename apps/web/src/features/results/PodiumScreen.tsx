@@ -25,6 +25,7 @@ import { leaveParty, send } from "@/net/connection";
 import { useGame } from "@/stores/game.store";
 import { CategoryBest } from "./components/CategoryBest";
 import { Confetti } from "./components/Confetti";
+import { RewardChip } from "./components/RewardChip";
 import { PODIUM_TIMING, type PodiumTimeline, podiumTimeline } from "./podium-timeline";
 import { podiumGroups } from "./standings";
 
@@ -214,6 +215,8 @@ export function PodiumScreen() {
         hasBest && "xl:col-start-3",
       )}
     >
+      {/* Máy tính: "+N phấn" trên các nút (điện thoại: cạnh nhãn hạng của mình ở đầu màn). */}
+      <RewardChip shown={youShown} announce note className="hidden self-center lg:flex" />
       {isHost ? (
         <>
           <Button
@@ -284,15 +287,18 @@ export function PodiumScreen() {
       </header>
 
       {me && rank !== undefined && (
-        // Giữ chỗ từ đầu, chỉ hiện sau khi chỗ của mình đã lật (không lộ kết quả sớm).
-        <div
-          aria-hidden={!youShown}
-          className={cn(
-            "relative -rotate-2 self-center rounded-[14px] border-[3px] border-sticker bg-card px-3.5 py-1.5 font-display text-[19px] font-extrabold text-card-foreground shadow-sticker-sm lg:hidden",
-            youShown ? enter("fx-tag-pop") : "invisible",
-          )}
-        >
-          {t("results.youPlace", { place, count: me.matchPoints })}
+        <div className="flex items-center justify-center gap-2.5 self-center lg:hidden">
+          {/* Giữ chỗ từ đầu, chỉ hiện sau khi chỗ của mình đã lật (không lộ kết quả sớm). */}
+          <div
+            aria-hidden={!youShown}
+            className={cn(
+              "relative -rotate-2 rounded-[14px] border-[3px] border-sticker bg-card px-3.5 py-1.5 font-display text-[19px] font-extrabold text-card-foreground shadow-sticker-sm",
+              youShown ? enter("fx-tag-pop") : "invisible",
+            )}
+          >
+            {t("results.youPlace", { place, count: me.matchPoints })}
+          </div>
+          <RewardChip shown={youShown} reserve />
         </div>
       )}
 
@@ -375,6 +381,7 @@ export function PodiumScreen() {
                     <span className="relative flex shrink-0">
                       <PlayerAvatar
                         avatar={p.avatar}
+                        accessories={p.accessories}
                         colorIndex={p.colorIndex}
                         size="md"
                         className={denseRest ? "size-8 border-2 lg:size-6" : "size-9.5"}
@@ -527,6 +534,7 @@ function PodiumColumn({
         >
           <Character
             id={top.avatar}
+            accessories={top.accessories}
             mood="win"
             size={150}
             animated={shown && idle && !reduced}

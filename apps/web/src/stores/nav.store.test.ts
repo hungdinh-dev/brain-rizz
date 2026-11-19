@@ -1,6 +1,8 @@
-import { GAME_IDS } from "@brain-rizz/shared";
+import { CATEGORIES, GAME_IDS } from "@brain-rizz/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ADMIN_SECTIONS, pathForScreen, type Route, screenForPath } from "./nav.store";
+
+const LEVELS = [0, 1, 2, 3] as const;
 
 /**
  * Tách URL (CR-022, kế hoạch practice-favorites-howto-routes.md mục 3.4): bản đồ đường dẫn ↔ màn
@@ -18,12 +20,61 @@ describe("bản đồ URL (hàm thuần)", () => {
       { screen: "leaderboard" },
       { screen: "account" },
       { screen: "admin" },
+      { screen: "gacha" },
+      { screen: "wardrobe" },
+      { screen: "wardrobe", tab: "pets" },
       { screen: "menu", room: "AB12" },
       ...GAME_IDS.map((gameId): Route => ({ screen: "practice", gameId })),
       ...GAME_IDS.map((gameId): Route => ({ screen: "leaderboard", gameId })),
       ...ADMIN_SECTIONS.map((section): Route => ({ screen: "admin", section })),
+      // Luyện tập: lọc nhóm / Yêu thích (`?cat=`), mức tối thiểu (`?d=`).
+      ...[...CATEGORIES, "fav" as const].map((filter): Route => ({ screen: "practice", filter })),
+      ...GAME_IDS.flatMap((gameId) =>
+        LEVELS.map((level): Route => ({ screen: "practice", gameId, level })),
+      ),
     ];
     for (const route of routes) expect(screenForPath(pathForScreen(route))).toEqual(route);
+  });
+
+  it("Luyện tập: ?cat= chỉ ở /practice, ?d= chỉ ở /practice/<game>; giá trị lạ bị bỏ", () => {
+    expect(pathForScreen({ screen: "practice", filter: "analyze" })).toBe("/practice?cat=analyze");
+    expect(pathForScreen({ screen: "practice", filter: "fav" })).toBe("/practice?cat=fav");
+    expect(pathForScreen({ screen: "practice", gameId: "balance", level: 1 })).toBe(
+      "/practice/balance?d=1",
+    );
+    // `filter` đi với game thì thôi (màn hướng dẫn không có lọc).
+    expect(pathForScreen({ screen: "practice", gameId: "balance", filter: "analyze" })).toBe(
+      "/practice/balance",
+    );
+
+    expect(screenForPath("/Practice/?CAT=x&cat=Analyze#top")).toEqual({
+      screen: "practice",
+      filter: "analyze",
+    });
+    expect(screenForPath("/practice/balance?d=2&code=abc")).toEqual({
+      screen: "practice",
+      gameId: "balance",
+      level: 2,
+    });
+    for (const path of [
+      "/practice?cat=xyz",
+      "/practice?cat=",
+      "/practice?d=1",
+      "/practice?cat=all",
+    ]) {
+      expect(screenForPath(path)).toEqual({ screen: "practice" });
+    }
+    for (const path of [
+      "/practice/balance?d=4",
+      "/practice/balance?d=",
+      "/practice/balance?d=1.0",
+      "/practice/balance?d=-1",
+      "/practice/balance?cat=analyze",
+    ]) {
+      expect(screenForPath(path)).toEqual({ screen: "practice", gameId: "balance" });
+    }
+    expect(screenForPath("/practice/khong-co-game?cat=analyze")).toEqual({ screen: "practice" });
+    expect(screenForPath("/leaderboard?cat=analyze")).toEqual({ screen: "leaderboard" });
   });
 
   it("đường dẫn chuẩn theo bảng 3.4; giới thiệu và menu cùng là /", () => {
@@ -36,6 +87,22 @@ describe("bản đồ URL (hàm thuần)", () => {
     );
     expect(pathForScreen({ screen: "admin", section: "scoring" })).toBe("/admin/scoring");
     expect(pathForScreen({ screen: "brain-test" })).toBe("/brain-test");
+    // Máy quay phụ kiện, Tủ đồ (CR-023, CR-024); món "Mặc thử" chỉ trong bộ nhớ, không lên URL.
+    expect(pathForScreen({ screen: "gacha" })).toBe("/gacha");
+    expect(pathForScreen({ screen: "wardrobe" })).toBe("/wardrobe");
+    expect(pathForScreen({ screen: "wardrobe", tab: "accessories" })).toBe("/wardrobe");
+    expect(pathForScreen({ screen: "wardrobe", tab: "pets" })).toBe("/wardrobe/pets");
+    expect(pathForScreen({ screen: "wardrobe", tryOn: "crown" })).toBe("/wardrobe");
+  });
+
+  it("Máy quay, Tủ đồ: tab lạ → tab Phụ kiện; tham số thừa → giới thiệu", () => {
+    expect(screenForPath("/Wardrobe/Pets/")).toEqual({ screen: "wardrobe", tab: "pets" });
+    expect(screenForPath("/wardrobe/accessories")).toEqual({ screen: "wardrobe" });
+    expect(screenForPath("/wardrobe/crown")).toEqual({ screen: "wardrobe" });
+    expect(screenForPath("/GACHA")).toEqual({ screen: "gacha" });
+    for (const path of ["/gacha/10", "/wardrobe/pets/x"]) {
+      expect(screenForPath(path)).toEqual({ screen: "intro" });
+    }
   });
 
   it("gameId / mục lạ → màn cha; đường dẫn lạ → giới thiệu; không phân biệt hoa thường", () => {
@@ -155,6 +222,70 @@ describe("đồng bộ History API (CR-022)", () => {
     account.nav().go("account", { replace: true });
     expect(account.url()).toBe("/account?code=abc");
     expect(account.hist.length).toBe(1);
+  });
+
+  it("Luyện tập ?cat= / ?d=: mở đúng lọc / mức; giá trị lạ bỏ bằng replace, giữ ?code=", async () => {
+    const cat = await open("/practice?cat=analyze");
+    expect(cat.nav().route).toEqual({ screen: "practice", filter: "analyze" });
+    expect(cat.url()).toBe("/practice?cat=analyze");
+
+    const level = await open("/practice/balance?d=1");
+    expect(level.nav().route).toEqual({ screen: "practice", gameId: "balance", level: 1 });
+    expect(level.url()).toBe("/practice/balance?d=1");
+
+    const bad = await open("/practice?cat=xyz&code=abc");
+    expect(bad.nav().route).toEqual({ screen: "practice" });
+    expect(bad.url()).toBe("/practice?code=abc");
+    expect(bad.hist.length).toBe(1);
+    expect(bad.hist.pushState).not.toHaveBeenCalled();
+
+    const badLevel = await open("/practice/balance?d=9");
+    expect(badLevel.nav().route).toEqual({ screen: "practice", gameId: "balance" });
+    expect(badLevel.url()).toBe("/practice/balance");
+
+    // Tham số sai màn bị bỏ; tham số không phải của nav giữ nguyên.
+    const mixed = await open("/practice/balance?code=abc&cat=analyze&d=2");
+    expect(mixed.nav().route).toEqual({ screen: "practice", gameId: "balance", level: 2 });
+    expect(mixed.url()).toBe("/practice/balance?d=2&code=abc");
+  });
+
+  it("đổi chip lọc → replace; 'Chọn game khác' quay lại đúng mục lưới, giữ lọc", async () => {
+    const b = await open("/");
+    b.nav().go("menu");
+    b.nav().go({ screen: "practice", filter: "analyze" });
+    expect(b.url()).toBe("/practice?cat=analyze");
+    expect(b.hist.length).toBe(2);
+
+    // Chip: thay mục, không chất lịch sử.
+    b.nav().go({ screen: "practice", filter: "memorize" }, { replace: true });
+    expect(b.url()).toBe("/practice?cat=memorize");
+    b.nav().go({ screen: "practice" }, { replace: true });
+    expect(b.url()).toBe("/practice");
+    b.nav().go({ screen: "practice", filter: "fav" }, { replace: true });
+    expect(b.hist.length).toBe(2);
+
+    b.nav().go({ screen: "practice", gameId: "balance" });
+    b.nav().goBack({ screen: "practice" });
+    expect(b.hist.back).toHaveBeenCalledTimes(1);
+    expect(b.nav().route).toEqual({ screen: "practice", filter: "fav" });
+    expect(b.url()).toBe("/practice?cat=fav");
+
+    // Back về menu, Forward lại đúng lọc.
+    b.hist.back();
+    expect(b.nav().screen).toBe("menu");
+    b.hist.forward();
+    expect(b.nav().route).toEqual({ screen: "practice", filter: "fav" });
+  });
+
+  it("link sâu có ?cat= khi chưa có hồ sơ → chọn bạn đồng hành, xong về đúng lọc", async () => {
+    let hasProfile = false;
+    const b = await open("/practice?cat=analyze", { hasProfile: () => hasProfile });
+    expect(b.url()).toBe("/profile");
+    expect(b.nav().profileReturn).toEqual({ screen: "practice", filter: "analyze" });
+    hasProfile = true;
+    b.nav().go(b.nav().profileReturn, { replace: true });
+    expect(b.url()).toBe("/practice?cat=analyze");
+    expect(b.hist.length).toBe(1);
   });
 
   it("chuyển màn → push; cùng đường dẫn (giới thiệu → menu) → replace; Back/Forward không đẩy thêm", async () => {
@@ -309,6 +440,11 @@ describe("đồng bộ History API (CR-022)", () => {
     expect((await open("/leaderboard", { hasProfile: () => false })).nav().screen).toBe(
       "leaderboard",
     );
+    expect((await open("/gacha", { hasProfile: () => false })).nav().screen).toBe("gacha");
+    // Tủ đồ sửa hồ sơ (phụ kiện, bạn đồng hành) → chọn hồ sơ trước, xong về đúng tab.
+    const wardrobe = await open("/wardrobe/pets", { hasProfile: () => false });
+    expect(wardrobe.url()).toBe("/profile");
+    expect(wardrobe.nav().profileReturn).toEqual({ screen: "wardrobe", tab: "pets" });
   });
 
   it("sửa hồ sơ từ Tài khoản: Back rồi Forward vẫn nhớ quay về Tài khoản", async () => {

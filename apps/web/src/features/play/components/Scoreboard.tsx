@@ -81,7 +81,12 @@ export function Scoreboard({ standings, meId, round, compact, className }: Score
               >
                 <RankBadge rank={rank} size="md" />
                 <span className="relative flex shrink-0">
-                  <PlayerAvatar avatar={p.avatar} colorIndex={p.colorIndex} size="md" />
+                  <PlayerAvatar
+                    avatar={p.avatar}
+                    accessories={p.accessories}
+                    colorIndex={p.colorIndex}
+                    size="md"
+                  />
                   {p.isBot && <BotBadge size="sm" />}
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5 leading-tight">
@@ -150,7 +155,13 @@ function CompactRow({
     >
       <RankBadge rank={rank} size="sm" className="size-6 text-[13px]" />
       <span className="relative flex shrink-0">
-        <PlayerAvatar avatar={p.avatar} colorIndex={p.colorIndex} size="sm" className="size-7.5" />
+        <PlayerAvatar
+          avatar={p.avatar}
+          accessories={p.accessories}
+          colorIndex={p.colorIndex}
+          size="sm"
+          className="size-7.5"
+        />
         {p.isBot && <BotBadge size="xs" />}
       </span>
       <PlayerName

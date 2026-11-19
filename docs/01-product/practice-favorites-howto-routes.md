@@ -68,8 +68,8 @@
 | --- | --- | --- |
 | `/` | Giới thiệu / menu | Như cũ |
 | `/profile` | Chọn bạn đồng hành | |
-| `/practice` | Luyện tập · chọn game | |
-| `/practice/<gameId>` | Luyện tập · hướng dẫn game đó | Đếm ngược/chơi/kết quả vẫn ở URL này (không đẩy lịch sử); `gameId` lạ → `/practice` (replace) |
+| `/practice`, `/practice?cat=<nhóm\|fav>` | Luyện tập · chọn game | `?cat=` = chip lọc đang chọn (`identify`, `memorize`, `analyze`, `compute`, `visualize`, `fav` = Yêu thích; không có = Tất cả). Đổi chip → `replaceState`. Nút "Luyện ngay" của thú khoá theo nhóm (Thông) mở `/practice?cat=analyze` (CR-024) |
+| `/practice/<gameId>`, `/practice/<gameId>?d=<0–3>` | Luyện tập · hướng dẫn game đó | Đếm ngược/chơi/kết quả vẫn ở URL này (không đẩy lịch sử); `gameId` lạ → `/practice` (replace). `?d=` = mức tối thiểu chọn sẵn lần này (mức đang nhớ thấp hơn thì nâng lên; không ghi vào kỷ lục, "mức lần trước" chỉ lưu khi chơi xong lượt) — nút "Luyện ngay" của Ộp mở `/practice/number-balloons?d=1` (CR-024) |
 | `/brain-test` | Kiểm tra não | Pha trong phòng do server quyết, một URL |
 | `/leaderboard`, `/leaderboard/<gameId>` | Bảng xếp hạng Điểm Não / theo game | `gameId` lạ → `/leaderboard` |
 | `/account` | Tài khoản & lịch sử | Quay về từ Google vẫn chạy như cũ |
@@ -81,7 +81,8 @@
 - Chưa có hồ sơ mà mở link sâu → qua màn chọn bạn đồng hành rồi về đúng màn đó.
 - Đang ở trong phòng (party hoặc Kiểm tra não) mà bấm Back → hỏi "Rời phòng?" (dùng hộp thoại sẵn có); đồng ý thì rời phòng rồi về màn trước, không thì ở lại (đẩy lại mục lịch sử).
 - Đang đếm ngược/chơi Luyện tập mà bấm Back → như nút Thoát hiện có ("Bỏ lượt này?").
-- Hàm thuần `screenForPath`/`pathForScreen` + test (khứ hồi, id lạ, `/admin/<mục>`, `/r/<mã>`).
+- Tham số truy vấn: chỉ `?cat=` (ở `/practice`) và `?d=` (ở `/practice/<gameId>`) thuộc bản đồ URL. Giá trị lạ hoặc sai màn (`?cat=xyz`, `?d=7`, `?cat=` ở trang hướng dẫn) → bỏ bằng `replaceState`; tham số khác (vd. `?code=` khi quay về từ Google) giữ nguyên. "Chọn game khác" quay lại đúng mục lưới trước đó (giữ lọc).
+- Hàm thuần `screenForPath`/`pathForScreen` + test (khứ hồi, id lạ, `/admin/<mục>`, `/r/<mã>`, `?cat=`, `?d=`).
 
 ## 4. Chia việc
 
