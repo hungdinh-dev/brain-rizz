@@ -28,6 +28,7 @@ import { STORAGE_KEYS, safeSession } from "@/lib/storage";
 import { useAuth } from "@/stores/auth.store";
 import { routeServerError, useChat } from "@/stores/chat.store";
 import { useGame } from "@/stores/game.store";
+import { useNav } from "@/stores/nav.store";
 import { BOT_YIELDED_TOAST_MS, botYieldedText } from "./bot-yielded";
 import { brainLeaveAction } from "./brain-leave";
 import { SERVER_URL } from "./server-url";
@@ -131,7 +132,8 @@ export async function leaveParty() {
   room = null;
   useGame.getState().reset();
   useChat.getState().reset();
-  history.replaceState(null, "", "/");
+  // Thay mục `/r/<mã>` bằng menu `/` (không để lại mục phòng trong lịch sử).
+  useNav.getState().go("menu", { replace: true });
 }
 
 export function send(type: (typeof ClientMessage)[keyof typeof ClientMessage], payload?: unknown) {

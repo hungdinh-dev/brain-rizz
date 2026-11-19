@@ -10,24 +10,24 @@ import {
   ROOM_NAME,
   ServerMessage,
 } from "@brain-rizz/shared";
-import { boot, type ColyseusTestServer } from "@colyseus/testing";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import appConfig from "../src/app.config";
 import type { PartyRoom } from "../src/rooms/PartyRoom";
 import { MemoryResultStore, NoopResultStore, setResultStore } from "../src/store/ResultStore";
 import {
   advance,
+  bootOnFreePort,
   connectTo,
   ignoreServerMessages,
   nextMessage,
   SOLVE,
   settle,
+  type TestServer,
   until,
 } from "./helpers";
 
 /** Ghi kết quả trận party vào tài khoản (FR-MR-10, ADR 0011). */
 
-let colyseus: ColyseusTestServer<typeof appConfig>;
+let colyseus: TestServer;
 
 const TOKEN_A = "jwt-cua-an";
 const TOKEN_C = "jwt-cua-chi";
@@ -87,7 +87,7 @@ async function reload(room: PartyRoom, client: TestClient): Promise<TestClient> 
 
 describe("PartyRoom — kết quả trận", () => {
   beforeAll(async () => {
-    colyseus = await boot(appConfig);
+    colyseus = await bootOnFreePort();
   });
   afterAll(async () => {
     setResultStore(new NoopResultStore());

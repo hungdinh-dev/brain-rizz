@@ -45,6 +45,8 @@ export const STORAGE_KEYS = {
   motion: "brain-rizz:motion",
   /** Kỷ lục luyện tập trên máy + độ khó lần trước của từng game (JSON, UC-13). */
   practice: "brain-rizz:practice",
+  /** Game yêu thích ở Luyện tập (CR-020): `{ ids, synced }` (JSON), đồng bộ với tài khoản khi có phiên. */
+  favorites: "brain-rizz:favorites",
   /** Chat trong phòng (CR-011): người bị tắt tiếng theo mã phòng (JSON, chỉ trên máy này). */
   chatMute: "brain-rizz:chat-mute",
   /** Cột chat máy tính đang thu gọn: "1" | không có. */

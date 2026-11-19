@@ -1,11 +1,12 @@
-import { StarIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import type { GameId } from "@brain-rizz/shared";
+import { TrophyIcon } from "lucide-react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { QuitDialog } from "@/components/common/QuitDialog";
 import { CountdownStage, SoloPlayView, waitAnswerOutcome, waitUnlockDelay } from "@/features/play";
 import type { MinigameBridge } from "@/games/types";
 import { useNumberFormat } from "@/hooks/use-number-format";
-import { useNav } from "@/stores/nav.store";
+import { restoreEntry, setBackGuard, useNav } from "@/stores/nav.store";
 import { PracticePick } from "./components/PracticePick";
 import { PracticeResult } from "./components/PracticeResult";
 import { PracticeSetup } from "./components/PracticeSetup";
@@ -15,19 +16,51 @@ import { bestFor } from "./records";
 /**
  * Luyện tập (UC-13, khu 13): chọn game → hướng dẫn & độ khó → đếm ngược 3 giây → chơi → kết quả.
  * Chạy hoàn toàn trên máy (seed và chấm điểm ở client, cùng luật với party), không cần server.
+ *
+ * Đường dẫn (CR-022): `/practice` = chọn game, `/practice/<gameId>` = hướng dẫn game đó; đếm ngược,
+ * chơi, kết quả vẫn ở URL này (không đẩy lịch sử). Back lúc đếm ngược / đang chơi = nút Thoát.
  */
 export function PracticeScreen() {
   const s = usePractice();
   const go = useNav((n) => n.go);
+  const goBack = useNav((n) => n.goBack);
+  const routeGame = useNav((n) => (n.route.screen === "practice" ? n.route.gameId : undefined));
   const { t } = useTranslation();
   const fmt = useNumberFormat();
   const [confirmQuit, setConfirmQuit] = useState(false);
+  const inRound = s.step === "countdown" || s.step === "playing";
 
+  // Layout effect: mở màn và khớp bước theo đường dẫn trước khi vẽ (F5 ở `/practice/<gameId>` không
+  // loé lưới chọn game).
   // biome-ignore lint/correctness/useExhaustiveDependencies: mở một lần khi vào màn, dọn khi rời
-  useEffect(() => {
+  useLayoutEffect(() => {
     s.open();
     return () => usePractice.getState().leave();
   }, []);
+
+  // Đường dẫn → bước: có `gameId` thì mở hướng dẫn game đó (giữ nguyên nếu đang chơi / xem kết quả
+  // của chính game này), không có thì về lưới chọn game.
+  useLayoutEffect(() => {
+    const p = usePractice.getState();
+    if (routeGame) {
+      if (p.step === "pick" || p.gameId !== routeGame) p.pickGame(routeGame);
+    } else if (p.step !== "pick") {
+      p.backToPick();
+    }
+  }, [routeGame]);
+
+  // Back của trình duyệt lúc đếm ngược / đang chơi → giữ URL, hỏi "Bỏ lượt này?" như nút Thoát.
+  useEffect(() => {
+    if (!inRound) {
+      setConfirmQuit(false);
+      return;
+    }
+    return setBackGuard(() => {
+      restoreEntry();
+      setConfirmQuit(true);
+      return true;
+    });
+  }, [inRound]);
 
   const round = s.round;
   // Bridge chỉ tạo lại khi sang lượt mới (seed đổi); canvas Phaser không bị dựng lại giữa lượt.
@@ -45,10 +78,13 @@ export function PracticeScreen() {
     [round],
   );
 
-  const leave = () => go("menu");
+  const leave = () => goBack("menu");
+  // Chọn game → đẩy `/practice/<gameId>`; "Chọn game khác" → về `/practice`.
+  const pick = (gameId: GameId) => go({ screen: "practice", gameId });
+  const otherGame = () => goBack({ screen: "practice" });
 
   if (s.step === "pick" || !s.gameId) {
-    return <PracticePick records={s.records} onPick={s.pickGame} onBack={leave} />;
+    return <PracticePick records={s.records} onPick={pick} onBack={leave} />;
   }
 
   if (s.step === "setup" || !round || !bridge) {
@@ -59,10 +95,22 @@ export function PracticeScreen() {
         records={s.records}
         onDifficulty={s.setDifficulty}
         onStart={s.start}
-        onOtherGame={s.backToPick}
+        onOtherGame={otherGame}
       />
     );
   }
+
+  const quitDialog = (
+    <QuitDialog
+      open={confirmQuit}
+      onOpenChange={setConfirmQuit}
+      description={t("common.quitPractice")}
+      onConfirm={() => {
+        setConfirmQuit(false);
+        usePractice.getState().quit();
+      }}
+    />
+  );
 
   const chip = (
     <span className="inline-flex h-6.5 shrink-0 items-center rounded-full bg-secondary px-2.75 font-display text-sm font-extrabold whitespace-nowrap text-secondary-foreground lg:h-9.5 lg:px-3.5 lg:text-xl">
@@ -72,13 +120,16 @@ export function PracticeScreen() {
 
   if (s.step === "countdown") {
     return (
-      <CountdownStage
-        gameId={round.gameId}
-        startAt={round.startAt}
-        totalMs={PRACTICE_COUNTDOWN_MS}
-        difficulty={round.difficulty}
-        chip={chip}
-      />
+      <>
+        <CountdownStage
+          gameId={round.gameId}
+          startAt={round.startAt}
+          totalMs={PRACTICE_COUNTDOWN_MS}
+          difficulty={round.difficulty}
+          chip={chip}
+        />
+        {quitDialog}
+      </>
     );
   }
 
@@ -92,7 +143,7 @@ export function PracticeScreen() {
         sync={s.sync}
         onPlayAgain={s.start}
         onChangeLevel={s.quit}
-        onOtherGame={s.backToPick}
+        onOtherGame={otherGame}
       />
     );
   }
@@ -101,7 +152,7 @@ export function PracticeScreen() {
   // Ô kỷ lục thay dải đối thủ (khu 13).
   const aside = (
     <p className="flex min-h-10 items-center gap-2 self-start rounded-2xl border-[2.5px] border-chalk/60 bg-board-shade px-3.5 py-1.5 text-sm font-bold text-chalk lg:min-h-12 lg:text-base">
-      <StarIcon aria-hidden className="size-4.5 fill-primary text-primary" />
+      <TrophyIcon aria-hidden className="size-4.5 text-primary" strokeWidth={2.4} />
       {best ? t("practice.toBeat", { score: fmt(best.score) }) : t("practice.noRecordYet")}
     </p>
   );
@@ -120,15 +171,7 @@ export function PracticeScreen() {
         aside={aside}
         onQuit={() => setConfirmQuit(true)}
       />
-      <QuitDialog
-        open={confirmQuit}
-        onOpenChange={setConfirmQuit}
-        description={t("common.quitPractice")}
-        onConfirm={() => {
-          setConfirmQuit(false);
-          usePractice.getState().quit();
-        }}
-      />
+      {quitDialog}
     </>
   );
 }

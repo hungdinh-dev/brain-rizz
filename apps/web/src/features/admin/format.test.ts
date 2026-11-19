@@ -42,9 +42,10 @@ it("so với hôm qua: theo % khi hôm qua ≥ 10, ít hơn thì theo số", () 
 });
 
 it("đường dẫn /admin mở trang quản trị, /r/<mã> vào menu", () => {
-  expect(screenForPath("/admin")).toBe("admin");
-  expect(screenForPath("/admin/")).toBe("admin");
-  expect(screenForPath("/r/ABCD")).toBe("menu");
-  expect(screenForPath("/")).toBe("intro");
-  expect(screenForPath("/administrator")).toBe("intro");
+  expect(screenForPath("/admin").screen).toBe("admin");
+  expect(screenForPath("/admin/").screen).toBe("admin");
+  expect(screenForPath("/admin/scoring")).toEqual({ screen: "admin", section: "scoring" });
+  expect(screenForPath("/r/ABCD").screen).toBe("menu");
+  expect(screenForPath("/").screen).toBe("intro");
+  expect(screenForPath("/administrator").screen).toBe("intro");
 });

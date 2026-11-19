@@ -10,20 +10,13 @@ import {
   UsersIcon,
 } from "lucide-react";
 import { STORAGE_KEYS, safeLocal } from "@/lib/storage";
+import { type AdminSection, isAdminSection } from "@/stores/nav.store";
 
-/** 8 mục của trang quản trị (ui-ux 6.9), theo thứ tự menu. */
-export const ADMIN_SECTIONS = [
-  "overview",
-  "games",
-  "scoring",
-  "logins",
-  "players",
-  "matches",
-  "rooms",
-  "admins",
-] as const;
-
-export type AdminSection = (typeof ADMIN_SECTIONS)[number];
+/**
+ * 8 mục của trang quản trị (ui-ux 6.9), theo thứ tự menu. Danh sách nằm ở nav.store vì cũng là
+ * `<mục>` trong đường dẫn `/admin/<mục>` (CR-022).
+ */
+export { ADMIN_SECTIONS, type AdminSection, isAdminSection } from "@/stores/nav.store";
 
 export const SECTION_ICON: Record<AdminSection, LucideIcon> = {
   overview: ChartColumnIcon,
@@ -35,10 +28,6 @@ export const SECTION_ICON: Record<AdminSection, LucideIcon> = {
   rooms: DoorOpenIcon,
   admins: ShieldCheckIcon,
 };
-
-export function isAdminSection(value: unknown): value is AdminSection {
-  return typeof value === "string" && (ADMIN_SECTIONS as readonly string[]).includes(value);
-}
 
 /** Mục mở lần trước trên máy này (chỉ cho tiện, không bắt buộc). */
 export function loadLastSection(): AdminSection {

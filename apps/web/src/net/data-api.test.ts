@@ -49,6 +49,116 @@ describe("data-api khi chưa cấu hình Supabase (FR-MR-15)", { timeout: 30_000
     await expect(
       api.submitPracticeResult("odd-one-out", 1, 1200, 8, { name: "QA", avatar: "khoi" }),
     ).resolves.toEqual(notConfigured);
+    await expect(api.fetchPracticeFavorites()).resolves.toEqual(notConfigured);
+    await expect(api.setPracticeFavorite("odd-one-out", true)).resolves.toEqual(notConfigured);
+    await expect(api.mergePracticeFavorites(["odd-one-out"])).resolves.toEqual(notConfigured);
+    await expect(api.fetchSessionUserId()).resolves.toEqual(notConfigured);
+  });
+});
+
+describe("game yêu thích: RPC practice_favorites_* (CR-020)", { timeout: 30_000 }, () => {
+  type RpcResult = { data: unknown; error: unknown; status?: number };
+
+  /** Supabase giả: có cấu hình, có phiên (của `session`); `rpc` trả lần lượt theo `answer`. */
+  async function loadWithRpc(
+    answer: (name: string, args: unknown) => RpcResult,
+    session: unknown = { user: { id: "user-a" } },
+  ) {
+    vi.resetModules();
+    const rpc = vi.fn(async (name: string, args?: unknown) => answer(name, args));
+    const client = { rpc, auth: { getSession: async () => ({ data: { session } }) } };
+    vi.doMock("@/lib/supabase", () => ({
+      SUPABASE_CONFIGURED: true,
+      hasStoredSession: () => true,
+      loadSupabase: async () => client,
+    }));
+    vi.doMock("@/stores/auth.store", () => ({
+      useAuth: { getState: () => ({}) },
+      withTimeout: <T>(p: Promise<T>) => p,
+    }));
+    const api = await import("./data-api");
+    return { api, rpc };
+  }
+
+  beforeEach(() => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+  });
+  afterEach(() => {
+    vi.doUnmock("@/lib/supabase");
+    vi.doUnmock("@/stores/auth.store");
+    vi.restoreAllMocks();
+  });
+
+  it("gọi đúng tên RPC và tham số; chỉ giữ phần tử là chuỗi", async () => {
+    const { api, rpc } = await loadWithRpc((name) =>
+      name === "practice_favorites_set"
+        ? { data: null, error: null }
+        : { data: ["odd-one-out", 7, null, "balance"], error: null },
+    );
+    await expect(api.fetchPracticeFavorites()).resolves.toEqual({
+      ok: true,
+      data: ["odd-one-out", "balance"],
+    });
+    await expect(api.setPracticeFavorite("balance", false)).resolves.toEqual({
+      ok: true,
+      data: null,
+    });
+    await expect(api.mergePracticeFavorites(["balance", "odd-one-out"])).resolves.toEqual({
+      ok: true,
+      data: ["odd-one-out", "balance"],
+    });
+    expect(rpc.mock.calls).toEqual([
+      ["practice_favorites_get"],
+      ["practice_favorites_set", { p_game_id: "balance", p_favorite: false }],
+      ["practice_favorites_merge", { p_game_ids: ["balance", "odd-one-out"] }],
+    ]);
+  });
+
+  it("id tài khoản của phiên đang có; phiên đã mất (đăng xuất ở tab khác) → no-session", async () => {
+    const answer = () => ({ data: null, error: null });
+    const { api, rpc } = await loadWithRpc(answer);
+    await expect(api.fetchSessionUserId()).resolves.toEqual({ ok: true, data: "user-a" });
+    expect(rpc).not.toHaveBeenCalled();
+    const gone = await loadWithRpc(answer, null);
+    await expect(gone.api.fetchSessionUserId()).resolves.toEqual({
+      ok: false,
+      reason: "no-session",
+    });
+  });
+
+  it("dữ liệu lạ (null, không phải mảng) → mảng rỗng", async () => {
+    const { api } = await loadWithRpc(() => ({ data: null, error: null }));
+    await expect(api.fetchPracticeFavorites()).resolves.toEqual({ ok: true, data: [] });
+  });
+
+  it("lỗi RPC (vd. limit P0001) → error, vẫn gọi tiếp lần sau", async () => {
+    const { api, rpc } = await loadWithRpc(() => ({
+      data: null,
+      error: { code: "P0001", message: "limit" },
+      status: 400,
+    }));
+    await expect(api.setPracticeFavorite("balance", true)).resolves.toEqual({
+      ok: false,
+      reason: "error",
+    });
+    await expect(api.setPracticeFavorite("balance", true)).resolves.toEqual({
+      ok: false,
+      reason: "error",
+    });
+    expect(rpc).toHaveBeenCalledTimes(2);
+  });
+
+  it("DB chưa có hàm (404 / PGRST202) → error, rồi thôi gọi lên máy chủ", async () => {
+    const { api, rpc } = await loadWithRpc(() => ({
+      data: null,
+      error: { code: "PGRST202", message: "Could not find the function" },
+      status: 404,
+    }));
+    const failed = { ok: false, reason: "error" };
+    await expect(api.mergePracticeFavorites(["balance"])).resolves.toEqual(failed);
+    await expect(api.fetchPracticeFavorites()).resolves.toEqual(failed);
+    await expect(api.setPracticeFavorite("balance", true)).resolves.toEqual(failed);
+    expect(rpc).toHaveBeenCalledTimes(1);
   });
 });
 

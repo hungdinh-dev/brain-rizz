@@ -17,7 +17,6 @@ import { countdownHint, useGameText } from "@/hooks/use-game-text";
 import { DESKTOP_QUERY, TOUCH_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { usePendingAction } from "@/hooks/use-pending-action";
 import { useServerClock } from "@/hooks/use-server-clock";
-import { isCompactRoster } from "@/lib/room-size";
 import { cn } from "@/lib/utils";
 import { send } from "@/net/connection";
 import { useGame, useMe } from "@/stores/game.store";
@@ -112,7 +111,6 @@ function IntroView({ gameId }: { gameId: GameId }) {
       {t("intro.waitOthers")}
     </p>
   );
-  const crowded = isCompactRoster(players.length);
 
   if (desktop) {
     return (
@@ -164,7 +162,7 @@ function IntroView({ gameId }: { gameId: GameId }) {
         <IntroTimerChip introEndsAt={party.introEndsAt} />
       </header>
       <div className="flex flex-wrap items-center gap-2.5">
-        <h2 className="font-display text-[32px] leading-none font-extrabold text-chalk">
+        <h2 className="font-display text-[28px] leading-none font-extrabold text-chalk">
           {game.title}
         </h2>
         <CategoryChip category={GAMES[gameId].category} />
@@ -185,16 +183,15 @@ function IntroView({ gameId }: { gameId: GameId }) {
         {tip && <LevelTip text={tip} className="text-chalk" />}
       </div>
       {/*
-        Phòng 8–12 người: danh sách cả phòng dài nên nút chính lên ngay dưới ô chọn độ khó (vẫn
-        trong màn đầu ở 390×844, trên nút chat nổi), dòng phụ xuống dưới nút; danh sách theo sau.
+        Khung minh hoạ 16:9 làm thẻ cao hơn (CR-021) nên ở mọi số người nút chính lên ngay dưới ô
+        chọn độ khó (vẫn trong màn đầu ở 390×844, trên nút chat nổi), dòng phụ xuống dưới nút;
+        danh sách cả phòng theo sau (UI-UX 6.8, 6.11).
       */}
-      {crowded && (
-        <div className="flex flex-col gap-2">
-          {action}
-          {isHost && autoStart}
-          {waitOthers}
-        </div>
-      )}
+      <div className="flex flex-col gap-2">
+        {action}
+        {isHost && autoStart}
+        {waitOthers}
+      </div>
       {isHost ? (
         <RoomDifficulty
           gameId={gameId}
@@ -226,13 +223,6 @@ function IntroView({ gameId }: { gameId: GameId }) {
           <span className="shrink-0 font-display text-[17px] font-extrabold text-chalk">
             {t("intro.understoodCount", { n: understood, total: players.length })}
           </span>
-        </div>
-      )}
-      {!crowded && (
-        <div className="mt-auto flex flex-col gap-2">
-          {isHost && autoStart}
-          {waitOthers}
-          {action}
         </div>
       )}
     </main>

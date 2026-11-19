@@ -79,6 +79,8 @@ Trạng thái từng game theo dõi ở **[Danh mục minigame](../04-minigames/
 | FR-GD-12 | Nút Hiệu ứng: Theo hệ thống / Luôn bật; một nguồn "giảm chuyển động" cho React, CSS, scene minigame | 1 | ✅ | chưa phát hành | [CR-010](change-requests.md#cr-010) · `features/motion/motion.test.ts`; kiểm Chrome headless có `--force-prefers-reduced-motion` (chấm cam, bấm → `data-motion="on"`, nhớ lựa chọn) |
 | FR-GD-11 | Rung phản hồi, Wake Lock | 2 | ⏳ | | Tách từ FR-GD-07 (CR-008) |
 | FR-GD-08 | PWA cài lên màn hình chính | 2 | ⏳ | | |
+| FR-GD-13 | Màn hướng dẫn: khung minh hoạ 16:9 lớn, nút Phóng to (Dialog / Sheet), hình động diễn cách chơi — đợt đầu 5 game MVP (Kẻ lạc đàn, Theo dấu ánh đèn, Cân não, Bóng bay số, Xoay hình); game khác dùng hình tĩnh | 1–2 | 🟡 5/30 game có demo | chưa phát hành | [CR-021](change-requests.md#cr-021) · `games/_shared/demo/timeline.test.ts`, `demo-scripts.test.ts` (khớp kịch bản canvas từng mốc ms); mỗi demo 0,9–1,7 KB gzip, chỉ `transform`/`opacity`; kiểm Chrome 390/1280 px · 25 game còn lại chờ chủ dự án duyệt đợt đầu |
+| FR-GD-14 | Tách URL theo màn ngoài phòng (`/practice[/<game>]`, `/brain-test`, `/leaderboard[/<game>]`, `/account`, `/profile`, `/admin/<mục>`), Back/Forward/F5 giữ màn, link sâu, Back trong phòng hỏi "Rời phòng?" | 1–2 | ✅ | chưa phát hành | [CR-022](change-requests.md#cr-022) · `stores/nav.store.test.ts` (13 ca, trình duyệt giả có ngăn lịch sử); kiểm Chrome: Back/Forward/F5, id lạ, link mời, Back trong phòng party + Kiểm tra não · không thêm thư viện router |
 
 ## E6 — Vận hành & chất lượng
 
@@ -101,6 +103,7 @@ Trạng thái từng game theo dõi ở **[Danh mục minigame](../04-minigames/
 | UC-15 | Đấu bóng ma | 3 | ⏳ | |
 | UC-16 | Tài khoản Supabase (khách + Google), lịch sử 3 loại, xoá dữ liệu | 1–2 | 🟡 Code xong, chờ kiểm với Supabase thật + Google | CR-009 · FR-MR-04, FR-MR-09 → 11, FR-MR-15 · [ADR 0011](../02-architecture/decisions/0011-supabase-accounts-and-solo-modes.md) |
 | FR-MR-16 | Lưu điểm + danh hiệu theo thể loại của trận party; thẻ "Thế mạnh trong trận party" ở Tài khoản | 1–2 | 🟡 Code xong, chờ chạy migration trên Supabase thật | [CR-010](change-requests.md#cr-010) · `PartyResults.test.ts`, `features/account/strengths.test.ts` · migration `20261019000000_match_category_scores.sql` |
+| FR-MR-17 | Game yêu thích ở Luyện tập: ⭐, mục + chip Yêu thích, đồng bộ tài khoản khi có phiên | 1–2 | 🟡 Code xong, chờ chạy migration `20261119100000_practice_favorites.sql` (thiếu RPC thì chỉ lưu trên máy) | [CR-020](change-requests.md#cr-020) · `features/practice/favorites.test.ts`, `net/data-api.test.ts`; kiểm Chrome 390/1280 px |
 | FR-MR-05 | Mũ phần thưởng khi lập kỷ lục | 3 | ⏳ | Tách khỏi UC-16 đợt CR-009 |
 | UC-17 | Thử thách hôm nay | — | 💡 | [CR-003](change-requests.md#cr-003) |
 | UC-18 | Tìm trận với người lạ | — | 💡 | CR-003 |

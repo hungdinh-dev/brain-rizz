@@ -44,6 +44,7 @@ import { HistoryTabs, PracticeTable } from "./components/HistoryTabs";
 export function AccountScreen() {
   const { t } = useTranslation();
   const go = useNav((s) => s.go);
+  const goBack = useNav((s) => s.goBack);
   const auth = useAuth();
   const [profile] = useState(loadProfile);
   const [opening, setOpening] = useState(false);
@@ -239,7 +240,7 @@ export function AccountScreen() {
 
   return (
     <main className="flex flex-1 flex-col gap-3.5 lg:gap-4.5">
-      <ScreenHeader title={t("account.title")} onBack={() => go("menu")} />
+      <ScreenHeader title={t("account.title")} onBack={() => goBack("menu")} />
       <div className="flex flex-1 flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
         <div className="flex flex-col gap-3.5 lg:w-90 lg:shrink-0">
           {profileCard}

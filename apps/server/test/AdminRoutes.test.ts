@@ -5,12 +5,10 @@ import {
   MAX_ACCESS_TOKEN_LENGTH,
   ROOM_NAME,
 } from "@brain-rizz/shared";
-import { boot, type ColyseusTestServer } from "@colyseus/testing";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import appConfig from "../src/app.config";
 import type { PartyRoom } from "../src/rooms/PartyRoom";
 import { MemoryResultStore, NoopResultStore, setResultStore } from "../src/store/ResultStore";
-import { connectTo, until } from "./helpers";
+import { bootOnFreePort, connectTo, type TestServer, until } from "./helpers";
 
 /** HTTP cho trang quản trị (CR-019, docs/01-product/admin-console.md mục 4.2). */
 
@@ -19,7 +17,7 @@ const PLAYER_TOKEN = "jwt-player";
 const ADMIN = "00000000-0000-0000-0000-0000000000ad";
 const PLAYER = "00000000-0000-0000-0000-0000000000b1";
 
-let colyseus: ColyseusTestServer<typeof appConfig>;
+let colyseus: TestServer;
 /** Địa chỉ HTTP của server test (cổng do `boot` chọn). */
 let BASE = "";
 
@@ -59,7 +57,7 @@ const ROOM_VIEW_KEYS: Record<keyof AdminRoomView, true> = {
 
 describe("HTTP /admin (CR-019)", () => {
   beforeAll(async () => {
-    colyseus = await boot(appConfig);
+    colyseus = await bootOnFreePort();
     BASE = `http://127.0.0.1:${(colyseus.server as unknown as { port: number }).port}`;
   });
   afterAll(async () => {

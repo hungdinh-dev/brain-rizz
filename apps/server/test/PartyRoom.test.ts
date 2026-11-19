@@ -32,13 +32,11 @@ import {
   WHEEL_SPIN_MS,
   WRONG_ANSWER_LOCK_MS,
 } from "@brain-rizz/shared";
-import { boot, type ColyseusTestServer } from "@colyseus/testing";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import appConfig from "../src/app.config";
 import type { PartyRoom } from "../src/rooms/PartyRoom";
-import { connectTo, ignoreServerMessages, SOLVE } from "./helpers";
+import { bootOnFreePort, connectTo, ignoreServerMessages, SOLVE, type TestServer } from "./helpers";
 
-let colyseus: ColyseusTestServer<typeof appConfig>;
+let colyseus: TestServer;
 
 // ------------------------------------------------------------------ helpers
 
@@ -175,7 +173,7 @@ async function answerCorrectly(room: PartyRoom, client: TestClient) {
 
 describe("PartyRoom", () => {
   beforeAll(async () => {
-    colyseus = await boot(appConfig);
+    colyseus = await bootOnFreePort();
   });
   afterAll(async () => {
     await colyseus.shutdown();

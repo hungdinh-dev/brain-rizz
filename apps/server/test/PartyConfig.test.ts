@@ -24,9 +24,7 @@ import {
   WHEEL_SPIN_LEAD_MS,
   WHEEL_SPIN_MS,
 } from "@brain-rizz/shared";
-import { boot, type ColyseusTestServer } from "@colyseus/testing";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import appConfig from "../src/app.config";
 import type { PartyRoom } from "../src/rooms/PartyRoom";
 import {
   invalidatePartyConfig,
@@ -40,11 +38,21 @@ import {
   type ResultStore,
   setResultStore,
 } from "../src/store/ResultStore";
-import { advance, connectTo, freezeNow, nextMessage, SOLVE, settle, until } from "./helpers";
+import {
+  advance,
+  bootOnFreePort,
+  connectTo,
+  freezeNow,
+  nextMessage,
+  SOLVE,
+  settle,
+  type TestServer,
+  until,
+} from "./helpers";
 
 /** Cấu hình party của quản trị viên (CR-019) và phòng 12 người (CR-018) trên server. */
 
-let colyseus: ColyseusTestServer<typeof appConfig>;
+let colyseus: TestServer;
 
 /** Khác mặc định ở mọi trường; odd-one-out bị ghi đè hệ số. */
 const CUSTOM: ScoringConfig = {
@@ -140,7 +148,7 @@ function storeLoading(load: () => Promise<PartyConfig | null>): ResultStore {
 }
 
 beforeAll(async () => {
-  colyseus = await boot(appConfig);
+  colyseus = await bootOnFreePort();
 });
 afterAll(async () => {
   setResultStore(new NoopResultStore());

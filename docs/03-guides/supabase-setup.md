@@ -16,6 +16,7 @@ Chưa làm các bước này thì app **vẫn chơi được** (party, Luyện t
 | 6. Biến môi trường | `apps/*/.env`, Fly secrets, Cloudflare Pages | Web và server nối được Supabase |
 | 7. Kiểm tra nhanh | Trình duyệt + SQL Editor | Có dòng trong `brain_tests` sau một lượt Kiểm tra não |
 | 8. Trang quản trị | SQL Editor | Admin đầu tiên vào được `/admin` |
+| 9. Game yêu thích | Chạy migration (bước 2) | ⭐ ở Luyện tập đồng bộ theo tài khoản |
 
 ## 1. Tạo project
 
@@ -34,7 +35,7 @@ Gói Free tự tạm dừng sau khoảng 1 tuần không có truy cập (rủi r
 
 ## 2. Chạy migration
 
-Chạy **mọi file** trong [`supabase/migrations/`](../../supabase/migrations/) theo thứ tự tên (hiện có `20261016000000_accounts.sql`, `20261019000000_match_category_scores.sql` của [CR-010](../00-tracking/change-requests.md#cr-010), `20261021000000_match_bot_count.sql` của [CR-016](../00-tracking/change-requests.md#cr-016) và `20261119000000_admin_console.sql` của [CR-019](../00-tracking/change-requests.md#cr-019), file này phải chạy **trước** khi deploy game server mới, xem [mục 8](#8-trang-quản-trị-cr-019)). Chọn **một** trong hai cách, và đã chọn cách nào thì giữ cách đó cho các lần sau.
+Chạy **mọi file** trong [`supabase/migrations/`](../../supabase/migrations/) theo thứ tự tên (hiện có `20261016000000_accounts.sql`, `20261019000000_match_category_scores.sql` của [CR-010](../00-tracking/change-requests.md#cr-010), `20261021000000_match_bot_count.sql` của [CR-016](../00-tracking/change-requests.md#cr-016) và `20261119000000_admin_console.sql` của [CR-019](../00-tracking/change-requests.md#cr-019), file này phải chạy **trước** khi deploy game server mới, xem [mục 8](#8-trang-quản-trị-cr-019); `20261119100000_practice_favorites.sql` của [CR-020](../00-tracking/change-requests.md#cr-020), chạy **trước** khi deploy web mới, xem [mục 9](#9-game-yêu-thích-cr-020)). Chọn **một** trong hai cách, và đã chọn cách nào thì giữ cách đó cho các lần sau.
 
 **Cách A: Supabase CLI với chuỗi kết nối (nên dùng, CLI tự nhớ file nào đã chạy)**
 
@@ -64,7 +65,7 @@ Quên mật khẩu database: **Project Settings → Database → Reset database 
 
 Thay đổi về sau (thêm cột, sửa hàm) luôn là **file migration mới** trong `supabase/migrations/`, không sửa file đã chạy.
 
-Sau khi chạy, **Table Editor** có 5 bảng `profiles`, `brain_tests`, `brain_test_games`, `match_results`, `practice_bests`, đều có nhãn RLS enabled. **Database → Functions** có `submit_practice_result`, `leaderboard_brain`, `leaderboard_game`, `my_rank_brain`, `my_rank_game`, `delete_my_data` (cùng vài hàm nội bộ không gọi được từ API). File của trang quản trị thêm 4 bảng và 13 hàm, xem [mục 8](#8-trang-quản-trị-cr-019).
+Sau khi chạy, **Table Editor** có 5 bảng `profiles`, `brain_tests`, `brain_test_games`, `match_results`, `practice_bests`, đều có nhãn RLS enabled. **Database → Functions** có `submit_practice_result`, `leaderboard_brain`, `leaderboard_game`, `my_rank_brain`, `my_rank_game`, `delete_my_data` (cùng vài hàm nội bộ không gọi được từ API). File của trang quản trị thêm 4 bảng và 13 hàm, xem [mục 8](#8-trang-quản-trị-cr-019). File game yêu thích thêm 1 bảng và 3 hàm, xem [mục 9](#9-game-yêu-thích-cr-020).
 
 ## 3. Bật đăng nhập khách và liên kết thủ công
 
@@ -216,5 +217,19 @@ Game server nhận cấu hình mới sau tối đa 30 giây (bộ nhớ đệm),
 1. **RLS**: SQL Editor chạy `set role authenticated; select * from public.login_events;` → lỗi permission denied; `set role anon; select public.is_admin();` → lỗi permission denied. Chạy `reset role;` sau đó.
 2. **Ghi đăng nhập**: mở app (có phiên) rồi chạy `select event, provider, device, created_at from public.login_events order by created_at desc limit 5;` → có dòng `guest_created` hoặc `session_resumed`. Mở lại app trong vòng 30 phút sẽ không ghi thêm `session_resumed`.
 3. **Cấu hình**: lưu thử một thay đổi ở mục **Điểm & hệ số** → `select version, updated_at from public.party_settings;` tăng 1, `party_settings_history` có dòng mới. Trận party chơi sau đó có `match_results.settings_version` bằng version này.
+
+## 9. Game yêu thích (CR-020)
+
+⭐ ở màn Luyện tập ([kế hoạch](../01-product/practice-favorites-howto-routes.md) mục 3.1) cần file `20261119100000_practice_favorites.sql`. File này thêm:
+
+- Bảng `practice_favorites` (`user_id`, `game_id`, `created_at`), tối đa 64 game mỗi người. RLS bật, **không có policy** (Advisors báo "RLS Enabled No Policy" là cố ý). "Xoá dữ liệu của tôi" xoá theo cascade.
+- RPC `practice_favorites_get`, `practice_favorites_set`, `practice_favorites_merge` (mọi phiên kể cả khách; `anon` không gọi được).
+
+**Thứ tự triển khai:** chạy migration (bước 2) **trước** khi deploy web mới. Web mới gặp DB chưa có hàm thì chỉ lưu yêu thích trên máy, không báo lỗi; web cũ không gọi các hàm này. Không cần deploy lại game server.
+
+**Kiểm tra nhanh:**
+
+1. **Quyền**: SQL Editor chạy `set role authenticated; select * from public.practice_favorites;` → lỗi permission denied; `select public.practice_favorites_get();` → lỗi "Cần đăng nhập" (không có phiên); `set role anon; select public.practice_favorites_get();` → lỗi permission denied. Chạy `reset role;` sau đó.
+2. **Đồng bộ**: mở app (có phiên), bấm ⭐ một game ở Luyện tập → `select game_id, created_at from public.practice_favorites order by created_at desc limit 5;` có dòng mới. Mở app ở máy khác cùng tài khoản Google → game đó nằm trong mục **Yêu thích**.
 
 [← Hướng dẫn](README.md) · [Mục lục tài liệu](../README.md)

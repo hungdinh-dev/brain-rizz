@@ -21,24 +21,24 @@ import {
   ROOM_NAME,
   ServerMessage,
 } from "@brain-rizz/shared";
-import { boot, type ColyseusTestServer } from "@colyseus/testing";
 import { matchMaker } from "colyseus";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import appConfig from "../src/app.config";
 import type { PartyRoom } from "../src/rooms/PartyRoom";
 import {
   advance,
+  bootOnFreePort,
   connectTo,
   freezeNow,
   ignoreServerMessages,
   nextMessage,
   settle,
+  type TestServer,
   until,
 } from "./helpers";
 
 /** Chơi với bot (CR-016, ADR 0014): ghế, chủ phòng, đóng phòng, bot chơi và chat trên server. */
 
-let colyseus: ColyseusTestServer<typeof appConfig>;
+let colyseus: TestServer;
 
 async function join(room: PartyRoom, name: string, opts: Partial<JoinOptions> = {}) {
   return connectTo(colyseus, room, { name, ...opts });
@@ -166,7 +166,7 @@ describe("PartyRoom — chơi với bot (CR-016)", () => {
   let now: ReturnType<typeof freezeNow> | null = null;
 
   beforeAll(async () => {
-    colyseus = await boot(appConfig);
+    colyseus = await bootOnFreePort();
   });
   afterAll(async () => {
     await colyseus.shutdown();

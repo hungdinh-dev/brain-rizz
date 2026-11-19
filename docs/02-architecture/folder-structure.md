@@ -187,7 +187,9 @@ brain-rizz/
 │  │  │  │                     components/ModeSwitch, Drum (trống quay dọc vô hạn), WheelView, PickView, GameCard, GameThumb,
 │  │  │  │                     hooks/use-wheel-spin
 │  │  │  ├─ game-intro/        GameIntroScreen — hướng dẫn + mỗi người chọn độ khó, "Đã hiểu", chủ phòng nhắc/bắt đầu;
-│  │  │  │                     components/GuideCard, DifficultyChooser (index.ts export cho Luyện tập, Kiểm tra não), RoomDifficulty
+│  │  │  │                     components/GuideCard, DifficultyChooser (index.ts export cho Luyện tập, Kiểm tra não), RoomDifficulty,
+│  │  │  │                     DemoFrame (khung minh hoạ 16:9: Demo động hoặc hình tĩnh, 3 vòng rồi Xem lại, chạm để dừng),
+│  │  │  │                     GuideZoom (Phóng to: Dialog máy tính / Sheet điện thoại), GameDemo, GuideParts (CR-021)
 │  │  │  ├─ play/              CountdownScreen (+ CountdownStage dùng chung: đếm ngược 5 s party / 3 s một mình),
 │  │  │  │                     PlayScreen (khung chơi: HUD điện thoại / 3 cột máy tính), SoloPlayView (khung chơi một mình:
 │  │  │  │                     không đối thủ, ô kỷ lục / thanh 5 game, nút Thoát),
@@ -206,7 +208,9 @@ brain-rizz/
 │  │  │  ├─ practice/          Luyện tập (UC-13, chạy trên máy): PracticeScreen (chọn game → hướng dẫn → đếm ngược → chơi →
 │  │  │  │                     kết quả), practice.store.ts (lượt, hẹn giờ, lưu + đồng bộ kỷ lục), judge.ts (gọi judgeAnswer
 │  │  │  │                     của shared — cùng luật với server, cộng dồn điểm/đúng/sai; seed crypto) + test, records.ts (kỷ lục `brain-rizz:practice`, gộp với
-│  │  │  │                     tài khoản) + test, components/PracticePick, PracticeSetup, PracticeResult
+│  │  │  │                     tài khoản) + test, favorites.ts (game yêu thích `brain-rizz:favorites`, đồng bộ `practice_favorites`,
+│  │  │  │                     CR-020) + test, components/PracticePick (⭐, mục + chip Yêu thích), PracticeSetup, PracticeResult,
+│  │  │  │                     FavoriteStar (nút ⭐ dùng chung thẻ + màn hướng dẫn)
 │  │  │  ├─ brain-test/        Kiểm tra não (UC-14, phòng `brain-test`): BrainTestScreen (chọn màn theo pha), components/
 │  │  │  │                     BrainIntro, BrainGameIntro (hướng dẫn + Sẵn sàng), BrainProgress (thanh 5 đốt), BrainStep
 │  │  │  │                     (màn tạm 3 s), BrainResult (Điểm Não, biểu đồ, so lần trước, hạng tuần, trạng thái lưu)
@@ -228,6 +232,11 @@ brain-rizz/
 │  │  │  │  ├─ locales.ts      Chữ màn hướng dẫn (vi, en): tên, mô tả, 3 bước, điều khiển, câu nhắc, 4 mức
 │  │  │  │  └─ index.ts        GameClient: scene (tải lười) + locales + Illustration
 │  │  │  ├─ shadow-match/    Bóng của ai: ShadowMatchScene, art.ts (hàm vẽ phần hình) + art.test, HowTo, locales, index
+│  │  │  ├─ _shared/demo/    Khung diễn hướng dẫn động (CR-021): timeline.ts (mốc ms → trạng thái, hàm thuần) + test,
+│  │  │  │                   demo-scripts.test.ts (kịch bản 5 game khớp đặc tả), DemoStage (sân khấu 640×360, dừng khi
+│  │  │  │                   ẩn tab / ra khỏi màn / giảm chuyển động), parts.tsx (tay, con trỏ, sóng chạm, ✓/✗/⚡), index.ts.
+│  │  │  │                   Demo từng game: games/<id>/<Name>Demo.tsx (đợt đầu: odd-one-out, light-trail, balance,
+│  │  │  │                   number-balloons, rotate-match), gán `Demo` (lazy) trong index.ts của game
 │  │  │  ├─ _shared/         Phần hiển thị dùng chung giữa nhiều game (không phải một game; game không import chéo
 │  │  │  │                   thư mục của nhau, cần dùng lại thì đưa vào đây): icons.ts (mắt, mắt nhắm, bàn tay,
 │  │  │  │                   huy hiệu đổi chỗ, dấu tích), items.ts (hình 8 vật của Cân não, dùng lại ở Lật cặp và
@@ -257,7 +266,8 @@ brain-rizz/
 │  │  │  ├─ keyboard.ts        Lọc phím cho scene bắt phím (shouldIgnoreGameKey: đang gõ chữ, đang mở hộp thoại/sheet) + test
 │  │  │  ├─ locales.test.ts    Test chữ các game: câu nhắc theo mức đủ ở mọi ngôn ngữ, danh mục i18n khớp tên + summary
 │  │  │  ├─ PhaserHost.tsx     Tạo/huỷ game Phaser, báo trạng thái tải, preloadGame (tải trước lúc đếm ngược)
-│  │  │  └─ types.ts           MinigameBridge (React ↔ Phaser), GameLocale (+ levelHints: câu nhắc theo mức), GameClient,
+│  │  │  └─ types.ts           MinigameBridge (React ↔ Phaser), GameLocale (+ levelHints: câu nhắc theo mức), GameClient
+│  │  │                        (+ Demo tuỳ chọn, DemoProps — CR-021),
 │  │  │                        khung 720×1280
 │  │  ├─ components/
 │  │  │  ├─ ui/                Component shadcn đã chỉnh kiểu nhãn dán (button, input, card, toggle-group, tabs, alert-dialog, dialog, skeleton, slider, sheet, switch…)
@@ -270,7 +280,7 @@ brain-rizz/
 │  │  │                        ThemeToggle, LanguageToggle, RankBadge (huy hiệu hạng), MatchChips (nhãn vòng, nhóm kỹ năng,
 │  │  │                        độ khó; màu + biểu tượng nhóm), HostWaitCard ("Chờ chủ phòng…"), AvatarStrip (hàng nhân vật cả phòng),
 │  │  │                        ScreenHeader (nút quay lại + tiêu đề phấn), EmptyState + DataProblemState (trống / lỗi + Thử lại /
-│  │  │                        chưa kết nối máy chủ dữ liệu), QuitDialog ("Bỏ lượt này?"), BrainRadar (biểu đồ 5 cạnh SVG),
+│  │  │                        chưa kết nối máy chủ dữ liệu), QuitDialog ("Bỏ lượt này?"; tiêu đề/nút tuỳ chọn, dùng cả cho "Rời phòng?" khi Back trong phòng), BrainRadar (biểu đồ 5 cạnh SVG),
 │  │  │                        BotLevel (mức bot: BotLevelChip, BotLevelPicker radio, BotLevelButtons thêm bot; CR-016)
 │  │  ├─ i18n/
 │  │  │  ├─ index.ts           Khởi tạo i18next (chỉ namespace `common` trong gói đầu), chọn ngôn ngữ lần đầu
@@ -311,8 +321,10 @@ brain-rizz/
 │  │  │  ├─ auth.store.ts      Phiên Supabase (khách lười / Google): ensureSession, linkGoogle, signInGoogle, signOut,
 │  │  │  │                     deleteMyData, syncProfile (tên + nhân vật lên `profiles`), ghi sự kiện đăng nhập
 │  │  │  │                     (`log_login`, CR-019)
-│  │  │  ├─ nav.store.ts       Màn ngoài phòng (giới thiệu, menu, hồ sơ, 4 màn một mình, quản trị ↔ `/admin`) + cờ tập
-│  │  │  │                     trung khi đang chơi
+│  │  │  ├─ nav.store.ts       Màn ngoài phòng + URL (CR-022, History API, không thư viện router): screenForPath /
+│  │  │  │                     pathForScreen (`/practice[/<game>]`, `/brain-test`, `/leaderboard[/<game>]`, `/account`,
+│  │  │  │                     `/profile`, `/admin/<mục>`), push/replace, popstate (Back/Forward/F5), chặn Back trong phòng
+│  │  │  │                     (mục `/r/<mã>` + hỏi Rời phòng), danh sách mục quản trị; cờ tập trung khi đang chơi + test
 │  │  │  ├─ game.store.ts      State phòng chơi (Zustand): phòng party hoặc Kiểm tra não (`brain`), độ lệch giờ, kết quả
 │  │  │  │                     câu gần nhất (Luyện tập cũng dùng)…
 │  │  │  │                     (bỏ dữ liệu vòng cũ khi seed trong state đổi)
@@ -348,9 +360,11 @@ brain-rizz/
 │  │                           category_titles (text[]) — CR-010
 │  ├─ 20261021000000_match_bot_count.sql  match_results thêm bot_count (smallint, mặc định 0) — CR-016;
 │  │                           chạy trước khi deploy server mới
-│  └─ 20261119000000_admin_console.sql  Trang quản trị (CR-019): admins, party_settings (+ history), login_events,
-│                              match_results.settings_version, RPC is_admin, log_login, admin_*; chạy trước khi
-│                              deploy server mới
+│  ├─ 20261119000000_admin_console.sql  Trang quản trị (CR-019): admins, party_settings (+ history), login_events,
+│  │                           match_results.settings_version, RPC is_admin, log_login, admin_*; chạy trước khi
+│  │                           deploy server mới
+│  └─ 20261119100000_practice_favorites.sql  Game yêu thích (CR-020): practice_favorites + RPC practice_favorites_get /
+│                              _set / _merge; chạy trước khi deploy web mới
 │
 ├─ docs/                       Tài liệu, chia theo chủ đề — mục lục: docs/README.md
 │  ├─ README.md                Mục lục tài liệu, bản đồ SDLC, quy ước đặt tài liệu mới

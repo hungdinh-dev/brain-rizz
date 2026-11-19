@@ -325,3 +325,79 @@ export async function submitPracticeResult(
     true,
   );
 }
+
+/**
+ * DB chưa có các RPC yêu thích (chưa chạy migration `practice_favorites`: 404 / PGRST202) →
+ * thôi gọi tới khi tải lại trang; yêu thích chỉ lưu trên máy, không báo lỗi lên màn hình.
+ */
+let favoritesUnavailable = false;
+
+function isMissingRpc(res: { error: unknown; status?: number }): boolean {
+  const code = (res.error as { code?: unknown } | null)?.code;
+  return code === "PGRST202" || res.status === 404;
+}
+
+/** Gọi một RPC yêu thích (cần phiên, KHÔNG tạo phiên khách mới: CR-020). */
+function runFavorites<T>(
+  query: (sb: NonNullable<Awaited<ReturnType<typeof loadSupabase>>>) => PromiseLike<{
+    data: unknown;
+    error: unknown;
+    status?: number;
+  }>,
+  map: (data: unknown) => T,
+): Promise<DataResult<T>> {
+  if (favoritesUnavailable) return Promise.resolve(fail("error"));
+  return run(
+    async (sb) => {
+      const res = await query(sb);
+      if (res.error && isMissingRpc(res)) favoritesUnavailable = true;
+      return res;
+    },
+    map,
+    true,
+  );
+}
+
+/**
+ * Id tài khoản của phiên đang có trên máy (không tạo phiên mới): yêu thích nhớ lần đồng bộ cuối
+ * khớp với tài khoản nào, đổi tài khoản thì không trộn ⭐ của người trước (mục 3.1).
+ */
+export async function fetchSessionUserId(): Promise<DataResult<string>> {
+  if (!SUPABASE_CONFIGURED) return fail("not-configured");
+  if (!hasStoredSession()) return fail("no-session");
+  try {
+    const sb = await withTimeout(loadSupabase());
+    if (!sb) return fail("not-configured");
+    const { data } = await withTimeout(sb.auth.getSession());
+    const id = data.session?.user?.id;
+    return id ? { ok: true, data: id } : fail("no-session");
+  } catch (err) {
+    console.warn("[data] Không đọc được phiên:", err);
+    return fail("error");
+  }
+}
+
+/** Mảng id game từ RPC (`text[]`): chỉ giữ chuỗi; lọc id có thật để ở `features/practice/favorites`. */
+const toIdList = (data: unknown): string[] =>
+  Array.isArray(data) ? data.filter((v): v is string => typeof v === "string") : [];
+
+/** Game yêu thích trên tài khoản, thêm trước đứng trước (`practice_favorites_get`). */
+export function fetchPracticeFavorites(): Promise<DataResult<string[]>> {
+  return runFavorites((sb) => sb.rpc("practice_favorites_get"), toIdList);
+}
+
+/** Thêm / bỏ một game yêu thích trên tài khoản (`practice_favorites_set`). */
+export function setPracticeFavorite(gameId: GameId, favorite: boolean): Promise<DataResult<null>> {
+  return runFavorites(
+    (sb) => sb.rpc("practice_favorites_set", { p_game_id: gameId, p_favorite: favorite }),
+    () => null,
+  );
+}
+
+/** Gộp danh sách trên máy vào tài khoản, trả danh sách sau gộp (`practice_favorites_merge`). */
+export function mergePracticeFavorites(gameIds: readonly string[]): Promise<DataResult<string[]>> {
+  return runFavorites(
+    (sb) => sb.rpc("practice_favorites_merge", { p_game_ids: [...gameIds] }),
+    toIdList,
+  );
+}

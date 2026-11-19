@@ -6,7 +6,7 @@ import {
   LoaderCircleIcon,
   RotateCcwIcon,
   SlidersHorizontalIcon,
-  StarIcon,
+  TrophyIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { BrainMascot } from "@/components/brand";
@@ -113,7 +113,7 @@ export function PracticeResult({
             {scoreLine && <span className="text-[15px] font-bold lg:text-[17px]">{scoreLine}</span>}
             {recordLine && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-[13px] font-bold">
-                <StarIcon aria-hidden className="size-3.5 fill-primary" strokeWidth={2.2} />
+                <TrophyIcon aria-hidden className="size-3.5" strokeWidth={2.2} />
                 {recordLine}
               </span>
             )}

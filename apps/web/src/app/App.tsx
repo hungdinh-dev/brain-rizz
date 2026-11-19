@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { resumeParty } from "@/net/connection";
 import { takeOAuthReturnScreen, useAuth } from "@/stores/auth.store";
 import { useGame } from "@/stores/game.store";
-import { type Screen, useNav } from "@/stores/nav.store";
+import { enterRoomEntry, pathForScreen, type Screen, useNav } from "@/stores/nav.store";
 
 /*
  * Màn trong phòng party (lobby → … → podium) tải lười thành một chunk, cùng registry minigame
@@ -73,7 +73,10 @@ const SOLO_SCREENS: Partial<Record<Screen, React.ComponentType>> = {
 /** Pha cần tập trung: ẩn nút ngôn ngữ/theme/nhạc để nhường chỗ, nhạc nền nhỏ lại. */
 const FOCUS_PHASES: readonly Phase[] = ["countdown", "playing"];
 
-/** Chọn màn hình theo pha của phòng — app không dùng router. */
+/**
+ * Chọn màn hình theo pha của phòng; ngoài phòng theo `useNav` (đường dẫn đồng bộ bằng History API,
+ * không dùng thư viện router — CR-022).
+ */
 export function App() {
   const party = useGame((s) => s.party);
   const screen = useNav((s) => s.screen);
@@ -98,7 +101,8 @@ export function App() {
     // Phiên tài khoản đã lưu / quay về từ Google (UC-16).
     void useAuth.getState().init();
     if (takeOAuthReturnScreen()) {
-      useNav.getState().go("account");
+      // Chuyển hướng `/` → `/account` (replace, giữ `?code=` cho supabase-js đổi lấy phiên).
+      useNav.getState().go("account", { replace: true });
       // Liên kết xong (không có lỗi) → báo một lần khi phiên đã đọc xong.
       const unsubscribe = useAuth.subscribe((s) => {
         if (s.status === "unknown") return;
@@ -118,10 +122,11 @@ export function App() {
     };
   }, []);
 
-  // Đồng bộ URL /r/<mã> để copy link mời được ngay từ thanh địa chỉ.
+  // Trong phòng: URL /r/<mã> (copy link mời được ngay từ thanh địa chỉ), một mục lịch sử riêng để
+  // Back hỏi "Rời phòng?" thay vì rời trang (CR-022). Không tách theo pha.
   const code = party?.code;
   useEffect(() => {
-    if (code && location.pathname !== `/r/${code}`) history.replaceState(null, "", `/r/${code}`);
+    if (code) enterRoomEntry(code, pathForScreen({ screen: "menu", room: code }));
   }, [code]);
 
   return (

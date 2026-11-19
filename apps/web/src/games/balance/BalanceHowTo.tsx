@@ -5,8 +5,18 @@ import { ITEM_ART, partKey } from "../_shared/items";
 /** Nét phấn sần (filter #chalk khai báo trong <ChalkDefs /> của App). */
 const CHALK = "filter-[url(#chalk)]";
 
-/** Một vật vẽ từ bảng hình chung với scene (items.ts), viền mực. */
-function Item({ item, x, y, size }: { item: BalanceItem; x: number; y: number; size: number }) {
+/** Một vật vẽ từ bảng hình chung với scene (items.ts), viền mực. Dùng lại ở BalanceDemo. */
+export function Item({
+  item,
+  x,
+  y,
+  size,
+}: {
+  item: BalanceItem;
+  x: number;
+  y: number;
+  size: number;
+}) {
   return (
     <g
       transform={`translate(${x} ${y}) scale(${size})`}

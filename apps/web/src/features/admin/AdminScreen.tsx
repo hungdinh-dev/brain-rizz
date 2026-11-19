@@ -23,7 +23,8 @@ import { ScoringSection } from "./sections/ScoringSection";
  * và `requireAdmin` của game server quyết định; trang này chỉ hiển thị.
  */
 export function AdminScreen() {
-  const go = useNav((s) => s.go);
+  const goBack = useNav((s) => s.goBack);
+  const routeSection = useNav((s) => s.route.section);
   const status = useAuth((s) => s.status);
   const userId = useAuth((s) => s.userId);
   const email = useAuth((s) => s.email);
@@ -34,6 +35,11 @@ export function AdminScreen() {
 
   // Rời trang: bỏ bản nháp và số liệu đã tải.
   useEffect(() => () => useAdminStore.getState().reset(), []);
+
+  // Nhớ mục trên đường dẫn ngay cả ở cổng: đăng nhập Google quay về `/admin` vẫn mở đúng mục đó.
+  useEffect(() => {
+    if (routeSection) saveLastSection(routeSection);
+  }, [routeSection]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: kiểm lại khi đổi phiên / bấm Thử lại
   useEffect(() => {
@@ -57,7 +63,7 @@ export function AdminScreen() {
   }, [status, userId, attempt]);
 
   const gate: GateKind | null = lost ?? (access === "ok" ? null : access);
-  const back = () => go("menu");
+  const back = () => goBack("menu");
 
   return (
     <div className="@container/root flex flex-1 flex-col gap-3.5">
@@ -94,10 +100,19 @@ const SECTION_VIEW: Record<AdminSection, () => React.JSX.Element> = {
   admins: AdminsSection,
 };
 
-/** Menu + mục đang mở + thanh lưu bản nháp (mục Game, Điểm & hệ số). */
+/**
+ * Menu + mục đang mở + thanh lưu bản nháp (mục Game, Điểm & hệ số). Mục nằm trên đường dẫn
+ * `/admin/<mục>` (CR-022): bấm mục → đẩy lịch sử; `/admin` → mục mở lần trước (replace).
+ */
 function AdminConsole() {
-  const [section, setSection] = useState<AdminSection>(loadLastSection);
+  const go = useNav((s) => s.go);
+  const routeSection = useNav((s) => s.route.section);
+  const section: AdminSection = routeSection ?? loadLastSection();
   const roomCount = useAdminStore((s) => s.roomCount);
+
+  useEffect(() => {
+    if (!routeSection) go({ screen: "admin", section: loadLastSection() }, { replace: true });
+  }, [routeSection, go]);
 
   useEffect(() => {
     const store = useAdminStore.getState();
@@ -110,8 +125,7 @@ function AdminConsole() {
   }, []);
 
   function choose(next: AdminSection) {
-    setSection(next);
-    saveLastSection(next);
+    if (next !== section) go({ screen: "admin", section: next });
   }
 
   const View = SECTION_VIEW[section];

@@ -3,8 +3,8 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Thiết kế — phần giao diện và trải nghiệm |
-| Phiên bản tài liệu | 1.7 · 2026-11-19 — trống quay dọc, phòng 12 người, trang quản trị theo [CR-017](../00-tracking/change-requests.md#cr-017), [CR-018](../00-tracking/change-requests.md#cr-018), [CR-019](../00-tracking/change-requests.md#cr-019) |
-| Bản mẫu (canvas) | **[Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ)** (4 trang: Màn chờ & luồng trận · Minigame · Một mình & tài khoản · Quản trị) |
+| Phiên bản tài liệu | 1.8 · 2026-11-19 — game yêu thích, hướng dẫn to + động theo [CR-020](../00-tracking/change-requests.md#cr-020), [CR-021](../00-tracking/change-requests.md#cr-021) |
+| Bản mẫu (canvas) | **[Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ)** (5 trang: Màn chờ & luồng trận · Minigame · Một mình & tài khoản · Quản trị · Yêu thích & hướng dẫn động) |
 | Liên quan | [Thiết kế game](game-design.md), [ADR 0006 — shadcn & token](../02-architecture/decisions/0006-ui-shadcn-and-theme-tokens.md), [ADR 0009 — bảng phấn & nhân vật](../02-architecture/decisions/0009-chalkboard-style-and-characters.md) |
 | Cập nhật khi | Thêm màn hình, đổi luồng, thêm artboard vào canvas, đổi token màu/font |
 
@@ -69,15 +69,15 @@ flowchart TD
 | S3 | Chọn bạn đồng hành (hồ sơ) | `features/home/components/ProfileScreen.tsx` | ✅ "Chọn bạn đồng hành" (tương tác) | ✅ | |
 | S4 | Phòng chờ 2D | `features/lobby/LobbyScreen.tsx` | ✅ Khu 5 · Khu 23 (CR-016) · Khu 25 (CR-018) | ✅ (bot: ❌, 12 ghế: ❌) | Đã gỡ 3D (ADR 0010). Chưa có mã QR như bản máy tính. CR-016: ô trống thêm bot, ô bot đổi mức / bỏ ngay trong ô ([mục 6.6](#66-chơi-với-máy-s17-cr-016)). CR-018: 9–12 ghế dùng lưới gọn ([mục 6.8](#68-phòng-12-người-cr-018)) |
 | S10 | Chọn game (trống quay dọc / chủ phòng chọn + bình chọn) | `features/game-select/` | ✅ Khu 6 (cũ) · Khu 24 (CR-017) | ✅ (trống quay: ❌) | CR-005. CR-017: trống quay dọc thay vòng quay tròn, bỏ danh sách "Trong vòng quay" ([mục 6.7](#67-trống-quay-dọc-s10-cr-017)); chế độ Chủ phòng chọn giữ khu 6 |
-| S11 | Hướng dẫn & độ khó | `features/game-intro/` | ✅ Khu 7 | ✅ | CR-005; lời nhắc của chủ phòng hiện bằng toast |
+| S11 | Hướng dẫn & độ khó | `features/game-intro/` | ✅ Khu 7 · Khu 28 (CR-021) | ✅ (hướng dẫn động: ✅ 5 game MVP) | CR-005; lời nhắc của chủ phòng hiện bằng toast. CR-021: khung minh hoạ 16:9 rộng hết thẻ, nút Phóng to, hình động ([mục 6.11](#611-hướng-dẫn-to--động-s11-s12-s13-cr-021)) |
 | S5 | Chơi (đếm ngược 5 giây, dải điểm, khung minigame) | `features/play/CountdownScreen.tsx`, `PlayScreen.tsx` | ✅ Khu 8 + trang Minigame M1 · Khu 25 (12 người) | ✅ (12 người: ❌) | CR-018: bảng điểm gọn / lưới điểm 2×6 khi đông ([mục 6.8](#68-phòng-12-người-cr-018)) |
 | S6 | Bảng điểm vòng + cộng điểm trận | `features/results/ResultsScreen.tsx` | ✅ Khu 9, 10 · Khu 25 (12 người) | ✅ (12 người: ❌) | Tự sang bảng tổng điểm sau 5 giây. CR-018: bảng 2 cột, hàng gọn, hàng của mình dính mép |
 | S7 | Vinh danh top 3 kiểu Kahoot | `features/results/PodiumScreen.tsx` | ✅ Khu 11 · Khu 19–20 (CR-010) · Khu 25 (12 người) | ✅ (nhịp CR-010: ❌, 12 người: ❌) | 2D, không 3D; pháo giấy CSS. CR-010: hạng 4+ → 3 → 2 → trống dồn → 1, thẻ Giỏi nhất mỗi thể loại ([mục 6.2](#62-vinh-danh-s7-cr-010), [6.3](#63-thẻ-giỏi-nhất-mỗi-thể-loại-cr-010)) |
 | S8 | Minigame (mỗi game một scene) | `games/<id>/` | ✅ Trang Minigame: khung chung M1 + 4 game MVP (M2–M5) | 1/15 | Kẻ lạc đàn chưa có bản mẫu riêng (dùng làm ví dụ trong M1) |
 | S9 | Banner mất kết nối, thông báo (toast) | `components/common/ConnectionBanner.tsx`, `components/ui/sonner` | ✅ M1 · Trạng thái | ✅ | |
 | — | Bảng nhân vật (sticker sheet) | `components/characters/` | ✅ Mèo Khói, Chó Bơ | ✅ 6 nhân vật | 4 nhân vật còn lại chưa có bảng trên canvas |
-| S12 | Luyện tập (chọn game, kết quả) | `features/practice/` | ✅ Khu 13 | ✅ | UC-13. Hướng dẫn + độ khó dùng lại S11, khác biệt ghi trên canvas |
-| S13 | Kiểm tra não (giới thiệu, màn tạm, kết quả) | `features/brain-test/` | ✅ Khu 14 | ✅ | UC-14. Biểu đồ 5 cạnh SVG tự vẽ |
+| S12 | Luyện tập (chọn game, kết quả) | `features/practice/` | ✅ Khu 13 · Khu 27 (CR-020) · Khu 28 | ✅ (yêu thích: ✅) | UC-13. Hướng dẫn + độ khó dùng lại S11, khác biệt ghi trên canvas. CR-020: ⭐ trên thẻ game, mục + chip Yêu thích, ⭐ đầu màn Hướng dẫn ([mục 6.10](#610-game-yêu-thích-s12-cr-020)) |
+| S13 | Kiểm tra não (giới thiệu, màn tạm, kết quả) | `features/brain-test/` | ✅ Khu 14 · Khu 28 (CR-021) | ✅ (hướng dẫn động: ❌) | UC-14. Biểu đồ 5 cạnh SVG tự vẽ. Hướng dẫn trước mỗi game dùng khung minh hoạ mới |
 | S14 | Tài khoản & lịch sử | `features/account/` | ✅ Khu 15 · Khu 21 (CR-010) | ✅ (thẻ thế mạnh: ❌) | UC-16. 3 tab, Liên kết Google, Xoá dữ liệu. CR-010: thẻ Thế mạnh trong trận party đầu tab Trận party ([mục 6.4](#64-thế-mạnh-trong-trận-party-s14-cr-010)) |
 | S15 | Bảng xếp hạng | `features/leaderboard/` | ✅ Khu 16 | ✅ | UC-19. Điểm Não / Theo minigame, Tuần này / Mọi thời đại |
 | — | Trạng thái chung (tải, trống, lỗi, chưa kết nối máy chủ dữ liệu, hộp xác nhận) | dùng chung 4 màn trên | ✅ Khu 17 | ❌ | FR-MR-15 |
@@ -88,12 +88,13 @@ flowchart TD
 | — | Trống quay dọc (`Drum`, thay `LuckyWheel` đã xoá) | `features/game-select/components/Drum.tsx`, hình học `drum.ts` | ✅ Khu 24 (CR-017), artboard thành phần "Drum" | ✅ | Utility `drum-shade` ([mục 6.7](#67-trống-quay-dọc-s10-cr-017)) |
 | — | 12 màu avatar | `AVATAR_COLORS` (`packages/shared/src/constants.ts`) | ✅ Khu 25 "12 màu avatar" | ❌ | 4 màu mới đã duyệt ([mục 6.8](#68-phòng-12-người-cr-018)) |
 | S18 | Trang quản trị (8 mục, cổng đăng nhập/quyền) | `features/admin/` (tải lười), lối vào ở `features/account` | ✅ Trang "Quản trị", khu 26 (CR-019) | ✅ | Một component co giãn: máy tính cột menu trái, điện thoại tab cuộn ngang ([mục 6.9](#69-trang-quản-trị-s18-cr-019)) |
+| — | Khung diễn hướng dẫn (sân khấu, con trỏ bàn tay, sóng chạm, ✓ ✗ ⚡ khoá, huy hiệu bước) + Demo 5 game MVP | `games/_shared/demo/`, `games/<id>/<Name>Demo.tsx` | ✅ Khu 29 (CR-021): đặc tả + `HowToDemo` chạy được + 5 artboard kịch bản | ✅ (5 game MVP) | Chỉ `transform`/`opacity`; 25 game còn lại làm sau khi duyệt ([mục 6.11](#611-hướng-dẫn-to--động-s11-s12-s13-cr-021)) |
 
-Thứ tự thiết kế tiếp theo (đề xuất): bảng nhân vật cho 4 con còn lại; 5 minigame của giai đoạn 2 khi tới lúc.
+Thứ tự thiết kế tiếp theo (đề xuất): kịch bản hướng dẫn động cho 25 game còn lại (sau khi chủ dự án duyệt 5 game MVP, mục 6.11); bảng nhân vật cho 4 con còn lại; 5 minigame của giai đoạn 2 khi tới lúc.
 
 ## 4. Bản mẫu trên canvas
 
-Canvas [Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ) có 4 trang.
+Canvas [Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ) có 5 trang.
 
 ### Trang "Màn chờ & luồng trận" (72 artboard)
 
@@ -162,6 +163,16 @@ Mọi artboard của trang "Một mình & tài khoản" có nút **Tweaks › da
 
 Cả trang dựng từ **một** artboard co giãn `AdminConsole` (container query theo bề rộng vùng nội dung); các artboard khác nhúng nó với `section` / `state` / `dark` khác nhau. Số liệu trên bản mẫu là ví dụ.
 
+### Trang "Yêu thích & hướng dẫn động" (31 artboard, [CR-020](../00-tracking/change-requests.md#cr-020), [CR-021](../00-tracking/change-requests.md#cr-021))
+
+| Khu | Artboard | Kích thước |
+| --- | --- | --- |
+| 27 · Game yêu thích | Hàng 1: Chọn game · Desktop (bấm thử ⭐ và chip; Tweaks `filter`, `empty`, `dark`) / Desktop · Tối / Điện thoại (bấm thử) / Điện thoại · Tối. Hàng 2: Lọc Yêu thích · Điện thoại / Lọc Yêu thích · trống / Tất cả · chưa có yêu thích (dòng gợi ý) · Tối / Nút ⭐ · đặc tả | 1280×800 / 390×844 · 1280×980 |
+| 28 · Hướng dẫn to + động | Hàng 1 (Luyện tập): Desktop (bấm thử ⭐, Phóng to, chạm khung để dừng; Tweaks `screen`, `game`, `motion`, `fav`, `zoom`, `dark`) / Desktop · Tối (Cân não) / Điện thoại (bấm thử) / Điện thoại · Tối (Bóng bay số). Hàng 2 (Phóng to): hộp thoại Desktop / Desktop · Tối / sheet Điện thoại / Điện thoại · Tối. Hàng 3: party 12 người Desktop (chủ phòng) / Kiểm tra não Desktop · Tối / party 12 người Điện thoại (Na) / Kiểm tra não Điện thoại. Hàng 4 (trạng thái): giảm chuyển động Điện thoại / đã dừng Điện thoại · Tối / hết 3 vòng Điện thoại / giảm chuyển động Desktop · Tối | 1280×800 / 390×844 |
+| 29 · Khung diễn & kịch bản | Khung diễn · đặc tả / thành phần `HowToDemo` (Tweaks `game`, `mode` play · freeze · still, `paused`, `dark`) / 5 artboard Kịch bản (Kẻ lạc đàn, Theo dấu ánh đèn, Cân não, Bóng bay số, Xoay hình): demo đang chạy, khung tĩnh, 3 bước ↔ huy hiệu bước, dòng thời gian theo làn, bảng từng cảnh | 1280×1500 / 640×360 / 1280×1040 |
+
+`HowToDemo` chạy thật bằng CSS keyframes (chỉ `transform`, `opacity`), sinh từ cùng một bảng mốc thời gian với mục 6.11, nên FE chép được thẳng các mốc % = ms ÷ T. Ảnh thu nhỏ trên thẻ game ở khu 27 nhúng artboard "Hình hướng dẫn" của trang Minigame. Câu chuyện chung: Na đã ⭐ Theo dấu ánh đèn, Bóng bay số, Xoay hình; trận party 12 ghế như khu 24–25.
+
 Quy ước: mỗi màn hình mới có **cả bản điện thoại và bản máy tính**; thêm vào canvas thành một khu mới đánh số tiếp; xong thì cập nhật bảng ở mục 3 và mục này. Việc thiết kế giao cho agent `ui-designer` ([Đội AI agent](../03-guides/ai-agents.md)).
 
 ## 5. Hệ thống thiết kế
@@ -211,10 +222,17 @@ Cả hai tải từ Google Fonts trong `apps/web/index.html`, đủ dấu tiến
 - Minigame: đúng → nảy; sai → rung + mờ. Thời lượng hiệu ứng ≤ 400 ms để không chậm nhịp chơi.
 - **Một nguồn "giảm chuyển động"** (CR-010): giảm khi nút Hiệu ứng ở "Theo hệ thống" **và** máy báo `prefers-reduced-motion: reduce`; "Luôn bật" thì luôn đầy đủ. React, CSS (`motion-safe:`/`motion-reduce:`, `@media` trong `characters.css`) và scene Phaser đều đọc nguồn này, không tự đọc `matchMedia`.
 - **Giảm chuyển động không phải bỏ nhịp**: thứ tự và thời điểm hiện giữ nguyên, chỉ thay trượt/nảy/xoay bằng mờ dần (≤ 400 ms); bỏ pháo giấy, nhân vật đứng yên, vòng quay dừng ngay ở kết quả. Âm thanh đi theo nút Âm thanh, không theo nút Hiệu ứng.
+- **Đường cong dùng chung** (CR-021, token trong `@theme`, Tailwind sinh `ease-*`; không đổi theo sáng/tối):
+
+| Token | Giá trị | Dùng cho |
+| --- | --- | --- |
+| `--ease-glide` | `cubic-bezier(0.45, 0, 0.25, 1)` | Lướt giữa hai điểm: con trỏ bàn tay, bóng ma xoay, nhịp thẻ mẫu |
+| `--ease-settle` | `cubic-bezier(0.2, 0.7, 0.3, 1)` | Vào/ra, mờ dần, sóng chạm, nhấn tay, đòn cân nghiêng |
+| `--ease-pop` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Nảy có vượt: ✓ ✗ ⚡, vòng khoanh, huy hiệu số, tay bật lại, ⭐ bật (trùng đường cong "trúng" của trống quay mục 6.7) |
 
 ## 6. Đặc tả chi tiết
 
-Thông số để frontend-dev làm theo. Câu chữ ghi ở đây là đề xuất: frontend-dev thêm vào `vi.ts` trước rồi `en.ts`, tên khoá có thể đổi cho khớp nhóm sẵn có. Mục 6.1–6.4 chỉ dùng token sẵn có; mục 6.5 thêm token `bubble-mine`; mục 6.6 thêm token `bot` và component `Dialog`; mục 6.7 thêm utility `drum-shade`; mục 6.8–6.9 chỉ dùng token và component sẵn có.
+Thông số để frontend-dev làm theo. Câu chữ ghi ở đây là đề xuất: frontend-dev thêm vào `vi.ts` trước rồi `en.ts`, tên khoá có thể đổi cho khớp nhóm sẵn có. Mục 6.1–6.4 chỉ dùng token sẵn có; mục 6.5 thêm token `bubble-mine`; mục 6.6 thêm token `bot` và component `Dialog`; mục 6.7 thêm utility `drum-shade`; mục 6.8–6.10 chỉ dùng token và component sẵn có; mục 6.11 thêm 3 token đường cong `--ease-glide`, `--ease-settle`, `--ease-pop` (dùng chung với nảy ⭐ của 6.10) và dùng lại `Dialog`, `Sheet`.
 
 ### 6.1 Hàng nút trên cùng · nút Hiệu ứng (CR-010)
 
@@ -629,6 +647,244 @@ Bản mẫu: [canvas trang "Quản trị", khu 26](https://claude.ai/artifact/GJ
 
 **Câu chữ:** lấy từ bản mẫu, đặt trong gói lười `src/i18n/locales/admin/vi.ts` rồi `en.ts`. Số định dạng theo ngôn ngữ (1.284 / 1,284), giờ theo `Asia/Ho_Chi_Minh`.
 
+### 6.10 Game yêu thích (S12, CR-020)
+
+Bản mẫu: [canvas trang "Yêu thích & hướng dẫn động", khu 27](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ) (chọn game máy tính + điện thoại bấm thử, bản tối, lọc Yêu thích, trống, dòng gợi ý, artboard đặc tả nút ⭐). Dữ liệu và đồng bộ: [kế hoạch mục 3.1](practice-favorites-howto-routes.md#31-yêu-thích--dữ-liệu-backend-dev--frontend-dev).
+
+**Nút ⭐ trên thẻ game** (`PracticePick` › `GameTile`)
+
+- **Cấu trúc:** `div.relative` bọc **hai nút anh em**: nút thẻ (như cũ, mở game) và nút ⭐ (`absolute`). Không lồng button. Hiệu ứng nhấc 3 px chuyển từ nút thẻ lên khung bọc để sao nhấc theo thẻ.
+- **Vị trí:** đè góc trên phải ô ảnh, hình tròn cách mép ảnh 4 px; vùng chạm 44 × 44 (nút trong suốt, hình tròn ở giữa).
+
+| | Điện thoại (thẻ 167, lề 8) | Máy tính (thẻ 216, lề 10) |
+| --- | --- | --- |
+| Hình tròn / sao | 32 / 18 px | 34 / 20 px |
+| Nút 44 (so với thẻ) | `top-[58px] right-3` | `top-[66px] right-3.5` |
+| Tên game | cao cố định 2 dòng (39 px) để ô ảnh mọi thẻ thẳng hàng | 44 px |
+
+| Trạng thái | Hiển thị |
+| --- | --- |
+| Chưa yêu thích | `bg-sticker/60`, viền 2 `border-chalk/85`, `StarIcon` rỗng `text-chalk` nét 2,4. Phấn trên nền mực 60 % ≥ 5:1 kể cả khi phần ảnh dưới là màu sáng |
+| Rê chuột | `bg-sticker/80`, hình tròn phóng 1,08 (150 ms) |
+| Focus bàn phím | `focus-visible:ring-3 ring-ring ring-offset-2 ring-offset-sticker` trên hình tròn (vòng mực ngăn cách nên ≥ 3:1 trên mọi ảnh) |
+| Đang nhấn | hình tròn 0,92 |
+| Đã yêu thích | `bg-primary`, viền 2,5 `border-sticker`, bóng `0 2px 0` sticker, sao đặc `fill-current text-primary-foreground` (11:1). Khác chưa bật bằng hình (rỗng/đặc) và nền, không chỉ bằng màu |
+| Vừa bật | nảy 1 → 1,3 → 1 trong 260 ms, `var(--ease-pop)`, chỉ `motion-safe`; tắt thì đổi ngay |
+
+- **Trợ năng:** `aria-pressed`; `aria-label` **cố định** "Yêu thích: {{name}}" (không đổi theo trạng thái, để trình đọc màn hình đọc "đã nhấn / chưa nhấn"; khác câu chữ "Thêm vào yêu thích / Bỏ yêu thích" ở kế hoạch 3.2, hai câu đó chuyển thành `title`). Thứ tự Tab: thẻ → sao của thẻ → thẻ sau. Bấm sao không mở game.
+- **Phản hồi:** toast 2,5 s "Đã ghim {{name}} vào Yêu thích" / "Đã bỏ {{name}} khỏi Yêu thích" (mục Yêu thích ở đầu trang có thể nằm ngoài màn khi đổi).
+- **Kỷ lục:** dải kỷ lục trên thẻ và dòng "Kỷ lục ở mức này" ở màn Hướng dẫn đổi `StarIcon` → **`TrophyIcon`**, để ⭐ chỉ còn nghĩa Yêu thích.
+
+**Mục Yêu thích và chip lọc**
+
+| Trường hợp | Hiển thị |
+| --- | --- |
+| Lọc "Tất cả", có ≥ 1 | Mục **Yêu thích** đứng đầu, trước 5 nhóm. Tiêu đề: sao vàng viền mực 22/26 px (thay chấm màu nhóm) + "Yêu thích" Baloo 20/22 + "{{count}} game". Lưới như mục nhóm: điện thoại 2 cột; máy tính 5 cột thẻ 216 (xuống hàng nếu > 5), không theo cột nhóm. Thứ tự = thứ tự thêm (`ids`). Thẻ giữ màu nhóm của game; game vẫn có ở mục nhóm của nó |
+| Lọc "Tất cả", chưa có | Không có mục; thay bằng một dòng gợi ý cao ≥ 48, viền 2,5 nét đứt `border-chalk/45`, bo 14: ☆ + "Bấm ☆ trên thẻ game để ghim game hay chơi lên đầu." (14 px, `text-chalk-muted`) |
+| Chip "Yêu thích" | Sau "Tất cả", trước 5 chip nhóm; `StarIcon` rỗng (chưa chọn) / đặc (đang chọn); cùng cỡ chip nhóm (cao 44). Máy tính: 7 chip không vừa cạnh tiêu đề nên hàng chip xuống dưới tiêu đề (cả hàng, căn trái) |
+| Lọc "Yêu thích", có | Chỉ mục Yêu thích. Bỏ sao một thẻ thì thẻ rời lưới ngay, toast báo |
+| Lọc "Yêu thích", trống | Giữa vùng nội dung: vòng nét đứt 96 + sao rỗng 52, "Chưa có game yêu thích" (Baloo 24), "Bấm ☆ trên thẻ game để ghim game hay chơi lên đầu danh sách.", nút phấn "Xem tất cả game" (về lọc Tất cả) |
+| Lọc một nhóm | Như cũ (không có mục Yêu thích), sao vẫn ở mọi thẻ |
+| Đang tải / lỗi | Không hiện: danh sách đọc ngay từ máy; kết quả gộp/lấy từ tài khoản thay danh sách khi về (không vòng xoay); lỗi đồng bộ im lặng, sao giữ trạng thái trên máy |
+
+**⭐ ở đầu màn Hướng dẫn Luyện tập** (`PracticeSetup`, khu 28): điện thoại = nút phấn tròn 44 icon-only ở cạnh phải hàng đầu (cùng hàng "‹ Chọn game khác"); máy tính = nút phấn có chữ "Yêu thích" cao 44 cạnh phải tiêu đề "Hướng dẫn". Chưa bật `variant="chalk"`; bật `bg-primary text-primary-foreground border-sticker` + bóng 3 px + sao đặc. Cùng `aria-pressed`, nhãn, toast như trên thẻ.
+
+**Câu chữ** (vi / en, gói `locales/solo`): `practice.favorites` "Yêu thích" / "Favorites" · `practice.favoriteLabel` "Yêu thích: {{name}}" / "Favorite: {{name}}" · `practice.favoriteAdd` "Thêm vào yêu thích" / "Add to favorites" · `practice.favoriteRemove` "Bỏ yêu thích" / "Remove from favorites" · `practice.favoriteAdded` "Đã ghim {{name}} vào Yêu thích" / "Pinned {{name}} to Favorites" · `practice.favoriteRemoved` "Đã bỏ {{name}} khỏi Yêu thích" / "Removed {{name}} from Favorites" · `practice.favoritesHint` "Bấm ☆ trên thẻ game để ghim game hay chơi lên đầu." / "Tap ☆ on a game card to pin it to the top." · `practice.favoritesEmptyTitle` "Chưa có game yêu thích" / "No favorites yet" · `practice.favoritesEmptyBody` "Bấm ☆ trên thẻ game để ghim game hay chơi lên đầu danh sách." / "Tap ☆ on any game card to pin it to the top of the list." · `practice.favoritesEmptyCta` "Xem tất cả game" / "See all games" · `practice.favoriteButton` "Yêu thích" / "Favorite".
+
+### 6.11 Hướng dẫn to + động (S11, S12, S13, CR-021)
+
+Bản mẫu: [canvas trang "Yêu thích & hướng dẫn động"](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ), khu 28 (3 màn, Phóng to, trạng thái) và khu 29 (khung diễn, `HowToDemo` chạy được, 5 artboard kịch bản). Hợp đồng `GameClient.Demo`: [kế hoạch mục 3.3](practice-favorites-howto-routes.md#33-hướng-dẫn-động-ui-designer--frontend-dev).
+
+**Bố cục thẻ hướng dẫn (`GuideCard`)**
+
+| | Điện thoại (`compact`) | Máy tính |
+| --- | --- | --- |
+| Khung minh hoạ | Rộng hết thẻ, **16:9**: 315 × 180 ở màn 390 (viền 3, bo 14; sân khấu 309 × 174). Cũ: 140 × 90 cạnh các bước | Rộng hết thẻ, **16:9**: 422 × 240 (viền 3, bo 14; sân khấu 416 × 234). Cũ: 224 × 144. Thẻ giữ rộng 470 (`w-117.5`) để cột phải không đổi (`RoomDifficulty` 2 cột cần ≥ 34rem) |
+| Cách chơi | Dưới khung: số 22 (`bg-secondary`), chữ 13, khe 5; tiêu đề "Cách chơi" thành `sr-only` | Dưới khung: số 28, chữ 14, khe 8; tiêu đề `sr-only` |
+| Điều khiển, tính điểm | Bỏ hai dòng cũ; thay bằng một dòng 12 px `text-muted-foreground`: ⚡ "Đúng + nhanh = nhiều điểm · sai khoá 1,5 giây" (`intro.scoringShort`). Đủ hai dòng trong hộp Phóng to | Vạch nét đứt; "Điều khiển:" + icon theo thiết bị + chữ của thiết bị đó (một dòng, 13,5); "Tính điểm:" + `intro.scoringLine` (chữ, 13,5). Bỏ khối 2 chip điều khiển và lưới 4 ô tính điểm |
+| Tên game | Ngoài thẻ, **28 px** (cũ 32) để "Theo dấu ánh đèn" + chip nhóm vừa một dòng | Trong thẻ 40 px + chip nhóm + mô tả 14 px như cũ |
+| Cao thẻ | ≈ 322 px | ≈ 572 px |
+
+- **Nút chính trong màn đầu** (đã đo trên bản mẫu): 390 × 844 — Luyện tập: nút Bắt đầu 58 px ở y 754–812, dư 32; party 12 người: nút "Đã hiểu!" ngay dưới ô độ khó, đáy ở y ≈ 776 (≈ 812 khi có câu nhắc của mức); Kiểm tra não dư > 100. 1280 × 800: thẻ 572 ≤ 604 px cao của hàng, cột phải không đổi. Màn máy tính thấp hơn 800: khung `max-height: calc(100dvh − 560px)`, tối thiểu 160, sân khấu tự co giữa khung (hai bên là màu bảng).
+- **Party điện thoại ≤ 7 người (đề xuất):** thẻ cao thêm ~106 px nên đưa nút chính lên ngay dưới ô độ khó như phòng đông (mục 6.8) cho mọi số người; danh sách cả phòng theo sau.
+- Thẻ nhỏ (`GameThumb`, lưới chọn game, trống quay) giữ `Illustration` tĩnh.
+
+**Nút và lớp phủ trên khung**
+
+| Phần | Thông số |
+| --- | --- |
+| Phóng to | 36 × 36 bo 11, nền `bg-sticker/55` (rê chuột /75), viền 2 `border-chalk/85`, `Maximize2Icon` 18 `text-chalk`; vùng chạm 44 (`::after` −5 px); góc trên phải cách 6. `aria-label` "Phóng to hình minh hoạ", `title` "Phóng to". Có ở mọi trạng thái, kể cả giảm chuyển động và game chưa có Demo |
+| Dừng / Chạy | Cả khung là một `<button>` trong suốt nằm dưới nút Phóng to: `aria-label` "Dừng hình minh hoạ", `aria-pressed` (WCAG 2.2.2 vì hình lặp quá 5 giây). Đã dừng: đứng ở khung hiện tại, phủ `bg-sticker/28`, ▶ tròn 56 vàng viền mực giữa khung (chỉ là hình) |
+| Hết lượt | Thẻ chạy tối đa **3 vòng** rồi đứng ở khung tĩnh + nút "↺ Xem lại" (vàng, cao 44, bo tròn) giữa khung; bấm thì chạy lại từ 0 |
+| Giảm chuyển động | Khung tĩnh, không phủ, không nút Dừng |
+| Đang tải Demo / lỗi / chưa có Demo | `Illustration` tĩnh trong cùng khung (không vòng xoay, không nhảy bố cục); chưa có cả `Illustration` thì biểu tượng nhóm như cũ |
+
+**Hộp Phóng to** (chỉ demo + cách chơi; không có độ khó, không nút chính)
+
+| | Máy tính — `Dialog` | Điện thoại — `Sheet side="bottom"` |
+| --- | --- | --- |
+| Khung hộp | Rộng 936, viền 4, bo 28, đệm 18 / 24 / 20 | Cao `calc(100dvh − 40px)`, viền 4 (không viền đáy), bo trên 28, đệm 16 |
+| Đầu | Tên game 30 + chip nhóm + nút đóng tròn 44 (`closeLabel`) | Tên 24 + chip nhóm + nút đóng 44 |
+| Sân khấu | 880 × 498 (viền 3, bo 18; sân khấu 874 × 492); màn thấp hơn 800: `max-height: calc(100dvh − 300px)` | 358 × 204 (sân khấu 352 × 198) |
+| Điều khiển hình | [⏸ Dừng / ▶ Chạy] (`aria-pressed`) + [↺ Xem lại]: nút viền mực cao 44 bo 14 | như máy tính, dưới sân khấu |
+| Cách chơi | 3 cột: số 34, chữ 16 đậm | 3 dòng: số 30, chữ 16 đậm, khe 10 |
+| Thêm | "Điều khiển:" (cùng hàng nút, bên phải) · "Tính điểm:" 13,5 | vạch nét đứt · "Điều khiển:" · "Tính điểm:" (13,5) · nút "Đóng" cao 52 ở đáy |
+
+- Trong hộp hình lặp mãi; demo ở thẻ chuyển sang khung tĩnh khi hộp mở (một hình động mỗi lúc). Đóng bằng Esc, lớp phủ, ×, "Đóng"; focus trả về nút Phóng to. Giảm chuyển động: hộp hiện khung tĩnh, ẩn hai nút điều khiển hình.
+
+**Khung diễn dùng chung** (`games/_shared/demo/`, canvas khu 29 "Khung diễn · đặc tả")
+
+- **Sân khấu:** SVG `viewBox="0 0 640 360"` (16:9), `preserveAspectRatio="xMidYMid meet"`, nền `bg-board`. Vùng nội dung x 40–600, y 16–344. Góc trên trái 80 × 80 dành cho huy hiệu bước; góc trên phải 96 × 88 để trống cho nút Phóng to. Không có chữ trong sân khấu (chỉ chữ số và ký hiệu), nên không cần dịch.
+- **Ba lớp:** (1) `div` khung mang mờ vào/ra của vòng lặp (opacity trên phần tử HTML, GPU ghép lớp); (2) SVG tĩnh: lưới, khung, đế cân…, được dùng filter phấn `#chalk`, không bao giờ chuyển động; (3) SVG động: mọi thứ có keyframe, nét trơn, **không filter**. Mỗi vật = `<g transform="translate(x y)">` (thuộc tính) bọc `<g>` mang CSS transform, vẽ quanh gốc 0,0 nên scale/rotate quanh tâm vật (`transform-box: view-box; transform-origin: 0 0`).
+- **Một đồng hồ:** mọi keyframe cùng `animation-duration: T`, `iteration-count: infinite`, bắt đầu cùng lúc; mốc viết theo % = ms ÷ T. Chỉ `transform` (translate, rotate, scale) và `opacity`; không animate `filter`, `d`, `stroke-dashoffset`, kích thước, màu ("vẽ phấn dần" thay bằng nảy scale + opacity).
+
+| Phần | Đặc tả |
+| --- | --- |
+| Con trỏ bàn tay | `HAND_PATH` sẵn có (`games/_shared/icons`) × 3 = 43 × 51 đơn vị; nền `paper`, viền `ink` 1,4 (= 4,2 đơn vị), nối tròn. Gốc toạ độ = đầu ngón trỏ (icon dời −11, −3,5); toạ độ tay = điểm chạm + (4, 6). Bóng: cùng hình, đen 28 %, lệch (5, 7) |
+| Nhấn | Tay scale 1 → 0,86 (90 ms, settle) → 1 (160 ms, pop) quanh đầu ngón; bóng lệch (2, 3), còn 45 % độ đậm |
+| Vào / ra | Từ (700, 430) ngoài sân khấu góc dưới phải, glide 450–500 ms; ra về chỗ cũ. Không hiện/ẩn tay bằng opacity |
+| Thiết bị | Cảm ứng (`TOUCH_QUERY`): bàn tay. Chuột: mũi tên 23 × 34 cùng nền/viền/bóng, nhấn = 0,9 |
+| Sóng chạm | Vòng phấn r 26 nét 4 + chấm r 9 (45 %) tại điểm chạm, bắt đầu cùng lúc nhấn: scale 0,3 → 1,3, opacity 0,95 → 0, 450 ms settle |
+| ✓ ✗ ⚡ | Tròn r 17, viền mực 3, bóng 3. ✓ `compute` + dấu mực; ✗ `destructive` + dấu `destructive-foreground`; ⚡ `primary` + tia mực. Hiện bằng nảy 0,2 → 1, 240 ms pop; ✓ sau chạm 120 ms, ✗ sau 60 ms |
+| Khoá | Viên thuốc `pink` 80 × 32 viền mực + ổ khoá + thanh `scaleX` 1 → 0 (linear). Kịch bản nén 1,5 s còn 1,2 s |
+| Vòng khoanh | Nét vàng 5 trên nét mực 9 (thấy được trên cả thẻ giấy và bảng); hiện bằng nảy |
+| Huy hiệu bước | Tròn r 21 tại (40, 40), nền bảng, viền phấn 3, số Baloo 24; mờ chéo 150 ms khi sang bước; khớp số của danh sách 3 bước dưới khung |
+| Chuyển câu | Câu cũ mờ + thu 0,96 (160 ms) · nghỉ 40 · câu mới 0,96 → 1 + mờ vào (200 ms), settle |
+| Rung khi sai | ±6 đơn vị, 4 đoạn × 60 ms = 240 ms, linear |
+
+| Nhịp chuẩn | ms |
+| --- | --- |
+| Vòng lặp T | 4.800–6.200 (từng game bên dưới); mờ vào 0–300; giữ khung cuối ≥ 600; mờ ra 300; nghỉ 300–400 |
+| Tay lướt giữa hai vật | 250 (gần) – 450 (xa), glide; dừng ngắm trước khi chạm 50–100 |
+| Phản hồi của vật | Bắt đầu 60 sau chạm; nảy như game (160–180) |
+
+- **Khi nào dừng:** `playing = false`, tab ẩn (`visibilitychange`), khung ra khỏi màn (IntersectionObserver, ngưỡng 0), hộp Phóng to đang mở (khung ở thẻ), giảm chuyển động (một nguồn, mục 5). Dừng = `animation-play-state: paused` trên gốc.
+- **Khung tĩnh** (giảm chuyển động, hết 3 vòng, đang tải): dùng `Illustration` sẵn có của game (đã có số bước, mũi tên nét đứt, ✓/✗). Canvas dựng lại cùng nội dung trên sân khấu 16:9 (dòng "Khung tĩnh" của từng kịch bản bên dưới, cột "Khung tĩnh" của artboard Kịch bản) để FE so.
+
+**Kịch bản 5 game MVP** (đúng các mốc của `HowToDemo` trên canvas; toạ độ trên sân khấu 640 × 360)
+
+#### Kẻ lạc đàn (`odd-one-out`) · T = 4.800 ms
+
+Bước ↔ huy hiệu: ① 0–1.000 "Nhìn lưới hình giống nhau" · ② 1.000–2.400 "Chạm vào hình duy nhất khác biệt" · ③ 2.400–4.800 "Đúng và nhanh để được nhiều điểm".
+
+Bố cục: khung chơi 248 × 248 tại (196, 62); lưới 3 × 3, tâm ô x 248 · 320 · 392, y 114 · 186 · 258; tam giác cạnh 42, hình tròn r 18–19; ✓ ở góc trên phải ô vừa chạm (+32, −36), ⚡ cạnh ✓ (+38).
+
+| ms | Cảnh |
+| --- | --- |
+| 0–300 | Cả sân khấu hiện dần. Câu 1 (Mầm 3×3): 8 tam giác phấn + 1 hình tròn ở ô giữa phải. Huy hiệu bước ①. |
+| 500–1.000 | Tay vào từ góc dưới phải, lướt tới hình tròn (đầu ngón chạm tâm ô). |
+| 1.000 | Huy hiệu bước ②. |
+| 1.100 | Chạm: tay nhấn 0,86 (90 ms) rồi bật lại (160 ms); sóng chạm 450 ms. |
+| 1.160–1.400 | Hình tròn nảy 1 → 1,3 → 1 (180 ms, như game); vòng khoanh vàng nảy ra. |
+| 1.220–1.460 | Dấu ✓ nảy ở góc trên phải ô. |
+| 1.700–2.100 | Chuyển câu: câu 1 mờ + thu 0,96 (160 ms), nghỉ 40 ms, câu 2 vào (200 ms). Tay lướt nhanh sang ô dưới trái (450 ms). |
+| 2.100 | Câu 2: 9 hình tròn xanh trời, ô dưới trái hồng đậm (khác màu và khác cả độ sáng). |
+| 2.250 | Chạm hình lạc; sóng chạm; hình nảy (2.310–2.490); vòng khoanh. |
+| 2.370 · 2.400 · 2.450 | Dấu ✓; huy hiệu bước ③; huy hiệu ⚡ (nhanh = thêm điểm) nảy cạnh ✓. |
+| 2.900–3.300 | Tay rút ra góc dưới phải. |
+| 3.300–4.200 | Giữ khung cuối (✓ + ⚡). |
+| 4.200–4.500 · 4.500–4.800 | Mờ cả sân khấu 300 ms · nghỉ 300 ms rồi lặp. |
+
+- **Chạm sai minh hoạ khoá:** Không. Ba bước không nhắc lỗi; khoá chỉ minh hoạ ở Bóng bay số và Xoay hình.
+- **Khung tĩnh:** Khung 2.700 ms (câu 2 đã ✓ + ⚡, tay đặt trên hình lạc) + số phấn ① cạnh lưới, ② cạnh ô vừa chạm, ③ cạnh ⚡.
+
+#### Theo dấu ánh đèn (`light-trail`) · T = 6.000 ms
+
+Bước ↔ huy hiệu: ① 0–2.150 "Xem các ô lần lượt sáng" · ② 2.150–4.300 "Chạm lại đúng thứ tự đó" · ③ 4.300–6.000 "Siêu khó: chạm ngược từ ô cuối".
+
+Bố cục: lưới 3 × 3 ô 60 bo 11, tâm x 248 · 320 · 392, y 124 · 196 · 268; biểu tượng pha (mắt ↔ tay) tại (130, 170); 3 chấm tiến độ r 7 tại x 106 · 130 · 154, y 226; huy hiệu số r 14 ở góc trên trái ô (−26, −26); huy hiệu tua ngược r 24 tại (522, 168), chữ "3 → 2 → 1" tại (522, 228).
+
+| ms | Cảnh |
+| --- | --- |
+| 0–300 | Hiện lưới 3×3 (ô 60, bước 72) + biểu tượng mắt + 3 chấm tiến độ rỗng. Huy hiệu bước ①. |
+| 500 · 1.050 · 1.600 | Đèn 1 (ô dưới trái), 2 (ô giữa trên), 3 (ô giữa phải) bật: 80 ms mờ vào + phóng 1,1, sáng 300 ms, tắt 100 ms. Chấm k đặc khi đèn k sáng. Nhịp 550 ms (game Mầm 800 ms, nén cho vừa vòng lặp; vẫn < 3 lần/giây). |
+| 2.150–2.300 | Tới lượt: mắt mờ đi, bàn tay phấn nảy vào (pop 150 ms); chấm về rỗng. Huy hiệu bước ②. |
+| 2.150–2.600 | Con trỏ bàn tay vào, tới ô đèn 1. |
+| 2.650 · 3.150 · 3.650 | Chạm 3 ô theo đúng thứ tự: sóng chạm, viền vàng trong ô, huy hiệu số 1 · 2 · 3 nảy ở góc trên trái ô, chấm tương ứng đặc lại. Tay lướt giữa các ô 300 ms. |
+| 3.760–4.060 · 3.820 | Đủ 3 ô: các ô đã chạm nảy 1,15 (300 ms); dấu ✓. |
+| 3.900–4.300 | Tay rút ra. |
+| 4.300–4.630 | Huy hiệu bước ③ + huy hiệu tua ngược (hồng, ◀◀) nảy bên phải; 4.400: ✓ và số xuôi mờ đi, chữ "3 → 2 → 1" hiện; 4.450–4.570: số đảo ngược nảy lần lượt (ô giữa phải = 1, ô giữa trên = 2, ô dưới trái = 3), nền hồng. |
+| 4.630–5.400 | Giữ. |
+| 5.400–5.700 · 5.700–6.000 | Mờ · nghỉ rồi lặp. |
+
+- **Chạm sai minh hoạ khoá:** Không. Bước ③ minh hoạ luật Siêu khó bằng số đảo ngược thay cho một lượt chạm sai.
+- **Khung tĩnh:** Khung 3.850 ms (3 ô đã chạm có số 1 · 2 · 3 + ✓) + mũi tên phấn nét đứt nối 1 → 2 → 3 + huy hiệu tua ngược và "3 → 2 → 1" (như hình tĩnh cũ).
+
+#### Cân não (`balance`) · T = 5.400 ms
+
+Bước ↔ huy hiệu: ① 0–1.900 "Bên cân thấp hơn là bên nặng hơn" · ② 1.900–2.900 "Cân thăng bằng: hai bên nặng bằng nhau" · ③ 2.900–5.400 "Chạm vật nặng nhất ở hàng dưới".
+
+Bố cục: khung dọc 268 × 336 tại (196, 12); hai cân trụ x 330, chốt y 60 và 166, nửa đòn 80 (đầu đòn ±77,6), nghiêng 14° (đĩa lệch 19,35); hàng lựa chọn ô 54 tại x 258 · 330 · 402, y 293; cân nhỏ thăng bằng chốt (126, 54), nửa đòn 46.
+
+| ms | Cảnh |
+| --- | --- |
+| 0–300 | Hiện khung dọc như màn chơi Mầm: cân trên (táo – chuối), cân dưới (táo – dưa hấu), hàng 3 ô chuối · dưa hấu · táo. Huy hiệu bước ①. |
+| 300–480 | Hai đòn nghiêng từ 7° tới 14° (180 ms, ease-out), đĩa hạ/nâng theo (9,75 → 19,35). Không bắt đầu từ nằm ngang để khỏi giống cân thăng bằng. |
+| 700–940 | Đĩa táo (thấp) của cân trên: vòng khoanh vàng + mũi tên ↓ vàng nảy ra. |
+| 1.300–1.540 | Đĩa dưa hấu (thấp) của cân dưới: vòng khoanh + ↓. |
+| 1.900–2.100 | Huy hiệu bước ②. Cân nhỏ thăng bằng (nấm = cà rốt) hiện ở bên trái khung (mờ + 0,9 → 1). |
+| 2.050–2.290 · 2.100 | Huy hiệu "=" nảy 1 → 1,3 → 1; vòng khoanh quanh cân nhỏ. |
+| 2.900–3.400 | Huy hiệu bước ③. Tay vào, tới ô dưa hấu. |
+| 3.500 | Chạm: sóng chạm; 3.560–3.720 ô nảy 1 → 1,15 → 1 (như game); vòng khoanh ô; 3.620 dấu ✓. |
+| 4.000–4.400 | Tay rút ra. |
+| 4.400–4.800 | Giữ. |
+| 4.800–5.100 · 5.100–5.400 | Mờ · nghỉ rồi lặp. |
+
+- **Chạm sai minh hoạ khoá:** Không. Lượt chạm đầu tiên đã đúng, để bé thấy cách suy luận trọn vẹn.
+- **Khung tĩnh:** Khung 3.800 ms (mọi vòng khoanh, cân nhỏ, ô dưa hấu ✓, tay trên ô) + số phấn ① cạnh đĩa thấp cân trên, ② dưới cân nhỏ, ③ cạnh ô dưa hấu (như hình tĩnh cũ).
+
+#### Bóng bay số (`number-balloons`) · T = 6.200 ms
+
+Bước ↔ huy hiệu: ① 0–1.000 "Tìm bóng có số nhỏ nhất" · ② 1.000–3.000 "Nổ bóng lần lượt từ nhỏ đến lớn" · ③ 3.000–6.200 "Nhầm một quả là mất câu đó".
+
+Bố cục: khay 4 ô 46, tâm x 239 · 293 · 347 · 401, y 43; bóng rx 32 ry 38 tại (230, 150) · (410, 150) · (230, 272) · (410, 272); ✓ và nhãn khoá bên phải khay (452 / 486, 43).
+
+| ms | Cảnh |
+| --- | --- |
+| 0–300 | Hiện khay 4 ô nét đứt + bóng 8 · 12 (trên), 3 · 5 (dưới) phồng 0,6 → 1 (200 ms, pop). Huy hiệu bước ①. |
+| 400–900 · 550 | Tay vào, tới quả 3; vòng khoanh vàng quanh quả 3 nảy ra (gợi ý số nhỏ nhất). |
+| 1.000 | Huy hiệu bước ②. Chạm 3: tay nhấn; bóng phồng 1,2 (80 ms) rồi vỡ (1,35 + mờ, 120 ms); 3 mảnh vỡ bay ra + vòng "bụp" nét đứt (250 ms); số 3 bay vào ô khay 1 (250 ms, thu 0,8); ô khay đổi nền giấy. |
+| 1.450 · 1.900 · 2.350 | Như trên với 5, 8, 12 (tay lướt giữa các quả 250 ms). |
+| 2.450 | Đủ 4 ô: dấu ✓ cạnh khay. |
+| 2.800–3.200 | Chuyển câu: câu 1 ra (160 ms), câu 2 vào: 9 · 2 · 7 · 4 phồng lên. Huy hiệu bước ③. |
+| 3.350 | Chạm 2 (tay đang ở sẵn góc trên phải): nổ, số 2 vào ô khay 1. |
+| 3.500–3.850 | Tay sang quả 7 và chạm (sai, lẽ ra là 4). |
+| 3.910–4.150 | Quả 7 rung ngang ±6 (240 ms) + dấu ✗ nảy. 3.950–4.100: bóng 9 và 4 mờ còn 60 %. |
+| 4.000–4.900 | Vòng nét đứt quanh quả 4 nảy rồi nhịp 1 ↔ 1,08 hai lần; huy hiệu thứ tự đúng ② (quả 4), ③ (quả 7), ④ (quả 9) nảy lần lượt 60 ms; nhãn khoá hiện, thanh rút ngắn 1.200 ms (nén từ 1,5 s). |
+| 4.200–4.600 | Tay rút ra. |
+| 5.600–5.900 · 5.900–6.200 | Mờ · nghỉ rồi lặp. |
+
+- **Chạm sai minh hoạ khoá:** Có, ở câu 2: chạm 7 khi lẽ ra là 4 → ✗ + rung, bóng còn lại mờ 60 %, vòng nét đứt nhịp quanh quả 4, huy hiệu thứ tự đúng ② ③ ④, nhãn khoá rút ngắn 1,2 s.
+- **Khung tĩnh:** Khung 950 ms (đủ 4 bóng, vòng khoanh quả 3, tay trên quả 3) + số phấn ①–④ cạnh 3 · 5 · 8 · 12 và mũi tên nét đứt nối 3 → 5 → 8 → 12 (như hình tĩnh cũ).
+
+#### Xoay hình (`rotate-match`) · T = 5.500 ms
+
+Bước ↔ huy hiệu: ① 0–1.000 "Nhìn hình mẫu ở trên cùng" · ② 1.000–2.700 "Chạm hình là mẫu đã xoay đi" · ③ 2.700–5.500 "Hình bị lật hoặc lệch ô là sai".
+
+Bố cục: thẻ mẫu 108 tâm (320, 68); thẻ lựa chọn 128 tâm (232, 254) và (408, 254); ô hình 22; ✓/✗ ở góc trên phải thẻ (+58, −58); icon gương góc trên trái thẻ trái (174, 196); nhãn khoá (206, 64).
+
+| ms | Cảnh |
+| --- | --- |
+| 0–300 | Hiện thẻ mẫu chữ L (108, viền 4) + 2 thẻ lựa chọn 128: trái L xoay 90°, phải J (lật gương) xoay 90°. Huy hiệu bước ①. |
+| 400–800 · 700 | Thẻ mẫu nhịp 1 → 1,06 → 1 (glide); icon ↻ phấn nảy cạnh thẻ mẫu. |
+| 1.000–1.500 | Huy hiệu bước ②. Tay vào, tới thẻ trái. |
+| 1.600 | Chạm: thẻ co 0,97 (80 ms) rồi về; sóng chạm. |
+| 1.660–2.080 | Bóng ma (viền nét đứt hình mẫu, mờ 60 %) hiện ở 0°, xoay tới 90° (240 ms, glide), khớp rồi mờ đi. |
+| 2.000–2.120 · 2.050 | Hình nảy 1 → 1,08 → 1; viền xanh thành công; dấu ✓. |
+| 2.500–2.900 | Chuyển câu (thẻ mẫu giữ nguyên): trái J xoay 180°, phải L xoay 270°. Huy hiệu bước ③. |
+| 3.100 | Tay (đang ở thẻ trái) chạm bản lật. |
+| 3.160–3.400 | Thẻ trái rung ±6 (240 ms), viền gạch đứt đỏ, dấu ✗; 3.220 icon gương; 3.200 nhãn khoá, thanh rút 1.200 ms. |
+| 3.300–3.820 | Hiện đáp án đúng: thẻ phải viền xanh + ✓; bóng ma xoay 0 → −90° (đi chiều gần nhất), khớp, hình nảy. |
+| 3.500–3.900 | Tay rút ra. |
+| 4.900–5.200 · 5.200–5.500 | Mờ · nghỉ rồi lặp. |
+
+- **Chạm sai minh hoạ khoá:** Có, ở câu 2: chạm bản lật gương → rung + viền gạch đứt + ✗ + icon gương, nhãn khoá; thẻ đúng hiện viền xanh + ✓ + bóng ma xoay khớp (−90°).
+- **Khung tĩnh:** Khung 2.150 ms (câu 1: thẻ trái ✓ + viền xanh) + mũi tên phấn cong từ thẻ mẫu xuống thẻ trái, gạch chéo đỏ trên thẻ lật + icon gương (như hình tĩnh cũ).
+
+**Câu chữ** (vi / en): `intro.demoLabel` (aria khung) "Hình minh hoạ cách chơi {{name}}" / "How to play {{name}}, animated" · `intro.demoZoom` "Phóng to hình minh hoạ" / "Enlarge the demo" (title ngắn "Phóng to" / "Enlarge") · `intro.demoPause` "Dừng hình minh hoạ" / "Pause the demo" · `intro.demoStop` "Dừng" / "Pause" · `intro.demoPlay` "Chạy" / "Play" · `intro.demoReplay` "Xem lại" / "Replay" · `intro.demoClose` "Đóng" / "Close" · `intro.scoringShort` "Đúng + nhanh = nhiều điểm · sai khoá {{seconds}} giây" / "Right + fast = more points · wrong locks {{seconds}} s".
+
+**Đề xuất cho hợp đồng (cần điều phối duyệt):** để thẻ dừng sau 3 vòng ở đúng khung tĩnh, `Demo` nhận thêm hai prop tuỳ chọn `loops?: number` (mặc định lặp mãi) và `onEnd?(): void`; `GuideCard` truyền `loops={3}` và hiện "Xem lại" khi `onEnd`. Không thêm thì `GuideCard` tự hẹn giờ theo T mà `Demo` không công khai.
+
 ## 7. Đa ngôn ngữ & nội dung
 
 - Mọi chữ qua `t()`: khoá thêm vào `apps/web/src/i18n/locales/vi.ts` trước, rồi `en.ts`. Tên/cách chơi minigame ở `apps/web/src/games/<id>/locales.ts`.
@@ -647,5 +903,6 @@ Bản mẫu: [canvas trang "Quản trị", khu 26](https://claude.ai/artifact/GJ
 | 1.5 | 2026-10-20 | Canvas khu 22: khung chat trong phòng (S16), mục 6.5; token `bubble-mine`; component Sheet, Switch | [CR-011](../00-tracking/change-requests.md#cr-011) |
 | 1.6 | 2026-10-21 | Canvas khu 23: chơi với bot (S17 thẻ menu + hộp thoại, ô thêm bot và ô bot ở phòng chờ, huy hiệu máy ở mọi nơi, nhãn "Đấu với máy", bot nhường ghế); bản đồ màn hình, S4, S17, mục 6.6; token `bot`; component Dialog | [CR-016](../00-tracking/change-requests.md#cr-016) |
 | 1.7 | 2026-11-19 | Canvas khu 24 (trống quay dọc, mục 6.7), khu 25 (phòng 12 người, 4 màu avatar mới, mục 6.8), trang "Quản trị" khu 26 (S18, mục 6.9); bản đồ màn hình, S4–S7, S10, S18; utility `drum-shade` | [CR-017](../00-tracking/change-requests.md#cr-017), [CR-018](../00-tracking/change-requests.md#cr-018), [CR-019](../00-tracking/change-requests.md#cr-019) |
+| 1.8 | 2026-11-19 | Trang canvas "Yêu thích & hướng dẫn động": khu 27 (⭐ trên thẻ game, mục + chip Yêu thích, trống, đặc tả nút, mục 6.10), khu 28 (khung minh hoạ 16:9 to hơn ở 3 màn Hướng dẫn, Phóng to, trạng thái), khu 29 (khung diễn, `HowToDemo` chạy được, kịch bản 5 game MVP, mục 6.11); S11–S13; token `--ease-glide`, `--ease-settle`, `--ease-pop` | [CR-020](../00-tracking/change-requests.md#cr-020), [CR-021](../00-tracking/change-requests.md#cr-021) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

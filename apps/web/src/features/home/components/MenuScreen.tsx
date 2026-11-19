@@ -48,7 +48,11 @@ const SKILL_DOTS = ["bg-identify", "bg-memorize", "bg-analyze", "bg-compute", "b
 
 interface MenuScreenProps {
   profile: Profile;
-  initialCode: string;
+  /**
+   * Mã trên đường dẫn `/r/<mã>` (rỗng nếu không có). Đổi khi màn vẫn mở (Back/Forward về link mời)
+   * thì điền lại ô mã; đường dẫn không có mã thì giữ nguyên chữ đang gõ.
+   */
+  inviteCode: string;
   busy: boolean;
   onEditProfile(): void;
   onCreate(): void;
@@ -64,7 +68,7 @@ interface MenuScreenProps {
 /** Menu chính: tạo/vào phòng, các chế độ chơi, thử thách hằng ngày. */
 export function MenuScreen({
   profile,
-  initialCode,
+  inviteCode,
   busy,
   onEditProfile,
   onCreate,
@@ -90,7 +94,13 @@ export function MenuScreen({
       : authStatus === "google"
         ? t("home.menu.accountLinked")
         : t("home.menu.accountGuest");
-  const [code, setCode] = useState(initialCode);
+  const [code, setCode] = useState(inviteCode);
+  // Mã trên đường dẫn đổi lúc menu vẫn mở → điền lại ngay trong lần render này (không chờ effect).
+  const [shownInvite, setShownInvite] = useState(inviteCode);
+  if (inviteCode !== shownInvite) {
+    setShownInvite(inviteCode);
+    if (inviteCode) setCode(inviteCode);
+  }
   const soon = () => toast(t("home.menu.soonToast"));
   const [botsOpen, setBotsOpen] = useState(false);
 
