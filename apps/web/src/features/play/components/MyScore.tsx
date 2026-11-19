@@ -4,6 +4,7 @@ import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { RankBadge } from "@/components/common/RankBadge";
 import { Card } from "@/components/ui/card";
 import { useNumberFormat } from "@/hooks/use-number-format";
+import { useRoomScoring } from "@/hooks/use-room-scoring";
 import { cn } from "@/lib/utils";
 import { hasCombo } from "../standings";
 import { ComboChip } from "./ComboChip";
@@ -36,6 +37,7 @@ export function MyScoreHud({ me, rank, className }: MyScoreProps) {
 export function MyScoreCard({ me, rank, className }: MyScoreProps) {
   const { t } = useTranslation();
   const fmt = useNumberFormat();
+  const scoring = useRoomScoring();
   return (
     <Card
       aria-label={t("play.yourScore")}
@@ -63,7 +65,7 @@ export function MyScoreCard({ me, rank, className }: MyScoreProps) {
           </span>
         </span>
       </div>
-      {hasCombo(me.streak) && (
+      {hasCombo(me.streak, scoring) && (
         <div className="flex items-center gap-2.5">
           <ComboChip streak={me.streak} className="h-7 px-2.5 text-sm" />
           <span className="text-[13px] text-muted-foreground">

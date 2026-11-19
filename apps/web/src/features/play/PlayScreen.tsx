@@ -6,6 +6,7 @@ import { RoundChip } from "@/components/common/MatchChips";
 import type { MinigameBridge } from "@/games/types";
 import { levelHint, useGameText } from "@/hooks/use-game-text";
 import { DESKTOP_QUERY, TOUCH_QUERY, useMediaQuery } from "@/hooks/use-media-query";
+import { isCrowded } from "@/lib/room-size";
 import { send } from "@/net/connection";
 import { useGame, useMe } from "@/stores/game.store";
 import { GameFrame } from "./components/GameFrame";
@@ -13,6 +14,7 @@ import { MyScoreCard, MyScoreHud } from "./components/MyScore";
 import { RoundInfo } from "./components/RoundInfo";
 import { RoundTimer } from "./components/RoundTimer";
 import { Scoreboard } from "./components/Scoreboard";
+import { SCORE_GRID_MIN_OPPONENTS, ScoreGrid } from "./components/ScoreGrid";
 import { ScoreStrip } from "./components/ScoreStrip";
 import { connectionSync, partyProgress } from "./connection-sync";
 import { rankByRoundScore } from "./standings";
@@ -42,6 +44,7 @@ function PlayView({ gameId }: { gameId: GameId }) {
   const touch = useMediaQuery(TOUCH_QUERY);
 
   const standings = rankByRoundScore(Object.values(party.players));
+  const opponents = standings.filter((s) => s.player.id !== sessionId);
   const myRank = standings.find((s) => s.player.id === sessionId)?.rank ?? 1;
 
   // Seed, số vòng, độ khó, giờ bắt đầu/kết thúc đều đọc từ state đồng bộ, KHÔNG từ tin `roundStart`:
@@ -110,7 +113,11 @@ function PlayView({ gameId }: { gameId: GameId }) {
               <div className="flex-1" />
             )}
           </header>
-          <ScoreStrip opponents={standings.filter((s) => s.player.id !== sessionId)} />
+          {opponents.length >= SCORE_GRID_MIN_OPPONENTS ? (
+            <ScoreGrid standings={standings} meId={sessionId} />
+          ) : (
+            <ScoreStrip opponents={opponents} />
+          )}
         </>
       )}
 
@@ -118,7 +125,12 @@ function PlayView({ gameId }: { gameId: GameId }) {
 
       {desktop && (
         <div className="flex min-h-0 min-w-0 flex-1 basis-0 flex-col gap-4">
-          <Scoreboard standings={standings} meId={sessionId} round={party.round} />
+          <Scoreboard
+            standings={standings}
+            meId={sessionId}
+            round={party.round}
+            compact={isCrowded(standings.length)}
+          />
           {standings.length <= MASCOT_MAX_PLAYERS && (
             <div aria-hidden className="mt-auto flex items-end justify-end gap-1.5">
               <span className="mb-17 -rotate-4 rounded-[18px] border-[2.5px] border-chalk px-3.5 py-2 font-display text-[19px] font-bold text-chalk">

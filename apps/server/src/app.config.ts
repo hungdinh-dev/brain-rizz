@@ -1,5 +1,6 @@
 import { BRAIN_TEST_ROOM_NAME, ROOM_NAME } from "@brain-rizz/shared";
 import { defineRoom, defineServer, monitor, playground } from "colyseus";
+import { adminRouter } from "./admin/routes";
 import { BrainTestRoom } from "./rooms/BrainTestRoom";
 import { PartyRoom } from "./rooms/PartyRoom";
 
@@ -16,6 +17,9 @@ const server = defineServer({
     app.get("/healthz", (_req, res) => {
       res.json({ ok: true, uptime: process.uptime() });
     });
+
+    // Trang quản trị (CR-019): phòng đang mở, nạp lại cấu hình party. Chỉ quản trị viên (bảng admins).
+    app.use("/admin", adminRouter());
 
     // Công cụ dev: bảng theo dõi phòng và playground thử tin nhắn.
     // Không bật ở production (hoặc phải đặt mật khẩu trước khi bật).

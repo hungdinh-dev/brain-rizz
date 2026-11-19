@@ -217,29 +217,34 @@ describe("PartyRoom — chơi với bot (CR-016)", () => {
       const { room, host } = await setup(["An"], { count: MAX_PLAYERS - 1, level: 1 });
       expect(room.state.players.size).toBe(MAX_PLAYERS);
 
+      /** `bot-from` … `bot-to`. */
+      const range = (from: number, to: number) =>
+        Array.from({ length: to - from + 1 }, (_, i) => `bot-${from + i}`);
       const b = await join(room, "Bình");
       expect(room.state.players.size).toBe(MAX_PLAYERS);
       expect(room.state.players.has(b.sessionId)).toBe(true);
-      expect(botIds(room)).toEqual(["bot-1", "bot-2", "bot-3", "bot-4", "bot-5", "bot-6"]);
+      expect(botIds(room)).toEqual(range(1, MAX_PLAYERS - 2));
       // Người vào sau lấy được màu bot vừa nhường.
       expect(new Set(players(room).map((p) => p.colorIndex)).size).toBe(MAX_PLAYERS);
 
       await expectError(host, "invalid", () => host.send(ClientMessage.AddBot, { level: 0 }));
       expect(room.state.players.size).toBe(MAX_PLAYERS);
 
-      // Bỏ bot-1, thêm bot mới (bot-8): người kế tiếp vào thì bot-8 (thêm gần nhất) nhường, không phải bot-6.
+      // Bỏ bot-1, thêm bot mới (bot-<MAX_PLAYERS>): người kế tiếp vào thì bot mới (thêm gần nhất)
+      // nhường, không phải bot-<MAX_PLAYERS - 2>.
+      const fresh = `bot-${MAX_PLAYERS}`;
       host.send(ClientMessage.RemoveBot, { playerId: "bot-1" });
       await until(() => !room.state.players.has("bot-1"));
       host.send(ClientMessage.AddBot, { level: 3 });
-      await until(() => room.state.players.has("bot-8"));
-      expect(room.state.players.get("bot-8")).toMatchObject({ botLevel: 3, difficulty: 3 });
+      await until(() => room.state.players.has(fresh));
+      expect(room.state.players.get(fresh)).toMatchObject({ botLevel: 3, difficulty: 3 });
       await join(room, "Cúc");
-      expect(botIds(room)).toEqual(["bot-2", "bot-3", "bot-4", "bot-5", "bot-6"]);
+      expect(botIds(room)).toEqual(range(2, MAX_PLAYERS - 2));
       expect(room.state.players.size).toBe(MAX_PLAYERS);
     });
 
     it("Chơi với máy: người tạo giữ màu + nhân vật trong hồ sơ, bot tránh cả hai", async () => {
-      // Đủ bot để dùng hết nhân vật còn trống, rồi đủ 8 ghế (nhân vật phải dùng lại).
+      // Đủ bot để dùng hết nhân vật còn trống, rồi đủ MAX_PLAYERS ghế (nhân vật phải dùng lại).
       const freeCharacters = CHARACTER_IDS.length - 1;
       for (const count of [Math.min(freeCharacters, MAX_PLAYERS - 1), MAX_PLAYERS - 1]) {
         // Màu 0 là ca lỗi cũ: bot đầu tiên lấy màu trống từ 0 nên người tạo bị đổi màu.

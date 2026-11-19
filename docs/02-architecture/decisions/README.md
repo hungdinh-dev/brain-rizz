@@ -18,6 +18,7 @@ Mỗi file ghi một quyết định kỹ thuật: bối cảnh, lựa chọn, l
 | [0012](0012-i18n-lazy-chunks.md) | Tải lười chữ của màn một mình và minigame (bổ sung 0007) | Đã chấp nhận |
 | [0013](0013-client-timed-answers.md) | Đáp án đo thời gian phía client (Rót vừa vạch, Nhại nhịp): tin số đo như Luyện ngắm, chấm thời lượng/khoảng cách, server không đổi (bổ sung 0003) | Đã chấp nhận |
 | [0014](0014-server-side-bots.md) | Bot chạy trên game server, mô phỏng kết quả (thời gian nghĩ, đúng/sai) và chấm cùng luật với người, không giải câu đố (CR-016) | Đã chấp nhận |
+| [0015](0015-admin-console.md) | Trang quản trị: quyền qua bảng `admins` + RPC `security definer`, route admin trên game server xác thực token Supabase, cấu hình trận party có phiên bản, chụp mỗi trận (CR-019) | Đã chấp nhận |
 
 Mẫu cho ADR mới: [_template.md](_template.md).
 

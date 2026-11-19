@@ -1,3 +1,4 @@
+import { DEFAULT_SCORING } from "@brain-rizz/shared";
 import { type SchemaType, schema, t } from "@colyseus/schema";
 
 /**
@@ -67,6 +68,14 @@ export const PartyState = schema(
      * nhắn một lần. Giữ nguyên qua Chơi lại / Về phòng chờ.
      */
     chatEnabled: t.boolean().default(true),
+    /**
+     * Cấu hình party của trận (CR-019), chụp lúc tạo phòng và mỗi lần bắt đầu trận; admin đổi giữa
+     * trận thì trận sau mới áp dụng. `disabledGames`: game admin tắt; `scoringJson`:
+     * `JSON.stringify(ScoringConfig)`; `configVersion`: `party_settings.version` (0 = mặc định).
+     */
+    disabledGames: t.array("string"),
+    scoringJson: t.string().default(JSON.stringify(DEFAULT_SCORING)),
+    configVersion: t.uint32().default(0),
     players: t.map(Player),
   },
   "PartyState",

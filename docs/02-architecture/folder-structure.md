@@ -2,7 +2,7 @@
 
 Bản đồ toàn bộ repo `brain-rizz`: mỗi file làm gì, và **muốn sửa một thứ thì mở file nào**. Không liệt kê `node_modules/`, `dist/`, `.turbo/` (sinh tự động, không sửa tay).
 
-Cập nhật: 2026-10-21 (CR-016 chơi với bot). Khi thêm, xoá hay đổi tên thư mục thì sửa lại file này.
+Cập nhật: 2026-11-19 (CR-017 trống quay dọc, CR-018 phòng 12 người, CR-019 trang quản trị). Khi thêm, xoá hay đổi tên thư mục thì sửa lại file này.
 
 ## Tổng quan
 
@@ -76,10 +76,15 @@ brain-rizz/
 │  ├─ brain-test.ts            Kiểm tra não: chọn 5 game (pickBrainTestGames), thời lượng, Điểm Não
 │  │                           (computeBrainResult), BRAIN_TEST_RULES_VERSION — server và web dùng chung
 │  ├─ scoring.ts               Công thức điểm: điểm gốc, thưởng tốc độ, combo (có trần), hệ số và
-│  │                           miễn trừ thời gian theo game (CR-006), điểm theo thứ hạng
+│  │                           miễn trừ thời gian theo game (CR-006), điểm thứ hạng co giãn theo số ghế (CR-018);
+│  │                           mọi hàm nhận `ScoringConfig` tuỳ chọn (mặc định = công thức chuẩn)
+│  ├─ party-config.ts          Cấu hình trận party do admin chỉnh (CR-019): ScoringConfig, DEFAULT_SCORING (hằng số
+│  │                           điểm gốc…), ScoringConfigSchema (giới hạn), parsePartyConfig/parseScoringJson (kiểm từng
+│  │                           trường, không ném), enabledGameIds (game không bị tắt, < 2 → cả danh mục) + test
+│  ├─ admin.ts                 Kiểu trả về của route admin trên game server (AdminRoomView, AdminRoomsResponse…)
 │  ├─ match.ts                 Luật một trận: xếp hạng có hoà (rankByRound, rankByMatch), game còn chơi
 │  │                           được (availableGames), độ khó đa số (majorityDifficulty)
-│  ├─ constants.ts             Số người tối đa, thời gian đếm ngược, hướng dẫn, vòng quay, khoá khi sai,
+│  ├─ constants.ts             Số người tối đa (12, CR-018), thời gian đếm ngược, hướng dẫn, vòng quay, khoá khi sai,
 │  │                           màu avatar, danh sách nhân vật (CHARACTER_IDS)…
 │  ├─ difficulty.ts            4 mức độ khó và hệ số nhân điểm (tên hiển thị nằm ở i18n của web)
 │  ├─ rng.ts                   Bộ sinh số ngẫu nhiên theo seed (KHÔNG sửa thuật toán)
@@ -106,14 +111,22 @@ brain-rizz/
 │  │  ├─ rooms/messages.ts     parseMessage (zod → lỗi invalid), sendError, replyPong dùng chung
 │  │  ├─ rooms/schema/PartyState.ts   Dữ liệu đồng bộ xuống mọi máy (phòng + người chơi)
 │  │  ├─ rooms/schema/BrainState.ts   State phòng Kiểm tra não (khớp BrainStateView)
-│  │  ├─ store/ResultStore.ts  Interface ghi kết quả (verifyToken, saveBrainTest, saveMatchResults), bản rỗng
+│  │  ├─ store/ResultStore.ts  Interface ghi kết quả (verifyToken, saveBrainTest, saveMatchResults, loadPartyConfig,
+│  │  │                        isAdmin), bản rỗng
 │  │  │                        (thiếu biến môi trường), bản RAM cho test, getResultStore/setResultStore
-│  │  ├─ store/SupabaseResultStore.ts  Bản thật: supabase-js + khoá secret, xác thực token bằng getClaims
-│  │  ├─ app.config.ts         Đăng ký room, route /healthz, /monitor, /playground
+│  │  ├─ store/SupabaseResultStore.ts  Bản thật: supabase-js + khoá secret, xác thực token bằng getClaims;
+│  │  │                        đọc `party_settings`, `admins` (CR-019)
+│  │  ├─ store/party-config-cache.ts  Đệm cấu hình trận party 30 giây (loadPartyConfig, invalidatePartyConfig)
+│  │  ├─ admin/routes.ts       Route admin (CR-019): GET /admin/rooms, POST /admin/config/reload; Bearer token
+│  │  │                        Supabase + isAdmin, CORS, 401/403/503
+│  │  ├─ app.config.ts         Đăng ký room, route /healthz, /monitor, /playground, /admin/*
 │  │  └─ index.ts              Khởi động server (hầu như không cần sửa)
 │  ├─ test/PartyRoom.test.ts   Test phòng chơi với server thật
 │  ├─ test/PartyChat.test.ts   Test chat: phát tin, lọc, giới hạn tần suất, chat tắt, pha chơi, lịch sử khi nối lại
 │  ├─ test/PartyResults.test.ts  Test ghi match_results (một lần mỗi trận, chỉ người có token hợp lệ)
+│  ├─ test/PartyConfig.test.ts  Test cấu hình phòng (CR-018/019): điểm câu + điểm thứ hạng theo cấu hình, game tắt,
+│  │                           đổi giữa trận → trận sau, settingsVersion, đệm 30 s, 12 người
+│  ├─ test/AdminRoutes.test.ts  Test route admin: 503/401/403/200, OPTIONS, reload
 │  ├─ test/PartyBots.test.ts  Test bot (CR-016): quyền + pha của addBot/removeBot/setBotLevel, bot nhường ghế (+ tin
 │  │                           botYielded), người tạo giữ màu/nhân vật, không làm chủ phòng, hết người thật thì đóng
 │  │                           phòng, điểm khớp planBotAnswer, ghi botCount
@@ -141,7 +154,7 @@ brain-rizz/
 │  │  │  │                     (nhớ hồ sơ), components/IntroScreen, MenuScreen (4 thẻ + thẻ "Chơi với máy", Bảng xếp hạng,
 │  │  │  │                     Tài khoản & lịch sử, ô "Sắp có"), MenuCard, ProfileScreen, SkillChips, BotDialog (hộp thoại
 │  │  │  │                     "Chơi với máy": số bot + mức chung, CR-016), bot-setup.ts (mặc định, tùy chọn bots) + test
-│  │  │  ├─ lobby/             LobbyScreen — phòng chờ 2D: mã phòng ẩn/hiện + sao chép, 8 ô người chơi,
+│  │  │  ├─ lobby/             LobbyScreen — phòng chờ 2D: mã phòng ẩn/hiện + sao chép, 12 ô người chơi (gọn từ 8 người, CR-018),
 │  │  │  │                     đổi nhân vật, sẵn sàng, chủ phòng đặt số vòng + bắt đầu trận;
 │  │  │  │                     components/RoomCodePanel, ReadyMeter, PlayerSlot (+ ô trống), CharacterPicker,
 │  │  │  │                     MatchSetupCard (+ HostStatusCard), BotSlot (ô bot: đổi mức / bỏ; AddBotSlot: ô trống của
@@ -168,9 +181,10 @@ brain-rizz/
 │  │  │  │                     ReactionBubble (bong bóng 2,5 s trên avatar), ChatEnabledSwitch (+ ChatSettingRow cho
 │  │  │  │                     MatchSetupCard); quick.ts (mã → emoji / t()), use-keyboard-inset.ts (sheet bám trên bàn phím),
 │  │  │  │                     limit-text.ts (cắt bản nháp theo code point, không cắt đôi emoji) + test
-│  │  │  ├─ game-select/       GameSelectScreen — chọn game mỗi vòng: vòng quay đồng bộ / chủ phòng chọn + bình chọn;
-│  │  │  │                     catalog.ts (danh mục 15 game, gom phiếu, lát vòng quay) + test,
-│  │  │  │                     components/ModeSwitch, LuckyWheel, WheelView, PickView, GameCard, GameThumb,
+│  │  │  ├─ game-select/       GameSelectScreen — chọn game mỗi vòng: trống quay dọc đồng bộ / chủ phòng chọn + bình chọn;
+│  │  │  │                     catalog.ts (danh mục 31 game, gom phiếu, dòng trống quay, bỏ game admin tắt) + test,
+│  │  │  │                     drum.ts (hình học trống quay CR-017: góc, độ mờ, vị trí dừng, nhoè) + test,
+│  │  │  │                     components/ModeSwitch, Drum (trống quay dọc vô hạn), WheelView, PickView, GameCard, GameThumb,
 │  │  │  │                     hooks/use-wheel-spin
 │  │  │  ├─ game-intro/        GameIntroScreen — hướng dẫn + mỗi người chọn độ khó, "Đã hiểu", chủ phòng nhắc/bắt đầu;
 │  │  │  │                     components/GuideCard, DifficultyChooser (index.ts export cho Luyện tập, Kiểm tra não), RoomDifficulty
@@ -178,7 +192,8 @@ brain-rizz/
 │  │  │  │                     PlayScreen (khung chơi: HUD điện thoại / 3 cột máy tính), SoloPlayView (khung chơi một mình:
 │  │  │  │                     không đối thủ, ô kỷ lục / thanh 5 game, nút Thoát),
 │  │  │  │                     standings.ts (hạng trong vòng, combo) + test, unlock-delay.ts (chờ hết khoá sau câu sai
-│  │  │  │                     theo lockedUntil của server, cho MinigameBridge) + test, connection-sync.ts (báo scene lúc
+│  │  │  │                     theo lockedUntil của server, cho MinigameBridge) + test, components/ScoreGrid (lưới avatar + điểm trên
+│  │  │  │                     điện thoại khi ≥ 7 người, CR-018), connection-sync.ts (báo scene lúc
 │  │  │  │                     mất / có lại kết nối và câu server đang chờ: bridge.watchConnection, serverSync) + test,
 │  │  │  │                     components/GameFrame (thẻ giấy chứa
 │  │  │  │                     Phaser), FrameOverlays (khoá, +điểm, hết giờ, mất kết nối, tải/lỗi), RoundTimer,
@@ -199,6 +214,10 @@ brain-rizz/
 │  │  │  │                     liệu, hộp "Google đã có dữ liệu"), components/HistoryTabs (3 tab + bảng kỷ lục luyện tập),
 │  │  │  │                     ScoreTrend (đường tiến bộ SVG), PartyStrengths (thẻ Thế mạnh trong trận party, CR-010);
 │  │  │  │                     strengths.ts (danh hiệu, TB điểm theo thể loại) + test
+│  │  │  ├─ admin/             Trang quản trị `/admin` (UC-24, CR-019, tải lười): AdminScreen (cổng quyền + khung), admin.store.ts,
+│  │  │  │                     sections.ts, draft.ts (bản nháp cấu hình, kiểm bằng ScoringConfigSchema, ≥ 2 game bật) + test,
+│  │  │  │                     format.ts + test, stats.ts, hooks/use-admin-data, components/{kit, AdminChrome, SaveBar, BarChart,
+│  │  │  │                     GameIcon}, sections/{Overview, Games, Scoring, Logins, Players, Matches, Rooms, Admins}Section
 │  │  │  └─ leaderboard/       Bảng xếp hạng (UC-19): LeaderboardScreen (tab Điểm Não / Theo minigame, kỳ, chọn game),
 │  │  │                        components/BoardView (top 3, danh sách 50, dòng của mình), week.ts (đầu tuần giờ VN,
 │  │  │                        màu avatar theo user_id) + test
@@ -255,24 +274,33 @@ brain-rizz/
 │  │  │                        BotLevel (mức bot: BotLevelChip, BotLevelPicker radio, BotLevelButtons thêm bot; CR-016)
 │  │  ├─ i18n/
 │  │  │  ├─ index.ts           Khởi tạo i18next (chỉ namespace `common` trong gói đầu), chọn ngôn ngữ lần đầu
+│  │  │  ├─ admin.ts           Tải lười chữ trang quản trị (locales/admin/)
 │  │  │  ├─ solo.ts            loadSoloLocales: tải lười chữ 4 màn một mình (locales/solo/) gộp vào `common`
 │  │  │  ├─ games.ts           registerGameLocales: gom `src/games/<id>/locales.ts` vào namespace `games` (gọi từ chunk lười)
 │  │  │  ├─ languages.ts       Danh sách ngôn ngữ (vi, en)
 │  │  │  ├─ locales/vi.ts, en.ts  Bản dịch giao diện (vi là nguồn chuẩn, en bị ép đủ khoá)
 │  │  │  ├─ locales/solo/vi.ts, en.ts  Chữ Luyện tập, Kiểm tra não, Tài khoản, Bảng xếp hạng (tải lười, en bị ép đủ khoá)
+│  │  │  ├─ locales/admin/vi.ts, en.ts  Chữ trang quản trị (tải lười, en bị ép đủ khoá)
 │  │  │  └─ i18next.d.ts       Kiểu cho khoá dịch
 │  │  ├─ hooks/                use-game-text (chữ của game theo ngôn ngữ, câu nhắc theo mức), use-media-query (bố cục điện thoại/máy tính, chạm/chuột),
 │  │  │                        use-number-format (1.180 / 1,2 theo ngôn ngữ), use-server-clock, use-server-time-reached
 │  │  │                        (giờ server cho đồng hồ, đếm ngược, hết giờ), use-pending-action (khoá nút gửi lệnh
 │  │  │                        tới khi state đổi hoặc server báo lỗi, chống bấm đúp), use-data (tải dữ liệu Supabase:
 │  │  │                        đang tải / xong / chưa kết nối / chưa có phiên / lỗi + reload), use-date-format (16/10),
-│  │  │                        use-count-up (số đếm lên, tắt khi giảm chuyển động)
+│  │  │                        use-count-up (số đếm lên, tắt khi giảm chuyển động), use-room-scoring (cấu hình điểm
+│  │  │                        của phòng từ `scoringJson`, CR-019)
 │  │  ├─ lib/                  utils.ts (cn), storage.ts (localStorage an toàn + tên khoá), avatar.ts,
 │  │  │                        supabase.ts (client tải lười, thiếu biến → null; đọc lỗi quay về từ Google) + test,
-│  │  │                        audio-context.ts (một AudioContext dùng chung cho nhạc nền + âm thanh hiệu ứng, mở khoá/resume)
+│  │  │                        audio-context.ts (một AudioContext dùng chung cho nhạc nền + âm thanh hiệu ứng, mở khoá/resume),
+│  │  │                        room-size.ts (bố cục theo số ghế, CR-018) + test, device-label.ts ("trình duyệt · hệ điều
+│  │  │                        hành" cho log đăng nhập) + test
 │  │  ├─ net/connection.ts     Mọi thứ liên quan mạng: tạo/vào/rời phòng party (kèm accessToken; tạo phòng kèm `bots` và
 │  │  │                        huỷ giữa chừng, CR-016), phòng Kiểm tra não (startBrainTest/leaveBrainTest/sendBrain), gửi tin,
-│  │  │                        nối lại, đồng bộ giờ; create-party.test.ts (giả lập Colyseus)
+│  │  │                        nối lại (dùng chung một lần resume, handler chỉ nhận phòng hiện tại), đồng bộ giờ; create-party.test.ts,
+│  │  │                        resume-party.test.ts (giả lập Colyseus)
+│  │  ├─ net/server-url.ts     SERVER_URL (Colyseus) và SERVER_HTTP_URL (route admin) dùng chung
+│  │  ├─ net/admin-api.ts      Gọi RPC `admin_*` của Supabase và route admin của game server (DataResult, ánh xạ lỗi
+│  │  │                        forbidden / not-found / self / last-admin) + test
 │  │  ├─ net/brain-leave.ts    Phòng Kiểm tra não đóng vì để quá lâu ở intro (close code riêng) → về màn giới thiệu + test
 │  │  ├─ net/bot-yielded.ts    Câu toast bot nhường ghế (tin `botYielded`, CR-016), tên bot dịch theo `botAvatar`; test gồm
 │  │  │                        cả connection nghe tin và hiện toast 3 giây (giả lập Colyseus)
@@ -281,8 +309,10 @@ brain-rizz/
 │  │  │                        toMatchRow đọc bot_count)
 │  │  ├─ stores/
 │  │  │  ├─ auth.store.ts      Phiên Supabase (khách lười / Google): ensureSession, linkGoogle, signInGoogle, signOut,
-│  │  │  │                     deleteMyData, syncProfile (tên + nhân vật lên `profiles`)
-│  │  │  ├─ nav.store.ts       Màn ngoài phòng (giới thiệu, menu, hồ sơ, 4 màn một mình) + cờ tập trung khi đang chơi
+│  │  │  │                     deleteMyData, syncProfile (tên + nhân vật lên `profiles`), ghi sự kiện đăng nhập
+│  │  │  │                     (`log_login`, CR-019)
+│  │  │  ├─ nav.store.ts       Màn ngoài phòng (giới thiệu, menu, hồ sơ, 4 màn một mình, quản trị ↔ `/admin`) + cờ tập
+│  │  │  │                     trung khi đang chơi
 │  │  │  ├─ game.store.ts      State phòng chơi (Zustand): phòng party hoặc Kiểm tra não (`brain`), độ lệch giờ, kết quả
 │  │  │  │                     câu gần nhất (Luyện tập cũng dùng)…
 │  │  │  │                     (bỏ dữ liệu vòng cũ khi seed trong state đổi)
@@ -316,8 +346,11 @@ brain-rizz/
 │  │                           practice_bests), index, RLS, 6 RPC
 │  ├─ 20261019000000_match_category_scores.sql  match_results thêm category_scores (jsonb),
 │  │                           category_titles (text[]) — CR-010
-│  └─ 20261021000000_match_bot_count.sql  match_results thêm bot_count (smallint, mặc định 0) — CR-016;
-│                              chạy trước khi deploy server mới
+│  ├─ 20261021000000_match_bot_count.sql  match_results thêm bot_count (smallint, mặc định 0) — CR-016;
+│  │                           chạy trước khi deploy server mới
+│  └─ 20261119000000_admin_console.sql  Trang quản trị (CR-019): admins, party_settings (+ history), login_events,
+│                              match_results.settings_version, RPC is_admin, log_login, admin_*; chạy trước khi
+│                              deploy server mới
 │
 ├─ docs/                       Tài liệu, chia theo chủ đề — mục lục: docs/README.md
 │  ├─ README.md                Mục lục tài liệu, bản đồ SDLC, quy ước đặt tài liệu mới
@@ -344,7 +377,7 @@ brain-rizz/
 │  │  ├─ tech-stack.md         Công nghệ, phiên bản, dịch vụ, làm quen cho dev mới
 │  │  ├─ folder-structure.md   (file này)
 │  │  ├─ server-fallback.md    Kế hoạch dự phòng game server, rủi ro khi bỏ Colyseus
-│  │  └─ decisions/            Quyết định kỹ thuật: README.md, ADR 0001–0013, _template.md
+│  │  └─ decisions/            Quyết định kỹ thuật: README.md, ADR 0001–0015, _template.md
 │  ├─ 03-guides/               HƯỚNG DẪN
 │  │  ├─ README.md             Mục lục thư mục
 │  │  ├─ sdlc.md               Quy trình phát triển, DoR/DoD, phiên bản & phát hành
@@ -394,7 +427,9 @@ brain-rizz/
 | Đổi cách sinh câu đố hoặc độ khó của một game | `packages/shared/src/games/<id>/<id>.ts` |
 | Đổi giao diện trong lúc chơi một game (hình vẽ, hiệu ứng, cách chạm) | `apps/web/src/games/<id>/…Scene.ts` |
 | Đổi tên / câu hướng dẫn của một game | `apps/web/src/games/<id>/locales.ts` |
-| Đổi công thức tính điểm | `packages/shared/src/scoring.ts` |
+| Đổi công thức tính điểm | `packages/shared/src/scoring.ts`; giá trị mặc định + giới hạn admin được chỉnh: `packages/shared/src/party-config.ts` |
+| Chỉnh điểm / hệ số / bật tắt game của trận party mà không deploy (CR-019) | Trang `/admin` → Điểm & hệ số, Game (lưu vào `party_settings` trên Supabase; trận kế tiếp áp dụng) |
+| Sửa trang quản trị (CR-019) | Web: `apps/web/src/features/admin/`, `net/admin-api.ts`, chữ `i18n/locales/admin/`; RPC: migration mới trong `supabase/migrations/`; route server: `apps/server/src/admin/routes.ts` |
 | Đổi số người tối đa, thời gian đếm ngược, thời gian khoá khi sai, màu avatar | `packages/shared/src/constants.ts` |
 | Đổi luật phòng (ai được bắt đầu, khi nào hết vòng, chuyển chủ phòng) | `apps/server/src/rooms/PartyRoom.ts` |
 | Thêm thông tin cần hiện cho mọi người (vd. số câu đúng) | `apps/server/src/rooms/schema/PartyState.ts` **và** `PlayerView`/`PartyStateView` trong `packages/shared/src/protocol.ts` |
@@ -413,6 +448,7 @@ brain-rizz/
 | Bục vinh danh, pháo giấy, nhịp lật | `apps/web/src/features/results/PodiumScreen.tsx`, `podium-timeline.ts` (mốc ms), `components/Confetti.tsx`, `components/CategoryBest.tsx` (2D, không 3D — ADR 0010); keyframes `fx-*` trong `styles/characters.css` |
 | Bật/tắt hiệu ứng chuyển động, đọc "giảm chuyển động" | `apps/web/src/features/motion/` (không tự đọc `matchMedia`); biến thể `motion-safe`/`motion-reduce` trong `styles/globals.css` |
 | Hình minh hoạ cách chơi, nội dung màn Hướng dẫn của một game | `apps/web/src/games/<id>/locales.ts` + `…HowTo.tsx` (gán `Illustration` trong `index.ts`) |
+| Trống quay dọc chọn game (CR-017) | Hình học: `apps/web/src/features/game-select/drum.ts`; hiển thị: `components/Drum.tsx`; biểu tượng riêng cho game: trường `Icon` của `GameClient` (`games/<id>/index.ts`), không có thì dùng `Illustration` |
 | Danh mục 15 game ở màn Chọn game (thẻ "Sắp có") | `apps/web/src/features/game-select/catalog.ts` + tên ở i18n `catalog.<id>` |
 | Đổi luật Kiểm tra não (chọn game, thời lượng, Điểm Não) | `packages/shared/src/brain-test.ts` (đổi điểm chuẩn thì tăng `BRAIN_TEST_RULES_VERSION`); luồng phòng: `apps/server/src/rooms/BrainTestRoom.ts` |
 | Đổi cách chấm một câu (khoá khi sai, chống spam, dung sai) | `packages/shared/src/answer-judge.ts` (party, Kiểm tra não và Luyện tập cùng dùng) |

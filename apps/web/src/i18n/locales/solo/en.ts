@@ -120,6 +120,7 @@ export const enSolo: SoloLocaleMessages = {
     deleteForever: "Delete forever",
     deleted: "Your data was deleted",
     deleteFailed: "Couldn't delete your data. Please try again later.",
+    deleteLastAdmin: "You're the only admin — add another admin before deleting your data.",
     googleTaken: "This Google account already has data",
     googleTakenBody:
       "Sign in to use that account's history. The guest history on this device won't be merged.",
@@ -181,6 +182,7 @@ export const enSolo: SoloLocaleMessages = {
     emptyPracticeTitle: "No practice records yet",
     emptyPracticeBody: "Play a Practice run to set your first record.",
     emptyPracticeCta: "Practice",
+    adminConsole: "Admin page",
   },
   leaderboard: {
     title: "Leaderboard",

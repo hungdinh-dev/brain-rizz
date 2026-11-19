@@ -429,6 +429,18 @@ export interface PartyStateView {
   introEndsAt: number;
   /** Chat cả phòng đang bật (CR-011). Chủ phòng đổi; giữ nguyên qua Chơi lại / Về phòng chờ. */
   chatEnabled: boolean;
+  /**
+   * Game admin tắt (CR-019): không có trên vòng quay, không chọn/bầu được ở trận này. Game còn
+   * chơi được = `availableGames(playedGames, enabledGameIds(disabledGames))`.
+   */
+  disabledGames: string[];
+  /**
+   * `JSON.stringify(ScoringConfig)` của trận hiện tại (CR-019); web đọc bằng `parseScoringJson`
+   * để hiện hệ số và điểm thứ hạng. Server chụp lúc tạo phòng và mỗi lần bắt đầu trận.
+   */
+  scoringJson: string;
+  /** `party_settings.version` đang áp dụng (0 = mặc định trong code). */
+  configVersion: number;
   players: Record<string, PlayerView>;
 }
 

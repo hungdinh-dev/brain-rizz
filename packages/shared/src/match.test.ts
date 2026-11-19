@@ -38,8 +38,8 @@ describe("rankByRound", () => {
       ["a", 2],
       ["d", 3],
     ]);
-    // Cùng hạng → cùng điểm trận.
-    expect(ranked.map((r) => placementPoints(r.rank))).toEqual([10, 10, 6, 5]);
+    // Cùng hạng → cùng điểm trận (4 người: nhất 4 + 3, hạng 3: 2 + 1, hạng 4: 1).
+    expect(ranked.map((r) => placementPoints(r.rank, ranked.length))).toEqual([7, 7, 3, 1]);
   });
 
   it("mọi người cùng điểm thì cùng hạng nhất", () => {

@@ -60,7 +60,7 @@ Dự kiến thêm: Howler.js (nhạc nền, GĐ 2), vite-plugin-pwa (GĐ 2), Sen
 | @supabase/supabase-js | 2.118 | Xác thực token người chơi (`auth.getClaims`), ghi kết quả Kiểm tra não + trận party bằng khoá secret (`src/store/`, [ADR 0011](decisions/0011-supabase-accounts-and-solo-modes.md)) |
 | tsdown | 0.23 | Đóng gói server (gộp luôn `shared`) thành một file |
 | tsx | 4.23 | Chạy dev có hot reload |
-| @colyseus/testing, @colyseus/loadtest | 0.18 | Test phòng với server thật; tải thử 8 người |
+| @colyseus/testing, @colyseus/loadtest | 0.18 | Test phòng với server thật; tải thử 12 người một phòng |
 
 ## 4. Dùng chung — `packages/shared`
 

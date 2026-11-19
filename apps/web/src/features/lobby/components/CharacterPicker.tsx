@@ -6,6 +6,11 @@ import { cn } from "@/lib/utils";
 interface CharacterPickerProps {
   value: CharacterId;
   onChange(id: CharacterId): void;
+  /**
+   * Phòng 12 ghế (ui-ux 6.8): điện thoại chỉ còn hàng 6 nút 44 px (tiêu đề cho trình đọc màn hình)
+   * để nút Sẵn sàng vẫn nằm trong màn đầu ở 390×844.
+   */
+  compact?: boolean;
   className?: string;
 }
 
@@ -13,12 +18,18 @@ interface CharacterPickerProps {
  * Dải đổi nhân vật ngay trong phòng chờ. Đổi lúc nào cũng được, không làm mất trạng thái sẵn sàng.
  * Máy tính hiện thêm tên dưới mỗi nhân vật.
  */
-export function CharacterPicker({ value, onChange, className }: CharacterPickerProps) {
+export function CharacterPicker({ value, onChange, compact, className }: CharacterPickerProps) {
   const { t } = useTranslation();
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
-      <div className="flex items-baseline justify-between gap-3 lg:justify-start lg:gap-3.5">
+    // Gọn: tiêu đề chỉ còn cho trình đọc màn hình nên bỏ khe trên hàng nút (không chừa 8 px trống).
+    <div className={cn("flex flex-col gap-2", compact && "max-lg:gap-0", className)}>
+      <div
+        className={cn(
+          "flex items-baseline justify-between gap-3 lg:justify-start lg:gap-3.5",
+          compact && "max-lg:sr-only",
+        )}
+      >
         <span className="font-display text-lg font-extrabold text-chalk lg:text-[21px]">
           {t("lobby.yourCharacter")}
         </span>
@@ -37,7 +48,8 @@ export function CharacterPicker({ value, onChange, className }: CharacterPickerP
                 aria-label={t("lobby.pickCharacterItem", { name })}
                 onClick={() => onChange(id)}
                 className={cn(
-                  "relative size-11.5 cursor-pointer overflow-hidden rounded-full border-[3px] border-sticker bg-card transition-[translate,box-shadow] outline-none hover:-translate-y-0.5 focus-visible:ring-3 focus-visible:ring-ring lg:size-15 lg:border-[3.5px]",
+                  "relative cursor-pointer overflow-hidden rounded-full border-[3px] border-sticker bg-card transition-[translate,box-shadow] outline-none hover:-translate-y-0.5 focus-visible:ring-3 focus-visible:ring-ring lg:size-15 lg:border-[3.5px]",
+                  compact ? "size-11" : "size-11.5",
                   picked
                     ? "shadow-[0_0_0_4px_var(--color-primary),0_0_0_7px_var(--color-sticker)]"
                     : "shadow-sticker-sm active:translate-y-1 active:shadow-none",

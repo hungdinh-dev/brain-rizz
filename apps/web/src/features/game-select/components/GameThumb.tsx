@@ -1,5 +1,6 @@
 import { type Category, isGameId } from "@brain-rizz/shared";
 import { LockIcon } from "lucide-react";
+import { memo } from "react";
 import { CATEGORY_ICON } from "@/components/common/MatchChips";
 import { GAME_CLIENTS } from "@/games/registry";
 import { cn } from "@/lib/utils";
@@ -15,11 +16,20 @@ interface GameThumbProps {
 }
 
 /**
- * Dải ảnh của game trên nền bảng (khu 6): hình minh hoạ cao gần kín dải, nằm giữa; game không có hình
- * thì hiện biểu tượng nhóm kỹ năng. Chiều cao do chỗ dùng đặt qua `className` (bản mẫu: 40 / 56 px).
+ * Dải ảnh của game trên nền bảng (khu 6, trống quay khu 24): biểu tượng riêng của game
+ * (`GameClient.Icon`) nếu có, không thì hình minh hoạ cao gần kín dải, không nữa thì biểu tượng
+ * nhóm kỹ năng. Cỡ do chỗ dùng đặt qua `className` (bản mẫu: 40 / 56 px; trống quay 72×46, 54×34).
+ * `memo`: trống quay vẽ lại mỗi khung hình, ảnh game không đổi thì không vẽ lại.
  */
-export function GameThumb({ id, category, locked, dimmed, className }: GameThumbProps) {
-  const Illustration = isGameId(id) ? GAME_CLIENTS[id].Illustration : undefined;
+export const GameThumb = memo(function GameThumb({
+  id,
+  category,
+  locked,
+  dimmed,
+  className,
+}: GameThumbProps) {
+  const client = isGameId(id) ? GAME_CLIENTS[id] : undefined;
+  const Art = client?.Icon ?? client?.Illustration;
   const Icon = CATEGORY_ICON[category];
 
   return (
@@ -31,10 +41,10 @@ export function GameThumb({ id, category, locked, dimmed, className }: GameThumb
         className,
       )}
     >
-      {Illustration ? (
-        <Illustration className="h-full w-auto" />
+      {Art ? (
+        <Art className="h-full w-auto" />
       ) : (
-        <Icon className="size-7 text-chalk" strokeWidth={2.2} />
+        <Icon className="size-7 max-h-[80%] text-chalk" strokeWidth={2.2} />
       )}
       {locked && (
         <span className="absolute grid size-8.5 place-items-center rounded-full border-[3px] border-sticker bg-paper text-ink">
@@ -43,4 +53,4 @@ export function GameThumb({ id, category, locked, dimmed, className }: GameThumb
       )}
     </span>
   );
-}
+});

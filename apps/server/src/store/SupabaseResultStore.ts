@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { type PartyConfig, parsePartyConfig } from "@brain-rizz/shared";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { BrainTestRecord, MatchResultRecord, ResultStore } from "./ResultStore";
 
@@ -88,9 +89,53 @@ export class SupabaseResultStore implements ResultStore {
         category_titles: r.categoryTitles,
         // Cột thêm ở migration 20261021000000_match_bot_count.sql (CR-016).
         bot_count: r.botCount,
+        // Cột thêm ở migration 20261119000000_admin_console.sql (CR-019).
+        settings_version: r.settingsVersion,
       })),
     );
     if (error) throw new Error(`match_results: ${error.message}`);
+  }
+
+  async loadPartyConfig(): Promise<PartyConfig | null> {
+    try {
+      const { data, error } = await this.db
+        .from("party_settings")
+        .select("version, scoring, disabled_games")
+        .eq("id", 1)
+        .maybeSingle();
+      if (error) {
+        console.warn("[store] Không đọc được party_settings:", error.message);
+        return null;
+      }
+      if (!data) return null;
+      // Không tin DB: sai trường nào về mặc định trường đó (parsePartyConfig không bao giờ ném).
+      return parsePartyConfig({
+        version: data.version,
+        scoring: data.scoring,
+        disabledGames: data.disabled_games,
+      });
+    } catch (err) {
+      console.warn("[store] Không đọc được party_settings:", errorMessage(err));
+      return null;
+    }
+  }
+
+  async isAdmin(userId: string): Promise<boolean> {
+    try {
+      const { data, error } = await this.db
+        .from("admins")
+        .select("user_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) {
+        console.warn("[store] Không kiểm được quyền quản trị:", error.message);
+        return false;
+      }
+      return data !== null;
+    } catch (err) {
+      console.warn("[store] Không kiểm được quyền quản trị:", errorMessage(err));
+      return false;
+    }
   }
 }
 

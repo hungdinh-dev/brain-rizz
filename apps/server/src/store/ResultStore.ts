@@ -1,4 +1,10 @@
-import type { BrainSkills, Category, Difficulty } from "@brain-rizz/shared";
+import {
+  type BrainSkills,
+  type Category,
+  type Difficulty,
+  type PartyConfig,
+  parsePartyConfig,
+} from "@brain-rizz/shared";
 import { SupabaseResultStore } from "./SupabaseResultStore";
 
 /**
@@ -16,6 +22,14 @@ export interface ResultStore {
   saveBrainTest(record: BrainTestRecord): Promise<void>;
   /** Ghi kết quả một trận party (`match_results`), mỗi người đã xác thực một dòng. Lỗi thì ném. */
   saveMatchResults(rows: readonly MatchResultRecord[]): Promise<void>;
+  /**
+   * Cấu hình party của quản trị viên (CR-019, bảng `party_settings` dòng 1), đã qua
+   * `parsePartyConfig` (không tin DB). `null` khi bản rỗng, chưa có dòng hoặc lỗi. Không bao giờ ném.
+   * Phòng không gọi thẳng hàm này mà qua bộ đệm `getPartyConfig` (`party-config-cache.ts`).
+   */
+  loadPartyConfig(): Promise<PartyConfig | null>;
+  /** `userId` có trong bảng `admins` không (CR-019). Lỗi hoặc bản rỗng → `false`. Không bao giờ ném. */
+  isAdmin(userId: string): Promise<boolean>;
 }
 
 export interface BrainTestGameRecord {
@@ -55,6 +69,8 @@ export interface MatchResultRecord {
   categoryScores: Partial<Record<Category, number>>;
   /** Thể loại người này giành danh hiệu "giỏi nhất" trong trận (`categoryLeaders`), thứ tự CATEGORIES. */
   categoryTitles: Category[];
+  /** `party_settings.version` trận này dùng (CR-019, cột `settings_version`); 0 = mặc định trong code. */
+  settingsVersion: number;
 }
 
 /** Bản rỗng khi thiếu `SUPABASE_URL` / `SUPABASE_SECRET_KEY`. */
@@ -65,6 +81,12 @@ export class NoopResultStore implements ResultStore {
   }
   async saveBrainTest(): Promise<void> {}
   async saveMatchResults(): Promise<void> {}
+  async loadPartyConfig(): Promise<PartyConfig | null> {
+    return null;
+  }
+  async isAdmin(): Promise<boolean> {
+    return false;
+  }
 }
 
 /** Bản trong RAM cho test: token hợp lệ là khoá của `users`. */
@@ -74,6 +96,16 @@ export class MemoryResultStore implements ResultStore {
   readonly matchResults: MatchResultRecord[][] = [];
   /** Đặt `true` để giả lập ghi lỗi. */
   failWrites = false;
+  /**
+   * Dòng `party_settings` thô như đọc từ DB (`{ version, scoring, disabledGames }`), đi qua
+   * `parsePartyConfig` như bản thật; `null` = chưa có dòng. Đặt `failPartyConfig` để giả lập đọc lỗi.
+   */
+  partyConfig: unknown = null;
+  failPartyConfig = false;
+  /** Số lần `loadPartyConfig` được gọi (kiểm bộ đệm). */
+  partyConfigLoads = 0;
+  /** `user_id` của quản trị viên. */
+  readonly admins = new Set<string>();
 
   /** token → user_id */
   constructor(readonly users: Map<string, string> = new Map()) {}
@@ -90,6 +122,16 @@ export class MemoryResultStore implements ResultStore {
   async saveMatchResults(rows: readonly MatchResultRecord[]): Promise<void> {
     if (this.failWrites) throw new Error("Giả lập ghi lỗi");
     this.matchResults.push(structuredClone([...rows]));
+  }
+
+  async loadPartyConfig(): Promise<PartyConfig | null> {
+    this.partyConfigLoads++;
+    if (this.failPartyConfig || this.partyConfig === null) return null;
+    return parsePartyConfig(structuredClone(this.partyConfig));
+  }
+
+  async isAdmin(userId: string): Promise<boolean> {
+    return this.admins.has(userId);
   }
 }
 

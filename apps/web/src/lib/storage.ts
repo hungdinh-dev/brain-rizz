@@ -51,6 +51,10 @@ export const STORAGE_KEYS = {
   chatCollapsed: "brain-rizz:chat-collapsed",
   /** Phiên Supabase (supabase-js tự đọc/ghi; app chỉ xem có hay không để khỏi tải thư viện sớm). */
   auth: "brain-rizz:auth",
-  /** sessionStorage: đang đi đăng nhập Google, quay về thì mở lại màn Tài khoản. */
+  /** sessionStorage: đang đi đăng nhập Google, quay về thì mở lại màn Tài khoản / trang quản trị. */
   oauthReturn: "brain-rizz:oauth-return",
+  /** sessionStorage: luồng Google đang đi ("link" | "signin") để ghi đúng sự kiện đăng nhập (CR-019). */
+  oauthFlow: "brain-rizz:oauth-flow",
+  /** Mục trang quản trị đang mở lần trước (CR-019, chỉ trên máy này). */
+  adminSection: "brain-rizz:admin-section",
 } as const;

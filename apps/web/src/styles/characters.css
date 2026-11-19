@@ -464,6 +464,45 @@
 }
 
 /*
+ * Trống quay dọc lúc trúng (CR-017, ui-ux 6.7; features/game-select/components/Drum.tsx): dải
+ * chọn loé vòng vàng 600 ms, dòng trúng nảy 1 → 1,08 → 1, kim giật vào 5 px rồi về (420 ms).
+ * Đang giảm chuyển động thì component không gắn các lớp này (dải vàng chỉ hiện mờ dần).
+ */
+.fx-drum-glow {
+  animation: fx-drum-glow 600ms ease-out both;
+}
+.fx-drum-pop {
+  animation: fx-drum-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.fx-drum-nudge {
+  animation: fx-drum-nudge 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes fx-drum-glow {
+  from {
+    box-shadow:
+      0 4px 0 var(--sticker),
+      0 0 0 12px color-mix(in oklab, var(--primary) 85%, transparent);
+  }
+  to {
+    box-shadow:
+      0 4px 0 var(--sticker),
+      0 0 0 0 transparent;
+  }
+}
+@keyframes fx-drum-pop {
+  40% {
+    transform: scale(1.08);
+  }
+}
+/* `--drum-nudge` đặt trên kim: 5px (kim trái), −5px (kim phải), luôn trỏ vào dải. */
+@keyframes fx-drum-nudge {
+  45% {
+    transform: translateX(var(--drum-nudge, 5px));
+  }
+}
+
+/*
  * Đặt cuối file, độ ưu tiên cao hơn các class ở trên nên khối này thắng, không cần !important.
  * Nút Hiệu ứng "Luôn bật" (`data-motion="on"` trên <html>, CR-010) thì bỏ qua cài đặt của máy.
  */

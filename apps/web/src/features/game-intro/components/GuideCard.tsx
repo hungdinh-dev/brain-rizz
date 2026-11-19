@@ -1,4 +1,4 @@
-import { GAMES, type GameId, STREAK_THRESHOLD, WRONG_ANSWER_LOCK_MS } from "@brain-rizz/shared";
+import { GAMES, type GameId, WRONG_ANSWER_LOCK_MS } from "@brain-rizz/shared";
 import {
   CheckIcon,
   FlameIcon,
@@ -15,6 +15,7 @@ import { GAME_CLIENTS } from "@/games/registry";
 import { useGameText } from "@/hooks/use-game-text";
 import { TOUCH_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { useNumberFormat } from "@/hooks/use-number-format";
+import { useRoomScoring } from "@/hooks/use-room-scoring";
 import { cn } from "@/lib/utils";
 
 interface GuideCardProps {
@@ -33,6 +34,8 @@ export function GuideCard({ gameId, compact, className }: GuideCardProps) {
   const Illustration = GAME_CLIENTS[gameId].Illustration;
   const CategoryIcon = CATEGORY_ICON[GAMES[gameId].category];
   const lockSeconds = fmt(WRONG_ANSWER_LOCK_MS / 1000);
+  // Trận party: combo theo công thức của phòng (CR-019); Luyện tập: công thức chuẩn.
+  const { streakThreshold } = useRoomScoring();
 
   // Khung ngang 14:9 như artboard hình hướng dẫn (560×360). Hình vuông (Kẻ lạc đàn) và biểu tượng
   // nhóm kỹ năng (game chưa có hình, vd. vừa tạo bằng `pnpm new-game`) nằm giữa khung,
@@ -93,7 +96,7 @@ export function GuideCard({ gameId, compact, className }: GuideCardProps) {
         </p>
         <p className="text-[13px] leading-relaxed">
           <strong>{t("intro.scoringInline")}</strong>{" "}
-          {t("intro.scoringLine", { n: STREAK_THRESHOLD, seconds: lockSeconds })}
+          {t("intro.scoringLine", { n: streakThreshold, seconds: lockSeconds })}
         </p>
       </Card>
     );
@@ -102,7 +105,7 @@ export function GuideCard({ gameId, compact, className }: GuideCardProps) {
   const scoring: { icon: LucideIcon; bg: string; label: string }[] = [
     { icon: CheckIcon, bg: "bg-compute", label: t("intro.scoreCorrect") },
     { icon: ZapIcon, bg: "bg-primary", label: t("intro.scoreFast") },
-    { icon: FlameIcon, bg: "bg-identify", label: t("intro.scoreCombo", { n: STREAK_THRESHOLD }) },
+    { icon: FlameIcon, bg: "bg-identify", label: t("intro.scoreCombo", { n: streakThreshold }) },
     { icon: LockIcon, bg: "bg-pink", label: t("intro.scoreWrong", { seconds: lockSeconds }) },
   ];
 

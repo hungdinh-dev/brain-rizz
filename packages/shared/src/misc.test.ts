@@ -161,9 +161,10 @@ describe("scoring", () => {
     }
   });
 
-  it("điểm thứ hạng giảm dần", () => {
-    expect(placementPoints(0)).toBeGreaterThan(placementPoints(1));
-    expect(placementPoints(20)).toBe(0);
+  it("điểm thứ hạng giảm dần, hạng cuối vẫn được ít nhất 1 điểm", () => {
+    expect(placementPoints(0, 8)).toBeGreaterThan(placementPoints(1, 8));
+    expect(placementPoints(7, 8)).toBe(1);
+    expect(placementPoints(20, 8)).toBe(1);
   });
 });
 

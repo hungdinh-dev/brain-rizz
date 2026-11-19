@@ -1,4 +1,9 @@
-import { comboMultiplier, type PlayerView, STREAK_THRESHOLD } from "@brain-rizz/shared";
+import {
+  comboMultiplier,
+  DEFAULT_SCORING,
+  type PlayerView,
+  type ScoringConfig,
+} from "@brain-rizz/shared";
 
 export interface Standing {
   player: PlayerView;
@@ -18,9 +23,12 @@ export function rankByRoundScore(players: readonly PlayerView[]): Standing[] {
   }));
 }
 
-/** Có đang combo không: từ câu đúng liên tiếp thứ `STREAK_THRESHOLD` trở đi. */
-export function hasCombo(streak: number): boolean {
-  return streak >= STREAK_THRESHOLD;
+/**
+ * Có đang combo không: từ câu đúng liên tiếp thứ `streakThreshold` trở đi (mặc định 3; trận party
+ * dùng công thức của phòng, admin chỉnh được — CR-019).
+ */
+export function hasCombo(streak: number, scoring: ScoringConfig = DEFAULT_SCORING): boolean {
+  return streak >= scoring.streakThreshold;
 }
 
 /**
@@ -28,6 +36,9 @@ export function hasCombo(streak: number): boolean {
  * (3 câu → ×1,1; 4 → ×1,2… tối đa ×1,5). Dùng chính `comboMultiplier` của shared mà server chấm.
  * Hàm đó nhận số câu đúng liên tiếp TRƯỚC câu được chấm nên lùi 1. Làm tròn để bỏ sai số số thực.
  */
-export function appliedComboMultiplier(streak: number): number {
-  return Math.round(comboMultiplier(Math.max(0, streak - 1)) * 10) / 10;
+export function appliedComboMultiplier(
+  streak: number,
+  scoring: ScoringConfig = DEFAULT_SCORING,
+): number {
+  return Math.round(comboMultiplier(Math.max(0, streak - 1), scoring) * 10) / 10;
 }

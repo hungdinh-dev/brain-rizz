@@ -224,6 +224,21 @@
     inset 0 0 120px rgb(0 0 0 / 0.35);
 }
 
+/*
+ * Trống quay dọc (CR-017): bóng của mặt trống cong, phủ lên các dòng (pointer-events-none).
+ * Đặt trên nền bg-board + bg-board-shade; tối dần về mép trên/dưới, giữa 34–66% trong suốt
+ * để dải chọn rõ. Dùng chung sáng/tối vì chỉ làm tối nền bảng. Đặc tả: ui-ux.md mục 6.7.
+ */
+@utility drum-shade {
+  background-image: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0.52),
+    rgb(0 0 0 / 0) 34%,
+    rgb(0 0 0 / 0) 66%,
+    rgb(0 0 0 / 0.52)
+  );
+}
+
 /* Chữ logo kiểu nhãn dán: viền mực dày, bóng đổ xuống dưới. Độ dày viền đặt qua --stroke. */
 @utility sticker-text {
   -webkit-text-stroke: var(--stroke, 10px) var(--color-ink);

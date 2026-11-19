@@ -111,6 +111,11 @@ export interface GameClient {
   locales: Record<Language, GameLocale>;
   /** Hình minh hoạ cách chơi (SVG nhỏ) cho màn Hướng dẫn và thẻ game; không có thì hiện biểu tượng nhóm kỹ năng. */
   Illustration?: ComponentType<{ className?: string }>;
+  /**
+   * (Tuỳ chọn) Biểu tượng riêng của game, gọn hơn hình minh hoạ: ô hình trên trống quay và thẻ
+   * game (CR-017). Có thì ưu tiên hơn `Illustration`. SVG vẽ trên nền bảng (`bg-board`), cao kín ô.
+   */
+  Icon?: ComponentType<{ className?: string }>;
 }
 
 /** Kích thước thiết kế (dọc), Phaser scale FIT theo màn hình thật. */

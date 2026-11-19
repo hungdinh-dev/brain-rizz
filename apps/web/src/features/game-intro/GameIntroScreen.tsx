@@ -17,6 +17,7 @@ import { countdownHint, useGameText } from "@/hooks/use-game-text";
 import { DESKTOP_QUERY, TOUCH_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { usePendingAction } from "@/hooks/use-pending-action";
 import { useServerClock } from "@/hooks/use-server-clock";
+import { isCompactRoster } from "@/lib/room-size";
 import { cn } from "@/lib/utils";
 import { send } from "@/net/connection";
 import { useGame, useMe } from "@/stores/game.store";
@@ -106,6 +107,13 @@ function IntroView({ gameId }: { gameId: GameId }) {
     <DifficultyChooser value={me.difficulty} onChange={chooseDifficulty} levels={game.levels} />
   );
 
+  const waitOthers = !isHost && me?.introReady && (
+    <p className="text-center text-[13px] font-semibold text-chalk-muted">
+      {t("intro.waitOthers")}
+    </p>
+  );
+  const crowded = isCompactRoster(players.length);
+
   if (desktop) {
     return (
       <main className="flex flex-1 flex-col gap-4">
@@ -176,6 +184,17 @@ function IntroView({ gameId }: { gameId: GameId }) {
         {chooser}
         {tip && <LevelTip text={tip} className="text-chalk" />}
       </div>
+      {/*
+        Phòng 8–12 người: danh sách cả phòng dài nên nút chính lên ngay dưới ô chọn độ khó (vẫn
+        trong màn đầu ở 390×844, trên nút chat nổi), dòng phụ xuống dưới nút; danh sách theo sau.
+      */}
+      {crowded && (
+        <div className="flex flex-col gap-2">
+          {action}
+          {isHost && autoStart}
+          {waitOthers}
+        </div>
+      )}
       {isHost ? (
         <RoomDifficulty
           gameId={gameId}
@@ -209,15 +228,13 @@ function IntroView({ gameId }: { gameId: GameId }) {
           </span>
         </div>
       )}
-      <div className="mt-auto flex flex-col gap-2">
-        {isHost && autoStart}
-        {!isHost && me?.introReady && (
-          <p className="text-center text-[13px] font-semibold text-chalk-muted">
-            {t("intro.waitOthers")}
-          </p>
-        )}
-        {action}
-      </div>
+      {!crowded && (
+        <div className="mt-auto flex flex-col gap-2">
+          {isHost && autoStart}
+          {waitOthers}
+          {action}
+        </div>
+      )}
     </main>
   );
 }

@@ -12,7 +12,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "loadtest": "tsx loadtest/party.ts --room party --numClients 8",
+    "loadtest": "tsx loadtest/party.ts --room party --numClients 12",
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {

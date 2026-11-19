@@ -1,6 +1,7 @@
 import {
   type AnswerPayload,
   type BotAnswer,
+  DEFAULT_SCORING,
   type Difficulty,
   gameAnswerWindowMs,
   getGame,
@@ -10,6 +11,7 @@ import {
   type JudgeState,
   judgeAnswer,
   judgeBotAnswer,
+  type ScoringConfig,
 } from "@brain-rizz/shared";
 
 /** Phần state đồng bộ của người trả lời mà trọng tài đọc và cập nhật (`progress`, `streak`). */
@@ -24,12 +26,17 @@ export interface Contestant {
  * Colyseus: giữ riêng từng người — không đồng bộ xuống client — giờ hiện câu, hạn khoá và bộ đếm
  * chống spam; `progress`/`streak` nằm trong state đồng bộ (`Contestant`).
  * Dùng chung cho `PartyRoom` và `BrainTestRoom`; bot của phòng party chấm qua `judgeBot` (CR-016).
+ *
+ * `scoring` (CR-019): `PartyRoom` trả cấu hình admin của trận hiện tại (người và bot cùng dùng);
+ * `BrainTestRoom` không truyền → `DEFAULT_SCORING` để bảng xếp hạng Kiểm tra não không lệch.
  */
 export class AnswerJudge {
   /** Thời điểm câu hiện tại của từng người bắt đầu (giờ server); thiếu thì lấy `startAt`. */
   private shownAt = new Map<string, number>();
   private lockedUntil = new Map<string, number>();
   private recentAnswers = new Map<string, readonly number[]>();
+
+  constructor(private readonly scoring: () => ScoringConfig = () => DEFAULT_SCORING) {}
 
   /** Đầu mỗi vòng/game: câu đầu của mọi người hiện lúc `startAt`, không ai bị khoá. */
   resetRound() {
@@ -80,6 +87,7 @@ export class AnswerJudge {
       },
       msg,
       now,
+      this.scoring(),
     );
     this.recentAnswers.set(id, next.recentAnswers);
     return this.apply(id, who, next, outcome);
@@ -108,6 +116,7 @@ export class AnswerJudge {
       },
       answer,
       now,
+      this.scoring(),
     );
     return this.apply(id, who, next, outcome);
   }

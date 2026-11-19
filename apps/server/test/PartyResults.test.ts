@@ -162,6 +162,8 @@ describe("PartyRoom — kết quả trận", () => {
         categoryScores: cats(pc),
         // Chi dẫn đầu cả hai thể loại (CR-010).
         categoryTitles: ["identify", "visualize"],
+        // Chưa cấu hình party (CR-019): version 0.
+        settingsVersion: 0,
       },
       {
         userId: USER_A,
@@ -175,6 +177,7 @@ describe("PartyRoom — kết quả trận", () => {
         games: ["odd-one-out", "rotate-match"],
         categoryScores: cats(pa),
         categoryTitles: [],
+        settingsVersion: 0,
       },
     ]);
     await settle();

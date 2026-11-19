@@ -8,6 +8,7 @@ import { ReactionBubble } from "@/features/chat";
 import { DESKTOP_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 import { send } from "@/net/connection";
+import { EMPTY_FRAME, EmptyIcon, EmptyText } from "./PlayerSlot";
 import { useInlinePanel } from "./use-inline-panel";
 
 /*
@@ -25,10 +26,19 @@ const CARD_MOBILE =
   "relative flex h-15 min-w-0 items-center gap-2 rounded-2xl border-[3px] border-sticker bg-card px-2 text-card-foreground shadow-sticker-sm";
 const CARD_DESKTOP =
   "relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-[20px] border-4 border-sticker bg-card px-2 pt-2 pb-1.5 text-card-foreground shadow-sticker";
+/** Phòng 12 ghế (ui-ux 6.8): điện thoại ô 52 px, máy tính thẻ 112 px trong lưới 6 cột. */
+const CARD_MOBILE_COMPACT =
+  "relative flex h-13 min-w-0 items-center gap-2 rounded-[15px] border-[3px] border-sticker bg-card pr-2 pl-1.75 text-card-foreground shadow-sticker-sm";
+const CARD_DESKTOP_COMPACT =
+  "relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-[18px] border-4 border-sticker bg-card px-1.5 pt-1.5 pb-1 text-card-foreground shadow-sticker-sm";
+/** Nhãn mức trong ô gọn: cao 20 / 22 px, chữ 10,5 / 11,5 px. */
+const CHIP_COMPACT = "h-5 gap-1 pl-1.75 text-[10.5px] lg:h-5.5 lg:text-[11.5px]";
 
 interface PanelProps {
   open: boolean;
   onOpenChange(open: boolean): void;
+  /** Phòng 12 ghế: ô gọn. */
+  compact?: boolean;
 }
 
 /** Nút × 44 px (vòng 30–32 px). `corner`: lệch ra góc trên phải của ô (máy tính, nằm trong khe lưới). */
@@ -70,13 +80,14 @@ interface BotSlotProps extends PanelProps {
 }
 
 /** Ô của một bot: nhân vật + huy hiệu máy, tên "Fen · máy", nhãn mức (thay nhãn trạng thái). */
-export function BotSlot({ player, canEdit, open, onOpenChange }: BotSlotProps) {
+export function BotSlot({ player, canEdit, open, onOpenChange, compact = false }: BotSlotProps) {
   const { t } = useTranslation();
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const { full } = usePlayerName();
   const panel = useInlinePanel(open && canEdit, onOpenChange);
   const name = full(player);
   const levelName = t(`bots.level.${player.botLevel}`);
+  const chip = compact ? CHIP_COMPACT : undefined;
 
   function pick(level: BotLevel) {
     if (level !== player.botLevel) {
@@ -90,14 +101,16 @@ export function BotSlot({ player, canEdit, open, onOpenChange }: BotSlotProps) {
     onOpenChange(false);
   }
 
+  // Ô gọn: avatar 52 / 36, huy hiệu máy sm / xs (ui-ux 6.8).
   const avatar = (
     <span className="relative flex shrink-0">
       <PlayerAvatar
         avatar={player.avatar}
         colorIndex={player.colorIndex}
-        size={desktop ? "lg" : "md"}
+        size={desktop && !compact ? "lg" : "md"}
+        className={compact ? (desktop ? "size-13" : "size-9") : undefined}
       />
-      <BotBadge size={desktop ? "md" : "sm"} />
+      <BotBadge size={compact ? (desktop ? "sm" : "xs") : desktop ? "md" : "sm"} />
       <ReactionBubble playerId={player.id} />
     </span>
   );
@@ -112,7 +125,11 @@ export function BotSlot({ player, canEdit, open, onOpenChange }: BotSlotProps) {
         selectedRef={panel.focusRef}
         className={
           desktop
-            ? "flex-1 grid-cols-2 grid-rows-[repeat(2,2.75rem)] gap-2 px-0.5"
+            ? cn(
+                "flex-1 grid-cols-2 grid-rows-[repeat(2,2.75rem)] px-0.5",
+                // Ô gọn hẹp (≈ 115 px): ô chọn 52×44, chữ mức nhỏ lại cho vừa.
+                compact ? "gap-1.5 [&_.font-display]:text-[13px]" : "gap-2",
+              )
             : "grid-cols-2 gap-2 px-1.25 pt-1 pb-0.5"
         }
       />
@@ -125,8 +142,13 @@ export function BotSlot({ player, canEdit, open, onOpenChange }: BotSlotProps) {
         className={cn(
           "relative flex min-w-0 flex-col border-sticker bg-card text-card-foreground",
           desktop
-            ? "gap-1.5 rounded-[20px] border-4 px-2 pt-1.5 pb-2 shadow-sticker"
-            : "gap-1 rounded-2xl border-[3px] px-1 pt-0.5 pb-2 shadow-sticker-sm",
+            ? compact
+              ? "gap-1 rounded-[18px] border-4 px-1.5 pt-1 pb-1.5 shadow-sticker-sm"
+              : "gap-1.5 rounded-[20px] border-4 px-2 pt-1.5 pb-2 shadow-sticker"
+            : cn(
+                "gap-1 border-[3px] px-1 pt-0.5 pb-2 shadow-sticker-sm",
+                compact ? "rounded-[15px]" : "rounded-2xl",
+              ),
           POP_IN,
         )}
       >
@@ -170,13 +192,16 @@ export function BotSlot({ player, canEdit, open, onOpenChange }: BotSlotProps) {
 
   if (desktop) {
     return (
-      <div className={cn(CARD_DESKTOP, POP_IN)}>
+      <div className={cn(compact ? CARD_DESKTOP_COMPACT : CARD_DESKTOP, POP_IN)}>
         {avatar}
         <span className="flex max-w-full min-w-0 items-baseline gap-1 overflow-x-clip leading-none">
           <PlayerName
             player={player}
-            className="truncate font-display text-[22px] font-extrabold"
-            suffixClassName="text-sm text-muted-foreground"
+            className={cn(
+              "truncate font-display font-extrabold",
+              compact ? "text-[17px]" : "text-[22px]",
+            )}
+            suffixClassName={cn("text-muted-foreground", compact ? "text-[11.5px]" : "text-sm")}
           />
         </span>
         {canEdit ? (
@@ -187,44 +212,64 @@ export function BotSlot({ player, canEdit, open, onOpenChange }: BotSlotProps) {
               aria-label={t("bots.chipLabel", { name, level: levelName })}
               aria-expanded={false}
               onClick={() => onOpenChange(true)}
-              className="group/chip -mt-1.5 -mb-2 flex h-11 cursor-pointer items-center rounded-full px-1.5 outline-none"
+              className={cn(
+                "group/chip flex h-11 cursor-pointer items-center rounded-full px-1.5 outline-none",
+                compact ? "-my-2.5" : "-mt-1.5 -mb-2",
+              )}
             >
               <BotLevelChip
                 level={player.botLevel}
                 editable
-                className="group-hover/chip:-translate-y-px group-focus-visible/chip:ring-3 group-focus-visible/chip:ring-primary"
+                className={cn(
+                  "group-hover/chip:-translate-y-px group-focus-visible/chip:ring-3 group-focus-visible/chip:ring-primary",
+                  chip,
+                )}
               />
             </button>
+            {/* Ô gọn hẹp: nút × lệch ra góc trên phải, nằm trong khe lưới (vòng 28 px). */}
             <button
               type="button"
               aria-label={t("bots.removeLabel", { name })}
               onClick={remove}
-              className="group/remove absolute top-0.5 right-0.5 grid size-11 cursor-pointer place-items-center rounded-full outline-none"
+              className={cn(
+                "group/remove absolute z-10 grid size-11 cursor-pointer place-items-center rounded-full outline-none",
+                compact ? "-top-3 -right-3" : "top-0.5 right-0.5",
+              )}
             >
-              <span className="grid size-7.5 place-items-center rounded-full border-[2.5px] border-sticker bg-card group-focus-visible/remove:ring-3 group-focus-visible/remove:ring-primary">
-                <XIcon aria-hidden className="size-4" strokeWidth={3} />
+              <span
+                className={cn(
+                  "grid place-items-center rounded-full border-[2.5px] border-sticker bg-card group-focus-visible/remove:ring-3 group-focus-visible/remove:ring-primary",
+                  compact ? "size-7" : "size-7.5",
+                )}
+              >
+                <XIcon aria-hidden className={compact ? "size-3.5" : "size-4"} strokeWidth={3} />
               </span>
             </button>
           </>
         ) : (
-          <BotLevelChip level={player.botLevel} />
+          <BotLevelChip level={player.botLevel} className={chip} />
         )}
       </div>
     );
   }
 
   return (
-    <div className={cn(CARD_MOBILE, POP_IN)}>
+    <div className={cn(compact ? CARD_MOBILE_COMPACT : CARD_MOBILE, POP_IN)}>
       {avatar}
-      <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
+      <span
+        className={cn("flex min-w-0 flex-1 flex-col items-start", compact ? "gap-0.75" : "gap-1")}
+      >
         <span className="flex max-w-full min-w-0 items-baseline gap-0.75 overflow-x-clip leading-none">
           <PlayerName
             player={player}
-            className="truncate font-display text-[17px] font-extrabold"
-            suffixClassName="text-xs text-muted-foreground"
+            className={cn(
+              "truncate font-display font-extrabold",
+              compact ? "text-base" : "text-[17px]",
+            )}
+            suffixClassName={cn("text-muted-foreground", compact ? "text-[11px]" : "text-xs")}
           />
         </span>
-        <BotLevelChip level={player.botLevel} editable={canEdit} />
+        <BotLevelChip level={player.botLevel} editable={canEdit} className={chip} />
       </span>
       {canEdit && (
         // Ô quá hẹp cho cả nhãn mức lẫn nút × đủ 44 px: cả ô là một nút mở bảng đổi mức / bỏ bot.
@@ -234,7 +279,10 @@ export function BotSlot({ player, canEdit, open, onOpenChange }: BotSlotProps) {
           aria-label={t("bots.editLabel", { name, level: levelName })}
           aria-expanded={false}
           onClick={() => onOpenChange(true)}
-          className="absolute -inset-0.75 cursor-pointer rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-primary"
+          className={cn(
+            "absolute -inset-0.75 cursor-pointer outline-none focus-visible:ring-3 focus-visible:ring-primary",
+            compact ? "rounded-[15px]" : "rounded-2xl",
+          )}
         />
       )}
     </div>
@@ -249,7 +297,13 @@ interface AddBotSlotProps extends PanelProps {
 }
 
 /** Ô trống của chủ phòng: "+ Thêm bot", bấm thì 4 ô chọn mức mở ngay trong ô. */
-export function AddBotSlot({ open, onOpenChange, onAdd, pending }: AddBotSlotProps) {
+export function AddBotSlot({
+  open,
+  onOpenChange,
+  onAdd,
+  pending,
+  compact = false,
+}: AddBotSlotProps) {
   const { t } = useTranslation();
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const panel = useInlinePanel(open, onOpenChange);
@@ -264,7 +318,11 @@ export function AddBotSlot({ open, onOpenChange, onAdd, pending }: AddBotSlotPro
         defaultRef={panel.focusRef}
         className={
           desktop
-            ? "flex-1 grid-cols-2 grid-rows-[repeat(2,2.75rem)] gap-2 px-0.5"
+            ? cn(
+                "flex-1 grid-cols-2 grid-rows-[repeat(2,2.75rem)] px-0.5",
+                // Ô gọn hẹp (≈ 115 px): ô chọn 52×44, chữ mức nhỏ lại cho vừa.
+                compact ? "gap-1.5 [&_.font-display]:text-[13px]" : "gap-2",
+              )
             : "grid-cols-2 gap-2 px-1.25 pt-1"
         }
       />
@@ -277,15 +335,22 @@ export function AddBotSlot({ open, onOpenChange, onAdd, pending }: AddBotSlotPro
         className={cn(
           "relative flex min-w-0 flex-col border-[3px] border-chalk bg-board-shade text-chalk",
           desktop
-            ? "gap-1.5 rounded-[20px] px-2 pt-1.5 pb-2"
-            : "gap-1 rounded-2xl px-1 pt-0.5 pb-2.5",
+            ? compact
+              ? "gap-1 rounded-[18px] px-1.5 pt-1 pb-1.5"
+              : "gap-1.5 rounded-[20px] px-2 pt-1.5 pb-2"
+            : cn("gap-1 px-1 pt-0.5 pb-2.5", compact ? "rounded-[15px]" : "rounded-2xl"),
           POP_IN,
         )}
       >
         {desktop ? (
           <>
-            <span className="pr-8.5 pl-0.5 font-display text-[15px] leading-4 font-extrabold">
-              {t("bots.pickTitleWide")}
+            <span
+              className={cn(
+                "pr-8.5 pl-0.5 font-display leading-4 font-extrabold",
+                compact ? "truncate text-sm" : "text-[15px]",
+              )}
+            >
+              {compact ? t("bots.pickTitle") : t("bots.pickTitleWide")}
             </span>
             {buttons}
             <CloseButton label={t("bots.close")} onClick={panel.close} corner />
@@ -316,21 +381,15 @@ export function AddBotSlot({ open, onOpenChange, onAdd, pending }: AddBotSlotPro
       aria-expanded={false}
       onClick={() => onOpenChange(true)}
       className={cn(
-        "flex h-15 min-w-0 cursor-pointer items-center gap-2 rounded-2xl border-[3px] border-dashed border-chalk/60 bg-board-shade px-2.5 text-left text-chalk transition-colors outline-none hover:border-chalk focus-visible:ring-3 focus-visible:ring-primary",
-        "lg:h-auto lg:flex-col lg:justify-center lg:gap-1.5 lg:rounded-[20px] lg:text-center",
+        "flex min-w-0 cursor-pointer items-center border-[3px] border-dashed border-chalk/60 bg-board-shade text-left text-chalk transition-colors outline-none hover:border-chalk focus-visible:ring-3 focus-visible:ring-primary",
+        "lg:h-auto lg:flex-col lg:justify-center lg:text-center",
+        compact ? EMPTY_FRAME.compact : EMPTY_FRAME.classic,
       )}
     >
-      <span className="grid size-9 shrink-0 place-items-center rounded-full border-[2.5px] border-dashed border-chalk/70 lg:size-11.5 lg:border-[3px]">
+      <EmptyIcon compact={compact}>
         <BotIcon aria-hidden className="size-4.5 lg:size-5.5" strokeWidth={2.4} />
-      </span>
-      <span className="flex min-w-0 flex-col leading-tight lg:items-center lg:gap-1">
-        <span className="font-display text-base font-extrabold lg:text-[19px] lg:leading-none">
-          {t("lobby.emptySlot")}
-        </span>
-        <span className="text-xs font-semibold text-chalk-muted underline underline-offset-2 lg:text-[13px] lg:underline-offset-3">
-          {t("bots.addBot")}
-        </span>
-      </span>
+      </EmptyIcon>
+      <EmptyText compact={compact} action={t("bots.addBot")} />
     </button>
   );
 }

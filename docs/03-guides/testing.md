@@ -24,7 +24,7 @@
 | Tích hợp — phòng chơi | `@colyseus/testing` | Server thật: vào phòng, quyền chủ phòng, cùng seed, chấm điểm | `apps/server/test/` | Mỗi commit | ✅ (nối lại mới có tải lại trang) |
 | Kiểu & i18n | `tsc` | Kiểu toàn repo; `en.ts` đủ khoá như `vi.ts` | — | Mỗi commit | ✅ |
 | End-to-end nhiều người | Playwright | 4–8 trình duyệt (cả giả lập điện thoại) vào một phòng, chơi hết một trận | dự kiến `e2e/` | Trước mỗi bản phát hành | ⏳ GĐ 1 |
-| Tải | `@colyseus/loadtest` | 8 người trả lời liên tục | `apps/server/loadtest/` | Trước mốc Alpha/Beta/1.0 | ✅ có script |
+| Tải | `@colyseus/loadtest` | 12 người cùng một phòng trả lời liên tục (NFR-REL-02) | `apps/server/loadtest/` | Trước mốc Alpha/Beta/1.0 | ✅ có script |
 | Mạng xấu | DevTools (giả lập 3G, offline) | Đồng hồ, nối lại, đáp án đến muộn | Kiểm tay | Trước mỗi bản phát hành | Thủ công |
 | Thiết bị thật | Điện thoại, tablet | Cảm ứng, hiệu năng, âm thanh, safe-area | Kiểm tay theo mục 5 | Trước mỗi bản phát hành | Thủ công |
 
@@ -88,7 +88,7 @@ Bù xong một mục thì xoá khỏi bảng và cập nhật cột "Test" ở [
 - [ ] `pnpm check` và `pnpm build` xanh; CI trên GitHub xanh.
 - [ ] Không còn lỗi S1, S2 đang mở.
 - [ ] Chạy kịch bản kiểm tay (mục 4) trên ma trận thiết bị (mục 5).
-- [ ] Từ 0.5: test Playwright nhiều người xanh; `loadtest` 8 người không lỗi.
+- [ ] Từ 0.5: test Playwright nhiều người xanh; `loadtest` 12 người không lỗi.
 - [ ] Kích thước gói JS ban đầu ≤ 300 KB gzip (xem output `pnpm build`).
 - [ ] `MIN_PLAYERS_TO_START` đúng giá trị phát hành (2).
 - [ ] Asset mới đã ghi giấy phép trong `assets/LICENSES.md`.

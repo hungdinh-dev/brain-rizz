@@ -1,4 +1,4 @@
-import { comboMultiplier, type PlayerView } from "@brain-rizz/shared";
+import { comboMultiplier, DEFAULT_SCORING, type PlayerView } from "@brain-rizz/shared";
 import { describe, expect, it } from "vitest";
 import { appliedComboMultiplier, hasCombo, rankByRoundScore } from "./standings";
 
@@ -62,6 +62,26 @@ describe("combo", () => {
     // Server chấm câu đúng với streak TRƯỚC câu đó, rồi mới tăng streak.
     for (let before = 0; before < 20; before++) {
       expect(appliedComboMultiplier(before + 1)).toBeCloseTo(comboMultiplier(before), 10);
+    }
+  });
+
+  it("trận party theo công thức của phòng (CR-019): ngưỡng, bước, trần do admin chỉnh", () => {
+    const scoring = {
+      ...DEFAULT_SCORING,
+      streakThreshold: 2,
+      streakBonusPerStep: 0.2,
+      maxComboMultiplier: 2,
+    };
+    expect(hasCombo(1, scoring)).toBe(false);
+    expect(hasCombo(2, scoring)).toBe(true);
+    expect(appliedComboMultiplier(2, scoring)).toBe(1.2);
+    expect(appliedComboMultiplier(3, scoring)).toBe(1.4);
+    expect(appliedComboMultiplier(20, scoring)).toBe(2);
+    for (let before = 0; before < 20; before++) {
+      expect(appliedComboMultiplier(before + 1, scoring)).toBeCloseTo(
+        comboMultiplier(before, scoring),
+        10,
+      );
     }
   });
 });

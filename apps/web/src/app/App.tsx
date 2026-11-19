@@ -13,6 +13,7 @@ import { MotionToggle } from "@/features/motion";
 import { MusicBar, useMusicAutoplay } from "@/features/music";
 import { SfxToggle, useSfxEffects } from "@/features/sfx";
 import { i18n } from "@/i18n";
+import { loadAdminLocales } from "@/i18n/admin";
 import { loadSoloLocales } from "@/i18n/solo";
 import { cn } from "@/lib/utils";
 import { resumeParty } from "@/net/connection";
@@ -52,6 +53,16 @@ const LeaderboardScreen = lazy(() =>
   })),
 );
 
+/*
+ * Trang quản trị `/admin` (CR-019): chunk riêng kèm chữ của trang (i18n/admin.ts); người chơi
+ * thường không bao giờ tải. Có thanh trên riêng nên không hiện hàng nút nhạc/ngôn ngữ chung.
+ */
+const AdminScreen = lazy(() =>
+  Promise.all([import("@/features/admin"), loadAdminLocales()]).then(([m]) => ({
+    default: m.AdminScreen,
+  })),
+);
+
 const SOLO_SCREENS: Partial<Record<Screen, React.ComponentType>> = {
   practice: PracticeScreen,
   "brain-test": BrainTestScreen,
@@ -68,21 +79,24 @@ export function App() {
   const screen = useNav((s) => s.screen);
   const soloFocus = useNav((s) => s.soloFocus);
   const phase = party?.phase;
+  const admin = !phase && screen === "admin";
   const SoloScreen = phase ? undefined : SOLO_SCREENS[screen];
   const focused = phase ? FOCUS_PHASES.includes(phase) : !!SoloScreen && soloFocus;
   // Máy tính, pha có chat (CR-011): nới khung thêm đúng bề rộng cột chat (320 px + khoảng cách).
   const chatColumn = !!phase && isChatPhase(phase);
 
-  // Nhạc nền: phát ở thao tác đầu tiên, dừng khi ẩn tab, nhỏ tiếng lúc đếm ngược/đang chơi.
-  useMusicAutoplay(focused);
+  // Nhạc nền: phát ở thao tác đầu tiên, dừng khi ẩn tab, nhỏ tiếng lúc đếm ngược/đang chơi
+  // và ở trang quản trị (công cụ làm việc).
+  useMusicAutoplay(focused || admin);
   // Âm thanh hiệu ứng: bấm nút, lỗi server, đúng/sai (vẫn kêu lúc đang chơi dù hàng nút bị ẩn).
   useSfxEffects();
 
   useEffect(() => {
-    // Tải lại trang giữa trận → tự nối lại phòng cũ.
+    // Tải lại trang giữa trận → tự nối lại phòng cũ. StrictMode chạy effect này hai lần: cả
+    // `resumeParty` và `init` dùng chung lần gọi đầu (token nối lại chỉ dùng được một lần).
     void resumeParty();
     // Phiên tài khoản đã lưu / quay về từ Google (UC-16).
-    useAuth.getState().init();
+    void useAuth.getState().init();
     if (takeOAuthReturnScreen()) {
       useNav.getState().go("account");
       // Liên kết xong (không có lỗi) → báo một lần khi phiên đã đọc xong.
@@ -119,6 +133,8 @@ export function App() {
           className={cn(
             "safe-area mx-auto flex w-full max-w-6xl flex-1 flex-col",
             chatColumn && "lg:max-w-[calc(72rem+21.25rem)]",
+            // Trang quản trị: bảng nhiều cột, dùng gần hết bề rộng màn máy tính.
+            admin && "max-w-[90rem]",
           )}
         >
           {/* Trang chủ tự đặt nút ngôn ngữ/theme/nhạc; lúc đếm ngược và đang chơi thì ẩn */}
@@ -139,6 +155,10 @@ export function App() {
           ) : SoloScreen ? (
             <Suspense fallback={<ScreenLoading />}>
               <SoloScreen />
+            </Suspense>
+          ) : admin ? (
+            <Suspense fallback={<ScreenLoading />}>
+              <AdminScreen />
             </Suspense>
           ) : (
             <HomeScreen />

@@ -3,8 +3,8 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Thiết kế — phần giao diện và trải nghiệm |
-| Phiên bản tài liệu | 1.6 · 2026-10-21 — chơi với bot theo [CR-016](../00-tracking/change-requests.md#cr-016) |
-| Bản mẫu (canvas) | **[Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ)** |
+| Phiên bản tài liệu | 1.7 · 2026-11-19 — trống quay dọc, phòng 12 người, trang quản trị theo [CR-017](../00-tracking/change-requests.md#cr-017), [CR-018](../00-tracking/change-requests.md#cr-018), [CR-019](../00-tracking/change-requests.md#cr-019) |
+| Bản mẫu (canvas) | **[Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ)** (4 trang: Màn chờ & luồng trận · Minigame · Một mình & tài khoản · Quản trị) |
 | Liên quan | [Thiết kế game](game-design.md), [ADR 0006 — shadcn & token](../02-architecture/decisions/0006-ui-shadcn-and-theme-tokens.md), [ADR 0009 — bảng phấn & nhân vật](../02-architecture/decisions/0009-chalkboard-style-and-characters.md) |
 | Cập nhật khi | Thêm màn hình, đổi luồng, thêm artboard vào canvas, đổi token màu/font |
 
@@ -26,8 +26,8 @@ flowchart TD
   I["Giới thiệu<br/>Chạm để bắt đầu"] --> M["Menu chính"]
   L0(["Mở link /r/ABCD"]) --> M
   M <--> P["Chọn bạn đồng hành<br/>(hồ sơ)"]
-  M -->|"Tạo phòng / Vào phòng"| LB["Phòng chờ 2D<br/>sẵn sàng, đổi nhân vật,<br/>chủ phòng đặt số vòng,<br/>thêm / đổi mức / bỏ bot"]
-  M -->|"Chơi với máy"| BD["Hộp thoại Chơi với máy<br/>số bot 1–7, mức chung"]
+  M -->|"Tạo phòng / Vào phòng"| LB["Phòng chờ 2D (tối đa 12 ghế)<br/>sẵn sàng, đổi nhân vật,<br/>chủ phòng đặt số vòng,<br/>thêm / đổi mức / bỏ bot"]
+  M -->|"Chơi với máy"| BD["Hộp thoại Chơi với máy<br/>số bot 1–11, mức chung"]
   BD -->|"Vào phòng"| LB
   M -.->|"Sắp có"| X["Tìm trận · Đấu bóng ma ·<br/>Thử thách hôm nay"]
   M --> PK["Luyện tập: chọn game<br/>(nhóm theo 5 kỹ năng)"]
@@ -44,7 +44,9 @@ flowchart TD
   BR -->|"Xem bảng xếp hạng"| LBD["Bảng xếp hạng<br/>Điểm Não / Theo minigame"]
   M --> LBD
   M --> AC["Tài khoản & lịch sử<br/>3 tab, liên kết Google"]
-  LB -->|"Chủ phòng bấm Bắt đầu"| GS["Chọn game<br/>vòng quay / chủ phòng chọn"]
+  AC -->|"Trang quản trị<br/>(chỉ quản trị viên)"| AD["Trang quản trị /admin<br/>8 mục, tải lười"]
+  L1(["Mở link /admin"]) --> AD
+  LB -->|"Chủ phòng bấm Bắt đầu"| GS["Chọn game<br/>trống quay dọc / chủ phòng chọn"]
   GS --> GI["Hướng dẫn<br/>+ tự chọn độ khó"]
   GI --> CD["Đếm ngược 5 giây"]
   CD --> PL["Chơi minigame"]
@@ -65,12 +67,12 @@ flowchart TD
 | S1 | Giới thiệu | `features/home/components/IntroScreen.tsx` | ✅ Desktop + Điện thoại | ✅ | |
 | S2 | Menu chính | `features/home/components/MenuScreen.tsx` | ✅ Khu 2 (cũ) · Khu 12 (CR-009) | ✅ | Theo khu 12: thẻ Luyện tập, Kiểm tra não ("Cao nhất …"), dòng Bảng xếp hạng, Tài khoản & lịch sử (trạng thái phiên); còn "Sắp có": Tìm trận, Đấu bóng ma (ô nét đứt), Thử thách hôm nay. Bỏ linh vật + câu gợi ý ở cột phải cho vừa 1280×720 |
 | S3 | Chọn bạn đồng hành (hồ sơ) | `features/home/components/ProfileScreen.tsx` | ✅ "Chọn bạn đồng hành" (tương tác) | ✅ | |
-| S4 | Phòng chờ 2D | `features/lobby/LobbyScreen.tsx` | ✅ Khu 5 · Khu 23 (CR-016) | ✅ (bot: ❌) | Đã gỡ 3D (ADR 0010). Chưa có mã QR như bản máy tính. CR-016: ô trống thêm bot, ô bot đổi mức / bỏ ngay trong ô ([mục 6.6](#66-chơi-với-máy-s17-cr-016)) |
-| S10 | Chọn game (vòng quay / chủ phòng chọn + bình chọn) | `features/game-select/` | ✅ Khu 6 | ✅ | CR-005 |
+| S4 | Phòng chờ 2D | `features/lobby/LobbyScreen.tsx` | ✅ Khu 5 · Khu 23 (CR-016) · Khu 25 (CR-018) | ✅ (bot: ❌, 12 ghế: ❌) | Đã gỡ 3D (ADR 0010). Chưa có mã QR như bản máy tính. CR-016: ô trống thêm bot, ô bot đổi mức / bỏ ngay trong ô ([mục 6.6](#66-chơi-với-máy-s17-cr-016)). CR-018: 9–12 ghế dùng lưới gọn ([mục 6.8](#68-phòng-12-người-cr-018)) |
+| S10 | Chọn game (trống quay dọc / chủ phòng chọn + bình chọn) | `features/game-select/` | ✅ Khu 6 (cũ) · Khu 24 (CR-017) | ✅ (trống quay: ❌) | CR-005. CR-017: trống quay dọc thay vòng quay tròn, bỏ danh sách "Trong vòng quay" ([mục 6.7](#67-trống-quay-dọc-s10-cr-017)); chế độ Chủ phòng chọn giữ khu 6 |
 | S11 | Hướng dẫn & độ khó | `features/game-intro/` | ✅ Khu 7 | ✅ | CR-005; lời nhắc của chủ phòng hiện bằng toast |
-| S5 | Chơi (đếm ngược 5 giây, dải điểm, khung minigame) | `features/play/CountdownScreen.tsx`, `PlayScreen.tsx` | ✅ Khu 8 + trang Minigame M1 | ✅ | |
-| S6 | Bảng điểm vòng + cộng điểm trận | `features/results/ResultsScreen.tsx` | ✅ Khu 9, 10 | ✅ | Tự sang bảng tổng điểm sau 5 giây |
-| S7 | Vinh danh top 3 kiểu Kahoot | `features/results/PodiumScreen.tsx` | ✅ Khu 11 · Khu 19–20 (CR-010) | ✅ (nhịp CR-010: ❌) | 2D, không 3D; pháo giấy CSS. CR-010: hạng 4+ → 3 → 2 → trống dồn → 1, thẻ Giỏi nhất mỗi thể loại ([mục 6.2](#62-vinh-danh-s7-cr-010), [6.3](#63-thẻ-giỏi-nhất-mỗi-thể-loại-cr-010)) |
+| S5 | Chơi (đếm ngược 5 giây, dải điểm, khung minigame) | `features/play/CountdownScreen.tsx`, `PlayScreen.tsx` | ✅ Khu 8 + trang Minigame M1 · Khu 25 (12 người) | ✅ (12 người: ❌) | CR-018: bảng điểm gọn / lưới điểm 2×6 khi đông ([mục 6.8](#68-phòng-12-người-cr-018)) |
+| S6 | Bảng điểm vòng + cộng điểm trận | `features/results/ResultsScreen.tsx` | ✅ Khu 9, 10 · Khu 25 (12 người) | ✅ (12 người: ❌) | Tự sang bảng tổng điểm sau 5 giây. CR-018: bảng 2 cột, hàng gọn, hàng của mình dính mép |
+| S7 | Vinh danh top 3 kiểu Kahoot | `features/results/PodiumScreen.tsx` | ✅ Khu 11 · Khu 19–20 (CR-010) · Khu 25 (12 người) | ✅ (nhịp CR-010: ❌, 12 người: ❌) | 2D, không 3D; pháo giấy CSS. CR-010: hạng 4+ → 3 → 2 → trống dồn → 1, thẻ Giỏi nhất mỗi thể loại ([mục 6.2](#62-vinh-danh-s7-cr-010), [6.3](#63-thẻ-giỏi-nhất-mỗi-thể-loại-cr-010)) |
 | S8 | Minigame (mỗi game một scene) | `games/<id>/` | ✅ Trang Minigame: khung chung M1 + 4 game MVP (M2–M5) | 1/15 | Kẻ lạc đàn chưa có bản mẫu riêng (dùng làm ví dụ trong M1) |
 | S9 | Banner mất kết nối, thông báo (toast) | `components/common/ConnectionBanner.tsx`, `components/ui/sonner` | ✅ M1 · Trạng thái | ✅ | |
 | — | Bảng nhân vật (sticker sheet) | `components/characters/` | ✅ Mèo Khói, Chó Bơ | ✅ 6 nhân vật | 4 nhân vật còn lại chưa có bảng trên canvas |
@@ -81,16 +83,19 @@ flowchart TD
 | — | Trạng thái chung (tải, trống, lỗi, chưa kết nối máy chủ dữ liệu, hộp xác nhận) | dùng chung 4 màn trên | ✅ Khu 17 | ❌ | FR-MR-15 |
 | — | Hàng nút trên cùng · nút Hiệu ứng | `app/App.tsx`, `IntroScreen.tsx`, `MenuScreen.tsx`, `features/motion/` | ✅ Khu 18 (CR-010) | ❌ | Theo hệ thống / Luôn bật ([mục 6.1](#61-hàng-nút-trên-cùng--nút-hiệu-ứng-cr-010)) |
 | S16 | Chat trong phòng (nút nổi + sheet điện thoại, cột phải máy tính, bong bóng biểu cảm) | `features/chat/` | ✅ Khu 22 (CR-011) | ❌ | Hiện ở 5 pha, ẩn lúc đếm ngược/đang chơi ([mục 6.5](#65-khung-chat-trong-phòng-s16-cr-011)) |
-| S17 | Chơi với máy (thẻ menu + hộp thoại) | `features/home/` | ✅ Khu 23 (CR-016) | ❌ | Số bot 1–7, một mức chung, trạng thái đang tạo / lỗi ([mục 6.6](#66-chơi-với-máy-s17-cr-016)) |
+| S17 | Chơi với máy (thẻ menu + hộp thoại) | `features/home/` | ✅ Khu 23 (CR-016), khu 25 (CR-018) | ✅ | Số bot 1–11 (CR-018), một mức chung, trạng thái đang tạo / lỗi ([mục 6.6](#66-chơi-với-máy-s17-cr-016)) |
 | — | Huy hiệu máy (`BotBadge`), chip mức bot, tên bot | `components/characters/BotBadge` (đề xuất), `components/common/MatchChips.tsx` | ✅ Khu 23 (CR-016) | ❌ | Dùng ở phòng chờ, hướng dẫn, dải điểm, bảng điểm, vinh danh, chat, lịch sử |
+| — | Trống quay dọc (`Drum`, thay `LuckyWheel` đã xoá) | `features/game-select/components/Drum.tsx`, hình học `drum.ts` | ✅ Khu 24 (CR-017), artboard thành phần "Drum" | ✅ | Utility `drum-shade` ([mục 6.7](#67-trống-quay-dọc-s10-cr-017)) |
+| — | 12 màu avatar | `AVATAR_COLORS` (`packages/shared/src/constants.ts`) | ✅ Khu 25 "12 màu avatar" | ❌ | 4 màu mới đã duyệt ([mục 6.8](#68-phòng-12-người-cr-018)) |
+| S18 | Trang quản trị (8 mục, cổng đăng nhập/quyền) | `features/admin/` (tải lười), lối vào ở `features/account` | ✅ Trang "Quản trị", khu 26 (CR-019) | ✅ | Một component co giãn: máy tính cột menu trái, điện thoại tab cuộn ngang ([mục 6.9](#69-trang-quản-trị-s18-cr-019)) |
 
 Thứ tự thiết kế tiếp theo (đề xuất): bảng nhân vật cho 4 con còn lại; 5 minigame của giai đoạn 2 khi tới lúc.
 
 ## 4. Bản mẫu trên canvas
 
-Canvas [Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ) có 3 trang.
+Canvas [Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ) có 4 trang.
 
-### Trang "Màn chờ & luồng trận" (47 artboard)
+### Trang "Màn chờ & luồng trận" (72 artboard)
 
 | Khu | Artboard | Kích thước |
 | --- | --- | --- |
@@ -110,12 +115,16 @@ Canvas [Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2
 | 20 · Giỏi nhất mỗi thể loại (CR-010) | Trạng thái & bố cục / Điện thoại · Tối (đã cuộn) | 1280×1040 / 390×844 |
 | 22 · Chat trong phòng (CR-011) | Điện thoại Na (bấm thử) / Điện thoại · Tối (chủ phòng) / Desktop chủ phòng (bấm thử, thu gọn) / Nút nổi theo 6 pha · Điện thoại / Bong bóng biểu cảm & chuyển động / Trạng thái (8 ô) | 390×844 / 1280×720 / 2540×940 / 1280×720 / 1280×1000 |
 | 23 · Chơi với máy (CR-016) | Hàng 1: Menu + hộp thoại · Desktop (bấm thử) / Hộp thoại · Điện thoại (bấm thử) / Menu có thẻ mới · Điện thoại · Tối / Trạng thái hộp thoại + thẻ menu. Hàng 2: Phòng chờ có bot · Desktop chủ phòng (bấm thử) / Điện thoại chủ phòng (bấm thử, cuộn) / Điện thoại · Tối (người chơi Lan) / Đặc tả huy hiệu, chip mức, tên, trạng thái ô. Hàng 3: Huy hiệu máy ở mọi nơi (sáng, tối) / Bot nhường ghế | 1280×720 / 390×844 / 390×844 / 1600×940 · 1280×720 / 390×844 / 390×844 / 1280×1300 · 1280×1330 ×2 / 1280×840 |
+| 24 · Trống quay dọc (CR-017) | Hàng 1: Desktop chủ phòng (bấm thử Quay!; Tweaks `stage`, `host`, `reduced`, `dark`) / Điện thoại Na (tự quay mỗi 9 s) / Điện thoại chủ phòng · Tối (đã trúng) / Desktop · Tối (đang quay). Hàng 2: Đặc tả (thông số, đường cong, 4 trạng thái) / Thành phần Drum (Tweaks `pos`, `blur`, `landed`, `compact`) | 1280×720 / 390×844 ×2 / 1280×720 · 1280×1360 / 620×420 |
+| 25 · Phòng 12 người (CR-018) | 4 hàng, mỗi hàng Desktop / Điện thoại / Điện thoại · Tối / Desktop · Tối: Phòng chờ · Đang chơi · Kết quả vòng (+ Tổng điểm trận sáng, tối) · Vinh danh. Hàng 5: 12 màu avatar (duyệt 4 màu mới) / Thành phần Avatar | 1280×720 / 390×844 (vinh danh điện thoại 390×1100) · 1280×920 / 96×96 |
 
 Khu 5–11 kể một câu chuyện liền mạch: phòng 4 người (Hưng chủ phòng, Lan, Minh, Na), vòng 2/3 chơi Kẻ lạc đàn sau khi vòng 1 đã chơi Cân não. Bản điện thoại luôn là góc nhìn của Na. Mỗi khu có ghi chú cam mô tả trạng thái đang tải / lỗi / trống / mất kết nối. Các màn có link nối với nhau theo đúng luồng.
 
 Khu 18–20 (CR-010) dùng trận 6 người, 5 vòng (Hưng 42, Na 40, Minh 33, Lan 29, Bảo 24, Vy 18) để có đủ hạng 4+ và đủ 5 thể loại; bản "Điện thoại · Tối" ở khu 20 dùng lại trận 4 người, 3 vòng của khu 5–11 (chỉ 3 thể loại đã chơi). Artboard vinh danh tự chạy lặp lại; Tweaks: `stage` (dừng ở một nhịp), `reduced` (giảm chuyển động), `dark`. Artboard nút Hiệu ứng: Tweaks `osReduce` (máy đang giảm chuyển động), `dark`.
 
 Khu 22 (CR-011) dùng lại phòng 4 người của khu 5–11; điện thoại là góc nhìn Na, máy tính là chủ phòng Hưng. Artboard chat bấm thử có Tweaks `host` (hiện công tắc chủ phòng), `variant` (`normal` / `empty` / `chatOff`), `dark`; artboard bong bóng có Tweaks `reduced`.
+
+Khu 24–25 dùng phòng 12 ghế: Hưng (chủ phòng), Lan, Minh, Na, Bảo, Vy, Khoa, Linh, Tú, Mai, Fen · máy, Bắp · máy, màu avatar theo thứ tự 12 màu đã duyệt (Tú, Mai, Fen, Bắp dùng 4 màu mới). Trận 5 vòng, vòng 2 chơi Kẻ lạc đàn sau khi vòng 1 đã chơi Cân não. Máy tính là góc nhìn Hưng, điện thoại là Na (hạng 11 để thấy hàng của mình dính đáy). Mỗi artboard có Tweaks `dark`; bản "· Tối" là cùng artboard nhúng với `dark`.
 
 Khu 23 (CR-016) kể chuyện Na chơi với máy: Na bấm "Chơi với máy", giữ mặc định 3 bot mức Vừa, rồi đổi một bot sang Khó; bạn Lan vào bằng mã. Phòng chờ có Na (chủ phòng), Fen · máy, Si · máy, Fen 2 · máy (trùng nhân vật nên có số), Lan và 3 ô trống. Tên nhân vật theo `vi.ts` hiện tại (Si, Fen, Mochi, Bắp, Cam, Tròn); màu avatar theo `AVATAR_COLORS`. Artboard hộp thoại có Tweaks `dark`, `state` (`normal` / `loading` / `error`), `open`; bấm thử: lần đầu giả lập lỗi, Thử lại thì thành công và nối sang phòng chờ. Artboard phòng chờ có Tweaks `dark`, `host` (tắt = góc nhìn Lan), `full` (đủ 8 ghế); bấm thử được thêm bot, đổi mức, bỏ bot, Sẵn sàng.
 
@@ -143,7 +152,15 @@ Dữ liệu câu đố trên bản mẫu lấy đúng mục "Ví dụ để vẽ
 | 17 · Trạng thái chung | 8 ô: đang tải, trống (bảng xếp hạng, tab party), lỗi mạng, chưa kết nối máy chủ dữ liệu, 3 hộp xác nhận / Tài khoản khi chưa kết nối · Điện thoại | 1280×860 / 390×844 |
 | 21 · Thế mạnh trong trận party ([CR-010](../00-tracking/change-requests.md#cr-010)) | Desktop (tab Trận party, Tweaks `state`: bình thường / rỗng / đang tải) / Điện thoại | 1280×720 / 390×844 |
 
-Mọi artboard của trang này có nút **Tweaks › dark** để xem chế độ tối. Câu chuyện chung: người chơi Na (nhân vật Khói), Điểm Não cao nhất 742, hạng 12 tuần này. Số Kiểm tra não tính đúng công thức ở [Thiết kế game › Kiểm tra não](game-design.md#kiểm-tra-não). Mỗi khu có ghi chú cam mô tả hành vi và trạng thái; khu 2 (menu cũ) có ghi chú trỏ sang khu 12.
+Mọi artboard của trang "Một mình & tài khoản" có nút **Tweaks › dark** để xem chế độ tối. Câu chuyện chung: người chơi Na (nhân vật Khói), Điểm Não cao nhất 742, hạng 12 tuần này. Số Kiểm tra não tính đúng công thức ở [Thiết kế game › Kiểm tra não](game-design.md#kiểm-tra-não). Mỗi khu có ghi chú cam mô tả hành vi và trạng thái; khu 2 (menu cũ) có ghi chú trỏ sang khu 12.
+
+### Trang "Quản trị" (26 artboard, [CR-019](../00-tracking/change-requests.md#cr-019))
+
+| Khu | Artboard | Kích thước |
+| --- | --- | --- |
+| 26 · Trang quản trị | Hàng 1: Tổng quan · Desktop (bấm thử menu và chỉ số biểu đồ; Tweaks `section`, `state`, `dark`) / Desktop · Tối / Điện thoại. Hàng 2: Game · Desktop / Điện thoại · Điểm & hệ số · Desktop / Desktop · Tối / Điện thoại · Tối. Hàng 3: Đăng nhập · Desktop / Điện thoại · Người chơi · Desktop / Điện thoại · Tối · Trận đấu · Desktop. Hàng 4: Phòng đang mở · Desktop / Điện thoại · Quản trị viên · Desktop / Điện thoại · Tối · Trận đấu · Điện thoại. Hàng 5 (trạng thái): chưa đăng nhập Google / không có quyền (điện thoại, tối) / chưa kết nối máy chủ dữ liệu / đang tải / trống (điện thoại) / lỗi (tối). Hàng 6: Hộp thoại, lỗi nhập, thông báo, lối vào (desktop, điện thoại tối) | 1280 × (720–2000) / 390 × (844–2400) |
+
+Cả trang dựng từ **một** artboard co giãn `AdminConsole` (container query theo bề rộng vùng nội dung); các artboard khác nhúng nó với `section` / `state` / `dark` khác nhau. Số liệu trên bản mẫu là ví dụ.
 
 Quy ước: mỗi màn hình mới có **cả bản điện thoại và bản máy tính**; thêm vào canvas thành một khu mới đánh số tiếp; xong thì cập nhật bảng ở mục 3 và mục này. Việc thiết kế giao cho agent `ui-designer` ([Đội AI agent](../03-guides/ai-agents.md)).
 
@@ -166,7 +183,8 @@ Nguồn chuẩn là code: token ở `apps/web/src/styles/globals.css`, component
 | `bubble-mine` / `bubble-mine-foreground` | `#ffecc6` / `#1f1b3a` (14:1) | `#5c4b22` / `#fff8ef` (8:1) | Bong bóng tin của chính mình trong khung chat (CR-011). Tin người khác dùng `bg-muted` + `text-card-foreground` |
 | `bot` / `bot-foreground` | `#b9c7dc` thép nhạt / `#1f1b3a` (9,6:1) | Giữ như sáng (nền so với thẻ tối 7,8:1) | Huy hiệu máy, nhãn "Đấu với máy", thẻ "Chơi với máy" (CR-016). Luôn kèm viền `border-sticker` vì nền chỉ 1,6:1 so với thẻ giấy |
 | `identify` … `visualize` | Xem [Thiết kế game › 5 nhóm](game-design.md#4-năm-nhóm-kỹ-năng) | | Màu nhóm kỹ năng |
-| Màu avatar (8 màu) | `AVATAR_COLORS` trong `packages/shared/src/constants.ts` | | Phân biệt người chơi |
+| Màu avatar (12 màu, CR-018) | `AVATAR_COLORS` trong `packages/shared/src/constants.ts`: 8 màu cũ + `#FF8FE9` hồng sen, `#FB7B74` san hô, `#CBAF86` cát, `#748EDC` dừa cạn (vị trí 8–11) | Như sáng (avatar luôn có viền mực) | Phân biệt người chơi; luôn đi kèm nhân vật + tên |
+| `drum-shade` (utility) | Gradient đen 52% ở mép → 0 tại 34% / 66% | Như sáng | Bóng mặt trống cong của trống quay dọc (CR-017) |
 
 Quy tắc: chỉ dùng class token (`bg-card`, `text-chalk`, `bg-primary`…), không dùng `text-white`, `bg-ink` cho nền/chữ thông thường. Inline `style` chỉ cho giá trị tính lúc chạy (màu avatar).
 
@@ -196,7 +214,7 @@ Cả hai tải từ Google Fonts trong `apps/web/index.html`, đủ dấu tiến
 
 ## 6. Đặc tả chi tiết
 
-Thông số để frontend-dev làm theo. Câu chữ ghi ở đây là đề xuất: frontend-dev thêm vào `vi.ts` trước rồi `en.ts`, tên khoá có thể đổi cho khớp nhóm sẵn có. Mục 6.1–6.4 chỉ dùng token sẵn có; mục 6.5 thêm token `bubble-mine`; mục 6.6 thêm token `bot` và component `Dialog`.
+Thông số để frontend-dev làm theo. Câu chữ ghi ở đây là đề xuất: frontend-dev thêm vào `vi.ts` trước rồi `en.ts`, tên khoá có thể đổi cho khớp nhóm sẵn có. Mục 6.1–6.4 chỉ dùng token sẵn có; mục 6.5 thêm token `bubble-mine`; mục 6.6 thêm token `bot` và component `Dialog`; mục 6.7 thêm utility `drum-shade`; mục 6.8–6.9 chỉ dùng token và component sẵn có.
 
 ### 6.1 Hàng nút trên cùng · nút Hiệu ứng (CR-010)
 
@@ -495,6 +513,122 @@ Chọn mức là gửi `setBotLevel` và đóng ô ngay (không có nút Lưu). 
 | `account.vsBots` | Đấu với máy | Vs bots |
 | `account.vsBotsCount` (`title`, sr-only) | Có {{count}} bot trong trận | {{count}} bots in this match |
 
+### 6.7 Trống quay dọc (S10, CR-017)
+
+Bản mẫu: [canvas khu 24](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ) (desktop chủ phòng bấm thử, điện thoại Na, hai bản tối, artboard đặc tả, thành phần Drum). Thay `LuckyWheel` ở chế độ quay ngẫu nhiên; chế độ Chủ phòng chọn giữ nguyên (khu 6). Luật không đổi: trống chứa `wheelSlices(party)` theo đúng thứ tự đó, game trúng do server chọn.
+
+**Bố cục**
+
+- **Bỏ hẳn** thẻ "Trong vòng quay" (máy tính) và hàng chip (điện thoại). Thay bằng một dòng phấn dưới trống (`text-chalk-muted`, 13,5 / 12,5 px): "29 trò trong trống quay · Cân não đã chơi ở vòng 1" (điện thoại: "29 trò trong trống · Cân não đã chơi"). Chưa chơi game nào thì chỉ còn vế đầu; đã chơi nhiều thì nối tên bằng dấu phẩy, quá 2 tên thì "+n".
+- **Máy tính (≥ 1024 px):** hàng 2 cột căn giữa, khe 40 px: [trống 620×420 + dòng phấn] [cột 404 px: thẻ Kết quả (cao tối thiểu 188 px) → nút Quay! 84 px (chủ phòng) hoặc thẻ chờ 76 px (người khác) → "Cả phòng đang xem · 12 người" + lưới avatar 6 cột, avatar 40 px, tên 12 px cắt "…"]. Màn thấp hơn 720 px: trống giảm chiều cao (tối thiểu 330 px), giữ cao dòng 64 và bán kính, chỉ cắt bớt mép.
+- **Điện thoại:** trống rộng hết vùng nội dung (342 px ở màn 390) × 330 px; dòng phấn; chủ phòng: nút Quay! 64 px khi chờ, thẻ kết quả gọn khi đang quay / đã trúng; người khác: thẻ chờ 74 px (như hiện nay); đáy: hàng avatar chồng nhau 30 px (lệch −8 px, vòng 2 px màu bảng) + "12 người đang xem".
+- Đổi tên chế độ (đề xuất): "Vòng quay may mắn" → "Quay ngẫu nhiên", icon cuộn dọc (khung chữ nhật + 2 vạch ngang) thay icon bánh xe.
+
+**Hình học** (số trong artboard đặc tả)
+
+| Phần | Máy tính | Điện thoại |
+| --- | --- | --- |
+| Khung trống | 620×420, viền 4 `border-sticker`, bo 28, `shadow-sticker`, nền `bg-board` + `bg-board-shade` | 342×330, viền 3,5, bo 24 |
+| Số dòng hiện | 7 (giữa + 3 trên + 3 dưới) | 7 |
+| Cao dòng | 64 px | 52 px |
+| Cong trụ | 20°/dòng. Dòng lệch `d` (số thực) so với tâm: `θ = 20°·d`, `y = R·sin θ`, `R = cao dòng ÷ 0,349` (183 / 149 px), `transform: translateY(y) rotateX(−θ)`, cha có `perspective: 900px`; chỉ vẽ dòng có \|θ\| ≤ 80° (khoảng 10 dòng) | như trên |
+| Mờ dần | `opacity = cos(θ)^1,5` → ±1: 0,91 · ±2: 0,67 · ±3: 0,35 | như trên |
+| Bóng trụ | lớp phủ `drum-shade` (đen 52% ở mép → 0 tại 34% / 66%), `pointer-events-none` | như trên |
+| Dải chọn | cao 74 (dòng + 10), viền 4, bo 18, `bg-card` + `shadow-sticker-sm`, cách mép trái/phải 24 px | cao 62, viền 3,5, bo 15, cách mép 16 px |
+| Kim | 2 tam giác `bg-primary` viền mực 3,5, 21×27, sát mép trái/phải, trỏ vào dải | 17×22 |
+| Một dòng | `GameThumb` 72×46 (viền 3, bo 12) · tên `font-display` 24 px · `CategoryChip` cao 26 / 13 px; lề trong 36 px (chỗ cho kim), khe 14 | `GameThumb` 54×34 (viền 2,5, bo 9) · tên 18 px · chip cao 22 / 11,5 px; lề 28, khe 10 |
+
+- **Hai lớp:** lớp thường vẽ mọi dòng chữ `text-chalk`; lớp thứ hai là bản sao các dòng \|d\| < 1,3 đặt trong dải chọn (`overflow-hidden`), chữ `text-card-foreground`. Nhờ vậy dòng đi qua dải đổi màu đúng mép dải, không phải đổi màu cả dòng theo ngưỡng.
+- **Ô hình game:** dùng `GameThumb` sẵn có (nền `bg-board`). Thêm prop chờ sẵn cho `GameClient.Icon` (khi có thì dùng, không thì `Illustration` thu nhỏ, không nữa thì icon nhóm). Hình trên bản mẫu là phác thảo phấn, không phải hình thật.
+- Tên dài cắt "…" (`truncate`, `min-w-0`); chip nhóm không co.
+
+**Chuyển động** (giờ server như `use-wheel-spin`; tách component trống nhận `pos` để không vẽ lại cả màn mỗi khung)
+
+| Pha | Bình thường | Giảm chuyển động |
+| --- | --- | --- |
+| Chờ quay | Trôi đều 0,8 dòng/giây: `pos = (serverNow ÷ 1.250) mod N`, mọi máy cùng hình | Đứng yên ở `pos = 0` |
+| Đang quay | `start = pos lúc wheelSpinAt`; `end` = số nhỏ nhất dạng `k·N + vị trí game trúng` mà ≥ `start + 45` (quãng 45–73 dòng). `p = (serverNow − wheelSpinAt) ÷ wheelSpinMs` (4.000 ms); `pos = start + (end − start)·(1 − (1 − p)⁴)` (easeOutQuart, CSS gần đúng `cubic-bezier(.25,1,.5,1)`). Nhoè theo tốc độ `v = (end − start)·(1 − p)³` dòng/giây: v ≥ 25 → `blur(2.5px)`; 10–25 → `1.2px`; < 10 → 0 (đổi theo bậc, dải chọn tối đa 1,2 px) | Trống đứng yên, thẻ kết quả "Đang quay…" |
+| Đã trúng | Dải `bg-primary` chữ ink; vòng loé `0 0 0 12px primary/85` → 0 trong 600 ms; dòng trúng nảy scale 1 → 1,08 → 1 (420 ms, `cubic-bezier(.34,1.56,.64,1)`); kim giật vào 5 px rồi về (420 ms). Giữ 1.500 ms (`WHEEL_RESULT_HOLD_MS`) rồi sang Hướng dẫn | Nhảy thẳng tới game trúng, dải vàng hiện bằng mờ 200 ms, không nảy |
+| Vào lại phòng | Đã quay xong: hiện thẳng kết quả. Đang quay dở: tính `pos` theo giờ server, vào giữa chừng | như bên trái |
+
+- **Âm thanh:** `tick` mỗi khi một dòng đi qua giữa dải (khi `floor(pos + 0,5)` đổi), cách nhau ≥ 60 ms, âm lượng 40%; lúc trúng dùng tiếng chọn sẵn có. Theo nút Âm thanh, không theo nút Hiệu ứng.
+- **Trợ năng:** trống `role="img"`, `aria-label` = `gameSelect.wheelLabel` (đủ tên trò); kết quả đọc qua thẻ `aria-live="polite"`, không đọc từng dòng; nút Quay! giữ như hiện nay.
+
+**Câu chữ** (vi / en): `gameSelect.modeWheel` "Quay ngẫu nhiên" / "Random spin"; `gameSelect.drumNote` "{{count}} trò trong trống quay · {{played}} đã chơi" / "{{count}} games on the reel · played: {{played}}" (+ bản ngắn `drumNoteShort` "{{count}} trò trong trống · {{played}} đã chơi" / "{{count}} on the reel · played: {{played}}"; `_one` / `_other` cho en); `gameSelect.wheelLabel` "Trống quay gồm {{count}} trò: {{games}}" / "Reel of {{count}} games: {{games}}"; `gameSelect.watching` "Cả phòng đang xem · {{count}} người" / "Everyone's watching · {{count}} players"; `gameSelect.holdingWheel` "{{name}} đang cầm trống quay" / "{{name}} is holding the reel"; `gameSelect.notSpunHint` "Bấm <b>Quay!</b> để chọn game cho vòng {{round}}. Cả phòng cùng xem trống quay." / "Tap <b>Spin!</b> to pick the game for round {{round}}. Everyone watches the reel.". Khoá `inWheel`, `wheelNote` không còn dùng ở màn này.
+
+### 6.8 Phòng 12 người (CR-018)
+
+Bản mẫu: [canvas khu 25](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ). Nguyên tắc: **≤ 8 ghế giữ đúng bố cục cũ**; bố cục gọn bật theo số ghế đang có (`players.length`, tính cả bot), không theo `MAX_PLAYERS`.
+
+**Màu avatar (đã duyệt)** — thêm vào cuối `AVATAR_COLORS` (vị trí 8–11), 8 màu cũ giữ thứ tự:
+
+| Đề xuất | Chốt | Tên | Lý do |
+| --- | --- | --- | --- |
+| `#E9A0EC` | `#FF8FE9` | Hồng sen | Cách tím nho từ ΔE 10,5 lên 15,0 |
+| `#FF8080` | `#FB7B74` | San hô | Cách hồng từ 12,7 lên 15,0 |
+| `#D8B98C` | `#CBAF86` | Cát | Cách vàng từ 12,6 lên 14,9 |
+| `#7FCF7F` | `#748EDC` | Dừa cạn | Xanh lá nằm giữa mint, chanh, ngọc (ΔE 10,1); vùng lam tím còn trống (cách trời 15,8) |
+
+Mọi cặp trong 12 màu có ΔE2000 ≥ 14,7 (bằng cặp gần nhất của 8 màu cũ, mint – ngọc). 4 màu mới đậm hơn (L* 60–74 so với 74–86) nên khác cả độ sáng. Viền mực trên mọi màu ≥ 5,2:1; sáng và tối như nhau vì avatar luôn có viền mực. Màu không bao giờ là cách phân biệt duy nhất (luôn có nhân vật + tên).
+
+| Màn | ≤ 8 ghế | 9–12 ghế |
+| --- | --- | --- |
+| Phòng chờ · máy tính | Lưới 4 × 2, ô 194×148 | Lưới 6 cột × 2 hàng, ô cao 112 px (≈ 127 px rộng ở 1280), khe 16 × 12: avatar 52 (huy hiệu máy `md`→`sm`), tên 17 px, nhãn trạng thái / chip mức cao 22 px · 11,5 px, vương miện 34 px lệch −13/−11; nút × bỏ bot 44 px (vòng 28) lệch −12 ra góc trên phải; chọn mức trong ô: lưới 2×2 chip 52×44. Có cột chat (vùng lưới hẹp): `grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr))` → 4 cột × 3 hàng, nội dung bảng cuộn dọc |
+| Phòng chờ · điện thoại | 2 cột, ô 60 px | 2 cột × 6 hàng, ô 52 px, khe 8: avatar 36 (huy hiệu `xs`), tên 16 px, nhãn 20 px · 10,5 px, vương miện 22 px. Thẻ chủ phòng gọn 52 px, chọn nhân vật 6 × 44 px, nút Sẵn sàng 58 px vẫn trong màn đầu ở 390×844 |
+| Hộp thoại Chơi với máy | 1–7 bot, dải 8 ghế 32 px | 1–11 bot (`MAX_PLAYERS − 1`), dải 12 ghế: vòng 26 px cách 5 (máy tính, 367 px), điện thoại 22 px cách 4 (308 px). Câu chữ dùng `{{max}}` sẵn có |
+| Bảng điểm khi chơi · máy tính | Hàng 62 px | Hàng 40 px, khe 4: hạng 24 · avatar 30 (huy hiệu `xs`) · tên `font-display` 16 px tối đa 96 px · chấm độ khó 11 px (viền mực, `title` là tên mức) · "câu n" 11 px · lửa combo 13 px · điểm 20 px. 12 hàng vừa cột 392 px, không cuộn |
+| Dải điểm khi chơi · điện thoại | Dải thẻ ngang (≤ 5 đối thủ) | Từ 6 đối thủ: lưới 6 cột × 2 hàng, ô cao 46 px gồm **cả mình** (ô của mình nền `bg-primary`): avatar 26 + hạng 17 px góc trên trái + điểm 12 px; lửa combo 12 px góc trên phải. Tên chỉ có trong `aria-label` và `title` ("Minh, hạng 1, 1.320 điểm, câu 9"). Thêm 34 px so với dải cũ, khung minigame co lại (scale FIT) |
+| Kết quả vòng · máy tính | Thẻ nhất vòng 380 + bảng 1 cột, hàng 70 | Thẻ nhất vòng 300 px; bảng chia 2 cột × 6 hàng (cột trái hạng 1–6), mỗi cột có tiêu đề cột riêng; hàng 52 px: hạng 32 · avatar 36 · tên 18 px · chip độ khó 22 px · đúng · điểm 23 px |
+| Tổng điểm trận · máy tính | Hàng như hiện nay | Hàng 36 px, khe 4: hạng 26 · chip lên/xuống 40×20 · avatar 28 · tên 132 px · thanh 20 px + nhãn "+điểm" · tổng 24 px. Dòng phụ ghi điểm theo hạng của đúng số ghế: "15 · 13 · 11 · 9 · 8 · 7 · 6 · 5 · 4 · 3 · 2 · 1" |
+| Kết quả · điện thoại | Hàng 58 px | Hàng 48 px: hạng 28 · avatar 34 · tên 17 px + dòng phụ "8 đúng · chip độ khó" · điểm 20 px. Hàng của mình nền `bg-primary`, `sticky top-0` và `bottom` (chừa 80 px khi có nút chat nổi) nên luôn thấy khi ngoài màn |
+| Vinh danh · máy tính | Hạng 4+ một cột, hàng 50 | Từ 6 người hạng 4+: lưới 2 cột trong cột 330 px, `grid-auto-flow: column`, 5 hàng × 36 px, khe 5×6: hạng 22 · avatar 24 · tên 14,5 px (bot ghi "· máy") · điểm 16 px. Bục và nút giữ nguyên |
+| Vinh danh · điện thoại | Hàng 50 | Một cột, hàng 44 px (avatar 32), trang cuộn; hàng của mình nền `bg-primary/30` |
+| `AvatarStrip` (chọn game, hướng dẫn) | Một hàng avatar 44 có tên | Máy tính: lưới 6 cột, avatar 40, tên 12 px. Điện thoại: avatar chồng nhau 30 px, lệch −8, viền 2 px màu bảng, không tên |
+
+- **Nhịp vinh danh** (mục 6.2) không đổi công thức; 12 người: hàng hạng 4+ cuối lúc 4.200 ms, hạng 1 lúc 9.400 ms. Ở lưới 2 cột, thứ tự lật vẫn từ hạng thấp nhất lên (cột phải 12 → 9, rồi cột trái 8 → 4).
+- **Trạng thái:** đang tải phòng chờ hiện 12 ô khung nhạt khi phòng có 12 ghế; mất kết nối dùng banner chung; người mất kết nối mờ 50–60% như cũ.
+
+### 6.9 Trang quản trị (S18, CR-019)
+
+Bản mẫu: [canvas trang "Quản trị", khu 26](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ). Công cụ nội bộ: vẫn bảng phấn + thẻ nhãn dán, nhưng chữ nhỏ hơn, bảng dày và số dễ dò.
+
+**Khung**
+
+- Viền gỗ 10 px, mặt bảng đệm 16 × 20. Thanh trên: linh vật 40 px + "Brain Rizz" + chip "Quản trị" (`bg-primary`) · email quản trị viên + avatar 32 (ẩn trên điện thoại) · nút "Về trò chơi" (phấn, 44 px; điện thoại chỉ còn icon + `aria-label`).
+- **Máy tính** (vùng nội dung ≥ 820 px, đổi bằng container query): cột menu trái 224 px gồm 8 nút 44 px (icon 19 + chữ 15 px đậm, chữ phấn); mục đang mở là thẻ `bg-card` viền 3 px `shadow-sticker-sm`, `aria-current="page"`; mục Phòng đang mở có chip số phòng. **Điện thoại:** hàng tab cuộn ngang ngay dưới thanh trên, tab 44 px viền phấn, tab đang mở nền thẻ.
+- Đầu mỗi mục: tiêu đề phấn `font-display` 30 px + một dòng mô tả `text-chalk-muted` 13,5 px; nút phụ của mục căn phải (Làm mới, công tắc Tự làm mới, chip "Đang áp dụng: phiên bản 12").
+- **Bảng:** thẻ `bg-card` viền 3,5 bo 20. Hàng ≥ 48 px, chữ 13,5 px, số `tabular-nums` căn phải, tiêu đề cột 11 px in hoa `text-muted-foreground`; vạch hàng `border-sticker/15`, hàng chẵn nền mờ 4%. Điện thoại: ẩn tiêu đề cột và cột phụ, mỗi hàng thành 2 dòng (dòng 1 người/đối tượng + nhãn, dòng 2 chữ phụ 12 px gom các cột bị ẩn). Dựng bằng lưới `div` có `role="table"/"row"/"cell"` để đổi bố cục được.
+
+**Từng mục**
+
+| Mục | Nội dung |
+| --- | --- |
+| Tổng quan | 4 thẻ "hôm nay" (Đăng nhập, Người hoạt động, Người mới, Trận party; số 32 px, dòng so sánh 12 px) · biểu đồ cột 14 ngày một chuỗi, chọn chỉ số bằng nhóm nút (Đăng nhập · Người hoạt động · Người mới · Trận · Kiểm tra não): cột `bg-analyze` viền mực bo trên 5, cột hôm nay `bg-primary`, lưới 0 / giữa / đỉnh mờ, nhãn trục ngày cách 1, rê chuột hoặc chạm cột hiện thẻ số, có danh sách `sr-only` cho trình đọc màn hình · thẻ Tổng cộng (người chơi + Google/khách, trận, Kiểm tra não, kỷ lục luyện tập, phòng đang mở, quản trị viên). Điện thoại: thẻ số 2 × 2 |
+| Game | Thanh công cụ: chip "28 / 30 đang bật" · ô tìm · lọc nhóm · chọn kỳ số liệu (30 ngày / Mọi lúc). Hàng 52 px: ô hình 46×30 · tên + id `mono` 12 px (+ chip "Đang tắt" nét đứt) · chip nhóm · công tắc `Switch` (vùng chạm 56×44, `aria-label` "Bật {{tên}}") · 4 ô hệ số 50×40 (điện thoại 44 px, chia đều cả hàng) + nút về mặc định 40 px · số trận party · lượt Kiểm tra não · TB điểm · người luyện tập. Ô ghi đè: nền `bg-primary/30`, chữ đậm, `title` ghi mặc định; ô thường là hệ số hiệu lực. Game tắt: hàng mờ 55% trừ công tắc. Còn 2 game bật: 2 công tắc đó khoá + toast giải thích |
+| Điểm & hệ số | Dải ghi chú nét đứt: chỉ áp dụng trận party mới. Hai cột: **form** 4 nhóm (Điểm mỗi câu đúng: điểm gốc, thưởng nhanh tối đa, mốc Nhanh, mốc Chậm · Combo: bắt đầu từ câu, cộng mỗi câu, tối đa · Hệ số độ khó chung 4 ô · Thưởng top 3 ô); mỗi ô: nhãn 13 px, `Input` 44 px + đơn vị, dòng "Mặc định … · khoảng" 11,5 px, ô đã đổi nền `bg-primary/30` + chip "đã đổi"; nút "Khôi phục mặc định" · **xem thử**: nhóm nút độ khó, thanh trượt giây (0–10, bước 0,5), bộ đếm chuỗi (0–10), khung kết quả "Bản nháp 229 / Đang áp dụng 217" (Khó, 2,5 giây, chuỗi 4) + công thức chữ `mono` · **điểm thứ hạng**: bảng 2–12 ghế × hạng 1–12 (ô 26 px, hàng 12 ghế nền vàng nhạt, khung cuộn ngang trên điện thoại). Dưới: **lịch sử** (phiên bản, ghi chú, giờ · người; bản đang áp dụng ghi "Đang áp dụng", bản cũ có "Nạp vào bản nháp") |
+| Đăng nhập | Ô tìm tên/email · lọc loại (Tất cả, Khách mới, Đăng nhập Google, Liên kết Google, Mở lại phiên, Đăng xuất). Cột: thời gian · người chơi (avatar 30, tên, email hoặc "Khách") · chip sự kiện (khách mới `bg-muted`, đăng nhập `bg-sky`, liên kết `bg-mint`, mở lại phiên nét đứt, đăng xuất `bg-pink`) · loại tài khoản · thiết bị "Chrome · Android". "Tải thêm" theo `p_before`. Chân bảng: "không ghi IP" |
+| Người chơi | Ô tìm · nhóm nút Tất cả / Google / Khách (kèm số) · cột: người chơi (+ chip "Quản trị") · loại · tạo lúc · đăng nhập gần nhất · hoạt động gần nhất · trận · Kiểm tra não · kỷ lục. Phân trang "1–10 / 1.284" + ‹ › 44 px |
+| Trận đấu | Cột: kết thúc · mã phòng (`font-display`) · vòng · người ("12 người · 2 bot") · tên game (cắt "…") · chip cấu hình "v12" (bản cũ nền `bg-muted`) · nút mở 40 px (`aria-expanded`). Mở ra: bảng con hạng · người chơi · điểm trận · tổng điểm vòng |
+| Phòng đang mở | Chip tóm tắt (4 phòng · 23 người · 5 bot) + thời gian chạy máy chủ. Lưới thẻ `auto-fill minmax(250px, 1fr)`: mã phòng 30 px, chip pha (Phòng chờ / Chọn game / Đang chơi / Vinh danh), ô hình + tên game + "Vòng 3/5", 3 ô số (người · bot · đang kết nối), chip cấu hình (bản cũ: nét đứt "v11 · bản cũ") + "mở 12 phút trước". Không hiện tên người chơi. Công tắc "Tự làm mới 10 giây" + nút Làm mới ở đầu mục |
+| Quản trị viên | Thẻ thêm: email Google + ghi chú (≤ 200) + nút Thêm; lỗi `not-found` hiện dưới ô (viền + vòng `destructive`, `role="alert"`). Danh sách: người (chip "Bạn"), ghi chú, thêm lúc · bởi ai, nút xoá 44 px chữ `text-destructive` (khoá với chính mình, `title` giải thích). Xoá → `AlertDialog` |
+
+**Bản nháp và lưu:** bật/tắt game, hệ số ghi đè (mục Game) và các ô ở Điểm & hệ số là **một bản nháp**. Có thay đổi thì thanh dưới đáy dính (`sticky bottom-0`, thẻ viền 4) hiện "3 thay đổi chưa lưu · tắt 2 game, thưởng nhanh 50 → 60" + Huỷ nháp + Lưu…. Lưu mở `Dialog` tóm tắt thay đổi + ô ghi chú (≤ 200, đếm ký tự) → `admin_update_party_settings` → `POST /admin/config/reload`. Toast: thành công (xanh), đã lưu nhưng reload lỗi (cam, "trận mới nhận trong vòng 30 giây"), lỗi quyền (hồng, giữ bản nháp). Ô sai theo `ScoringConfigSchema`: viền + vòng `destructive`, câu lỗi 11,5 px dưới ô, `aria-invalid`; nút Lưu khoá kèm dòng "Còn n ô chưa hợp lệ". "Khôi phục mặc định" hỏi lại bằng `AlertDialog`, chỉ đổi bản nháp.
+
+**Trạng thái**
+
+| Trạng thái | Hiển thị |
+| --- | --- |
+| Chưa đăng nhập Google (khách hoặc chưa đăng nhập) | Cổng: ẩn menu, thẻ giữa màn 460 px: "Đăng nhập để vào trang quản trị" + nút Google + "Về trò chơi"; ghi chú "Tài khoản khách không vào được trang quản trị." |
+| Đăng nhập nhưng không có quyền | Cổng: "Tài khoản này chưa có quyền quản trị", ghi email đang dùng, nút "Đổi tài khoản Google". Lỗi `42501` giữa phiên cũng về cổng này |
+| Chưa kết nối máy chủ dữ liệu | Cổng: "Chưa kết nối máy chủ dữ liệu" + Thử lại |
+| Đang tải | Trong mục: thẻ có khung xám nhấp nháy đúng bố cục, `aria-busy` |
+| Trống | Ô icon + câu riêng từng mục (vd. "Không có phòng nào đang mở · phòng mới hiện trong vòng 10 giây") |
+| Lỗi | Thẻ `role="alert"`: "Không tải được …" + Thử lại; các mục khác vẫn dùng được |
+
+**Lối vào:** màn Tài khoản (bản đã liên kết Google) có hàng "Trang quản trị" 52 px (icon khiên + mũi tên) khi `is_admin()` đúng; mở `/admin`.
+
+**Câu chữ:** lấy từ bản mẫu, đặt trong gói lười `src/i18n/locales/admin/vi.ts` rồi `en.ts`. Số định dạng theo ngôn ngữ (1.284 / 1,284), giờ theo `Asia/Ho_Chi_Minh`.
+
 ## 7. Đa ngôn ngữ & nội dung
 
 - Mọi chữ qua `t()`: khoá thêm vào `apps/web/src/i18n/locales/vi.ts` trước, rồi `en.ts`. Tên/cách chơi minigame ở `apps/web/src/games/<id>/locales.ts`.
@@ -512,5 +646,6 @@ Chọn mức là gửi `setBotLevel` và đóng ô ngay (không có nút Lưu). 
 | 1.4 | 2026-10-19 | Canvas khu 18–21: nút Hiệu ứng, vinh danh hồi hộp (lịch hiện, chuyển động, âm thanh), thẻ Giỏi nhất mỗi thể loại, thẻ Thế mạnh trong trận party; mục 6 Đặc tả chi tiết; quy tắc một nguồn giảm chuyển động | [CR-010](../00-tracking/change-requests.md#cr-010) |
 | 1.5 | 2026-10-20 | Canvas khu 22: khung chat trong phòng (S16), mục 6.5; token `bubble-mine`; component Sheet, Switch | [CR-011](../00-tracking/change-requests.md#cr-011) |
 | 1.6 | 2026-10-21 | Canvas khu 23: chơi với bot (S17 thẻ menu + hộp thoại, ô thêm bot và ô bot ở phòng chờ, huy hiệu máy ở mọi nơi, nhãn "Đấu với máy", bot nhường ghế); bản đồ màn hình, S4, S17, mục 6.6; token `bot`; component Dialog | [CR-016](../00-tracking/change-requests.md#cr-016) |
+| 1.7 | 2026-11-19 | Canvas khu 24 (trống quay dọc, mục 6.7), khu 25 (phòng 12 người, 4 màu avatar mới, mục 6.8), trang "Quản trị" khu 26 (S18, mục 6.9); bản đồ màn hình, S4–S7, S10, S18; utility `drum-shade` | [CR-017](../00-tracking/change-requests.md#cr-017), [CR-018](../00-tracking/change-requests.md#cr-018), [CR-019](../00-tracking/change-requests.md#cr-019) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

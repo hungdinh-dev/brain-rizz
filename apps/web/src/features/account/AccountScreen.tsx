@@ -1,9 +1,11 @@
 import {
   CheckIcon,
+  ChevronRightIcon,
   LinkIcon,
   LoaderCircleIcon,
   LogOutIcon,
   PencilIcon,
+  ShieldCheckIcon,
   Trash2Icon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -29,6 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { loadProfile } from "@/features/home";
 import { loadRecords } from "@/features/practice";
 import { playSfx } from "@/features/sfx";
+import { fetchIsAdmin } from "@/net/admin-api";
 import { useAuth } from "@/stores/auth.store";
 import { useNav } from "@/stores/nav.store";
 import { HistoryTabs, PracticeTable } from "./components/HistoryTabs";
@@ -65,6 +68,22 @@ export function AccountScreen() {
     };
   }, [configured, attempt]);
 
+  // Lối vào trang quản trị (CR-019): chỉ khi đã đăng nhập Google và `is_admin()` đúng.
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    if (auth.status !== "google" || !auth.userId) {
+      setIsAdmin(false);
+      return;
+    }
+    let live = true;
+    void fetchIsAdmin().then((res) => {
+      if (live) setIsAdmin(res.ok && res.data);
+    });
+    return () => {
+      live = false;
+    };
+  }, [auth.status, auth.userId]);
+
   // Lỗi quay về từ Google khác "đã có dữ liệu" → toast một lần.
   useEffect(() => {
     if (auth.oauthIssue === "failed") {
@@ -92,12 +111,16 @@ export function AccountScreen() {
 
   async function deleteData() {
     setDeleting(true);
-    const ok = await auth.deleteMyData();
+    const result = await auth.deleteMyData();
     setDeleting(false);
     setConfirmDelete(false);
-    if (ok) {
+    if (result === "deleted") {
       toast(t("account.deleted"));
       go("menu");
+    } else if (result === "last-admin") {
+      // Quản trị viên duy nhất (CR-019): không xoá gì, nói rõ cách gỡ thay vì "thử lại sau".
+      playSfx("error");
+      toast.error(t("account.deleteLastAdmin"), { duration: 10_000 });
     } else {
       playSfx("error");
       toast.error(t("account.deleteFailed"));
@@ -158,6 +181,13 @@ export function AccountScreen() {
             {opening ? t("account.opening") : t("account.linkGoogle")}
           </Button>
         </>
+      )}
+      {isAdmin && (
+        <Button variant="outline" className="min-h-13 justify-start" onClick={() => go("admin")}>
+          <ShieldCheckIcon aria-hidden />
+          <span className="flex-1 text-left">{t("account.adminConsole")}</span>
+          <ChevronRightIcon aria-hidden />
+        </Button>
       )}
     </Card>
   );
