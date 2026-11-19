@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Phân tích yêu cầu |
-| Phiên bản tài liệu | 1.13 · 2026-11-19 — Game yêu thích, hướng dẫn động, tách URL theo [CR-020](../00-tracking/change-requests.md#cr-020), [CR-021](../00-tracking/change-requests.md#cr-021), [CR-022](../00-tracking/change-requests.md#cr-022) |
+| Phiên bản tài liệu | 1.14 · 2026-11-20 — Phấn, máy quay phụ kiện, bạn đồng hành mở khoá theo [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024) |
 | Đầu vào | [Yêu cầu nghiệp vụ](brd.md) |
 | Đầu ra cho | [Thiết kế game](game-design.md), [UI/UX](ui-ux.md), [Kiến trúc](../02-architecture/overview.md), [Kiểm thử](../03-guides/testing.md) |
 | Cập nhật khi | Thêm/đổi use case hoặc yêu cầu — tăng phiên bản tài liệu và ghi vào [Lịch sử thay đổi](#9-lịch-sử-thay-đổi-tài-liệu) |
@@ -117,6 +117,8 @@ flowchart LR
 | UC-12 | Rời phòng | Người chơi | BR-01 | M | 0 |
 | UC-22 | Chat trong phòng (chữ, biểu cảm nhanh) | Người chơi, Chủ phòng, Server | BR-01, BR-11 | S | 1 ([CR-011](../00-tracking/change-requests.md#cr-011)) |
 | UC-23 | Chơi với bot (thêm bot vào phòng, nút "Chơi với máy") | Người chơi, Chủ phòng, Server | BR-10 | S | 1 ([CR-016](../00-tracking/change-requests.md#cr-016)) |
+| UC-25 | Kiếm phấn, quay phụ kiện, mặc đồ (tủ đồ) | Khách, Người chơi, Server | BR-10 | S | 1–2 ([CR-023](../00-tracking/change-requests.md#cr-023)) |
+| UC-26 | Mở khoá bạn đồng hành bằng thành tích | Khách, Người chơi, Server | BR-10 | S | 1–2 ([CR-024](../00-tracking/change-requests.md#cr-024)) |
 | UC-24 | Quản trị hệ thống (cấu hình điểm party, bật/tắt game, xem đăng nhập, người chơi, trận, phòng) | Quản trị viên, Server | BR-07, BR-12 | S | 1 ([CR-019](../00-tracking/change-requests.md#cr-019)) |
 | UC-13 | Luyện tập một minigame | Khách | BR-10 | S | 1–2 ([CR-009](../00-tracking/change-requests.md#cr-009)) |
 | UC-14 | Kiểm tra não (chơi một mình 5 game) | Khách, Server | BR-10 | S | 1–2 (CR-009) |
@@ -380,6 +382,32 @@ flowchart TD
 - **Quy tắc:** cấu hình chỉ áp dụng cho trận party; Luyện tập, Kiểm tra não giữ công thức chuẩn (bảng xếp hạng không lệch). Không ghi IP người chơi.
 - **FR:** FR-QT-01 → FR-QT-10.
 
+#### UC-25 — Kiếm phấn, quay phụ kiện, mặc đồ
+
+- **Tác nhân:** người chơi (khách có phiên hoặc Google), game server, Supabase. Kế hoạch + hợp đồng: [gacha-pets-unlocks.md](gacha-pets-unlocks.md).
+- **Luồng chính:**
+  1. Người chơi chơi trận party / Kiểm tra não / luyện tập → server (hoặc RPC luyện tập) cộng phấn theo bảng kinh tế, trong trần mỗi ngày; kết quả hiện "+N phấn".
+  2. Menu: nhận quà mỗi ngày (một lần, không bắt buộc).
+  3. Mở `/gacha`: xem số dư, tỉ lệ, danh sách món, bộ đếm bảo hiểm → Quay 1 / Quay 10 → Supabase trừ phấn, bốc món (RNG trong Postgres, bảo hiểm), trả kết quả → màn mở quà; trùng → đổi lại phấn.
+  4. Mở `/wardrobe` → chọn tối đa 1 món mỗi chỗ (đầu, mặt, cổ) → nhân vật mặc ở mọi màn; vào phòng thì cả phòng thấy (server kiểm sở hữu).
+- **Luồng rẽ:**
+  - 1a. Không có phiên / Supabase chưa cấu hình → không cộng phấn, gacha báo "Chưa kết nối máy chủ dữ liệu".
+  - 3a. Thiếu phấn → nút Quay tắt, chỉ cách kiếm.
+  - 4a. Món không sở hữu (sửa tay dữ liệu máy) → server bỏ món đó.
+- **Quy tắc:** không tiền thật, không đồng hồ áp lực; tỉ lệ + bảo hiểm công khai.
+- **FR:** FR-GC-01 → FR-GC-06, FR-GC-10.
+
+#### UC-26 — Mở khoá bạn đồng hành bằng thành tích
+
+- **Tác nhân:** người chơi, Supabase, game server.
+- **Luồng chính:**
+  1. Ở chọn nhân vật (hồ sơ, phòng chờ, tủ đồ): 6 nhân vật cũ mở sẵn; 6 thú mới hiện ổ khoá + điều kiện + thanh tiến độ (từ `my_unlock_stats`).
+  2. Bấm thú khoá → xem điều kiện, **Luyện ngay** (tới `/practice/<game>`) hoặc **Chơi party**.
+  3. Đạt điều kiện → lần mở app / màn kế tiếp hiện hộp chúc mừng; thú chọn được.
+  4. Vào phòng với thú mới → server kiểm lại bằng số liệu trên Supabase.
+- **Luồng rẽ:** 4a. Không có token hoặc chưa đạt → server thay bằng nhân vật mặc định, vẫn cho vào phòng.
+- **FR:** FR-GC-07 → FR-GC-09.
+
 #### Chế độ chơi một mình và tài khoản (CR-009)
 
 Kỹ thuật chung: [ADR 0011](../02-architecture/decisions/0011-supabase-accounts-and-solo-modes.md). Khi Supabase chưa cấu hình hoặc không truy cập được, mọi chế độ vẫn chơi được, chỉ không lưu và không xem được bảng xếp hạng (luồng rẽ "Không có máy chủ dữ liệu" dưới đây).
@@ -598,6 +626,21 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-QT-09 | Phòng đang mở: `GET /admin/rooms` trên game server (Bearer token Supabase + `isAdmin`), không trả tên người chơi; `POST /admin/config/reload` để trận kế tiếp nhận cấu hình mới ngay | UC-24 | S | 1 |
 | FR-QT-10 | Quản lý quản trị viên: thêm theo email tài khoản Google, xoá; không xoá chính mình hoặc quản trị viên cuối cùng | UC-24 | S | 1 |
 
+### 4.8 Phấn, phụ kiện, bạn đồng hành (GC) — [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024)
+
+| ID | Yêu cầu | UC | Ưu tiên | GĐ |
+| --- | --- | --- | --- | --- |
+| FR-GC-01 | Phấn chỉ kiếm bằng chơi: trận party, Kiểm tra não (server cộng sau khi ghi kết quả), luyện tập (RPC, trần thấp), quà mỗi ngày; trần mỗi ngày theo nguồn (giờ VN); trận chỉ 1 người thật + bot nhận ít hơn. Không có mua bằng tiền thật | UC-25 | S | 1–2 |
+| FR-GC-02 | Sổ phấn ghi từng lần cộng/trừ, idempotent theo nguồn + mã tham chiếu; số dư = tổng sổ; client không ghi trực tiếp | UC-25 | S | 1–2 |
+| FR-GC-03 | Máy quay `/gacha`: Quay 1 / Quay 10 tính trong Postgres (giá, tỉ lệ 4 độ hiếm, bảo hiểm 10 lần ≥ 1 Hiếm, ≤ 15 lần ra Sử thi+, ≤ 60 lần ra Huyền thoại), trùng đổi lại phấn; thiếu phấn → lỗi `insufficient` | UC-25 | S | 1–2 |
+| FR-GC-04 | Công khai: tỉ lệ, danh sách 24 món (có/chưa), bộ đếm bảo hiểm, lịch sử quay | UC-25 | S | 1–2 |
+| FR-GC-05 | Tủ đồ `/wardrobe`: xem trước, tối đa 1 món mỗi chỗ đầu/mặt/cổ; lưu trên máy (hồ sơ), gửi kèm khi vào phòng / đổi hồ sơ | UC-25 | S | 1–2 |
+| FR-GC-06 | Server kiểm sở hữu phụ kiện khi vào phòng / đổi hồ sơ (token hợp lệ + `user_items`), bỏ món không sở hữu; `PlayerView.accessories` cho cả phòng thấy | UC-25 | S | 1–2 |
+| FR-GC-07 | 6 bạn đồng hành mới khoá theo luật thành tích (`UNLOCK_RULES`): số trận / thắng party, kỷ lục luyện tập một game ở mức tối thiểu, trung bình kỷ lục một nhóm, trung bình điểm thể loại party, Điểm Não; 6 nhân vật cũ luôn mở | UC-26 | S | 1–2 |
+| FR-GC-08 | Hiện điều kiện + tiến độ + lối tắt (Luyện ngay / Chơi party) cho thú khoá ở mọi chỗ chọn nhân vật; hộp chúc mừng khi mở mới | UC-26 | S | 1–2 |
+| FR-GC-09 | Server kiểm thú khoá khi vào phòng / đổi hồ sơ bằng số liệu Supabase (`unlock_stats_for` + hàm shared); chưa mở / không token → nhân vật mặc định, không từ chối vào phòng; bot chỉ dùng 6 nhân vật cũ | UC-26 | S | 1–2 |
+| FR-GC-10 | Kết quả trận và Kiểm tra não hiện "+N phấn" (tin riêng cho từng người / `chalkEarned`); lỗi ghi phấn không làm hỏng trận | UC-25 | S | 1–2 |
+
 ## 5. Yêu cầu phi chức năng
 
 | ID | Nhóm | Yêu cầu | Cách kiểm |
@@ -654,6 +697,8 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | Sự kiện đăng nhập (loại, khách/Google, trình duyệt · hệ điều hành; không IP) | Supabase Postgres (`login_events`) | Lâu dài, tới khi người chơi xoá |
 | Phiên bản cấu hình của mỗi trận party | Supabase Postgres, cột `match_results.settings_version` (mặc định 0) | Lâu dài, tới khi người chơi xoá |
 | Game yêu thích ở Luyện tập ([CR-020](../00-tracking/change-requests.md#cr-020)) | `localStorage` `brain-rizz:favorites`; khi có phiên: Supabase `practice_favorites` (migration `20261119100000_practice_favorites.sql`) | Lâu dài; tài khoản: tới khi người chơi xoá |
+| Phấn (sổ cộng/trừ), món đã có, trạng thái bảo hiểm, lịch sử quay ([CR-023](../00-tracking/change-requests.md#cr-023)) | Supabase Postgres (`chalk_ledger`, `user_items`, `gacha_state`, `gacha_pulls`; danh mục `cosmetic_items`), migration `20261120000000_gacha.sql` | Lâu dài, tới khi người chơi xoá |
+| Phụ kiện đang mặc ([CR-023](../00-tracking/change-requests.md#cr-023)) | `localStorage` `brain-rizz:profile`; trong phòng: `PlayerView.accessories` | Lâu dài trên máy; trong phòng tới khi rời |
 | Lượt chơi bóng ma (GĐ 3) | Supabase Postgres | Lâu dài |
 
 ## 8. Ma trận truy vết
@@ -676,6 +721,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | BR-10 | UC-23 | FR-PH-20 → FR-PH-26 | `packages/shared/src/bots/bots.test.ts`, `bots/balance-sim.test.ts`, `answer-judge.test.ts` (`judgeBotAnswer`), `protocol.test.ts` (lệnh bot); `apps/server/test/PartyBots.test.ts`; web `bot-name.test.ts`, `bot-setup.test.ts`, `bot-slot.test.tsx`, `create-party.test.ts`, `data-api.test.ts` (CR-016) |
 | BR-07, BR-12 | UC-24 | FR-QT-01 → FR-QT-10 | `packages/shared/src/party-config.test.ts`, `misc.test.ts` / `answer-judge.test.ts` (cấu hình điểm, điểm thứ hạng co giãn); `apps/server/test` (cấu hình phòng, game tắt, 12 người, route admin); web `features/admin` (CR-018, CR-019) |
 | BR-10, BR-03 | UC-13, UC-21, UC-19 | FR-MR-17, FR-GD-13, FR-GD-14 | web `features/practice` (yêu thích), `games/_shared/demo`, `stores/nav.store.test.ts` (URL) (CR-020 → CR-022) |
+| BR-10 | UC-25, UC-26 | FR-GC-01 → FR-GC-10 | `packages/shared/src/cosmetics/*.test.ts` (luật mở khoá, thưởng phấn, mô phỏng kinh tế, đối chiếu migration); server test thưởng + kiểm sở hữu; web `features/gacha`, `features/wardrobe` (CR-023, CR-024) |
 | BR-12 | — | NFR-COST-01 | — |
 
 ## 9. Lịch sử thay đổi tài liệu
@@ -696,5 +742,6 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | 1.11 | 2026-10-21 | Chơi với bot: thêm UC-23, FR-PH-20 → FR-PH-26, thuật ngữ "Bot", dòng Dữ liệu (`match_results.bot_count`, bot trong RAM phòng), ma trận truy vết | [CR-016](../00-tracking/change-requests.md#cr-016) |
 | 1.12 | 2026-11-19 | Trống quay dọc (UC-20, FR-VC-14, FR-VC-16); phòng 12 người + điểm thứ hạng co giãn (UC-03, UC-08, FR-PH-03/21/22, NFR-REL-02); trang quản trị: tác nhân Quản trị viên, UC-24, FR-QT-01 → 10, dòng Dữ liệu, truy vết | [CR-017](../00-tracking/change-requests.md#cr-017), [CR-018](../00-tracking/change-requests.md#cr-018), [CR-019](../00-tracking/change-requests.md#cr-019) |
 | 1.13 | 2026-11-19 | Game yêu thích (FR-MR-17), hướng dẫn động (FR-GD-13), tách URL theo màn (FR-GD-14), dòng Dữ liệu `practice_favorites`, truy vết | [CR-020](../00-tracking/change-requests.md#cr-020), [CR-021](../00-tracking/change-requests.md#cr-021), [CR-022](../00-tracking/change-requests.md#cr-022) |
+| 1.14 | 2026-11-20 | Phấn, máy quay phụ kiện, tủ đồ (UC-25), bạn đồng hành mở khoá (UC-26), mục 4.8 FR-GC-01 → 10, dòng Dữ liệu, truy vết | [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

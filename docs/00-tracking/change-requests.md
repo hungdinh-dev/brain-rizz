@@ -48,6 +48,8 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 | [CR-020](#cr-020) | Game yêu thích ở Luyện tập (⭐, mục Yêu thích đầu danh sách, đồng bộ tài khoản) | 2026-11-19 | Thêm tính năng | +0,5–1 ngày | Duyệt (2026-11-19) |
 | [CR-021](#cr-021) | Màn hướng dẫn: khung minh hoạ to hơn, nút Phóng to, hình động diễn cách chơi (đợt đầu 5 game MVP) | 2026-11-19 | Thêm tính năng + thay đổi thiết kế | +1,5 ngày (5 game), +3 ngày cho 25 game còn lại | Duyệt (2026-11-19) |
 | [CR-022](#cr-022) | Tách URL theo màn ngoài phòng (Back/Forward/F5 giữ màn, link sâu) | 2026-11-19 | Kỹ thuật + thay đổi thiết kế | +1 ngày | Duyệt (2026-11-19) |
+| [CR-023](#cr-023) | Phấn (tiền trong game, không tiền thật), máy quay phụ kiện công khai tỉ lệ + bảo hiểm, tủ đồ 24 phụ kiện cả phòng thấy | 2026-11-20 | Thêm tính năng | +3–4 ngày công | Duyệt (2026-11-19, chủ dự án uỷ quyền) |
+| [CR-024](#cr-024) | 6 bạn đồng hành mới khoá theo thành tích (điểm game, trung bình nhóm, trận party, Điểm Não), tiến độ + Luyện ngay | 2026-11-20 | Thêm tính năng | +2 ngày công | Duyệt (2026-11-19, chủ dự án uỷ quyền) |
 
 ---
 
@@ -537,6 +539,39 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
   - *Chi phí:* 0 đồng. *Lịch:* +1 ngày.
 - **Quyết định:** **Duyệt** (2026-11-19).
 - **Tài liệu kéo theo:** SRS (FR-GD-14), overview (điều hướng), folder-structure, features.md, changelog.
+- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`.
+
+---
+
+### CR-023
+
+**Phấn, máy quay phụ kiện, tủ đồ**
+
+- **Ngày mở:** 2026-11-20 · **Loại:** Thêm tính năng · **Người đề xuất:** chủ dự án ("thêm một trang gacha… quay gacha cho những món phụ kiện cho model gốc", 2026-11-19). Kế hoạch + hợp đồng: [Gacha, thú mới, mở khoá](../01-product/gacha-pets-unlocks.md)
+- **Mô tả:** người chơi kiếm **phấn** khi chơi (trận party, Kiểm tra não, luyện tập, quà mỗi ngày), tiêu ở **máy quay** `/gacha` để nhận phụ kiện (24 món, 3 chỗ đầu/mặt/cổ, 4 độ hiếm), mặc ở **tủ đồ** `/wardrobe`; cả phòng thấy phụ kiện.
+- **Lý do:** giữ chân người chơi (lý do quay lại, mục tiêu dài hạn), BR-10.
+- **Nguyên tắc bắt buộc:** không tiền thật; tỉ lệ công khai; bảo hiểm (10 lần ≥ 1 Hiếm, ≤ 15 lần ra Sử thi+, ≤ 60 lần ra Huyền thoại); trùng đổi lại phấn; không đồng hồ áp lực; server quyết (RNG trong Postgres); trần phấn mỗi ngày. Chi tiết: kế hoạch mục 2.
+- **Phân tích tác động:**
+  - *Kỹ thuật:* shared `cosmetics/` (danh mục, kinh tế, hàm thưởng); Supabase migration `20261120000000_gacha.sql` (sổ phấn, món, quay, RPC); server: thưởng phấn sau trận / Kiểm tra não, `ServerMessage.Reward`, `PlayerView.accessories` + kiểm sở hữu; web: 2 màn mới, `Character` vẽ phụ kiện. **Không đổi seed, bộ sinh, luật chấm.**
+  - *Chi phí:* 0 đồng. *Lịch:* +3–4 ngày công (chạy song song ~1,5 ngày lịch).
+- **Quyết định:** **Duyệt** — chủ dự án uỷ quyền điều phối tự lên kế hoạch và triển khai (2026-11-19).
+- **Tài liệu kéo theo:** SRS (UC-25, FR-GC-*), GDD (Kinh tế), UI-UX, ADR mới (kinh tế phấn trong Postgres), overview, supabase-setup, folder-structure, features.md, changelog.
+- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`.
+
+---
+
+### CR-024
+
+**Bạn đồng hành mới, mở khoá bằng thành tích**
+
+- **Ngày mở:** 2026-11-20 · **Loại:** Thêm tính năng · **Người đề xuất:** chủ dự án ("thêm các model các thú khác và thêm chế độ khoá… để mở pet này bạn cần chơi game xxx bao nhiêu điểm hoặc loại game xxx đạt điểm trung bình bao nhiêu", 2026-11-19). Kế hoạch: [Gacha, thú mới, mở khoá](../01-product/gacha-pets-unlocks.md) mục 3.2
+- **Mô tả:** 6 nhân vật mới (Pin cánh cụt, Ộp ếch, Thông cú, Gai nhím, Mây koala, Lửa rồng con), mỗi con khoá tới khi đạt điều kiện: số trận / thắng party, kỷ lục luyện tập một game, trung bình kỷ lục một nhóm, trung bình điểm thể loại trong party, Điểm Não. Có thanh tiến độ, nút **Luyện ngay** tới đúng game (URL CR-022), hộp chúc mừng khi mở.
+- **Lý do:** cho người chơi mục tiêu rõ ràng gắn với kỹ năng (BR-10), dẫn họ thử nhiều game/nhóm.
+- **Phân tích tác động:**
+  - *Kỹ thuật:* shared `cosmetics/unlocks.ts` (luật + hàm thuần đánh giá), `CHARACTER_IDS` 6 → 12; Supabase `unlock_stats_for`/`my_unlock_stats` (gộp số liệu sẵn có, không bảng mới); server kiểm thú khoá khi vào phòng (không mở → nhân vật mặc định, không từ chối); web vẽ 6 thú (cùng `BODY_PATH`), khoá ở chọn nhân vật.
+  - *Chi phí:* 0 đồng. *Lịch:* +2 ngày công.
+- **Quyết định:** **Duyệt** — chủ dự án uỷ quyền (2026-11-19).
+- **Tài liệu kéo theo:** SRS (UC-26, FR-GC-*), GDD (nhân vật, mở khoá), UI-UX, folder-structure, features.md, changelog.
 - **Kết quả:** đang làm trên nhánh `feat/admin-12-players`.
 
 ---
