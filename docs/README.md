@@ -38,6 +38,7 @@ docs/
 | Kế hoạch | [Lộ trình & mốc thời gian](01-product/roadmap.md) | Khi nào xong, cổng kiểm tra là gì? |
 | | [Kế hoạch mở rộng minigame](01-product/minigame-expansion.md) | Thêm game nào tiếp theo, theo đợt nào, độ khó ra sao? (đề xuất, chưa duyệt) |
 | | [Kế hoạch chơi với bot](01-product/bot-players.md) | Bot mạnh cỡ nào, thêm vào phòng ra sao, server chấm bot thế nào? (đã duyệt CR-016, chưa làm) |
+| | [Kế hoạch trang quản trị, phòng 12 người, vòng quay dọc](01-product/admin-console.md) | Admin chỉnh điểm thế nào, server nạp cấu hình khi nào, RPC nào có, phòng 12 người tính điểm ra sao? (đã duyệt CR-017 → CR-019, đang làm) |
 | Xây dựng | [Hướng dẫn phát triển](03-guides/development.md), [Cây thư mục](02-architecture/folder-structure.md), [Đội AI agent](03-guides/ai-agents.md), [Asset](03-guides/assets.md) | Cài đặt, quy ước, thêm minigame, sửa gì mở file nào? |
 | Kiểm thử | [Kiểm thử](03-guides/testing.md) | Test gì, trên máy nào, khi nào được phát hành? |
 | Phát hành | [Triển khai](03-guides/deployment.md), [Nhật ký phát hành](00-tracking/changelog.md) | Deploy ở đâu, bản nào có gì? |
