@@ -16,6 +16,7 @@ import {
   type BrainTestResult,
   brainChalkReward,
   brainTestDurationMs,
+  type ClosingPayload,
   computeBrainResult,
   getGame,
   isGameId,
@@ -45,8 +46,8 @@ import { BrainGame, BrainState } from "./schema/BrainState";
  * Server phát seed, giữ đồng hồ, chấm từng câu bằng `AnswerJudge` (cùng luật với PartyRoom).
  *
  * intro (game i) → [brainReady] → countdown → playing → game-result → intro (game i + 1) … → finished
- * Ở `intro` quá `BRAIN_TEST_INTRO_IDLE_MS` mà chưa bấm Sẵn sàng → huỷ lượt, đóng phòng
- * (close code `BRAIN_TEST_IDLE_CLOSE_CODE`).
+ * Ở `intro` quá `BRAIN_TEST_INTRO_IDLE_MS` mà chưa bấm Sẵn sàng → huỷ lượt, gửi tin `closing`
+ * rồi đóng phòng (cùng mã `BRAIN_TEST_IDLE_CLOSE_CODE`).
  *
  * Xong game thứ 5: tính Điểm Não bằng `computeBrainResult`, ghi `brain_tests` + `brain_test_games`
  * nếu token hợp lệ, rồi cộng phấn (`brainChalkReward`, ref = id lượt vừa lưu) vào `chalkEarned`.
@@ -172,11 +173,18 @@ export class BrainTestRoom extends Room<{ state: BrainState }> {
     this.schedule(BRAIN_TEST_INTRO_IDLE_MS, () => this.expireIdle());
   }
 
-  /** Hết giờ chờ ở `intro`: huỷ lượt, không lưu, đóng phòng với `BRAIN_TEST_IDLE_CLOSE_CODE`. */
+  /**
+   * Hết giờ chờ ở `intro`: huỷ lượt, không lưu, đóng phòng với `BRAIN_TEST_IDLE_CLOSE_CODE`.
+   * Báo trước bằng tin `closing` cùng mã: qua Render/Cloudflare khung đóng không tới trình duyệt.
+   * Tin gửi ngay (không chờ patch), còn khung đóng chỉ gửi sau `onDrop`/`onLeave` của `disconnect`,
+   * mà một kết nối WebSocket giữ đúng thứ tự gửi, nên tin luôn tới trước khung đóng.
+   */
   private expireIdle() {
     if (this.state.phase !== "intro") return;
     this.cancelled = true;
     this.clearTimers();
+    const closing: ClosingPayload = { code: BRAIN_TEST_IDLE_CLOSE_CODE };
+    this.broadcast(ServerMessage.Closing, closing);
     void this.disconnect(BRAIN_TEST_IDLE_CLOSE_CODE);
   }
 

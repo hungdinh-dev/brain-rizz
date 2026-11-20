@@ -289,7 +289,19 @@ export const ServerMessage = {
    * Mỗi trận tối đa một lần mỗi người; đang rớt mạng lúc đó thì lỡ (không gửi lại khi nối lại).
    */
   Reward: "reward",
+  /**
+   * Server sắp chủ động đóng kết nối — `ClosingPayload`. Gửi NGAY TRƯỚC khi đóng (vd. Kiểm tra não
+   * hết giờ chờ). Lý do: qua Render/Cloudflare khung đóng WebSocket do server gửi không tới trình
+   * duyệt (xem docs/03-guides/deployment.md), nên mã đóng phải đi bằng tin nhắn thường. Client nhận
+   * tin này thì tự đóng kết nối và xử lý như khi nhận mã đóng `code`.
+   */
+  Closing: "closing",
 } as const;
+
+export interface ClosingPayload {
+  /** Mã đóng server sắp dùng (vd. `BRAIN_TEST_IDLE_CLOSE_CODE`). */
+  code: number;
+}
 
 export interface RoundStartPayload {
   round: number;

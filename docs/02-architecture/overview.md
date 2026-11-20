@@ -300,7 +300,7 @@ stateDiagram-v2
 ```
 
 - Độ khó cố định `BRAIN_TEST_DIFFICULTY` cho mọi người; chấm từng câu bằng `AnswerJudge` như party (khoá khi sai, chống spam, dung sai hết giờ). Tiến độ và chuỗi đúng về 0 ở đầu mỗi game.
-- Pha `intro` chờ người chơi bấm Sẵn sàng; quá `BRAIN_TEST_INTRO_IDLE_MS` (5 phút) thì huỷ lượt, không lưu, đóng phòng với close code `BRAIN_TEST_IDLE_CLOSE_CODE` (4100).
+- Pha `intro` chờ người chơi bấm Sẵn sàng; quá `BRAIN_TEST_INTRO_IDLE_MS` (5 phút) thì huỷ lượt, không lưu, đóng phòng với close code `BRAIN_TEST_IDLE_CLOSE_CODE` (4100). Ngay trước khi đóng, server gửi tin `closing` `{ code: 4100 }`, vì trên Render khung đóng không tới client ([ADR 0018](decisions/0018-websocket-close-frames-render.md)); client xử lý theo mã trong tin.
 - Rớt mạng: giữ chỗ `RECONNECT_WINDOW_S` như party, đồng hồ game vẫn chạy. Thoát hoặc hết giờ giữ chỗ trước `finished` → huỷ lượt, không lưu. Lượt xong trong lúc đang rớt mạng thì chỉ lưu khi nối lại kịp.
 - **Lưu kết quả**: token trong join options được xác thực nền (`verifyToken`), không chặn việc chơi. Xong lượt → `saveBrainTest` ghi `brain_tests` (kèm `rules_version = BRAIN_TEST_RULES_VERSION`) + 5 dòng `brain_test_games`. Kết quả báo qua `saveStatus`:
 
@@ -326,6 +326,7 @@ stateDiagram-v2
 | S → C | patch state | `BrainStateView` | Liên tục |
 | S → C | `roundStart` | `{ round, gameId, seed, startAt, durationMs }` | Đầu mỗi game (vào `countdown`) |
 | S → C | `answerResult`, `pong`, `error` | như party | |
+| S → C | `closing` | `ClosingPayload` = `{ code }` | Ngay trước khi server chủ động đóng (hiện: hết giờ chờ ở `intro`, mã 4100) |
 
 **State** (`apps/server/src/rooms/schema/BrainState.ts`, khớp `BrainStateView`; test so khoá trong `test/BrainTestRoom.test.ts`): `phase`, `name`, `avatar`, `difficulty`, `games` (5 × `{ gameId, category, score, correct }`, điểm cập nhật trực tiếp khi chơi), `round` (1–5), `gameId`, `seed`, `startAt`, `endsAt` (0 ở `intro`), `resultEndsAt` (pha `game-result`: lúc tự sang game kế), `progress`, `streak`, `brainScore` và `skills` (nhóm → điểm; 0/rỗng tới khi `finished`), `saveStatus`, `chalkEarned` (phấn của lượt, 0 tới khi ghi phấn xong). Token và `user_id` **không bao giờ** nằm trong state.
 
@@ -380,11 +381,13 @@ Client gửi 5 `ping` cách nhau 150 ms khi vào phòng (và 3 lần mỗi khi t
 
 ## Mất kết nối
 
-1. Mạng rớt → server gọi `onDrop`, đánh dấu `connected = false`, giữ chỗ 45 giây (`allowReconnection`).
+1. Mạng rớt → server gọi `onDrop`, đánh dấu `connected = false`, giữ chỗ 45 giây (`allowReconnection`). Server biết người chơi rớt khi nhận khung đóng, hoặc khi hết hạn ping: transport đặt `pingInterval` 1500 ms × `pingMaxRetries` 2, tức 3–4,5 giây (`apps/server/src/app.config.ts`). Trên Render khung đóng bị nuốt nên chỉ còn cách ping ([ADR 0018](decisions/0018-websocket-close-frames-render.md)).
 2. SDK tự nối lại; nếu người chơi tải lại trang, `resumeParty()` dùng token trong `sessionStorage`.
    Nối lại thành công thì server gửi lại `chatHistory` (30 tin gần nhất, gồm cả tin trong lúc mất kết nối).
    Game có hạn trả lời thì câu đang làm được tính lại giờ hiện (`AnswerJudge.resume`, xem **Hạn trả lời** ở trên).
 3. Quá 45 giây → `onLeave`, xoá người chơi; nếu là chủ phòng thì chuyển quyền cho người thật kế tiếp. Không còn người thật nào (chỉ còn bot) thì phòng đóng.
+4. Nối lại bị từ chối (phòng không còn vì server khởi động lại / deploy / ngủ, token hết hạn): server gửi tin ERROR. Client đang nối lại mà nhận ERROR thì dừng nối lại và tự đóng 4003, không chờ khung đóng của server. Phòng party đóng ngoài ý muốn (`onLeave` không do người chơi tự rời) → về menu kèm thông báo `connection.roomLost` (`onPartyLost` trong `apps/web/src/net/connection.ts`).
+5. Người chơi tự rời: client gửi LEAVE rồi tự đóng kết nối (`closeRoom`), về menu ngay, không chờ server đóng.
 
 ## Thêm tính năng ở đâu
 

@@ -21,6 +21,7 @@ Mỗi file ghi một quyết định kỹ thuật: bối cảnh, lựa chọn, l
 | [0015](0015-admin-console.md) | Trang quản trị: quyền qua bảng `admins` + RPC `security definer`, route admin trên game server xác thực token Supabase, cấu hình trận party có phiên bản, chụp mỗi trận (CR-019) | Đã chấp nhận |
 | [0016](0016-chalk-economy-in-postgres.md) | Sổ phấn, trần ngày và máy quay phụ kiện chạy trong Postgres (RPC `security definer`, khoá theo người, idempotent theo `ref`); không tiền thật; hằng số SQL đối chiếu với shared bằng test (CR-023, CR-024) | Đã chấp nhận |
 | [0017](0017-first-deploy-render-free.md) | Deploy đầu tiên: game server trên Render Free (Singapore, Docker) bằng Blueprint `render.yaml`, chỉ deploy khi CI xanh và khi code server đổi; Fly.io để dành khi cần | Đã chấp nhận |
+| [0018](0018-websocket-close-frames-render.md) | Qua Render khung đóng WebSocket bị nuốt cả hai chiều: rời phòng do client tự đóng, server báo lý do bằng tin `closing`, nối lại bị từ chối thì dừng ngay, ping 1500 ms × 2 | Đã chấp nhận |
 
 Mẫu cho ADR mới: [_template.md](_template.md).
 
