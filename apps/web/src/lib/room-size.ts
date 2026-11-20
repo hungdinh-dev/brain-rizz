@@ -9,6 +9,15 @@ import { MAX_PLAYERS } from "@brain-rizz/shared";
 /** Số ghế của bố cục cũ (lưới 4 × 2 ở phòng chờ máy tính). */
 export const CLASSIC_SEATS = 8;
 
+/**
+ * Màn lớn (vd. 27 inch): phòng chờ dùng thẻ to của bố cục cũ (194×148), 12 ô xếp 4 cột × 3 hàng,
+ * lấp khoảng trống dưới lưới mà vẫn vừa một màn không cuộn. Đo ở ui-ux 6.8: cần vùng trình duyệt
+ * cao ≥ 1020 px (990 px vừa phòng chưa đầy, nhưng phòng đủ 12 ghế thêm dòng nhắc "đã đủ ghế" nên
+ * cuộn 29 px; 1019 px thì không) và rộng ≥ 1500 px (hẹp hơn, nhất là khi mở cột chat, thì chọn
+ * nhân vật và nút Sẵn sàng xếp chồng, thẻ chỉ còn ~115 px). Ngoài ngưỡng: lưới gọn 6 × 2.
+ */
+export const LOBBY_ROOMY_QUERY = "(min-width: 1500px) and (min-height: 1020px)";
+
 /** Phòng đông: từ 9 ghế trở lên thì dùng bố cục gọn. */
 export function isCrowded(seats: number): boolean {
   return seats > CLASSIC_SEATS;

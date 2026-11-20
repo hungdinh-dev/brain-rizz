@@ -12,8 +12,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ChatSettingRow } from "@/features/chat";
 import { loadProfile, saveProfile } from "@/features/home";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { usePendingAction } from "@/hooks/use-pending-action";
-import { CLASSIC_SEATS, lobbySlotCount } from "@/lib/room-size";
+import { CLASSIC_SEATS, LOBBY_ROOMY_QUERY, lobbySlotCount } from "@/lib/room-size";
 import { cn } from "@/lib/utils";
 import { leaveParty, SERVER_ERROR_TOAST_ID, send } from "@/net/connection";
 import { useAuth } from "@/stores/auth.store";
@@ -45,9 +46,11 @@ export function LobbyScreen() {
   // Bot luôn sẵn sàng và được tính vào "Người chơi" / "Sẵn sàng" (CR-016).
   const readyCount = players.filter((p) => p.ready).length;
   const botCount = players.filter((p) => p.isBot).length;
-  // Luôn đủ 12 ô (khớp "Người chơi n/12"), bố cục gọn (CR-018, ui-ux 6.8).
+  // Luôn đủ 12 ô (khớp "Người chơi n/12"), bố cục gọn (CR-018, ui-ux 6.8). Màn máy tính đủ cao
+  // (màn lớn) thì dùng thẻ to: 12 ô thành 4 cột × 3 hàng, lấp khoảng trống dưới lưới.
   const slotCount = lobbySlotCount(players.length);
-  const compact = slotCount > CLASSIC_SEATS;
+  const roomy = useMediaQuery(LOBBY_ROOMY_QUERY);
+  const compact = slotCount > CLASSIC_SEATS && !roomy;
   const emptyCount = Math.max(0, slotCount - players.length);
   const isHost = party.hostId === sessionId;
   const hostName = party.players[party.hostId]?.name ?? "";
@@ -182,7 +185,8 @@ export function LobbyScreen() {
           {/*
             Điện thoại: ô đang mở bảng chọn mức cao hơn, ô bên cạnh giữ chiều cao (items-start).
             Phòng 12 ô trên máy tính: tối đa 6 cột (ô ≥ 7rem); vùng lưới hẹp (có cột chat) tự
-            xuống 4 cột × 3 hàng. Ô mở bảng chọn mức thì hàng đó cao thêm.
+            xuống 4 cột × 3 hàng. Ô mở bảng chọn mức thì hàng đó cao thêm. Màn lớn
+            (`LOBBY_ROOMY_QUERY`): thẻ to, 4 cột × 3 hàng cao cố định 148 px.
           */}
           <section
             aria-label={t("lobby.playersLabel")}
