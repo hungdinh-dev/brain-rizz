@@ -89,7 +89,7 @@ Nên bật thêm (không bắt buộc): **Authentication → Attack Protection �
    - **Authorized JavaScript origins**: `http://localhost:5173` và domain production, ví dụ `https://brain-rizz.pages.dev`.
    - **Authorized redirect URIs**: `https://<project-ref>.supabase.co/auth/v1/callback` (chép đúng từ trang provider Google trong Supabase, mục **Callback URL**).
 5. Lưu **Client ID** và **Client secret**.
-6. Khi app còn ở chế độ **Testing**, chỉ email trong danh sách **Test users** đăng nhập được. Muốn ai cũng đăng nhập: **Publish app** (scope cơ bản như trên không cần Google duyệt).
+6. Chế độ **Testing** vẫn đủ cho mọi người đăng nhập: app chỉ xin tên, email, ảnh (`openid`, `email`, `profile`), mà với các scope này Google không bắt người dùng nằm trong **Test users**, không hiện cảnh báo và không cho hết hạn sau 7 ngày ([Google: Manage App Audience](https://support.google.com/cloud/answer/15549945)). Test users chỉ có tác dụng nếu sau này xin thêm scope khác. **Publish app** chỉ cần khi muốn qua bước xác minh thương hiệu (hiện tên + logo trên màn đăng nhập Google): phải có home page, trang chính sách quyền riêng tư, điều khoản, domain đã xác minh. **Không tải logo lên** khi chưa định xác minh — app đã Publish mà tải logo là phải qua xác minh.
 
 **Trên Supabase**: Authentication → Sign In / Providers → **Google** → bật, dán Client ID và Client secret → **Save**.
 
