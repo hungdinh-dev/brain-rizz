@@ -2,6 +2,15 @@
 
 Web client là file tĩnh (deploy lên CDN miễn phí). Game server là một tiến trình Node.js giữ WebSocket lâu dài, nên cần nơi chạy được tiến trình liên tục — đây là phần duy nhất có thể tốn tiền.
 
+## Bản đang chạy (từ 2026-11-20)
+
+| Thành phần | Địa chỉ | Ghi chú |
+| --- | --- | --- |
+| Web | https://brain-rizz.pages.dev | Cloudflare Pages (luồng "legacy Pages"), tự build mỗi lần push `main` |
+| Game server | https://brain-rizz-server.onrender.com (`/healthz`) | Render Free, Singapore, Blueprint `render.yaml`; ngủ sau 15 phút vắng |
+| Dữ liệu | Supabase project `exybmkrhdfuxiysbfunt` | Site URL + Redirect URLs đã trỏ về `brain-rizz.pages.dev` |
+| Đăng nhập Google | Google Auth Platform, chế độ **Testing** | Chỉ email trong Test users đăng nhập Google được (tối đa 100); người khác chơi bằng tài khoản khách. Publish cần điền Branding và có trang chính sách quyền riêng tư (chưa có) |
+
 ## Phương án khuyến nghị
 
 | Thành phần | Dịch vụ | Chi phí |
@@ -30,7 +39,7 @@ Vì server được đóng gói Docker (`apps/server/Dockerfile`), chuyển gi�
 ## Deploy web lên Cloudflare Pages
 
 1. Đẩy repo lên GitHub.
-2. Cloudflare Dashboard → Workers & Pages → Create → Pages → kết nối repo.
+2. Cloudflare Dashboard → Workers & Pages → **Create application** → ở cuối trang chọn **"Need to use the legacy Pages workflow? Continue to Pages"** → Import an existing Git repository → GitHub → chọn repo. (Không chọn "Continue with GitHub" ở trên: đó là luồng Workers với `npx wrangler deploy`, repo chưa có cấu hình wrangler và Workers không đọc `_redirects`.)
 3. Cấu hình build:
    - Build command: `pnpm install --frozen-lockfile && pnpm --filter @brain-rizz/web build`
    - Output directory: `apps/web/dist`
