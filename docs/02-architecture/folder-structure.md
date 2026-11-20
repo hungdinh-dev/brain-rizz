@@ -335,8 +335,9 @@ brain-rizz/
 │  │  │                        hành" cho log đăng nhập) + test
 │  │  ├─ net/connection.ts     Mọi thứ liên quan mạng: tạo/vào/rời phòng party (kèm accessToken; tạo phòng kèm `bots` và
 │  │  │                        huỷ giữa chừng, CR-016), phòng Kiểm tra não (startBrainTest/leaveBrainTest/sendBrain), gửi tin,
-│  │  │                        nối lại (dùng chung một lần resume, handler chỉ nhận phòng hiện tại), đồng bộ giờ; create-party.test.ts,
-│  │  │                        resume-party.test.ts (giả lập Colyseus)
+│  │  │                        nối lại (dùng chung một lần resume, handler chỉ nhận phòng hiện tại), đồng bộ giờ; rời phòng
+│  │  │                        bằng `closeRoom` (gửi LEAVE rồi client tự đóng, không chờ server); create-party.test.ts,
+│  │  │                        resume-party.test.ts, leave-room.test.ts (giả lập Colyseus)
 │  │  ├─ net/gacha-api.ts      RPC phấn + máy quay (my_wallet, claim_daily_chalk, gacha_pull, my_items, gacha_history) + test
 │  │  ├─ net/unlocks-api.ts    RPC my_unlock_stats → parseUnlockStats (CR-024) + test; net/party-cosmetics.test.ts (gửi
 │  │  │                        accessories, nhận tin Reward)

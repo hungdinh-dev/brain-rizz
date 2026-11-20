@@ -14,6 +14,7 @@ vi.mock("@colyseus/sdk", () => ({
     joinById = vi.fn();
     reconnect = vi.fn();
   },
+  CloseCode: { CONSENTED: 4000 },
 }));
 vi.mock("@/i18n", () => ({ i18n: { t: (key: string) => key } }));
 vi.mock("sonner", () => ({ toast: Object.assign(vi.fn(), { error: vi.fn() }) }));
@@ -27,7 +28,9 @@ function fakeRoom() {
     sessionId: "s1",
     reconnectionToken: "token",
     send: vi.fn(),
-    leave: vi.fn(async () => 1000),
+    leave: vi.fn(async (_consented?: boolean) => 1000),
+    connection: { isOpen: true, close: vi.fn() },
+    reconnection: { enabled: true },
     onMessage: vi.fn(),
     onDrop: vi.fn(),
     onStateChange: vi.fn(),
@@ -92,7 +95,11 @@ describe("createParty kèm bot (CR-016)", { timeout: 30_000 }, () => {
     });
     const { createParty, useGame } = await load();
     await createParty(PROFILE, { bots: { count: 7, level: 3 }, signal: controller.signal });
+    // Cùng cách rời như leaveParty: gửi LEAVE rồi client tự đóng, không chờ server, không nối lại.
     expect(room.leave).toHaveBeenCalledTimes(1);
+    expect(room.leave).toHaveBeenCalledWith(true);
+    expect(room.connection.close).toHaveBeenCalledWith(4000);
+    expect(room.reconnection.enabled).toBe(false);
     expect(useGame.getState().sessionId).toBe("");
   });
 

@@ -89,6 +89,23 @@ Cấu hình nằm sẵn ở [`render.yaml`](../../render.yaml) (Blueprint): Dock
 
 Tự deploy: mỗi commit lên `main` mà CI xanh (`autoDeployTrigger: checksPass`) và có đổi `apps/server/**`, `packages/shared/**` hoặc dependency (`buildFilter`) thì Render build lại. Sửa web hay tài liệu không deploy lại server. Đổi biến môi trường: service → **Environment** (Render tự khởi động lại).
 
+**WebSocket qua Render: khung đóng (close frame) không đi qua** (đo ngày 2026-11-20, cùng bản build chạy trên máy để so):
+
+| Tình huống | Trên máy | Trên Render |
+| --- | --- | --- |
+| Server đóng kết nối (rời phòng, từ chối, hết giờ chờ) | Client nhận mã (4000, 4002…) ngay | Client không nhận gì, **20 giây** sau bị cắt với mã `1006` |
+| Client tự đóng kết nối | Server biết sau ~0,1 giây | Server chỉ biết khi hết hạn ping, **~10 giây** |
+| Rớt mạng rồi tự nối lại | ~0,25 giây | ~10 giây (thanh "Mất kết nối, đang nối lại" hiện trong lúc đó) |
+| Tin nhắn thường (thêm bot, sẵn sàng, trả lời…) | Bình thường | Bình thường, ping khứ hồi ~75 ms |
+
+Quy tắc cho code: **không dựa vào mã đóng do server gửi**. Rời phòng = gửi lệnh rời rồi trình duyệt tự đóng kết nối (`closeRoom` trong `apps/web/src/net/connection.ts`); server cần báo lý do đóng (vd. Kiểm tra não hết giờ chờ) thì gửi một tin nhắn trước khi đóng. Kiểm tra lại bất cứ lúc nào (Node ≥ 22):
+
+```powershell
+node -e "const t=Date.now();const w=new WebSocket('wss://brain-rizz-server.onrender.com/x/NOPE?sessionId=a');w.onclose=e=>console.log('code',e.code,'sau',Date.now()-t,'ms')"
+```
+
+Ra `code 4002` sau dưới 1 giây là khung đóng đã đi qua; `code 1006` sau ~20000 ms là vẫn bị nuốt.
+
 Hạn chế gói Free ([Render](https://render.com/docs/free)):
 
 - **Ngủ sau 15 phút không nhận được gì** (yêu cầu HTTP hoặc tin WebSocket do web gửi lên). Tín hiệu ping/pong tự động của kết nối (Colyseus gửi 3 giây một lần) có vẻ **không** được tính: ngày 2026-11-20 server ngủ lúc 14:15 khi có người đang ngồi ở phòng chờ không thao tác, log không có lỗi, phòng bị mất. Đánh thức mất khoảng 1 phút.
