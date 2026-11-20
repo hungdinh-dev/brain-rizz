@@ -9,7 +9,7 @@ Web client là file tĩnh (deploy lên CDN miễn phí). Game server là một t
 | Web | https://brain-rizz.pages.dev | Cloudflare Pages (luồng "legacy Pages"), tự build mỗi lần push `main` |
 | Game server | https://brain-rizz-server.onrender.com (`/healthz`) | Render Free, Singapore, Blueprint `render.yaml`; ngủ sau 15 phút vắng |
 | Dữ liệu | Supabase project `exybmkrhdfuxiysbfunt` | Site URL + Redirect URLs đã trỏ về `brain-rizz.pages.dev` |
-| Đăng nhập Google | Google Auth Platform, chế độ **Testing** | Chỉ email trong Test users đăng nhập Google được (tối đa 100); người khác chơi bằng tài khoản khách. Publish cần điền Branding và có trang chính sách quyền riêng tư (chưa có) |
+| Đăng nhập Google | Google Auth Platform, chế độ **Testing** | Ai có tài khoản Google cũng đăng nhập được: app chỉ xin `openid`/`email`/`profile`, Google miễn danh sách Test users cho các scope này ([Google: Manage App Audience](https://support.google.com/cloud/answer/15549945)). Màn đăng nhập Google hiện domain Supabase thay vì tên app; hiện tên + logo cần xác minh thương hiệu (Publish + Branding + trang chính sách quyền riêng tư, chưa có) |
 
 ## Phương án khuyến nghị
 
