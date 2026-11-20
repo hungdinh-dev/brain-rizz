@@ -23,7 +23,7 @@ import {
   ServerMessage,
   sanitizeLoadout,
 } from "@brain-rizz/shared";
-import { Client, type Room } from "@colyseus/sdk";
+import { Client, CloseCode, type Room } from "@colyseus/sdk";
 import { toast } from "sonner";
 import { i18n } from "@/i18n";
 import { STORAGE_KEYS, safeSession } from "@/lib/storage";
@@ -109,7 +109,7 @@ export async function createParty(options: JoinOptions, extra: CreatePartyExtra 
   });
   if (extra.signal?.aborted) {
     // Không còn người thật nào trong phòng nên server đóng phòng (kể cả bot).
-    void r.leave().catch(() => {});
+    closeRoom(r);
     return;
   }
   attachParty(r);
@@ -143,7 +143,7 @@ async function reconnectStored(): Promise<boolean> {
     const r = await client.reconnect(token);
     if (room) {
       // Trong lúc chờ đã vào phòng khác: bỏ ghế cũ, không giành lại màn hình.
-      void r.leave().catch(() => {});
+      closeRoom(r);
       return false;
     }
     attachParty(r);
@@ -155,14 +155,49 @@ async function reconnectStored(): Promise<boolean> {
   }
 }
 
-export async function leaveParty() {
-  safeSession.remove(TOKEN_KEY);
-  await room?.leave();
+/**
+ * Rời phòng party và về menu ngay, không chờ mạng. Bỏ `room` trước để `onDrop` / state muộn của
+ * phòng cũ bị `whileCurrent` bỏ qua. Vẫn trả Promise để UI `await` / `.finally` như cũ.
+ */
+export async function leaveParty(): Promise<void> {
+  const r = room;
   room = null;
+  safeSession.remove(TOKEN_KEY);
+  if (r) closeRoom(r);
   useGame.getState().reset();
   useChat.getState().reset();
   // Thay mục `/r/<mã>` bằng menu `/` (không để lại mục phòng trong lịch sử).
   useNav.getState().go("menu", { replace: true });
+}
+
+/**
+ * Rời phòng `r` mà không chờ server đóng kết nối: gửi LEAVE_ROOM (server dọn ghế ngay) rồi trình
+ * duyệt tự đóng bằng mã CONSENTED. Lý do: qua Render/Cloudflare, khung đóng do server gửi bị giữ lại
+ * nên `room.leave()` chờ mãi, 20 giây sau thành 1006 và SDK tưởng rớt mạng, cố nối lại vào phòng đã
+ * rời. Khung đóng do client gửi thì đi qua ngay.
+ */
+function closeRoom(r: Room) {
+  // Rớt mạng sau khi đã rời thì không nối lại (SDK gọi thẳng `onLeave`).
+  r.reconnection.enabled = false;
+  // SDK có thể đã hẹn một lần nối lại trước đó (lần này vẫn chạy dù đã tắt): nối được thì rời + đóng
+  // ngay, để server không giữ "người chơi ma" trong phòng.
+  r.onReconnect(() => sendLeaveAndClose(r));
+  sendLeaveAndClose(r);
+}
+
+function sendLeaveAndClose(r: Room) {
+  try {
+    // Đang giữa lúc nối lại: socket chưa mở, hoặc đã mở nhưng server chưa gửi JOIN_ROOM (server chưa
+    // nghe tin nên LEAVE bị mất). Chờ `onReconnect` ở trên (SDK đã đặt `isReconnecting = false`), hoặc
+    // nối lại thất bại thì SDK tự gọi `onLeave` vì đã tắt nối lại.
+    if (!r.connection?.isOpen || r.reconnection.isReconnecting) return;
+    // Không chờ promise: nó chỉ xong khi kết nối đóng.
+    void r.leave(true).catch(() => {});
+    // Thứ tự khung trên một socket được giữ nên server nhận LEAVE trước khung đóng.
+    r.connection.close(CloseCode.CONSENTED);
+  } catch {
+    /* kết nối đã đóng */
+  }
 }
 
 export function send(type: (typeof ClientMessage)[keyof typeof ClientMessage], payload?: unknown) {
@@ -192,15 +227,11 @@ export async function startBrainTest(options: BrainJoinOptions) {
 }
 
 /** Rời phòng Kiểm tra não (thoát giữa lượt = huỷ, server không lưu). */
-export async function leaveBrainTest() {
+export async function leaveBrainTest(): Promise<void> {
   const r = room;
   room = null;
   useGame.getState().reset();
-  try {
-    await r?.leave();
-  } catch {
-    /* phòng đã đóng */
-  }
+  if (r) closeRoom(r);
 }
 
 export function sendBrain(

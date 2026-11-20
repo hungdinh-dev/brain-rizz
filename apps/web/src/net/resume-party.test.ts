@@ -17,6 +17,7 @@ vi.mock("@colyseus/sdk", () => ({
     joinById = joinByIdMock;
     reconnect = reconnectMock;
   },
+  CloseCode: { CONSENTED: 4000 },
 }));
 vi.mock("@/i18n", () => ({ i18n: { t: (key: string) => key } }));
 vi.mock("sonner", () => ({ toast: Object.assign(vi.fn(), { error: vi.fn() }) }));
@@ -56,7 +57,9 @@ function fakeRoom(roomId: string, reconnectionToken: string) {
     sessionId: `s-${roomId}`,
     reconnectionToken,
     send: vi.fn(),
-    leave: vi.fn(async () => 1000),
+    leave: vi.fn(async (_consented?: boolean) => 1000),
+    connection: { isOpen: true, close: vi.fn() },
+    reconnection: { enabled: true },
     onMessage: vi.fn(),
     onDrop: vi.fn((cb: Listener) => drop.push(cb)),
     onStateChange: vi.fn((cb: Listener) => state.push(cb)),
@@ -204,6 +207,9 @@ describe("nối lại phòng khi tải lại trang", { timeout: 30_000 }, () => 
 
     await expect(result).resolves.toBe(false);
     expect(oldRoom.leave).toHaveBeenCalledTimes(1);
+    expect(oldRoom.leave).toHaveBeenCalledWith(true);
+    expect(oldRoom.connection.close).toHaveBeenCalledWith(4000);
+    expect(oldRoom.reconnection.enabled).toBe(false);
     expect(oldRoom.onStateChange).not.toHaveBeenCalled();
     expect(useGame.getState().sessionId).toBe("s-NEW2");
     expect(storage.getItem(TOKEN_KEY)).toBe("new-1");

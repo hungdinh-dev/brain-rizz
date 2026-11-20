@@ -19,6 +19,7 @@ vi.mock("@colyseus/sdk", () => ({
     joinById = joinMock;
     reconnect = vi.fn();
   },
+  CloseCode: { CONSENTED: 4000 },
 }));
 vi.mock("@/i18n", () => ({ i18n: { t: (key: string) => key } }));
 vi.mock("sonner", () => ({ toast: Object.assign(vi.fn(), { error: vi.fn() }) }));
@@ -36,7 +37,9 @@ function fakeRoom() {
     sessionId: "s1",
     reconnectionToken: "token",
     send: vi.fn(),
-    leave: vi.fn(async () => 1000),
+    leave: vi.fn(async (_consented?: boolean) => 1000),
+    connection: { isOpen: true, close: vi.fn() },
+    reconnection: { enabled: true },
     onMessage: vi.fn((type: string, handler: Handler) => {
       handlers.set(type, handler);
     }),

@@ -33,6 +33,7 @@ vi.mock("@colyseus/sdk", () => ({
     joinById = joinMock;
     reconnect = vi.fn();
   },
+  CloseCode: { CONSENTED: 4000 },
 }));
 vi.mock("@/i18n", async () => {
   const { vi: locale } = await import("@/i18n/locales/vi");
@@ -82,7 +83,9 @@ function fakeRoom() {
     sessionId: "s1",
     reconnectionToken: "token",
     send: vi.fn(),
-    leave: vi.fn(async () => 1000),
+    leave: vi.fn(async (_consented?: boolean) => 1000),
+    connection: { isOpen: true, close: vi.fn() },
+    reconnection: { enabled: true },
     onMessage: vi.fn(),
     onDrop: vi.fn(),
     onStateChange: vi.fn(),
