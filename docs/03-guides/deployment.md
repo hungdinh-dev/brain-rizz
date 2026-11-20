@@ -7,7 +7,8 @@ Web client là file tĩnh (deploy lên CDN miễn phí). Game server là một t
 | Thành phần | Địa chỉ | Ghi chú |
 | --- | --- | --- |
 | Web | https://brain-rizz.pages.dev | Cloudflare Pages (luồng "legacy Pages"), tự build mỗi lần push `main` |
-| Game server | https://brain-rizz-server.onrender.com (`/healthz`) | Render Free, Singapore, Blueprint `render.yaml`; ngủ sau 15 phút vắng |
+| Game server | https://brain-rizz-server.onrender.com (`/healthz`) | Render Free, Singapore, Blueprint `render.yaml`. Không ngủ nữa nhờ UptimeRobot gọi `/healthz` 5 phút một lần (từ 2026-11-20 18:07); Render vẫn có thể tự khởi động lại, mỗi lần như vậy phòng đang mở bị mất |
+| Giám sát | UptimeRobot (tài khoản của chủ dự án), monitor HTTP(s) `brain-rizz-server` | Gọi HEAD `/healthz` 5 phút một lần từ Bắc Mỹ, gửi email khi Down/Up. Xem [Giữ server không ngủ](#giữ-server-không-ngủ-uptimerobot) |
 | Dữ liệu | Supabase project `exybmkrhdfuxiysbfunt` | Site URL + Redirect URLs đã trỏ về `brain-rizz.pages.dev` |
 | Đăng nhập Google | Google Auth Platform, chế độ **Testing** | Ai có tài khoản Google cũng đăng nhập được: app chỉ xin `openid`/`email`/`profile`, Google miễn danh sách Test users cho các scope này ([Google: Manage App Audience](https://support.google.com/cloud/answer/15549945)). Màn đăng nhập Google hiện domain Supabase thay vì tên app; hiện tên + logo cần xác minh thương hiệu (Publish + Branding + trang chính sách quyền riêng tư, chưa có) |
 
@@ -16,7 +17,7 @@ Web client là file tĩnh (deploy lên CDN miễn phí). Game server là một t
 | Thành phần | Dịch vụ | Chi phí |
 | --- | --- | --- |
 | Web | Cloudflare Pages | 0 USD |
-| Game server | **Render Free**, region Singapore, Docker, cấu hình sẵn ở `render.yaml` ([ADR 0017](../02-architecture/decisions/0017-first-deploy-render-free.md)) | 0 USD |
+| Game server | **Render Free**, region Singapore, Docker, cấu hình sẵn ở `render.yaml` ([ADR 0017](../02-architecture/decisions/0017-first-deploy-render-free.md)) + UptimeRobot giữ không ngủ | 0 USD |
 | Game server (khi cần nhanh hơn) | Fly.io, region Singapore, máy tự tắt khi không ai chơi | Dưới 1 USD/tháng nếu chơi vài chục giờ; tối đa khoảng 4,7 USD nếu chạy 24/7 |
 
 **Thứ tự deploy:** (1) chạy đủ migration Supabase ([Cài đặt Supabase](supabase-setup.md)) → (2) game server trên Render, lấy địa chỉ `https://<tên>.onrender.com` → (3) web trên Cloudflare Pages với `VITE_SERVER_URL` là địa chỉ đó → (4) Supabase: Site URL + Redirect URLs theo domain `*.pages.dev` ([mục 5](supabase-setup.md#5-site-url-và-redirect-urls)) → (5) Google: thêm domain vào Authorized domains / JavaScript origins, Publish app nếu muốn ai cũng đăng nhập Google được ([mục 4](supabase-setup.md)) → (6) kiểm tra ở cuối trang.
@@ -88,7 +89,29 @@ Cấu hình nằm sẵn ở [`render.yaml`](../../render.yaml) (Blueprint): Dock
 
 Tự deploy: mỗi commit lên `main` mà CI xanh (`autoDeployTrigger: checksPass`) và có đổi `apps/server/**`, `packages/shared/**` hoặc dependency (`buildFilter`) thì Render build lại. Sửa web hay tài liệu không deploy lại server. Đổi biến môi trường: service → **Environment** (Render tự khởi động lại).
 
-Hạn chế gói Free: ngủ sau 15 phút không có truy cập, người đầu tiên mở game phải chờ khoảng 30–60 giây (mẹo: mở `<địa chỉ>/healthz` vài phút trước khi rủ bạn chơi); trong trận không ngủ vì tin WebSocket tính là hoạt động; 750 giờ miễn phí mỗi tháng; deploy bản mới làm ngắt phòng đang chơi.
+Hạn chế gói Free ([Render](https://render.com/docs/free)):
+
+- **Ngủ sau 15 phút không nhận được gì** (yêu cầu HTTP hoặc tin WebSocket do web gửi lên). Tín hiệu ping/pong tự động của kết nối (Colyseus gửi 3 giây một lần) có vẻ **không** được tính: ngày 2026-11-20 server ngủ lúc 14:15 khi có người đang ngồi ở phòng chờ không thao tác, log không có lỗi, phòng bị mất. Đánh thức mất khoảng 1 phút.
+- Render có thể khởi động lại server Free bất cứ lúc nào; deploy bản mới cũng làm ngắt phòng đang chơi (phòng chỉ nằm trong bộ nhớ server).
+- 750 giờ miễn phí mỗi tháng cho cả workspace; hết giờ thì mọi service Free bị tạm dừng tới đầu tháng sau.
+
+### Giữ server không ngủ (UptimeRobot)
+
+Đang dùng từ 2026-11-20. UptimeRobot gọi `/healthz` 5 phút một lần nên Render không bao giờ thấy 15 phút vắng, người mở game đầu tiên cũng không phải chờ.
+
+1. Tạo tài khoản Free ở [uptimerobot.com](https://uptimerobot.com) → **New monitor**.
+2. Monitor type `HTTP(s)`, URL `https://brain-rizz-server.onrender.com/healthz`, interval `5 minutes`, chọn email nhận cảnh báo → **Create monitor**. `/healthz` trả 200 cho cả HEAD (UptimeRobot dùng mặc định) và GET.
+3. Lần kiểm tra đầu có thể gặp lúc server đang ngủ → `502 Bad Gateway` và email Down; server dậy sau khoảng 1 phút, lần kiểm tra kế tiếp tự đóng sự cố. Email có chữ "TEST" là thư mẫu khi thêm email nhận cảnh báo, bỏ qua được.
+
+Đọc email cảnh báo: Down rồi vài phút sau tự Up → Render khởi động lại hoặc đang deploy, không cần làm gì; Down lâu → Render → **Logs** xem có lỗi không.
+
+**Lưu ý giờ miễn phí:** chạy suốt tháng tốn khoảng 744/750 giờ (31 ngày × 24 giờ) → không tạo thêm service Free nào khác trong cùng workspace Render.
+
+**Khi có người chơi thật thường xuyên**, chuyển sang nơi không ngủ và ít bị khởi động lại (giữ UptimeRobot để nhận cảnh báo):
+
+- Render gói trả phí (Starter: 0,5 CPU, gấp 5 lần gói Free — [Render](https://render.com/docs/compute-plans)): đổi Instance Type trên Render rồi sửa `plan` trong `render.yaml` cho khớp; địa chỉ server giữ nguyên.
+- Fly.io máy luôn bật: trong `fly.toml` đặt `auto_stop_machines = "off"`, `min_machines_running = 1`. Trang giá Fly (đọc 2026-11-20) ghi shared-cpu-1x 512 MB 3,69 USD/tháng và miễn hoá đơn dưới 5 USD cho tài khoản cá nhân; cần thẻ, phải đổi `VITE_SERVER_URL` trên Cloudflare và thêm bước deploy tự động.
+- Không dùng Vercel cho game server: WebSocket bị cắt khi function hết thời hạn (300 giây gói Hobby, 800 giây gói Pro) và phòng phải đưa ra Redis — xem [ADR 0017](../02-architecture/decisions/0017-first-deploy-render-free.md).
 
 ## Biến môi trường
 
@@ -104,6 +127,7 @@ Hạn chế gói Free: ngủ sau 15 phút không có truy cập, người đầu
 ## Kiểm tra sau khi deploy
 
 - [ ] `https://<server>/healthz` trả `{"ok":true}`.
+- [ ] Monitor UptimeRobot của server xanh (Up) — xem [Giữ server không ngủ](#giữ-server-không-ngủ-uptimerobot).
 - [ ] Mở web trên điện thoại 4G (không dùng Wi-Fi), tạo phòng, gửi link cho một người khác vào được.
 - [ ] Chơi trọn một trận 3 vòng; khoá màn hình 10 giây giữa trận rồi mở lại vẫn ở trong phòng.
 - [ ] Đăng nhập Google từ bản deploy quay về đúng trang (không về localhost); quản trị viên mở được `/admin`; nhận quà phấn mỗi ngày và quay thử máy quay được.
