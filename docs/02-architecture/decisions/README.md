@@ -7,7 +7,7 @@ Mỗi file ghi một quyết định kỹ thuật: bối cảnh, lựa chọn, l
 | [0001](0001-monorepo-pnpm-turborepo.md) | Monorepo pnpm + Turborepo, TypeScript toàn bộ | Đã chấp nhận |
 | [0002](0002-game-server-colyseus-vs-supabase-realtime.md) | Dùng game server Colyseus thay vì chỉ Supabase Realtime | Đã chấp nhận |
 | [0003](0003-seeded-deterministic-puzzles.md) | Câu đố sinh tất định từ seed, server chấm lại | Đã chấp nhận |
-| [0004](0004-hosting-strategy.md) | Hosting: Cloudflare Pages + Fly.io tự tắt, Render Free dự phòng | Đã chấp nhận |
+| [0004](0004-hosting-strategy.md) | Hosting: Cloudflare Pages + Fly.io tự tắt, Render Free dự phòng | Đã chấp nhận (game server chính thay bởi 0017) |
 | [0005](0005-web-vite-spa-vs-nextjs.md) | Web client là SPA Vite + React, không dùng Next.js | Đã chấp nhận |
 | [0006](0006-ui-shadcn-and-theme-tokens.md) | Component UI theo shadcn/ui, màu qua token ngữ nghĩa (sáng/tối) | Đã chấp nhận (phần 3D thay bởi 0010) |
 | [0007](0007-i18n-inline-resources.md) | Đa ngôn ngữ bằng i18next, bản dịch viết trong code | Đã chấp nhận (thời điểm tải bổ sung bởi 0012) |
@@ -20,6 +20,7 @@ Mỗi file ghi một quyết định kỹ thuật: bối cảnh, lựa chọn, l
 | [0014](0014-server-side-bots.md) | Bot chạy trên game server, mô phỏng kết quả (thời gian nghĩ, đúng/sai) và chấm cùng luật với người, không giải câu đố (CR-016) | Đã chấp nhận |
 | [0015](0015-admin-console.md) | Trang quản trị: quyền qua bảng `admins` + RPC `security definer`, route admin trên game server xác thực token Supabase, cấu hình trận party có phiên bản, chụp mỗi trận (CR-019) | Đã chấp nhận |
 | [0016](0016-chalk-economy-in-postgres.md) | Sổ phấn, trần ngày và máy quay phụ kiện chạy trong Postgres (RPC `security definer`, khoá theo người, idempotent theo `ref`); không tiền thật; hằng số SQL đối chiếu với shared bằng test (CR-023, CR-024) | Đã chấp nhận |
+| [0017](0017-first-deploy-render-free.md) | Deploy đầu tiên: game server trên Render Free (Singapore, Docker) bằng Blueprint `render.yaml`, chỉ deploy khi CI xanh và khi code server đổi; Fly.io để dành khi cần | Đã chấp nhận |
 
 Mẫu cho ADR mới: [_template.md](_template.md).
 

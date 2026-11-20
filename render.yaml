@@ -1,0 +1,40 @@
+# Blueprint của Render cho game server (docs/03-guides/deployment.md, mục "Deploy game server lên Render").
+# Render Dashboard → New → Blueprint → chọn repo này: Render đọc file này và hỏi giá trị các biến
+# `sync: false` (khoá Supabase) — dán ở form đó, KHÔNG ghi khoá vào file.
+# Đặc tả: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: brain-rizz-server
+    runtime: docker
+    # Gói miễn phí: ngủ sau 15 phút không ai vào, người đầu tiên chờ ~30–60 giây.
+    plan: free
+    # Gần người chơi Việt Nam nhất. Không đổi được sau khi tạo.
+    region: singapore
+    branch: main
+    # Build từ thư mục gốc (Dockerfile cần cả packages/shared).
+    dockerfilePath: ./apps/server/Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    # Chỉ deploy khi CI (GitHub Actions) của commit đó xanh. Deploy làm ngắt các phòng đang chơi.
+    autoDeployTrigger: checksPass
+    # Chỉ build lại khi code server/shared hoặc dependency đổi (sửa web/docs không ngắt phòng).
+    buildFilter:
+      paths:
+        - apps/server/**
+        - packages/shared/**
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - render.yaml
+      ignoredPaths:
+        - apps/server/test/**
+        - apps/server/loadtest/**
+        - packages/shared/**/*.test.ts
+    envVars:
+      # NODE_ENV=production đã đặt trong Dockerfile; PORT do Render tự đặt.
+      # Supabase (ADR 0011): xác thực người chơi, ghi kết quả, phấn, trang quản trị.
+      # Lấy ở Supabase Dashboard → Project Settings → API Keys. Để trống thì game vẫn chạy, chỉ không lưu.
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
