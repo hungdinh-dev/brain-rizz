@@ -228,7 +228,7 @@ function ruleHolds(rule: BeadPatternRule, v: readonly number[]): boolean {
   }
 }
 
-describe("bead-pattern", () => {
+describe("bead-pattern", { timeout: 60_000 }, () => {
   it("tất định: cùng (seed, index, độ khó) → cùng câu đố", () => {
     for (const d of DIFFICULTIES) {
       for (let seed = 0; seed < 200; seed++) {

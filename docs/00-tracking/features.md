@@ -2,7 +2,7 @@
 
 Bảng theo dõi **cái gì đã xong, cái gì chưa** ở mức người dùng nhìn thấy. Mỗi dòng trỏ về use case (UC) hoặc yêu cầu (FR) trong [SRS](../01-product/srs.md); muốn biết chi tiết hành vi thì mở SRS, muốn biết tiến độ thì xem ở đây.
 
-Cập nhật lần cuối: **2026-10-21** · Phiên bản code: 0.1.0 (chưa gắn tag)
+Cập nhật lần cuối: **2026-11-19** · Phiên bản code: 0.1.0 (chưa gắn tag)
 
 ## Tổng quan
 
@@ -14,7 +14,7 @@ Cập nhật lần cuối: **2026-10-21** · Phiên bản code: 0.1.0 (chưa g�
 | E4 Minigame | 5 game | 8 game (🚧 chờ chơi thử) | 2 game | 0 |
 | E5 Giao diện & trải nghiệm | 8 | 0 | 2 | 0 (+1 huỷ) |
 | E6 Vận hành & chất lượng | 3 | 1 | 3 | 0 |
-| E7 Chế độ mở rộng & tài khoản | 0 | 5 (CR-009, CR-010, chờ Supabase thật) | 2 | 3 |
+| E7 Chế độ mở rộng & tài khoản | 0 | 6 (CR-009, CR-010, CR-019, chờ Supabase thật) | 2 | 3 |
 
 **Chú thích trạng thái:** ✅ Xong (chạy được, có test hoặc đã kiểm tay) · 🟡 Một phần · 🚧 Đang làm · ⏳ Chưa làm (đã có trong kế hoạch) · 💡 Ý tưởng, chờ [yêu cầu thay đổi](change-requests.md) được duyệt · ❌ Huỷ
 
@@ -31,26 +31,26 @@ Cập nhật lần cuối: **2026-10-21** · Phiên bản code: 0.1.0 (chưa g�
 | ID | Tính năng | GĐ | Trạng thái | Có từ bản | Bằng chứng / ghi chú |
 | --- | --- | --- | --- | --- | --- |
 | UC-02 | Tạo phòng riêng, mã 4 ký tự, người tạo là chủ phòng | 0 | ✅ | 0.1.0 | `PartyRoom.test.ts` "tạo phòng với mã 4 ký tự…" |
-| UC-03 | Vào phòng bằng mã hoặc link `/r/<mã>`; từ chối khi đang chơi/đầy/hồ sơ sai | 0 | ✅ | 0.1.0 | `PartyRoom.test.ts` "từ chối tên không hợp lệ", "từ chối nhân vật lạ" |
+| UC-03 | Vào phòng bằng mã hoặc link `/r/<mã>`; từ chối khi đang chơi/đầy/hồ sơ sai | 0 | ✅ | 0.1.0 | `PartyRoom.test.ts` "từ chối tên không hợp lệ", "từ chối nhân vật lạ"; tối đa 12 người, người thứ 13 bị từ chối, bot nhường ghế ở 12 ([CR-018](change-requests.md#cr-018), `PartyConfig.test.ts`, `PartyBots.test.ts`) |
 | UC-04 | Mời bạn: chia sẻ (điện thoại) / copy link (máy tính) | 0 | 🟡 | 0.1.0 | Chia sẻ và copy ✅ · QR code ⏳ (FR-PH-09, GĐ 1) |
 | UC-05 | Chuẩn bị ở phòng chờ 2D: sẵn sàng, đổi nhân vật trong phòng | 0–1 | ✅ | 0.1.0 | `PartyRoom.test.ts` "setProfile đổi nhân vật…không huỷ sẵn sàng"; kiểm tay 3 tab ([CR-005](change-requests.md#cr-005)) |
 | UC-10 | Nối lại khi rớt mạng (giữ chỗ 45 giây, tải lại trang vẫn vào lại) | 0 | ✅ | 0.1.0 | `PartyRoom.test.ts` "tải lại trang ở game-select…, game-intro, round-results: vào lại đúng chỗ"; rớt mạng giữa chừng mới kiểm tay |
 | UC-12 | Rời phòng, chuyển quyền chủ phòng | 0 | ✅ | 0.1.0 | Kiểm tay |
 | FR-PH-11 | Số người tối thiểu để bắt đầu và chơi lại = 2 | 1 | ✅ | 0.1.0 | `PartyRoom.test.ts` "không bắt đầu trận khi chưa đủ người…", "chơi lại cần ≥ 2 người…" |
-| FR-PH-12 | Phòng chờ 2D: 8 ô người chơi, đếm sẵn sàng x/y, gỡ sân khấu 3D | 1 | ✅ | 0.1.0 | Kiểm tay; đã gỡ three.js (ADR 0010) |
+| FR-PH-12 | Phòng chờ 2D: 12 ô người chơi (bố cục gọn từ 8 người, [CR-018](change-requests.md#cr-018)), đếm sẵn sàng x/y, gỡ sân khấu 3D | 1 | ✅ | 0.1.0 | Kiểm tay; đã gỡ three.js (ADR 0010) |
 | FR-PH-13 | Ẩn/hiện + sao chép mã phòng; đổi nhân vật trong phòng chờ | 1 | ✅ | 0.1.0 | Kiểm tay |
 | UC-22 | Chat trong phòng: chữ 120 ký tự + 6 biểu cảm/câu chọn sẵn, bong bóng trên avatar, lọc từ tục, chủ phòng tắt chat, tắt tiếng trên máy mình, 30 tin gần nhất khi vào/nối lại; ẩn lúc đếm ngược/đang chơi (FR-PH-14 → 19, NFR-SEC-04) | 1 | ✅ | chưa phát hành | [CR-011](change-requests.md#cr-011) · `packages/shared/src/chat/chat.test.ts`, `PartyChat.test.ts`, `stores/chat.store.test.ts`; kiểm Chrome headless 390/1280 px với bot Colyseus (gửi, lọc, giới hạn tần suất, tắt tiếng, tắt chat, ẩn ở countdown/playing) · **chưa thử 2 điện thoại thật, chưa thử bàn phím ảo iOS** |
-| UC-23 | Chơi với bot: chủ phòng thêm bot 4 mức (Dễ, Vừa, Khó, Siêu) vào ô trống, nút "Chơi với máy" ở menu (1–7 bot, một mức chung), bot nhường ghế cho người thật, biểu cảm nhanh, lịch sử gắn nhãn "Đấu với máy" (FR-PH-20 → 26) | 1 | ✅ | chưa phát hành | [CR-016](change-requests.md#cr-016) · [Kế hoạch chơi với bot](../01-product/bot-players.md) · [ADR 0014](../02-architecture/decisions/0014-server-side-bots.md) · `packages/shared/src/bots/bots.test.ts`, `bots/balance-sim.test.ts` (mô phỏng 1 000 vòng × 30 game × 4 mức), `answer-judge.test.ts`, `protocol.test.ts`, `apps/server/test/PartyBots.test.ts`, web: `components/characters/bot-name.test.ts`, `features/home/bot-setup.test.ts`, `features/lobby/bot-slot.test.tsx`, `net/create-party.test.ts`, `net/data-api.test.ts`, `net/bot-yielded.test.ts`; kiểm Chrome 390/1280 px: tạo phòng 7 bot, đổi mức / bỏ / thêm bot, chơi 3 vòng tới vinh danh, người thật vào phòng đầy thì bot nhường ghế và người cũ thấy toast, người tạo giữ màu + nhân vật · **phải chạy migration `20261021000000_match_bot_count.sql` trên Supabase thật TRƯỚC khi deploy server (thiếu cột thì mọi lần ghi `match_results` lỗi, web đọc lịch sử cũng lỗi)** · nhãn "Đấu với máy" chưa xem trên trình duyệt (cần Supabase có cột mới) |
+| UC-23 | Chơi với bot: chủ phòng thêm bot 4 mức (Dễ, Vừa, Khó, Siêu) vào ô trống, nút "Chơi với máy" ở menu (1–11 bot sau CR-018, một mức chung), bot nhường ghế cho người thật, biểu cảm nhanh, lịch sử gắn nhãn "Đấu với máy" (FR-PH-20 → 26) | 1 | ✅ | chưa phát hành | [CR-016](change-requests.md#cr-016) · [Kế hoạch chơi với bot](../01-product/bot-players.md) · [ADR 0014](../02-architecture/decisions/0014-server-side-bots.md) · `packages/shared/src/bots/bots.test.ts`, `bots/balance-sim.test.ts` (mô phỏng 1 000 vòng × 30 game × 4 mức), `answer-judge.test.ts`, `protocol.test.ts`, `apps/server/test/PartyBots.test.ts`, web: `components/characters/bot-name.test.ts`, `features/home/bot-setup.test.ts`, `features/lobby/bot-slot.test.tsx`, `net/create-party.test.ts`, `net/data-api.test.ts`, `net/bot-yielded.test.ts`; kiểm Chrome 390/1280 px: tạo phòng 7 bot, đổi mức / bỏ / thêm bot, chơi 3 vòng tới vinh danh, người thật vào phòng đầy thì bot nhường ghế và người cũ thấy toast, người tạo giữ màu + nhân vật · migration `20261021000000_match_bot_count.sql` đã chạy trên Supabase thật 2026-11-19 (trước đó thiếu cột `bot_count`: server mới không ghi được `match_results`) · nhãn "Đấu với máy" chưa xem trên trình duyệt (cần Supabase có cột mới) |
 
 ## E3 — Vòng chơi & chấm điểm
 
 | ID | Tính năng | GĐ | Trạng thái | Có từ bản | Bằng chứng / ghi chú |
 | --- | --- | --- | --- | --- | --- |
 | UC-06 | Chủ phòng đặt số vòng và bắt đầu trận (≥ 2 người, tất cả sẵn sàng) | 0–1 | ✅ | 0.1.0 | `PartyRoom.test.ts` "chỉ chủ phòng đặt số vòng…", "không bắt đầu trận khi chưa đủ người…" |
-| UC-20 | Chọn game mỗi vòng: vòng quay (server quyết định), chủ phòng chọn + bình chọn, không lặp game | 1 | ✅ | 0.1.0 | `PartyRoom.test.ts` nhóm "chọn game" (5 test) · FR-VC-13 → 16 |
+| UC-20 | Chọn game mỗi vòng: vòng quay (server quyết định), chủ phòng chọn + bình chọn, không lặp game | 1 | ✅ | 0.1.0 | `PartyRoom.test.ts` nhóm "chọn game" (5 test) · FR-VC-13 → 16 · **Trống quay dọc vô hạn** thay vòng quay tròn, bỏ danh sách bên cạnh ([CR-017](change-requests.md#cr-017)): `drum.test.ts`, `catalog.test.ts`; kiểm Chrome 390/1280 px (chờ, quay, trúng, giảm chuyển động); game admin tắt không lên trống (`PartyConfig.test.ts`) |
 | UC-21 | Màn hướng dẫn + mỗi người tự chọn độ khó, chủ phòng giám sát/nhắc, "Đã hiểu", tự bắt đầu sau 20 giây | 1 | ✅ | 0.1.0 | `PartyRoom.test.ts` nhóm "hướng dẫn + độ khó" (6 test) · FR-VC-12, FR-VC-17 → 19 |
 | UC-07 | Chơi một vòng: đếm ngược 5 giây, sinh câu từ seed, server chấm lại, điểm/combo/khoá khi sai, hiện "+điểm", dải điểm real-time | 0–1 | ✅ | 0.1.0 | `PartyRoom.test.ts` "cả hai máy nhận cùng seed…", `misc.test.ts` scoring; HUD kiểm tay |
-| UC-08 | Bảng điểm vòng, cộng điểm trận, vinh danh top 3 kiểu Kahoot 2D | 0–1 | ✅ | 0.1.0 | `PartyRoom.test.ts` "hoà điểm vòng thì cùng hạng…", "nhiều vòng: điểm trận cộng dồn…"; màn hình kiểm tay |
+| UC-08 | Bảng điểm vòng, cộng điểm trận, vinh danh top 3 kiểu Kahoot 2D | 0–1 | ✅ | 0.1.0 | `PartyRoom.test.ts` "hoà điểm vòng thì cùng hạng…", "nhiều vòng: điểm trận cộng dồn…"; màn hình kiểm tay · Điểm thứ hạng co giãn theo số ghế (12 người 15 → 1) + bố cục gọn 12 người ở kết quả vòng, tổng điểm, vinh danh ([CR-018](change-requests.md#cr-018)): `misc.test.ts`, `PartyConfig.test.ts`, `results/standings.test.ts`; kiểm Chrome 390/1280 px |
 | FR-VC-21 | Điểm theo thể loại trong trận + thẻ "Giỏi nhất mỗi thể loại" ở màn vinh danh (hoà thì cùng nhận, thể loại cả phòng 0 điểm thì ẩn) | 1–2 | ✅ | chưa phát hành | [CR-010](change-requests.md#cr-010) · `match.test.ts` (`categoryLeaders`), `PartyRoom.test.ts` cộng dồn 3 vòng + reset; thẻ kiểm Chrome headless 390/1100/1440 px với state giả |
 | UC-09 | Chơi lại (→ Chọn game vòng 1) / về phòng chờ | 0–1 | ✅ | 0.1.0 | `PartyRoom.test.ts` "vòng cuối vẫn qua round-results…playAgain…", "về phòng chờ từ podium…", "về phòng chờ từ round-results…" |
 
@@ -79,6 +79,8 @@ Trạng thái từng game theo dõi ở **[Danh mục minigame](../04-minigames/
 | FR-GD-12 | Nút Hiệu ứng: Theo hệ thống / Luôn bật; một nguồn "giảm chuyển động" cho React, CSS, scene minigame | 1 | ✅ | chưa phát hành | [CR-010](change-requests.md#cr-010) · `features/motion/motion.test.ts`; kiểm Chrome headless có `--force-prefers-reduced-motion` (chấm cam, bấm → `data-motion="on"`, nhớ lựa chọn) |
 | FR-GD-11 | Rung phản hồi, Wake Lock | 2 | ⏳ | | Tách từ FR-GD-07 (CR-008) |
 | FR-GD-08 | PWA cài lên màn hình chính | 2 | ⏳ | | |
+| FR-GD-13 | Màn hướng dẫn: khung minh hoạ 16:9 lớn, nút Phóng to (Dialog / Sheet), hình động diễn cách chơi — đợt đầu 5 game MVP (Kẻ lạc đàn, Theo dấu ánh đèn, Cân não, Bóng bay số, Xoay hình); game khác dùng hình tĩnh | 1–2 | 🟡 5/30 game có demo | chưa phát hành | [CR-021](change-requests.md#cr-021) · `games/_shared/demo/timeline.test.ts`, `demo-scripts.test.ts` (khớp kịch bản canvas từng mốc ms); mỗi demo 0,9–1,7 KB gzip, chỉ `transform`/`opacity`; kiểm Chrome 390/1280 px · 25 game còn lại chờ chủ dự án duyệt đợt đầu |
+| FR-GD-14 | Tách URL theo màn ngoài phòng (`/practice[/<game>]`, `/brain-test`, `/leaderboard[/<game>]`, `/account`, `/profile`, `/admin/<mục>`), Back/Forward/F5 giữ màn, link sâu, Back trong phòng hỏi "Rời phòng?" | 1–2 | ✅ | chưa phát hành | [CR-022](change-requests.md#cr-022) · `stores/nav.store.test.ts` (13 ca, trình duyệt giả có ngăn lịch sử); kiểm Chrome: Back/Forward/F5, id lạ, link mời, Back trong phòng party + Kiểm tra não · không thêm thư viện router |
 
 ## E6 — Vận hành & chất lượng
 
@@ -86,7 +88,7 @@ Trạng thái từng game theo dõi ở **[Danh mục minigame](../04-minigames/
 | --- | --- | --- | --- |
 | CI GitHub Actions (lint, typecheck, test, build) | 0 | 🟡 | Repo đã lên GitHub (`hungdinh-dev/brain-rizz`); chưa xác nhận lần chạy CI đầu xanh |
 | Docker + `fly.toml` cho game server | 0 | ✅ | Chưa deploy thật |
-| Script tải thử (`loadtest`) 8 người | 0 | ✅ | |
+| Script tải thử (`loadtest`) 12 người | 0 | ✅ | Lên 12 người theo CR-018 (2026-11-19): 2 trận, ~1 030 câu đúng mỗi vòng 45 giây, không lỗi |
 | Test 10.000 seed cho bộ sinh câu đố | 0 | ✅ | Bắt buộc với mọi minigame mới |
 | Deploy web (Cloudflare Pages) + server (Fly.io) | 1 | ⏳ | [Triển khai](../03-guides/deployment.md) |
 | Test Playwright nhiều trình duyệt | 1 | ⏳ | |
@@ -101,10 +103,14 @@ Trạng thái từng game theo dõi ở **[Danh mục minigame](../04-minigames/
 | UC-15 | Đấu bóng ma | 3 | ⏳ | |
 | UC-16 | Tài khoản Supabase (khách + Google), lịch sử 3 loại, xoá dữ liệu | 1–2 | 🟡 Code xong, chờ kiểm với Supabase thật + Google | CR-009 · FR-MR-04, FR-MR-09 → 11, FR-MR-15 · [ADR 0011](../02-architecture/decisions/0011-supabase-accounts-and-solo-modes.md) |
 | FR-MR-16 | Lưu điểm + danh hiệu theo thể loại của trận party; thẻ "Thế mạnh trong trận party" ở Tài khoản | 1–2 | 🟡 Code xong, chờ chạy migration trên Supabase thật | [CR-010](change-requests.md#cr-010) · `PartyResults.test.ts`, `features/account/strengths.test.ts` · migration `20261019000000_match_category_scores.sql` |
+| UC-25 | Phấn (kiếm khi chơi, không tiền thật), máy quay phụ kiện `/gacha` (tỉ lệ công khai, bảo hiểm, Huyền thoại không trùng tới khi đủ bộ), tủ đồ `/wardrobe` (24 món, 3 chỗ, cả phòng thấy), quà mỗi ngày, "+N phấn" sau trận | 1–2 | 🟡 Code xong; migration đã chạy trên Supabase thật (2026-11-20, gọi thử trong khối tự huỷ: quà ngày, trần party/brain/practice, quay 10 + gọi lại cùng mã, không đủ phấn, quyền anon/authenticated); chờ thử trên web + trận thật | [CR-023](change-requests.md#cr-023) · FR-GC-01 → 06, 10 · [kế hoạch](../01-product/gacha-pets-unlocks.md) · [ADR 0016](../02-architecture/decisions/0016-chalk-economy-in-postgres.md) · shared `cosmetics/*.test.ts` (kinh tế, mô phỏng, đối chiếu migration), server `Cosmetics.test.ts`, `PartyCosmetics.test.ts`, web `gacha-api.test.ts`, `wallet.store.test.ts`, `pulls.test.ts`, `accessories.test.tsx` |
+| UC-26 | 6 bạn đồng hành mới (Pin, Ộp, Thông, Gai, Mây, Lửa) khoá theo thành tích, điều kiện + tiến độ + Luyện ngay, hộp chúc mừng; server kiểm khi vào phòng | 1–2 | 🟡 Code xong; migration đã chạy trên Supabase thật (2026-11-20, `my_unlock_stats` gọi thử đúng dạng JSON); chờ thử mở thú với dữ liệu thật | [CR-024](change-requests.md#cr-024) · FR-GC-07 → 09 · shared `cosmetics/unlocks.test.ts`, server `Cosmetics.test.ts`, web `features/pets/*.test.ts`, `character-picker.test.tsx` |
+| FR-MR-17 | Game yêu thích ở Luyện tập: ⭐, mục + chip Yêu thích, đồng bộ tài khoản khi có phiên | 1–2 | 🟡 Code xong; migration đã chạy trên Supabase thật (2026-11-20, gọi thử thêm/bỏ/gộp); chờ thử đồng bộ hai máy | [CR-020](change-requests.md#cr-020) · `features/practice/favorites.test.ts`, `net/data-api.test.ts`; kiểm Chrome 390/1280 px |
 | FR-MR-05 | Mũ phần thưởng khi lập kỷ lục | 3 | ⏳ | Tách khỏi UC-16 đợt CR-009 |
 | UC-17 | Thử thách hôm nay | — | 💡 | [CR-003](change-requests.md#cr-003) |
 | UC-18 | Tìm trận với người lạ | — | 💡 | CR-003 |
 | UC-19 | Bảng xếp hạng Điểm Não + từng minigame, tuần / mọi thời đại | 1–2 | 🟡 Code xong, chờ kiểm với Supabase thật | CR-009 (tách khỏi CR-003) · FR-MR-12, FR-MR-13 |
+| UC-24 | Trang quản trị `/admin`: tổng quan, game (bật/tắt, hệ số theo game), điểm & hệ số trận party (xem thử, lịch sử, khôi phục), đăng nhập, người chơi, trận đấu, phòng đang mở, quản trị viên; ghi sự kiện đăng nhập (không IP) | 1 | 🟡 Code xong; migration đã chạy trên Supabase thật (2026-11-19, gọi thử đủ 14 RPC); đã bật Google provider và thêm admin đầu tiên (tài khoản Google của chủ dự án); chờ chủ dự án dùng thử `/admin` với dữ liệu thật | [CR-019](change-requests.md#cr-019) · FR-QT-01 → 10 · [kế hoạch](../01-product/admin-console.md) · [ADR 0015](../02-architecture/decisions/0015-admin-console.md) · `party-config.test.ts`, `PartyConfig.test.ts`, `AdminRoutes.test.ts`, web `net/admin-api.test.ts`, `features/admin/draft.test.ts`, `lib/device-label.test.ts`, `stores/auth.store.test.ts`; kiểm Chrome 390/1280 px với `fetch` giả (8 mục) và với phiên khách thật (cổng không có quyền) · migration áp qua MCP 2026-11-19, lịch sử migration khớp tên file repo |
 | FR-MR-14 | Bảng xếp hạng bạn bè | — | 💡 | Chờ tính năng kết bạn (CR mới) |
 
 ## Cách cập nhật

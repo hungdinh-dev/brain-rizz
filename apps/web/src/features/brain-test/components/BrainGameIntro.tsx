@@ -99,7 +99,7 @@ export function BrainGameIntro({ brain, gameId, onQuit }: BrainGameIntroProps) {
     <main className="flex flex-1 flex-col gap-3">
       {header}
       <div className="flex flex-wrap items-center gap-2.5">
-        <h1 className="font-display text-[32px] leading-none font-extrabold text-chalk">
+        <h1 className="font-display text-[28px] leading-none font-extrabold text-chalk">
           {game.title}
         </h1>
         <CategoryChip category={category} />

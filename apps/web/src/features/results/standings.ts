@@ -1,4 +1,14 @@
-import { type PlayerView, rankByMatch, rankByRound } from "@brain-rizz/shared";
+import { type PlayerView, placementPoints, rankByMatch, rankByRound } from "@brain-rizz/shared";
+
+/**
+ * Điểm trận của từng hạng vòng (hạng 1 trước) trong phòng `playerCount` ghế, theo thưởng top của
+ * trận (CR-018, CR-019): 12 người mặc định → 15, 13, 11, 9, 8, 7, 6, 5, 4, 3, 2, 1.
+ */
+export function placementList(playerCount: number, topBonus?: readonly number[]): number[] {
+  return Array.from({ length: Math.max(0, playerCount) }, (_, rank) =>
+    placementPoints(rank, playerCount, topBonus),
+  );
+}
 
 /** Một dòng bảng tổng điểm: hạng hiện tại và hạng trước vòng vừa chơi (đều tính từ 0). */
 export interface MatchRow {

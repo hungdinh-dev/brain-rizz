@@ -1,7 +1,15 @@
 import type { CharacterId } from "@brain-rizz/shared";
-import type { ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 import { cn } from "@/lib/utils";
-import { BODY_PATH, CHARACTER_SPECS, type CharacterSpec, type EyeStyle, INK } from "./specs";
+import { anchorTransform, type WornAccessory, wornAccessories } from "./accessories";
+import {
+  type Anchor,
+  BODY_PATH,
+  CHARACTER_SPECS,
+  type CharacterSpec,
+  type EyeStyle,
+  INK,
+} from "./specs";
 
 /** Biểu cảm sticker, mỗi cái gắn với một tình huống trong game (vd. happy = trả lời đúng, sad = sai). */
 export const MOODS = ["idle", "happy", "sad", "surprised", "angry", "thinking", "win"] as const;
@@ -20,6 +28,16 @@ interface CharacterProps {
   label?: string;
   /** Lệch nhịp hoạt ảnh (giây, âm = bắt đầu giữa chừng) khi nhiều nhân vật đứng cạnh nhau */
   delay?: number;
+  /**
+   * Phụ kiện đang đeo (id `COSMETIC_ITEMS`, đã qua `sanitizeLoadout`: ≤ 1 món mỗi chỗ). Id lạ bị
+   * bỏ qua. Đặt theo `spec.anchors` của loài (accessories.tsx).
+   */
+  accessories?: readonly string[];
+  /**
+   * Ẩn món chỗ mặt (kính, mặt nạ…): bật ở avatar nhỏ ≤ 46 px để mặt khỏi rối (ui-ux 6.12).
+   * Món đầu, cổ vẫn vẽ.
+   */
+  hideFaceAccessory?: boolean;
   className?: string;
 }
 
@@ -32,9 +50,14 @@ export function Character({
   sticker = false,
   label,
   delay,
+  accessories,
+  hideFaceAccessory = false,
   className,
 }: CharacterProps) {
   const spec = CHARACTER_SPECS[id];
+  const worn = wornAccessories(accessories, hideFaceAccessory);
+  // Id riêng mỗi nhân vật cho clipPath tai (nhiều nhân vật trên một trang không đụng nhau)
+  const clipId = `ears${useId().replace(/[^\w-]/g, "")}`;
 
   return (
     <span
@@ -51,6 +74,12 @@ export function Character({
         aria-hidden={label ? undefined : true}
       >
         {mood === "sad" && <Gloom animated={animated} />}
+        {/* Thứ tự lớp phụ kiện (mục 5.5): sau lưng → thân → cổ → mặt → đầu → tay, đạo cụ, hiệu ứng */}
+        {worn.back.map((w) => (
+          <g key={w.id} transform={anchorTransform(spec.anchors[w.art.slot])}>
+            {w.art.render(animated)}
+          </g>
+        ))}
         {spec.back(animated)}
         <path d={BODY_PATH} fill={spec.fill} />
         {spec.patches}
@@ -60,12 +89,62 @@ export function Character({
         <Eyes spec={spec} mood={mood} animated={animated} />
         {spec.nose}
         <Mouth spec={spec} mood={mood} />
+        <Worn item={worn.neck} anchor={spec.anchors.neck} animated={animated} />
+        <Worn item={worn.face} anchor={spec.anchors.face} animated={animated} />
+        <Worn
+          item={worn.head}
+          anchor={(worn.head && spec.anchors.headItems?.[worn.head.id]) || spec.anchors.head}
+          animated={animated}
+        />
+        {worn.head && spec.ears && !worn.head.art.frontOfEars && (
+          <EarsOverHead id={clipId} ears={spec.ears} />
+        )}
         {mood === "idle" && spec.idleProp}
         {mood === "win" && <Medal />}
         {spec.paws && <Paws spec={spec} mood={mood} />}
         <Effects spec={spec} mood={mood} animated={animated} />
       </svg>
     </span>
+  );
+}
+
+/** Một món ở lớp trước thân; món sau lưng (áo choàng) chỉ vẽ phần cổ áo ở đây. */
+function Worn({
+  item,
+  anchor,
+  animated,
+}: {
+  item: WornAccessory | undefined;
+  anchor: Anchor;
+  animated: boolean;
+}) {
+  if (!item) return null;
+  const art = item.art;
+  const node = art.layer === "back" ? art.front?.(animated) : art.render(animated);
+  return node ? <g transform={anchorTransform(anchor)}>{node}</g> : null;
+}
+
+/** Ngoài viền thân: hình chữ nhật lớn trừ thân (evenodd). */
+const OUTSIDE_BODY = `M-60 -60 H260 V260 H-60 Z ${BODY_PATH}`;
+
+/**
+ * Tai dài vẽ lại đè lên món đầu, chỉ phần nhô khỏi thân (chân tai vẫn khuất sau đầu như khi không
+ * đội gì), kèm nửa ngoài viền đầu ở chân tai để tai có mép mực như bình thường.
+ */
+function EarsOverHead({ id, ears }: { id: string; ears: NonNullable<CharacterSpec["ears"]> }) {
+  return (
+    <>
+      <clipPath id={`${id}o`}>
+        <path d={OUTSIDE_BODY} clipRule="evenodd" />
+      </clipPath>
+      <clipPath id={`${id}e`}>
+        <path d={ears.outline} />
+      </clipPath>
+      <g clipPath={`url(#${id}o)`}>
+        {ears.art}
+        <path d={BODY_PATH} fill="none" stroke={INK} strokeWidth={6} clipPath={`url(#${id}e)`} />
+      </g>
+    </>
   );
 }
 

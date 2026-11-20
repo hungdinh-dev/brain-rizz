@@ -1,13 +1,26 @@
 import {
+  availableGames,
+  enabledGameIds,
   GAME_IDS,
+  type GameId,
   type PartyStateView,
   PLANNED_GAME_COUNT,
   type PlayerView,
 } from "@brain-rizz/shared";
 import { describe, expect, it } from "vitest";
-import { CATALOG, desktopSoonLayout, tallyVotes, topVoted, UPCOMING, wheelSlices } from "./catalog";
+import {
+  CATALOG,
+  desktopSoonLayout,
+  enabledGames,
+  pickableGames,
+  playedNote,
+  tallyVotes,
+  topVoted,
+  UPCOMING,
+  wheelSlices,
+} from "./catalog";
 
-const FIRST = GAME_IDS[0];
+const [FIRST, SECOND, THIRD] = GAME_IDS as unknown as [GameId, GameId, GameId];
 
 function party(over: Partial<PartyStateView>): PartyStateView {
   return {
@@ -31,11 +44,49 @@ describe("danh mục game", () => {
   });
 });
 
-describe("vòng quay", () => {
+describe("trống quay", () => {
   it("bỏ game đã chơi nhưng vẫn giữ kết quả server đã chọn", () => {
     expect(wheelSlices(party({}))).toEqual([...GAME_IDS]);
+    expect(wheelSlices(party({ playedGames: [FIRST] }))).not.toContain(FIRST);
     const slices = wheelSlices(party({ playedGames: [FIRST], wheelGameId: FIRST }));
     expect(slices).toContain(FIRST);
+  });
+
+  it("bỏ game admin tắt (CR-019), cùng thứ tự với server", () => {
+    const p = party({ disabledGames: [SECOND, THIRD], playedGames: [FIRST] });
+    const expected = availableGames([FIRST], enabledGameIds([SECOND, THIRD]));
+    expect(wheelSlices(p)).toEqual(expected);
+    expect(wheelSlices(p)).not.toContain(SECOND);
+    expect(pickableGames(p)).toEqual(expected);
+    expect(enabledGames(p)).toEqual(GAME_IDS.filter((id) => id !== SECOND && id !== THIRD));
+  });
+
+  it("vẫn giữ kết quả server dù game đó vừa bị tắt", () => {
+    const p = party({ disabledGames: [SECOND], wheelGameId: SECOND });
+    expect(wheelSlices(p)).toContain(SECOND);
+    expect(pickableGames(p)).not.toContain(SECOND);
+  });
+
+  it("tắt gần hết (còn < 2 game) thì dùng cả danh mục như server", () => {
+    const p = party({ disabledGames: GAME_IDS.slice(1) });
+    expect(enabledGames(p)).toEqual([...GAME_IDS]);
+    expect(wheelSlices(p)).toEqual([...GAME_IDS]);
+  });
+
+  it("chơi hết game đang bật thì trống vẫn có dòng (danh sách game đang bật)", () => {
+    const enabled = GAME_IDS.filter((id) => id !== SECOND);
+    const p = party({ disabledGames: [SECOND], playedGames: enabled });
+    expect(wheelSlices(p)).toEqual(enabled);
+  });
+
+  it("dòng phấn: game đã chơi (không còn trên trống), tối đa 2 tên rồi +n", () => {
+    expect(playedNote(party({}), wheelSlices(party({})))).toEqual({ shown: [], more: 0 });
+    const played = GAME_IDS.slice(0, 4);
+    const p = party({ playedGames: played });
+    expect(playedNote(p, wheelSlices(p))).toEqual({ shown: played.slice(0, 2), more: 2 });
+    // Kết quả vừa quay (đã chơi nhưng vẫn trên trống) không tính.
+    const q = party({ playedGames: [FIRST], wheelGameId: FIRST });
+    expect(playedNote(q, wheelSlices(q))).toEqual({ shown: [], more: 0 });
   });
 });
 

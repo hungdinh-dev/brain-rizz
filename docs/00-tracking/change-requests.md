@@ -40,8 +40,16 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 | [CR-012](#cr-012) | Thêm 2 minigame ngoài SRS: Luyện ngắm (aim trainer, Nhận diện) và Phấn trượt (đổi luật theo màu, Phân tích) | 2026-10-20 | Thêm tính năng | +2–3 ngày | Duyệt (2026-10-20) |
 | [CR-013](#cr-013) | Mở rộng minigame từ nghiên cứu Pumer Party, đợt đầu 7 game: Tráo cốc, Xếp lại tháp, Chuỗi quy luật, Đếm sĩ số, Mảnh vừa khít, Ô bí ẩn, Nối mạch | 2026-10-20 | Thêm tính năng | +5–7 ngày | Duyệt (2026-10-20) |
 | [CR-014](#cr-014) | Mở rộng minigame, đợt hai 7 game còn lại của kế hoạch: Tìm bạn, Giỏ hời nhất, Rót vừa vạch, Hình to hình nhỏ, Nhại nhịp, Cổng luật, Đường số | 2026-10-20 | Thêm tính năng | +8–12 ngày | Duyệt (2026-10-20) |
-| [CR-015](#cr-015) | Vòng quay chọn game chỉ lấy 8 game chưa chơi (mỗi nhóm ít nhất 1 lát) thay cho 30 lát | 2026-10-20 | Đổi luật + thay đổi thiết kế | +0,5–1 ngày | Chờ duyệt |
+| [CR-015](#cr-015) | Vòng quay chọn game chỉ lấy 8 game chưa chơi (mỗi nhóm ít nhất 1 lát) thay cho 30 lát | 2026-10-20 | Đổi luật + thay đổi thiết kế | +0,5–1 ngày | Từ chối (2026-11-19) — thay bằng CR-017 |
 | [CR-016](#cr-016) | Chơi với bot: chủ phòng thêm bot 4 mức vào ghế trống, nút "Chơi với máy" ở menu, lịch sử gắn nhãn có bot | 2026-10-21 | Thêm tính năng | +3,5–4,5 ngày công (2,5–3 ngày lịch) | Đã làm (2026-10-21), chờ QA và merge |
+| [CR-017](#cr-017) | Trống quay dọc vô hạn kiểu bộ chọn giờ iPhone thay vòng quay tròn, mỗi game có biểu tượng, ẩn danh sách "Trong vòng quay" | 2026-11-19 | Thay đổi thiết kế | +1 ngày | Duyệt (2026-11-19) |
+| [CR-018](#cr-018) | Phòng party tối đa 12 người, điểm trận theo thứ hạng co giãn theo số người | 2026-11-19 | Đổi luật | +1 ngày | Duyệt (2026-11-19) |
+| [CR-019](#cr-019) | Trang quản trị: cấu hình điểm + hệ số trận party, bật/tắt game, lịch sử đăng nhập, người chơi, trận đấu, tổng quan, phòng đang mở, quản trị viên | 2026-11-19 | Thêm tính năng | +3–4 ngày công (2 ngày lịch khi chạy song song) | Duyệt (2026-11-19) |
+| [CR-020](#cr-020) | Game yêu thích ở Luyện tập (⭐, mục Yêu thích đầu danh sách, đồng bộ tài khoản) | 2026-11-19 | Thêm tính năng | +0,5–1 ngày | Duyệt (2026-11-19) |
+| [CR-021](#cr-021) | Màn hướng dẫn: khung minh hoạ to hơn, nút Phóng to, hình động diễn cách chơi (đợt đầu 5 game MVP) | 2026-11-19 | Thêm tính năng + thay đổi thiết kế | +1,5 ngày (5 game), +3 ngày cho 25 game còn lại | Duyệt (2026-11-19) |
+| [CR-022](#cr-022) | Tách URL theo màn ngoài phòng (Back/Forward/F5 giữ màn, link sâu) | 2026-11-19 | Kỹ thuật + thay đổi thiết kế | +1 ngày | Duyệt (2026-11-19) |
+| [CR-023](#cr-023) | Phấn (tiền trong game, không tiền thật), máy quay phụ kiện công khai tỉ lệ + bảo hiểm, tủ đồ 24 phụ kiện cả phòng thấy | 2026-11-20 | Thêm tính năng | +3–4 ngày công | Duyệt (2026-11-19, chủ dự án uỷ quyền) |
+| [CR-024](#cr-024) | 6 bạn đồng hành mới khoá theo thành tích (điểm game, trung bình nhóm, trận party, Điểm Não), tiến độ + Luyện ngay | 2026-11-20 | Thêm tính năng | +2 ngày công | Duyệt (2026-11-19, chủ dự án uỷ quyền) |
 
 ---
 
@@ -385,9 +393,9 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
   2. Với B: số lát 8 hay 6? 6 lát rộng hơn nữa nhưng chỉ dư 1 lát sau phần "mỗi nhóm 1 lát".
   3. Với B: có giữ "mỗi nhóm ít nhất 1 lát" không? Bỏ đi thì xác suất đều tuyệt đối, nhưng có vòng quay thiếu màu nhóm.
   4. Có thêm nút "Đổi bộ khác" cho chủ phòng (bốc lại 8 game, 1 lần/vòng) không? Mặc định là không, vì chủ phòng đã có chế độ tự chọn.
-- **Quyết định:** _chờ duyệt_.
+- **Quyết định:** **Từ chối** (2026-11-19). Chủ dự án không đổi luật bộ lát; chọn thiết kế khác cho cùng vấn đề: trống quay dọc vô hạn kiểu bộ chọn giờ iPhone, mỗi game có biểu tượng, ẩn danh sách bên cạnh — xem [CR-017](#cr-017).
 - **Tài liệu kéo theo (nếu duyệt):** GDD §2 (Chọn game mỗi vòng), SRS (UC-20 luồng chính + 2a, FR-VC-14, FR-VC-16), UI-UX (S10, khu 6 của canvas), `docs/01-product/minigame-expansion.md` mục 5 (đánh dấu đã có CR), overview (state `wheelGames`), features.md, changelog.
-- **Kết quả:** chưa làm.
+- **Kết quả:** không làm (thay bằng CR-017).
 
 ---
 
@@ -427,6 +435,144 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
   - Bảng 3.1 đã chỉnh theo mô phỏng (kế hoạch bản 0.3): Vừa T × 1 / 90 %, Khó T × 0,9 / 90 %.
   - **Thứ tự triển khai:** chạy migration `supabase/migrations/20261021000000_match_bot_count.sql` trên Supabase thật **trước** khi deploy server và web mới. Server luôn ghi cột `bot_count` (kể cả trận chỉ có người), web đọc cột này ở lịch sử: thiếu cột thì ghi kết quả trận và đọc lịch sử đều lỗi (giống CR-010).
   - Còn chờ chủ dự án: toast báo "bot nhường ghế" (ui-ux 6.6, chưa làm), tỉ lệ đúng theo từng game và nới bot Dễ (câu hỏi của game-designer).
+
+---
+
+### CR-017
+
+**Trống quay dọc vô hạn thay vòng quay tròn**
+
+- **Ngày mở:** 2026-11-19 · **Loại:** Thay đổi thiết kế · **Người đề xuất:** chủ dự án. Kế hoạch: [Trang quản trị, phòng 12 người, vòng quay dọc](../01-product/admin-console.md)
+- **Mô tả:** ở chế độ vòng quay của màn Chọn game, thay vòng quay tròn bằng **trống quay theo trục dọc** giống bộ chọn giờ của iPhone nhưng **cuộn vô hạn**. Mỗi dòng là một game: biểu tượng (hình minh hoạ sẵn có, chừa chỗ cho biểu tượng riêng sau này) + tên + màu nhóm. Bỏ thẻ "Trong vòng quay" (máy tính) và hàng chip (điện thoại).
+- **Lý do:** 30 lát 12° làm chữ chồng lên nhau, danh sách bên cạnh 30 dòng tràn màn hình lúc quay (lỗi giao diện chủ dự án báo). Trống dọc giữ mỗi dòng đủ cao để đọc dù danh mục lớn bao nhiêu, nên **không cần đổi luật** như CR-015.
+- **Phân tích tác động:**
+  - *Luật:* không đổi. Mọi game chưa chơi (và không bị admin tắt, CR-019) đều có mặt; server vẫn chọn kết quả và giờ quay (`wheelGameId`, `wheelSpinAt`, `wheelSpinMs`), mọi máy dừng đúng game đó.
+  - *Kỹ thuật:* chỉ web (`features/game-select`): component trống quay mới thay `LuckyWheel`, `WheelView` bỏ `WheelList`/`WheelChips`. CSS transform, không thêm canvas WebGL (bất biến 4). Giảm chuyển động: nhảy thẳng tới kết quả. Không đổi giao thức, seed.
+  - *Chi phí:* 0 đồng. *Lịch:* +1 ngày (bản mẫu + FE + QA).
+- **Quyết định:** **Duyệt** (2026-11-19), chủ dự án.
+- **Tài liệu kéo theo:** UI-UX (S10), SRS (UC-20 bước 2–4, FR-VC-14, FR-VC-16), GDD §2, features.md, changelog.
+- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`.
+
+---
+
+### CR-018
+
+**Phòng party 12 người, điểm thứ hạng co giãn**
+
+- **Ngày mở:** 2026-11-19 · **Loại:** Đổi luật · **Người đề xuất:** chủ dự án
+- **Mô tả:** `MAX_PLAYERS` 8 → 12 (gồm cả bot); bảng màu avatar 12 màu. Điểm trận mỗi vòng thay bảng cố định 10, 8, 6, 5, 4, 3, 2, 1 bằng công thức co giãn: hạng `r` (0 = nhất) trong phòng `N` ghế được `max(1, N − r)` + thưởng top 3/2/1. 12 người: 15, 13, 11, 9, 8, 7, 6, 5, 4, 3, 2, 1; 8 người: 11, 9, 7, 5, 4, 3, 2, 1; 2 người: 5, 3.
+- **Lý do:** nhóm lớp học, gia đình đông hơn 8 người. Bảng cố định 8 bậc không đủ cho 12 hạng; co giãn theo số người thì người bét luôn được 1 điểm và khoảng cách đầu–cuối tăng theo quy mô phòng.
+- **Phân tích tác động:**
+  - *Trụ cột:* "Vào là chơi" (cả nhóm đông vào chung một phòng). "Nhẹ và rẻ": 12 người × tối đa 10 đáp án/giây vẫn nhỏ với một tiến trình Colyseus — load test lên 12.
+  - *Kỹ thuật:* shared (`constants.ts`, `scoring.ts` `placementPoints(rank, playerCount, topBonus)`), server (`maxClients`, bot, chốt vòng), web (phòng chờ 12 ô, bảng điểm 12 dòng, kết quả + vinh danh 12 hạng, hộp thoại 1–11 bot). Không đổi seed, bộ sinh câu đố.
+  - *Chi phí:* 0 đồng. *Lịch:* +1 ngày.
+- **Quyết định:** **Duyệt** (2026-11-19), chủ dự án chọn "co giãn theo số người"; thưởng top chỉnh được ở trang quản trị (CR-019).
+- **Tài liệu kéo theo:** BRD (RULE-09), SRS (FR-PH-03, FR-PH-21, FR-PH-22, UC-08 bước 1, NFR-REL-02), GDD (điểm), UI-UX, features.md, changelog.
+- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`.
+
+---
+
+### CR-019
+
+**Trang quản trị**
+
+- **Ngày mở:** 2026-11-19 · **Loại:** Thêm tính năng · **Người đề xuất:** chủ dự án. Kế hoạch + hợp đồng: [Trang quản trị, phòng 12 người, vòng quay dọc](../01-product/admin-console.md)
+- **Mô tả:** quản trị viên (bảng `admins` trên Supabase, đăng nhập Google) có trang `/admin`: Tổng quan, Game (bật/tắt, hệ số theo game, số liệu), Điểm & hệ số (công thức điểm trận party, xem thử, lịch sử thay đổi, khôi phục mặc định), Đăng nhập (lịch sử sự kiện đăng nhập), Người chơi, Trận đấu, Phòng đang mở, Quản trị viên.
+- **Lý do:** chủ dự án cần chỉnh cách tính điểm và hệ số mà không phải sửa code + deploy, và cần nhìn được ai đang dùng hệ thống.
+- **Phân tích tác động:**
+  - *Trụ cột:* "Ngắn, gọn, nhiều vòng" (cân điểm theo phản hồi thật). "Nhẹ và rẻ": dùng Supabase sẵn có, server đọc cấu hình có đệm 30 giây.
+  - *Kỹ thuật:* shared `party-config.ts` (cấu hình + kiểm từng trường), `PartyStateView` thêm `disabledGames`, `scoringJson`, `configVersion`; server nạp cấu hình mỗi lần bắt đầu trận, route `/admin/rooms`, `/admin/config/reload`; migration `20261119000000_admin_console.sql` (4 bảng mới, cột `match_results.settings_version`, RPC `is_admin`, `log_login`, `admin_*`); web màn quản trị tải lười + ghi sự kiện đăng nhập. Chỉ áp dụng cho **trận party** — Luyện tập, Kiểm tra não giữ công thức chuẩn. Không đổi seed, bộ sinh câu đố.
+  - *Bảo mật, riêng tư:* không policy đọc trực tiếp; mọi RPC admin kiểm `is_admin()`; server không tin DB (`parsePartyConfig`); **không ghi IP**, chỉ "trình duyệt · hệ điều hành"; "Xoá dữ liệu của tôi" xoá cả lịch sử đăng nhập.
+  - *Chi phí:* 0 đồng. *Lịch:* +3–4 ngày công, chạy song song khoảng 2 ngày lịch.
+- **Đã chốt với chủ dự án (2026-11-19):** admin bằng bảng `admins`; cấu hình chỉ cho trận party; đủ các mục kể trên ("tự suy luận và phát triển thêm").
+- **Quyết định:** **Duyệt** (2026-11-19).
+- **Tài liệu kéo theo:** SRS (tác nhân Quản trị viên, UC-24, FR-QT-01 → 10, Dữ liệu, truy vết), UI-UX, overview, supabase-setup, folder-structure, features.md, changelog.
+- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`. **Thứ tự triển khai:** chạy migration trên Supabase thật **trước** khi deploy server mới (server luôn ghi `settings_version`), rồi thêm admin đầu tiên bằng SQL.
+
+---
+
+### CR-020
+
+**Game yêu thích ở Luyện tập**
+
+- **Ngày mở:** 2026-11-19 · **Loại:** Thêm tính năng · **Người đề xuất:** chủ dự án. Kế hoạch: [Yêu thích, hướng dẫn động, tách URL](../01-product/practice-favorites-howto-routes.md)
+- **Mô tả:** người chơi bấm ⭐ để ghim game ở màn Luyện tập; mục **Yêu thích** đứng đầu danh sách và có chip lọc riêng, đỡ phải tìm từng game trong 30 game.
+- **Lý do:** BR-10 (có lý do quay lại luyện tập), danh mục đã lên 30 game.
+- **Phân tích tác động:**
+  - *Kỹ thuật:* web (`features/practice`, `net/data-api.ts`, khoá `brain-rizz:favorites`); Supabase bảng `practice_favorites` + 3 RPC (migration `20261119100000_practice_favorites.sql`). Không đụng server game, giao thức, seed.
+  - *Hiệu năng:* không đáng kể (danh sách id, một lần đọc khi mở Luyện tập).
+  - *Chi phí:* 0 đồng. *Lịch:* +0,5–1 ngày.
+- **Quyết định:** **Duyệt** (2026-11-19) — lưu máy + đồng bộ tài khoản khi có phiên, không tạo phiên khách chỉ để lưu.
+- **Tài liệu kéo theo:** SRS (FR-MR-17, Dữ liệu), UI-UX 6.10, supabase-setup, features.md, changelog.
+- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`. Chạy migration trên Supabase trước khi deploy web mới (thiếu RPC thì yêu thích chỉ lưu trên máy, không lỗi).
+
+---
+
+### CR-021
+
+**Hướng dẫn to hơn và có chuyển động**
+
+- **Ngày mở:** 2026-11-19 · **Loại:** Thêm tính năng + thay đổi thiết kế · **Người đề xuất:** chủ dự án. Kế hoạch: [Yêu thích, hướng dẫn động, tách URL](../01-product/practice-favorites-howto-routes.md)
+- **Mô tả:** màn Hướng dẫn (party, Luyện tập, Kiểm tra não) có khung minh hoạ to hơn, nút **Phóng to** toàn màn, và hình động diễn cách chơi (tay chạm đáp án, ✓, sang câu kế, lặp).
+- **Lý do:** người chơi khó hình dung luật từ hình tĩnh nhỏ (BR-03, BR-04); trụ cột "Vào là chơi".
+- **Các phương án:** A. SVG động với khung diễn dùng chung (chọn); B. chạy scene Phaser tự chơi (nặng: thêm canvas WebGL, cần hàm giải cho 30 game); C. video quay sẵn (6–15 MB). Chi tiết ở kế hoạch mục 2.
+- **Phân tích tác động:**
+  - *Kỹ thuật:* web: `GameClient.Demo` tuỳ chọn, khung diễn `games/_shared/demo/`, 5 demo đầu, `GuideCard`, `PracticeSetup`, `BrainGameIntro`. Thẻ nhỏ vẫn dùng hình tĩnh. Không đổi giao thức, seed, bộ sinh.
+  - *Hiệu năng:* chỉ animate `transform`/`opacity`, một demo mỗi lúc, dừng khi ẩn tab / ra khỏi màn / giảm chuyển động; vài KB mỗi game, tải lười cùng gói game.
+  - *Chi phí:* 0 đồng. *Lịch:* +1,5 ngày cho khung + 5 game MVP; 25 game còn lại khoảng 3 ngày, làm sau khi chủ dự án duyệt đợt đầu.
+- **Quyết định:** **Duyệt** (2026-11-19) phương án A, đợt đầu 5 game MVP.
+- **Tài liệu kéo theo:** SRS (FR-GD-13), UI-UX 6.11, folder-structure, features.md, changelog.
+- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`.
+
+---
+
+### CR-022
+
+**Tách URL theo màn**
+
+- **Ngày mở:** 2026-11-19 · **Loại:** Kỹ thuật + thay đổi thiết kế · **Người đề xuất:** chủ dự án. Kế hoạch: [Yêu thích, hướng dẫn động, tách URL](../01-product/practice-favorites-howto-routes.md) mục 3.4
+- **Mô tả:** mỗi màn ngoài phòng có đường dẫn riêng (`/practice`, `/practice/<game>`, `/brain-test`, `/leaderboard[/<game>]`, `/account`, `/profile`, `/admin/<mục>`); Back/Forward/F5 giữ đúng màn, gửi được link sâu. Trong phòng giữ `/r/<mã>`; Back trong phòng hỏi "Rời phòng?".
+- **Lý do:** trước đây gần như mọi màn ở `/`: Back thoát app, F5 về màn đầu, không chia sẻ được link tới một game.
+- **Phân tích tác động:**
+  - *Kỹ thuật:* chỉ web: `nav.store` đồng bộ History API (mở rộng phần `/admin` của CR-019), `App.tsx`, Luyện tập, Bảng xếp hạng, trang quản trị. **Không** thêm thư viện router. Cloudflare Pages `_redirects` đã trả `index.html` cho mọi đường dẫn.
+  - *Hiệu năng:* 0 KB thêm; các màn vẫn tải lười như cũ (react-router sẽ thêm ~20 KB gzip, không cần).
+  - *Chi phí:* 0 đồng. *Lịch:* +1 ngày.
+- **Quyết định:** **Duyệt** (2026-11-19).
+- **Tài liệu kéo theo:** SRS (FR-GD-14), overview (điều hướng), folder-structure, features.md, changelog.
+- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`.
+
+---
+
+### CR-023
+
+**Phấn, máy quay phụ kiện, tủ đồ**
+
+- **Ngày mở:** 2026-11-20 · **Loại:** Thêm tính năng · **Người đề xuất:** chủ dự án ("thêm một trang gacha… quay gacha cho những món phụ kiện cho model gốc", 2026-11-19). Kế hoạch + hợp đồng: [Gacha, thú mới, mở khoá](../01-product/gacha-pets-unlocks.md)
+- **Mô tả:** người chơi kiếm **phấn** khi chơi (trận party, Kiểm tra não, luyện tập, quà mỗi ngày), tiêu ở **máy quay** `/gacha` để nhận phụ kiện (24 món, 3 chỗ đầu/mặt/cổ, 4 độ hiếm), mặc ở **tủ đồ** `/wardrobe`; cả phòng thấy phụ kiện.
+- **Lý do:** giữ chân người chơi (lý do quay lại, mục tiêu dài hạn), BR-10.
+- **Nguyên tắc bắt buộc:** không tiền thật; tỉ lệ công khai; bảo hiểm (10 lần ≥ 1 Hiếm, ≤ 15 lần ra Sử thi+, ≤ 60 lần ra Huyền thoại); trùng đổi lại phấn; không đồng hồ áp lực; server quyết (RNG trong Postgres); trần phấn mỗi ngày. Chi tiết: kế hoạch mục 2.
+- **Phân tích tác động:**
+  - *Kỹ thuật:* shared `cosmetics/` (danh mục, kinh tế, hàm thưởng); Supabase migration `20261120000000_gacha.sql` (sổ phấn, món, quay, RPC); server: thưởng phấn sau trận / Kiểm tra não, `ServerMessage.Reward`, `PlayerView.accessories` + kiểm sở hữu; web: 2 màn mới, `Character` vẽ phụ kiện. **Không đổi seed, bộ sinh, luật chấm.**
+  - *Chi phí:* 0 đồng. *Lịch:* +3–4 ngày công (chạy song song ~1,5 ngày lịch).
+- **Quyết định:** **Duyệt** — chủ dự án uỷ quyền điều phối tự lên kế hoạch và triển khai (2026-11-19).
+- **Tài liệu kéo theo:** SRS (UC-25, FR-GC-*), GDD (Kinh tế), UI-UX, ADR mới (kinh tế phấn trong Postgres), overview, supabase-setup, folder-structure, features.md, changelog.
+- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`.
+
+---
+
+### CR-024
+
+**Bạn đồng hành mới, mở khoá bằng thành tích**
+
+- **Ngày mở:** 2026-11-20 · **Loại:** Thêm tính năng · **Người đề xuất:** chủ dự án ("thêm các model các thú khác và thêm chế độ khoá… để mở pet này bạn cần chơi game xxx bao nhiêu điểm hoặc loại game xxx đạt điểm trung bình bao nhiêu", 2026-11-19). Kế hoạch: [Gacha, thú mới, mở khoá](../01-product/gacha-pets-unlocks.md) mục 3.2
+- **Mô tả:** 6 nhân vật mới (Pin cánh cụt, Ộp ếch, Thông cú, Gai nhím, Mây koala, Lửa rồng con), mỗi con khoá tới khi đạt điều kiện: số trận / thắng party, kỷ lục luyện tập một game, trung bình kỷ lục một nhóm, trung bình điểm thể loại trong party, Điểm Não. Có thanh tiến độ, nút **Luyện ngay** tới đúng game (URL CR-022), hộp chúc mừng khi mở.
+- **Lý do:** cho người chơi mục tiêu rõ ràng gắn với kỹ năng (BR-10), dẫn họ thử nhiều game/nhóm.
+- **Phân tích tác động:**
+  - *Kỹ thuật:* shared `cosmetics/unlocks.ts` (luật + hàm thuần đánh giá), `CHARACTER_IDS` 6 → 12; Supabase `unlock_stats_for`/`my_unlock_stats` (gộp số liệu sẵn có, không bảng mới); server kiểm thú khoá khi vào phòng (không mở → nhân vật mặc định, không từ chối); web vẽ 6 thú (cùng `BODY_PATH`), khoá ở chọn nhân vật.
+  - *Chi phí:* 0 đồng. *Lịch:* +2 ngày công.
+- **Quyết định:** **Duyệt** — chủ dự án uỷ quyền (2026-11-19).
+- **Tài liệu kéo theo:** SRS (UC-26, FR-GC-*), GDD (nhân vật, mở khoá), UI-UX, folder-structure, features.md, changelog.
+- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`.
 
 ---
 

@@ -8,11 +8,13 @@ import { CategoryChip, RoundChip } from "@/components/common/MatchChips";
 import { Button } from "@/components/ui/button";
 import { useGameText } from "@/hooks/use-game-text";
 import { usePendingAction } from "@/hooks/use-pending-action";
+import { useRoomScoring } from "@/hooks/use-room-scoring";
+import { isCrowded } from "@/lib/room-size";
 import { send } from "@/net/connection";
 import { useGame } from "@/stores/game.store";
 import { MatchTotals, usePlacementLegend } from "./components/MatchTotals";
 import { RoundResults } from "./components/RoundResults";
-import { biggestClimber, matchRows } from "./standings";
+import { biggestClimber, matchRows, placementList } from "./standings";
 
 /** Bảng điểm vòng hiện bao lâu rồi tự sang bảng tổng điểm (ms). */
 const ROUND_VIEW_MS = 5_000;
@@ -34,12 +36,19 @@ function ResultsView({ gameId }: { gameId: GameId }) {
   const sessionId = useGame((s) => s.sessionId);
   const game = useGameText(gameId);
   const [view, setView] = useState<"round" | "total">("round");
+  // Giây còn lại trước khi tự sang bảng tổng điểm; −1 = đã sang một lần (tự hoặc bấm), từ đó
+  // "Xem lại kết quả vòng" đứng yên ở bảng vòng, không bị đẩy ngay về bảng tổng.
   const [left, setLeft] = useState(Math.round(ROUND_VIEW_MS / 1000));
+  const showTotal = () => {
+    setView("total");
+    setLeft(-1);
+  };
 
   useEffect(() => {
-    if (view !== "round") return;
-    if (left <= 0) {
+    if (view !== "round" || left < 0) return;
+    if (left === 0) {
       setView("total");
+      setLeft(-1);
       return;
     }
     const id = setTimeout(() => setLeft((s) => s - 1), 1000);
@@ -65,18 +74,22 @@ function ResultsView({ gameId }: { gameId: GameId }) {
             category={GAMES[gameId].category}
             className="hidden h-7 text-sm lg:inline-flex"
           />
-          <span className="hidden items-center gap-2 text-sm text-chalk-muted lg:ml-auto lg:flex">
-            <TimerIcon aria-hidden className="size-4.5" />
-            {t("results.toTotalIn", { count: left })}
-          </span>
+          {left >= 0 && (
+            <span className="hidden items-center gap-2 text-sm text-chalk-muted lg:ml-auto lg:flex">
+              <TimerIcon aria-hidden className="size-4.5" />
+              {t("results.toTotalIn", { count: left })}
+            </span>
+          )}
         </header>
         <RoundResults gameId={gameId} players={players} sessionId={sessionId} />
         <div className="mt-auto flex flex-col items-center gap-2 lg:mt-0 lg:items-end">
-          <span className="flex items-center gap-2 text-[13px] text-chalk-muted lg:hidden">
-            <TimerIcon aria-hidden className="size-4" />
-            {t("results.toTotalIn", { count: left })}
-          </span>
-          <Button variant="chalk" className="rounded-2xl px-5" onClick={() => setView("total")}>
+          {left >= 0 && (
+            <span className="flex items-center gap-2 text-[13px] text-chalk-muted lg:hidden">
+              <TimerIcon aria-hidden className="size-4" />
+              {t("results.toTotalIn", { count: left })}
+            </span>
+          )}
+          <Button variant="chalk" className="rounded-2xl px-5" onClick={showTotal}>
             {t("results.showTotal")}
             <ArrowRightIcon aria-hidden strokeWidth={3} />
           </Button>
@@ -115,7 +128,10 @@ function TotalView({
   const { t } = useTranslation();
   const { full } = usePlayerName();
   const party = useGame((s) => s.party)!;
-  const legend = usePlacementLegend();
+  // Điểm thứ hạng theo đúng số ghế và thưởng top của trận (CR-018, CR-019).
+  const { placementTopBonus } = useRoomScoring();
+  const crowded = isCrowded(players.length);
+  const legend = usePlacementLegend(players.length, placementTopBonus);
   const rows = matchRows(players);
   const showMovement = party.round > 1;
   const climber = showMovement ? biggestClimber(rows) : null;
@@ -164,10 +180,20 @@ function TotalView({
         </span>
       </header>
       <p className="-mt-1.5 text-[12.5px] text-chalk-muted lg:text-sm">
-        {t("results.placement", { list: legend })}
+        {crowded
+          ? t("results.placementAll", {
+              count: players.length,
+              list: placementList(players.length, placementTopBonus).join(" · "),
+            })
+          : t("results.placement", { list: legend })}
       </p>
 
-      <MatchTotals rows={rows} sessionId={sessionId} showMovement={showMovement} />
+      <MatchTotals
+        rows={rows}
+        sessionId={sessionId}
+        showMovement={showMovement}
+        compact={crowded}
+      />
       {personal}
 
       <div className="mt-auto flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">

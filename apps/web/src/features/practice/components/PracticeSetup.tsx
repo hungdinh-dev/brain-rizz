@@ -1,5 +1,5 @@
 import { type Difficulty, GAMES, type GameId } from "@brain-rizz/shared";
-import { ChevronLeftIcon, PlayIcon, StarIcon } from "lucide-react";
+import { ChevronLeftIcon, PlayIcon, TrophyIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { CategoryChip } from "@/components/common/MatchChips";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { useGameText } from "@/hooks/use-game-text";
 import { DESKTOP_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { useNumberFormat } from "@/hooks/use-number-format";
 import { bestFor, type PracticeRecords } from "../records";
+import { SetupFavoriteButton } from "./FavoriteStar";
 
 interface PracticeSetupProps {
   gameId: GameId;
@@ -45,11 +46,7 @@ export function PracticeSetup({
 
   const levelBest = (
     <p aria-live="polite" className="flex items-center gap-2 text-[13.5px] font-bold">
-      <StarIcon
-        aria-hidden
-        className={best ? "size-4.5 fill-primary" : "size-4.5"}
-        strokeWidth={2.2}
-      />
+      <TrophyIcon aria-hidden className="size-4.5" strokeWidth={2.2} />
       {best ? t("practice.levelBest", { score: fmt(best.score) }) : t("practice.levelNoBest")}
     </p>
   );
@@ -81,6 +78,7 @@ export function PracticeSetup({
           <h1 className="sticker-text font-display text-[40px] leading-none font-extrabold text-paper [--stroke:7px]">
             {t("intro.title")}
           </h1>
+          <SetupFavoriteButton gameId={gameId} name={game.title} withLabel className="ml-auto" />
         </header>
         <div className="flex min-h-0 flex-1 gap-5">
           <GuideCard gameId={gameId} className="w-117.5 shrink-0" />
@@ -105,9 +103,12 @@ export function PracticeSetup({
 
   return (
     <main className="flex flex-1 flex-col gap-3">
-      <header className="flex min-h-10 items-center gap-2.5">{back}</header>
+      <header className="flex min-h-10 items-center gap-2.5">
+        {back}
+        <SetupFavoriteButton gameId={gameId} name={game.title} className="ml-auto" />
+      </header>
       <div className="flex flex-wrap items-center gap-2.5">
-        <h1 className="font-display text-[32px] leading-none font-extrabold text-chalk">
+        <h1 className="font-display text-[28px] leading-none font-extrabold text-chalk">
           {game.title}
         </h1>
         <CategoryChip category={GAMES[gameId].category} />

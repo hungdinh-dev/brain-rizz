@@ -5,6 +5,7 @@ import { hasStoredSession, SUPABASE_CONFIGURED } from "@/lib/supabase";
 import { fetchPracticeBests, submitPracticeResult } from "@/net/data-api";
 import { serverNow, useGame } from "@/stores/game.store";
 import { useNav } from "@/stores/nav.store";
+import { useFavorites } from "./favorites";
 import {
   initialProgress,
   judgePracticeAnswer,
@@ -52,7 +53,11 @@ interface PracticeStore {
 
   /** Mở màn Luyện tập: đọc kỷ lục trên máy, gộp kỷ lục trên tài khoản (nếu có phiên). */
   open(): void;
-  pickGame(gameId: GameId): void;
+  /**
+   * Mở hướng dẫn một game. `minLevel` (`/practice/<game>?d=`): mức tối thiểu chọn sẵn lần này —
+   * mức đang nhớ thấp hơn thì nâng lên, không ghi gì (mức lần trước chỉ lưu khi chơi xong lượt).
+   */
+  pickGame(gameId: GameId, minLevel?: Difficulty): void;
   setDifficulty(difficulty: Difficulty): void;
   start(): void;
   answer(index: number, answer: unknown): void;
@@ -87,6 +92,8 @@ export const usePractice = create<PracticeStore>((set, get) => ({
   open() {
     clearTimers();
     set({ step: "pick", records: loadRecords(), round: null, progress: null, outcome: null });
+    // Game yêu thích: đọc lại từ máy, gộp/lấy từ tài khoản khi có phiên (CR-020).
+    void useFavorites.getState().sync();
     if (!SUPABASE_CONFIGURED || !hasStoredSession()) return;
     // Kỷ lục ở máy khác / trước khi xoá dữ liệu trình duyệt: gộp về, giữ điểm cao hơn.
     void fetchPracticeBests().then((res) => {
@@ -97,10 +104,11 @@ export const usePractice = create<PracticeStore>((set, get) => ({
     });
   },
 
-  pickGame(gameId) {
+  pickGame(gameId, minLevel) {
     const { records } = get();
     // Mặc định mức lần trước của game này, không có thì mức trong hồ sơ.
-    const difficulty = records.lastDifficulty[gameId] ?? loadProfile().difficulty;
+    const remembered = records.lastDifficulty[gameId] ?? loadProfile().difficulty;
+    const difficulty = minLevel !== undefined && minLevel > remembered ? minLevel : remembered;
     set({ step: "setup", gameId, difficulty, outcome: null });
   },
 

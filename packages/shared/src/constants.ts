@@ -18,7 +18,8 @@ export const BRAIN_TEST_IDLE_CLOSE_CODE = 4_100;
  */
 export const PLANNED_GAME_COUNT = 31;
 
-export const MAX_PLAYERS = 8;
+/** Số ghế tối đa một phòng party, tính cả bot (CR-018). */
+export const MAX_PLAYERS = 12;
 /** Số người tối thiểu để chủ phòng bắt đầu trận (FR-PH-11). */
 export const MIN_PLAYERS_TO_START = 2;
 
@@ -79,7 +80,10 @@ export const MIN_TOTAL_ROUNDS = 1;
 export const MAX_TOTAL_ROUNDS = 10;
 export const MAX_NAME_LENGTH = 16;
 
-/** Bảng màu avatar (pastel), người chơi chọn theo index. */
+/**
+ * Bảng màu avatar (pastel), người chơi chọn theo index. Đủ `MAX_PLAYERS` màu để mỗi ghế một màu
+ * (CR-018); 4 màu cuối là màu tạm, ui-designer duyệt ở bản mẫu phòng 12 người.
+ */
 export const AVATAR_COLORS = [
   "#7FD1AE",
   "#F7A8B8",
@@ -89,19 +93,42 @@ export const AVATAR_COLORS = [
   "#FF9F6E",
   "#5ED3D8",
   "#B8E07A",
+  "#FF8FE9",
+  "#FB7B74",
+  "#CBAF86",
+  "#748EDC",
 ] as const;
 
 /**
  * Nhân vật đại diện người chơi chọn. Được phép trùng giữa người chơi (màu vẫn là thứ phân biệt).
  * Tên hiển thị nằm ở i18n của web.
- * - khoi: Khói (mèo)
- * - bo: Bơ (chó)
- * - mochi: Mochi (thỏ)
- * - bap: Bắp (gà con)
- * - cam: Cam (cáo)
- * - tron: Tròn (gấu trúc)
+ *
+ * 6 nhân vật đầu luôn mở (`BASE_CHARACTER_IDS`, bot chỉ dùng các nhân vật này):
+ * - khoi: Khói (mèo) · bo: Bơ (chó) · mochi: Mochi (thỏ)
+ * - bap: Bắp (gà con) · cam: Cam (cáo) · tron: Tròn (gấu trúc)
+ *
+ * 6 bạn đồng hành sau khoá tới khi đạt thành tích (CR-024, `PET_CHARACTER_IDS` và `UNLOCK_RULES`
+ * trong `cosmetics/unlocks.ts`; server thay bằng nhân vật mặc định nếu chưa mở):
+ * - pin: Pin (cánh cụt) · op: Ộp (ếch) · thong: Thông (cú)
+ * - gai: Gai (nhím) · may: Mây (koala) · lua: Lửa (rồng con)
+ *
+ * Giữ thứ tự: 6 cũ trước, 6 mới sau (test `unlocks.test.ts` kiểm bằng `BASE_CHARACTER_IDS` +
+ * `PET_CHARACTER_IDS`).
  */
-export const CHARACTER_IDS = ["khoi", "bo", "mochi", "bap", "cam", "tron"] as const;
+export const CHARACTER_IDS = [
+  "khoi",
+  "bo",
+  "mochi",
+  "bap",
+  "cam",
+  "tron",
+  "pin",
+  "op",
+  "thong",
+  "gai",
+  "may",
+  "lua",
+] as const;
 export type CharacterId = (typeof CHARACTER_IDS)[number];
 
 export function isCharacterId(v: unknown): v is CharacterId {

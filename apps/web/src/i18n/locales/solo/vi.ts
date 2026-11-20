@@ -11,6 +11,18 @@ export const viSolo = {
     subtitleShort: "Chọn một game. Kỷ lục là của riêng bạn, không lên bảng xếp hạng.",
     filter: "Lọc theo nhóm kỹ năng",
     all: "Tất cả",
+    // Game yêu thích (CR-020, UI-UX 6.10): nhãn ⭐ cố định + aria-pressed; Thêm/Bỏ chỉ ở `title`.
+    favorites: "Yêu thích",
+    favoriteLabel: "Yêu thích: {{name}}",
+    favoriteAdd: "Thêm vào yêu thích",
+    favoriteRemove: "Bỏ yêu thích",
+    favoriteAdded: "Đã ghim {{name}} vào Yêu thích",
+    favoriteRemoved: "Đã bỏ {{name}} khỏi Yêu thích",
+    favoritesHint: "Bấm ☆ trên thẻ game để ghim game hay chơi lên đầu.",
+    favoritesEmptyTitle: "Chưa có game yêu thích",
+    favoritesEmptyBody: "Bấm ☆ trên thẻ game để ghim game hay chơi lên đầu danh sách.",
+    favoritesEmptyCta: "Xem tất cả game",
+    favoriteButton: "Yêu thích",
     gamesCount_one: "{{count}} game",
     gamesCount_other: "{{count}} game",
     best: "Kỷ lục {{score}} · {{level}}",
@@ -123,6 +135,8 @@ export const viSolo = {
     deleteForever: "Xoá vĩnh viễn",
     deleted: "Đã xoá dữ liệu của bạn",
     deleteFailed: "Không xoá được dữ liệu. Thử lại sau nhé.",
+    deleteLastAdmin:
+      "Bạn là quản trị viên duy nhất — thêm quản trị viên khác trước khi xoá dữ liệu.",
     googleTaken: "Tài khoản Google này đã có dữ liệu",
     googleTakenBody:
       "Đăng nhập để dùng lịch sử của tài khoản đó. Lịch sử khách trên máy này sẽ không được gộp vào.",
@@ -186,6 +200,8 @@ export const viSolo = {
     emptyPracticeTitle: "Chưa có kỷ lục luyện tập",
     emptyPracticeBody: "Chơi một lượt Luyện tập để có kỷ lục đầu tiên.",
     emptyPracticeCta: "Luyện tập",
+    /** Lối vào trang quản trị (CR-019): chỉ hiện với quản trị viên. */
+    adminConsole: "Trang quản trị",
   },
   leaderboard: {
     title: "Bảng xếp hạng",

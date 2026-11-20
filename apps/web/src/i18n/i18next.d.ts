@@ -1,6 +1,8 @@
 import type { GameId } from "@brain-rizz/shared";
 import "i18next";
 import type { GameLocale } from "@/games/types";
+import type { AdminLocaleMessages } from "./locales/admin/vi";
+import type { GachaLocaleMessages } from "./locales/gacha/vi";
 import type { SoloLocaleMessages } from "./locales/solo/vi";
 import type { LocaleMessages } from "./locales/vi";
 
@@ -9,8 +11,9 @@ declare module "i18next" {
   interface CustomTypeOptions {
     defaultNS: "common";
     resources: {
-      // Chữ các màn một mình nằm ở chunk tải lười (i18n/solo.ts) nhưng cùng namespace `common`.
-      common: LocaleMessages & SoloLocaleMessages;
+      // Chữ các màn một mình (i18n/solo.ts), trang quản trị (i18n/admin.ts), Máy quay + Tủ đồ
+      // (i18n/gacha.ts) nằm ở chunk tải lười nhưng cùng namespace `common`.
+      common: LocaleMessages & SoloLocaleMessages & AdminLocaleMessages & GachaLocaleMessages;
       games: Record<GameId, GameLocale>;
     };
   }

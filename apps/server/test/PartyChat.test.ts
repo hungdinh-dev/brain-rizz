@@ -13,18 +13,16 @@ import {
   ROOM_NAME,
   ServerMessage,
 } from "@brain-rizz/shared";
-import { boot, type ColyseusTestServer } from "@colyseus/testing";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import appConfig from "../src/app.config";
 import { ChatRelay, type ChatSender } from "../src/rooms/ChatRelay";
 import type { PartyRoom } from "../src/rooms/PartyRoom";
-import { advance, freezeNow, settle, until } from "./helpers";
+import { advance, bootOnFreePort, freezeNow, settle, type TestServer, until } from "./helpers";
 
 /** Chat real-time trong phòng party (CR-011). */
 
-let colyseus: ColyseusTestServer<typeof appConfig>;
+let colyseus: TestServer;
 
-type SdkRoom = Awaited<ReturnType<ColyseusTestServer<typeof appConfig>["sdk"]["joinById"]>>;
+type SdkRoom = Awaited<ReturnType<TestServer["sdk"]["joinById"]>>;
 
 /** Một máy trong phòng, ghi lại mọi tin chat / lịch sử / lỗi nhận được. */
 interface Peer {
@@ -120,7 +118,7 @@ describe("PartyRoom — chat (CR-011)", () => {
   let clock: ReturnType<typeof freezeNow> | null = null;
 
   beforeAll(async () => {
-    colyseus = await boot(appConfig);
+    colyseus = await bootOnFreePort();
   });
   afterAll(async () => {
     await colyseus.shutdown();

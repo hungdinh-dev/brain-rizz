@@ -1,5 +1,5 @@
-import { CHARACTER_IDS, MAX_NAME_LENGTH } from "@brain-rizz/shared";
-import { CheckIcon, CloudIcon, HardDriveIcon, UserIcon } from "lucide-react";
+import { MAX_NAME_LENGTH } from "@brain-rizz/shared";
+import { CloudIcon, HardDriveIcon, ShirtIcon, UserIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Character } from "@/components/characters";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { PetGrid } from "@/features/pets";
 import { type AuthStatus, useAuth } from "@/stores/auth.store";
 import { useNav } from "@/stores/nav.store";
 import { type Profile, saveProfile } from "../profile";
@@ -26,6 +26,7 @@ export function ProfileScreen({ profile, onBack, onConfirm }: ProfileScreenProps
   const { t } = useTranslation();
   const [name, setName] = useState(profile.name);
   const [avatar, setAvatar] = useState(profile.avatar);
+  const go = useNav((s) => s.go);
   const trimmed = name.trim();
 
   function submit(e: FormEvent) {
@@ -52,7 +53,7 @@ export function ProfileScreen({ profile, onBack, onConfirm }: ProfileScreenProps
           {/* Thẻ danh thiếp */}
           <Card className="gap-0 py-0">
             <div className="flex flex-col items-center gap-1 border-b-[3px] border-sticker bg-primary px-4 pt-4 pb-3 text-primary-foreground">
-              <Character id={avatar} mood="happy" size={140} />
+              <Character id={avatar} mood="happy" size={140} accessories={profile.accessories} />
               <span className="font-display text-3xl leading-none font-extrabold">
                 {t(`characters.${avatar}.name`)}
               </span>
@@ -75,54 +76,32 @@ export function ProfileScreen({ profile, onBack, onConfirm }: ProfileScreenProps
                 />
               </div>
               <AccountLine beforeOpen={saveDraft} />
+              {/* Máy tính: lối tắt sang Tủ đồ để đeo phụ kiện (ui-ux 6.12). */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="hidden self-start md:inline-flex"
+                onClick={() => {
+                  saveDraft();
+                  go("wardrobe");
+                }}
+              >
+                <ShirtIcon aria-hidden />
+                {t("home.profile.wardrobe")}
+              </Button>
             </div>
           </Card>
 
-          {/* Lưới bạn đồng hành */}
+          {/*
+            Lưới 12 bạn đồng hành (ui-ux 6.12): đã mở trước, thú khoá sau (xám + ổ khoá); bấm thú
+            khoá mở điều kiện, không đổi nhân vật. Đi "Luyện ngay" thì lưu bản nháp trước.
+          */}
           <fieldset className="flex min-w-0 flex-col gap-3">
             <legend className="mb-3 font-display text-2xl leading-none font-extrabold text-chalk">
               {t("home.profile.buddies")}
             </legend>
-            <div className="grid grid-cols-3 gap-3 md:gap-4">
-              {CHARACTER_IDS.map((id, i) => {
-                const picked = id === avatar;
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    aria-pressed={picked}
-                    onClick={() => setAvatar(id)}
-                    className={cn(
-                      "relative flex cursor-pointer flex-col items-center rounded-3xl border-[3px] border-sticker px-1 pt-2 pb-3 text-card-foreground shadow-sticker transition-[translate,box-shadow] outline-none hover:-translate-y-1 focus-visible:ring-3 focus-visible:ring-ring active:translate-y-1 active:shadow-none",
-                      picked ? "bg-primary text-primary-foreground" : "bg-card",
-                    )}
-                  >
-                    {picked && (
-                      <span className="absolute -top-3 -right-2 grid size-8 place-items-center rounded-full border-[3px] border-sticker bg-compute text-paper">
-                        <CheckIcon aria-hidden className="size-4" strokeWidth={3.5} />
-                      </span>
-                    )}
-                    <Character
-                      id={id}
-                      mood={picked ? "happy" : "idle"}
-                      size={72}
-                      delay={-0.5 * i}
-                    />
-                    <span className="mt-1 font-display text-lg leading-none font-extrabold md:text-xl">
-                      {t(`characters.${id}.name`)}
-                    </span>
-                    <span
-                      className={cn(
-                        "text-center text-xs",
-                        picked ? "text-primary-foreground/75" : "text-muted-foreground",
-                      )}
-                    >
-                      {t(`characters.${id}.species`)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            <PetGrid value={avatar} onPick={setAvatar} beforeNavigate={saveDraft} />
           </fieldset>
         </div>
 

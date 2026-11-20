@@ -39,6 +39,8 @@ export const BrainState = schema(
     skills: t.map("number"),
     /** BrainSaveStatus: pending | saved | guest | no-db | failed. */
     saveStatus: t.string().default("pending"),
+    /** Phấn nhận được từ lượt này, đã kẹp trần ngày (CR-023); 0 tới khi ghi phấn xong. */
+    chalkEarned: t.uint16().default(0),
   },
   "BrainState",
 );

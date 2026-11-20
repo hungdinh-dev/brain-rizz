@@ -1,6 +1,6 @@
 import type { PlayerView } from "@brain-rizz/shared";
 import { describe, expect, it } from "vitest";
-import { biggestClimber, matchRows, podiumGroups, roundWinners } from "./standings";
+import { biggestClimber, matchRows, placementList, podiumGroups, roundWinners } from "./standings";
 
 // Ép kiểu để test không vỡ khi PlayerView có thêm trường không liên quan.
 function player(
@@ -59,5 +59,19 @@ describe("nhất vòng và bục vinh danh", () => {
       ["d", 3],
       ["e", 4],
     ]);
+  });
+});
+
+describe("điểm trận theo hạng (CR-018, CR-019)", () => {
+  it("co giãn theo số ghế, thưởng top mặc định 3/2/1", () => {
+    expect(placementList(12)).toEqual([15, 13, 11, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+    expect(placementList(8)).toEqual([11, 9, 7, 5, 4, 3, 2, 1]);
+    expect(placementList(2)).toEqual([5, 3]);
+    expect(placementList(0)).toEqual([]);
+  });
+
+  it("theo thưởng top của phòng do admin chỉnh", () => {
+    expect(placementList(4, [10, 0, 0])).toEqual([14, 3, 2, 1]);
+    expect(placementList(3, [0, 0, 0])).toEqual([3, 2, 1]);
   });
 });

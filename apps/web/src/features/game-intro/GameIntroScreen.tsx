@@ -106,6 +106,12 @@ function IntroView({ gameId }: { gameId: GameId }) {
     <DifficultyChooser value={me.difficulty} onChange={chooseDifficulty} levels={game.levels} />
   );
 
+  const waitOthers = !isHost && me?.introReady && (
+    <p className="text-center text-[13px] font-semibold text-chalk-muted">
+      {t("intro.waitOthers")}
+    </p>
+  );
+
   if (desktop) {
     return (
       <main className="flex flex-1 flex-col gap-4">
@@ -156,7 +162,7 @@ function IntroView({ gameId }: { gameId: GameId }) {
         <IntroTimerChip introEndsAt={party.introEndsAt} />
       </header>
       <div className="flex flex-wrap items-center gap-2.5">
-        <h2 className="font-display text-[32px] leading-none font-extrabold text-chalk">
+        <h2 className="font-display text-[28px] leading-none font-extrabold text-chalk">
           {game.title}
         </h2>
         <CategoryChip category={GAMES[gameId].category} />
@@ -176,6 +182,16 @@ function IntroView({ gameId }: { gameId: GameId }) {
         {chooser}
         {tip && <LevelTip text={tip} className="text-chalk" />}
       </div>
+      {/*
+        Khung minh hoạ 16:9 làm thẻ cao hơn (CR-021) nên ở mọi số người nút chính lên ngay dưới ô
+        chọn độ khó (vẫn trong màn đầu ở 390×844, trên nút chat nổi), dòng phụ xuống dưới nút;
+        danh sách cả phòng theo sau (UI-UX 6.8, 6.11).
+      */}
+      <div className="flex flex-col gap-2">
+        {action}
+        {isHost && autoStart}
+        {waitOthers}
+      </div>
       {isHost ? (
         <RoomDifficulty
           gameId={gameId}
@@ -189,7 +205,12 @@ function IntroView({ gameId }: { gameId: GameId }) {
           <ul className="flex flex-wrap gap-2.5">
             {players.map((p) => (
               <li key={p.id} className={cn("relative flex", !p.connected && "opacity-50")}>
-                <PlayerAvatar avatar={p.avatar} colorIndex={p.colorIndex} size="md" />
+                <PlayerAvatar
+                  avatar={p.avatar}
+                  accessories={p.accessories}
+                  colorIndex={p.colorIndex}
+                  size="md"
+                />
                 {/* Góc dưới phải đã dành cho dấu "Đã hiểu" nên huy hiệu máy sang góc dưới trái. */}
                 {p.isBot && <BotBadge size="sm" className="right-auto -left-1" />}
                 {(p.isHost || p.introReady) && (
@@ -209,15 +230,6 @@ function IntroView({ gameId }: { gameId: GameId }) {
           </span>
         </div>
       )}
-      <div className="mt-auto flex flex-col gap-2">
-        {isHost && autoStart}
-        {!isHost && me?.introReady && (
-          <p className="text-center text-[13px] font-semibold text-chalk-muted">
-            {t("intro.waitOthers")}
-          </p>
-        )}
-        {action}
-      </div>
     </main>
   );
 }

@@ -104,7 +104,7 @@ Các luật này là "hợp đồng" của game; đổi luật nào phải ghi C
 | RULE-06 | Câu đúng: 100 điểm × hệ số độ khó + thưởng tốc độ tối đa 50. Hệ số mặc định Mầm 0,8 · Thường 1 · Khó 1,25 · Siêu khó 1,5; mỗi game được đặt hệ số riêng để người chơi đúng sức ở mức nào cũng được điểm vòng xấp xỉ nhau (không phạt người chọn mức cao). Thời gian không thao tác được (trình chiếu, số lần chạm tối thiểu) không bị tính vào thưởng tốc độ. |
 | RULE-07 | Từ câu đúng thứ 3 liên tiếp, mỗi câu được thêm 10% (combo), tối đa × 1,5. |
 | RULE-08 | Câu sai không trừ điểm nhưng khoá thao tác 1,5 giây, trong lúc khoá hiện đáp án đúng, rồi sang câu mới. |
-| RULE-09 | Hết vòng: xếp hạng theo điểm vòng → điểm trận 10, 8, 6, 5, 4, 3, 2, 1. Tổng điểm trận quyết định chung cuộc. |
+| RULE-09 | Hết vòng: xếp hạng theo điểm vòng → điểm trận co giãn theo số ghế N: hạng r (0 = nhất) được max(1, N − r) + thưởng top 3/2/1 (12 người: 15, 13, 11 … 1; 8 người: 11, 9, 7, 5, 4, 3, 2, 1). Thưởng top chỉnh được ở trang quản trị. Tổng điểm trận quyết định chung cuộc ([CR-018](../00-tracking/change-requests.md#cr-018)). |
 | RULE-10 | Người rớt mạng được giữ chỗ 45 giây; quá thời gian thì bị xoá khỏi phòng. |
 | RULE-11 | Hai người được chọn trùng nhân vật; màu avatar không trùng (server tự đổi sang màu trống). |
 | RULE-12 | Server là trọng tài duy nhất về điểm, đồng hồ và thứ tự vòng. |

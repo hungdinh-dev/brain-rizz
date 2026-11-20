@@ -25,6 +25,7 @@ import { leaveParty, send } from "@/net/connection";
 import { useGame } from "@/stores/game.store";
 import { CategoryBest } from "./components/CategoryBest";
 import { Confetti } from "./components/Confetti";
+import { RewardChip } from "./components/RewardChip";
 import { PODIUM_TIMING, type PodiumTimeline, podiumTimeline } from "./podium-timeline";
 import { podiumGroups } from "./standings";
 
@@ -36,6 +37,8 @@ const STEP_HEIGHT = ["h-26 lg:h-52.5", "h-19 lg:h-37.5", "h-17 lg:h-28"] as cons
 const WINNER_IDLE_AFTER = 1000;
 /** Tiếng tick của từng hàng hạng 4+ nhỏ hơn tiếng bấm. */
 const ROW_TICK_VOLUME = 0.5;
+/** Hạng 4+ từ ngần này người (phòng 9–12 người) thì dùng hàng gọn (ui-ux 6.8). */
+const DENSE_REST_MIN = 6;
 
 /**
  * Vào pha `podium` ngay trong phiên này (từ pha khác) thì chạy nhịp vinh danh; mở màn khi pha đã
@@ -78,6 +81,8 @@ export function PodiumScreen() {
   const reduced = useReducedMotion();
   const players = Object.values(party.players);
   const { podium, rest } = podiumGroups(players);
+  /** Phòng đông: hạng 4+ có từ 6 người thì dùng hàng gọn (lưới 2 cột trên máy tính). */
+  const denseRest = rest.length >= DENSE_REST_MIN;
   const leaders = categoryLeaders(players, playedOf(players));
   const hasBest = leaders.length > 0;
   const isHost = party.hostId === sessionId;
@@ -210,6 +215,8 @@ export function PodiumScreen() {
         hasBest && "xl:col-start-3",
       )}
     >
+      {/* Máy tính: "+N phấn" trên các nút (điện thoại: cạnh nhãn hạng của mình ở đầu màn). */}
+      <RewardChip shown={youShown} announce note className="hidden self-center lg:flex" />
       {isHost ? (
         <>
           <Button
@@ -280,15 +287,18 @@ export function PodiumScreen() {
       </header>
 
       {me && rank !== undefined && (
-        // Giữ chỗ từ đầu, chỉ hiện sau khi chỗ của mình đã lật (không lộ kết quả sớm).
-        <div
-          aria-hidden={!youShown}
-          className={cn(
-            "relative -rotate-2 self-center rounded-[14px] border-[3px] border-sticker bg-card px-3.5 py-1.5 font-display text-[19px] font-extrabold text-card-foreground shadow-sticker-sm lg:hidden",
-            youShown ? enter("fx-tag-pop") : "invisible",
-          )}
-        >
-          {t("results.youPlace", { place, count: me.matchPoints })}
+        <div className="flex items-center justify-center gap-2.5 self-center lg:hidden">
+          {/* Giữ chỗ từ đầu, chỉ hiện sau khi chỗ của mình đã lật (không lộ kết quả sớm). */}
+          <div
+            aria-hidden={!youShown}
+            className={cn(
+              "relative -rotate-2 rounded-[14px] border-[3px] border-sticker bg-card px-3.5 py-1.5 font-display text-[19px] font-extrabold text-card-foreground shadow-sticker-sm",
+              youShown ? enter("fx-tag-pop") : "invisible",
+            )}
+          >
+            {t("results.youPlace", { place, count: me.matchPoints })}
+          </div>
+          <RewardChip shown={youShown} reserve />
         </div>
       )}
 
@@ -331,7 +341,19 @@ export function PodiumScreen() {
             <h2 className="font-display text-lg font-extrabold lg:text-[21px]">
               {t("results.restTitle")}
             </h2>
-            <ol className="flex flex-col gap-2">
+            {/*
+              Phòng đông (từ 6 người hạng 4+, ui-ux 6.8): máy tính lưới 2 cột × 5 hàng 36 px đổ theo
+              cột (cột trái hạng 4–8); điện thoại một cột hàng 44 px. Nhịp lật giữ nguyên: từ hạng
+              thấp nhất lên (cột phải trước, rồi cột trái).
+            */}
+            <ol
+              className={cn(
+                "flex flex-col",
+                denseRest
+                  ? "gap-1.5 lg:grid lg:grid-flow-col lg:grid-cols-2 lg:grid-rows-[repeat(5,2.25rem)] lg:gap-x-1.5 lg:gap-y-1.25"
+                  : "gap-2",
+              )}
+            >
               {rest.map(({ player: p, rank: r }, k) => {
                 const shown = shownAt(timeline.rest[k]);
                 return (
@@ -339,30 +361,82 @@ export function PodiumScreen() {
                     key={p.id}
                     aria-hidden={!shown}
                     className={cn(
-                      "flex min-h-12.5 items-center gap-2.5 rounded-[14px] border-[3px] border-sticker pr-3 pl-2",
+                      "flex items-center border-sticker",
+                      denseRest
+                        ? "h-11 min-w-0 gap-2.25 rounded-[14px] border-[3px] pr-3 pl-1.75 lg:h-9 lg:gap-1.25 lg:rounded-[11px] lg:border-[2.5px] lg:pr-1.75 lg:pl-1"
+                        : "min-h-12.5 gap-2.5 rounded-[14px] border-[3px] pr-3 pl-2",
                       p.id === sessionId ? "bg-primary/30" : "bg-card",
                       shown ? enter("fx-row-in") : "opacity-0",
                     )}
                   >
-                    <RankBadge rank={r + 1} size="md" />
+                    <RankBadge
+                      rank={r + 1}
+                      size="md"
+                      className={
+                        denseRest
+                          ? "size-7 border-[2.5px] text-[15px] lg:size-5.5 lg:border-2 lg:text-xs"
+                          : undefined
+                      }
+                    />
                     <span className="relative flex shrink-0">
                       <PlayerAvatar
                         avatar={p.avatar}
+                        accessories={p.accessories}
                         colorIndex={p.colorIndex}
                         size="md"
-                        className="size-9.5"
+                        className={denseRest ? "size-8 border-2 lg:size-6" : "size-9.5"}
                       />
-                      {p.isBot && <BotBadge size="sm" />}
+                      {p.isBot && (
+                        <BotBadge
+                          size={denseRest ? "xs" : "sm"}
+                          // Avatar 24 px (máy tính): huy hiệu 14 px như dải ghế của hộp thoại bot.
+                          className={
+                            denseRest
+                              ? "lg:-right-0.75 lg:-bottom-0.75 lg:size-3.5 lg:[&_svg]:size-2"
+                              : undefined
+                          }
+                        />
+                      )}
                       {shown && <ReactionBubble playerId={p.id} placement="corner" />}
                     </span>
-                    <span className="flex min-w-0 flex-1 items-baseline gap-1 overflow-x-clip">
+                    {/*
+                      Lưới 2 cột (máy tính) chỉ còn ~60 px cho tên: "· máy" nhường cho huy hiệu máy
+                      trên avatar (`compact`, trình đọc màn hình và `title` vẫn đủ). Điện thoại một
+                      cột còn chỗ nên giữ hậu tố.
+                    */}
+                    {denseRest && (
+                      <span className="hidden min-w-0 flex-1 lg:flex">
+                        <PlayerName
+                          player={p}
+                          compact
+                          className="font-display text-[14.5px] leading-none font-extrabold"
+                        />
+                      </span>
+                    )}
+                    <span
+                      className={cn(
+                        "flex min-w-0 flex-1 items-baseline gap-1 overflow-x-clip",
+                        denseRest && "lg:hidden",
+                      )}
+                    >
                       <PlayerName
                         player={p}
-                        className="truncate font-display text-lg font-extrabold"
-                        suffixClassName="text-xs text-muted-foreground"
+                        className={cn(
+                          "truncate font-display font-extrabold",
+                          denseRest ? "text-[17px]" : "text-lg",
+                        )}
+                        suffixClassName={cn(
+                          "text-muted-foreground",
+                          denseRest ? "text-[11.5px]" : "text-xs",
+                        )}
                       />
                     </span>
-                    <span className="font-display text-xl font-extrabold tabular-nums">
+                    <span
+                      className={cn(
+                        "font-display font-extrabold tabular-nums",
+                        denseRest ? "text-[19px] lg:text-base lg:leading-none" : "text-xl",
+                      )}
+                    >
                       {p.matchPoints}
                     </span>
                   </li>
@@ -460,6 +534,7 @@ function PodiumColumn({
         >
           <Character
             id={top.avatar}
+            accessories={top.accessories}
             mood="win"
             size={150}
             animated={shown && idle && !reduced}

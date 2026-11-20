@@ -2,6 +2,7 @@ import { LATE_ANSWER_GRACE_MS, MAX_ANSWERS_PER_SECOND, WRONG_ANSWER_LOCK_MS } fr
 import type { Difficulty } from "./difficulty";
 import { getGame, isGameId } from "./games";
 import type { AnyMinigame } from "./games/types";
+import { DEFAULT_SCORING, type ScoringConfig } from "./party-config";
 import type { AnswerPayload, AnswerResultPayload } from "./protocol";
 import { gameMultiplier, gameSpeedAllowanceMs, pointsForCorrect } from "./scoring";
 
@@ -20,6 +21,9 @@ import { gameMultiplier, gameSpeedAllowanceMs, pointsForCorrect } from "./scorin
  *
  * Bot (CR-016, ADR 0014) chấm bằng `judgeBotAnswer`: bỏ `isAnswer`/`check` và chống spam, còn lại
  * (giờ hiện câu, hạn trả lời, thưởng tốc độ, hệ số, combo, khoá khi sai) đi CÙNG đường với người.
+ *
+ * `scoring` (CR-019): trận party truyền cấu hình admin của trận (cho cả người và bot); Luyện tập và
+ * Kiểm tra não không truyền → `DEFAULT_SCORING`. Cấu hình chỉ đổi điểm, không đổi câu đố hay luật bỏ qua.
  */
 
 /** Vòng/game đang chơi. */
@@ -86,6 +90,7 @@ export function judgeAnswer(
   state: JudgeState,
   msg: AnswerPayload,
   now: number,
+  scoring: ScoringConfig = DEFAULT_SCORING,
 ): Judgement {
   const ignore = (next: JudgeState = state): Judgement => ({ outcome: null, next });
   if (!round.playing || !isGameId(round.gameId)) return ignore();
@@ -108,6 +113,7 @@ export function judgeAnswer(
     game,
     (puzzle) => game.check(puzzle, msg.answer),
     now,
+    scoring,
   );
 }
 
@@ -133,13 +139,22 @@ export function judgeBotAnswer(
   state: JudgeState,
   answer: BotAnswer,
   now: number,
+  scoring: ScoringConfig = DEFAULT_SCORING,
 ): Judgement {
   const ignore: Judgement = { outcome: null, next: state };
   if (!round.playing || !isGameId(round.gameId)) return ignore;
   if (answer.index !== state.progress) return ignore;
   if (now > round.endsAt + LATE_ANSWER_GRACE_MS) return ignore;
   if (state.lockedUntil > now) return ignore;
-  return settleAnswer(round, difficulty, state, getGame(round.gameId), () => answer.correct, now);
+  return settleAnswer(
+    round,
+    difficulty,
+    state,
+    getGame(round.gameId),
+    () => answer.correct,
+    now,
+    scoring,
+  );
 }
 
 /**
@@ -154,6 +169,7 @@ function settleAnswer(
   game: AnyMinigame,
   solved: (puzzle: unknown) => boolean,
   now: number,
+  scoring: ScoringConfig,
 ): Judgement {
   const index = state.progress;
   const puzzle = game.generate(round.seed, index, difficulty);
@@ -165,15 +181,18 @@ function settleAnswer(
   const next: JudgeState = { ...state, progress: index + 1 };
 
   if (correct) {
-    // Hệ số và miễn trừ thời gian riêng của game (CR-006), tính trên câu vừa sinh lại;
-    // giá trị game khai báo sai bị kẹp về mặc định trong gameMultiplier/gameSpeedAllowanceMs.
-    result.points = pointsForCorrect({
-      difficulty,
-      answerMs: now - shownAt,
-      streak: state.streak,
-      multiplier: gameMultiplier(game, difficulty),
-      allowanceMs: gameSpeedAllowanceMs(game, puzzle, difficulty),
-    });
+    // Hệ số (ghi đè của admin → hệ số game → hệ số chung) và miễn trừ thời gian riêng của game
+    // (CR-006, CR-019), tính trên câu vừa sinh lại; giá trị sai bị kẹp trong gameMultiplier/gameSpeedAllowanceMs.
+    result.points = pointsForCorrect(
+      {
+        difficulty,
+        answerMs: now - shownAt,
+        streak: state.streak,
+        multiplier: gameMultiplier(game, difficulty, scoring),
+        allowanceMs: gameSpeedAllowanceMs(game, puzzle, difficulty),
+      },
+      scoring,
+    );
     next.streak = state.streak + 1;
     next.shownAt = now;
   } else {

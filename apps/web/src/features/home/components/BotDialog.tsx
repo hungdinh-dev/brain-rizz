@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { playSfx } from "@/features/sfx";
+import { cn } from "@/lib/utils";
 import {
   BOT_COUNT_MAX,
   BOT_COUNT_MIN,
@@ -238,17 +239,21 @@ export function BotDialog({ open, onOpenChange, me, onStart }: BotDialogProps) {
   );
 }
 
-/** Dải 8 ghế minh hoạ: mình (vòng vàng), N bot (huy hiệu máy), còn lại vòng nét đứt. */
+/**
+ * Dải `MAX_PLAYERS` ghế minh hoạ: mình (vòng vàng), N bot (huy hiệu máy), còn lại vòng nét đứt.
+ * 12 ghế nằm một hàng (ui-ux 6.8): vòng 26 px cách 5 (367 px), điện thoại 22 px cách 4 (308 px).
+ */
 function SeatStrip({ me, count }: { me: SeatFace; count: number }) {
   const bots = previewBotFaces(me, count);
   const empty = Math.max(0, MAX_PLAYERS - 1 - bots.length);
+  const seat = "size-5.5 border-2 sm:size-6.5";
   return (
-    <div aria-hidden className="flex flex-wrap items-center gap-1.5 px-0.5 pt-1 sm:gap-2">
+    <div aria-hidden className="flex items-center gap-1 px-0.5 pt-1 sm:gap-1.25">
       <PlayerAvatar
         avatar={me.avatar}
         colorIndex={me.colorIndex}
         size="sm"
-        className="shadow-[0_0_0_3px_var(--color-primary)]"
+        className={cn(seat, "shadow-[0_0_0_2.5px_var(--color-primary)]")}
       />
       {bots.map((face, i) => (
         <span
@@ -256,15 +261,20 @@ function SeatStrip({ me, count }: { me: SeatFace; count: number }) {
           key={i}
           className="relative flex"
         >
-          <PlayerAvatar avatar={face.avatar} colorIndex={face.colorIndex} size="sm" />
-          <BotBadge size="xs" />
+          <PlayerAvatar
+            avatar={face.avatar}
+            colorIndex={face.colorIndex}
+            size="sm"
+            className={seat}
+          />
+          <BotBadge size="xs" className="-right-1 -bottom-1 size-3.5 [&_svg]:size-2" />
         </span>
       ))}
       {Array.from({ length: empty }, (_, i) => (
         <span
           // biome-ignore lint/suspicious/noArrayIndexKey: ghế trống, không có danh tính
           key={`empty-${i}`}
-          className="block size-8 rounded-full border-2 border-dashed border-muted-foreground"
+          className={cn("block shrink-0 rounded-full border-dashed border-muted-foreground", seat)}
         />
       ))}
     </div>

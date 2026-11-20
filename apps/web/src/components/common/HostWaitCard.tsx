@@ -20,7 +20,14 @@ export function HostWaitCard({
         className,
       )}
     >
-      {host && <PlayerAvatar avatar={host.avatar} colorIndex={host.colorIndex} size="md" />}
+      {host && (
+        <PlayerAvatar
+          avatar={host.avatar}
+          accessories={host.accessories}
+          colorIndex={host.colorIndex}
+          size="md"
+        />
+      )}
       <span className="text-sm leading-snug font-semibold">{children}</span>
     </div>
   );

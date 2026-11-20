@@ -8,6 +8,8 @@ const PINK = "#ffadc6";
 const YELLOW = "#ffd166";
 const LAVENDER = "#c7b6f0";
 const MINT = "#9be3c0";
+/** Bốn màu thân bóng, dùng lại ở NumberBalloonsDemo. */
+export const BALLOON_FILL = { pink: PINK, yellow: YELLOW, lavender: LAVENDER, mint: MINT } as const;
 
 /** Nét phấn sần (filter #chalk khai báo trong <ChalkDefs /> của App). */
 const CHALK = "fill-none stroke-chalk filter-[url(#chalk)]";
@@ -21,7 +23,13 @@ const ORDER = [
 ];
 
 /** Thân bóng luôn sáng nên chữ số dùng mực đậm ở cả hai chủ đề; viền theo màu viền nhãn dán. */
-function Balloon(props: { x: number; y: number; fill: string; value: number; scale?: number }) {
+export function Balloon(props: {
+  x: number;
+  y: number;
+  fill: string;
+  value: number;
+  scale?: number;
+}) {
   const { x, y, fill, value, scale } = props;
   return (
     <g transform={`translate(${x} ${y})${scale ? ` scale(${scale})` : ""}`}>

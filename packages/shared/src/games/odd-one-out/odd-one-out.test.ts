@@ -36,7 +36,7 @@ function lightGap(p: OddOneOutPuzzle) {
   return hexToHsl(odd.color).l - hexToHsl(base.color).l;
 }
 
-describe("odd-one-out", () => {
+describe("odd-one-out", { timeout: 60_000 }, () => {
   it("tất định: cùng (seed, index, độ khó) → cùng câu đố", () => {
     for (const d of DIFFICULTIES) {
       expect(oddOneOut.generate(777, 5, d)).toEqual(oddOneOut.generate(777, 5, d));

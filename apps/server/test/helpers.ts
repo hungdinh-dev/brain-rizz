@@ -1,8 +1,9 @@
+import { type AddressInfo, createServer } from "node:net";
 import { type Difficulty, GAMES, type GameId, getGame, ServerMessage } from "@brain-rizz/shared";
-import type { ColyseusTestServer } from "@colyseus/testing";
+import { ColyseusTestServer } from "@colyseus/testing";
 import type { Room } from "colyseus";
 import { vi } from "vitest";
-import type appConfig from "../src/app.config";
+import appConfig from "../src/app.config";
 
 /** Tiện ích dùng chung cho test phòng (PartyRoom, BrainTestRoom). */
 
@@ -106,7 +107,30 @@ export function ignoreServerMessages<C extends MessageTarget>(client: C): C {
   return client;
 }
 
-type TestServer = ColyseusTestServer<typeof appConfig>;
+export type TestServer = ColyseusTestServer<typeof appConfig>;
+
+/**
+ * Dựng server test trên một cổng trống do hệ điều hành cấp, thay cho `boot(appConfig)` của
+ * `@colyseus/testing`. Lý do: với `appConfig` tạo bằng `defineServer`, `boot()` bỏ qua tham số cổng
+ * và luôn nghe cổng cố định 2568. Hai lượt test chạy cùng lúc (vd. hai `pnpm check`, hoặc test server
+ * chạy song song với một lượt khác) sẽ giành cổng đó; lượt sau gặp EADDRINUSE nhưng Colyseus không
+ * báo lỗi, promise không bao giờ xong nên `beforeAll` treo tới hết giờ.
+ *
+ * Cách làm: mở tạm một socket ở cổng 0 để hệ điều hành chọn cổng trống, đóng lại, rồi cho
+ * `appConfig.listen(port)` nghe đúng cổng đó và bọc bằng `ColyseusTestServer` như `boot()` vẫn làm.
+ */
+export async function bootOnFreePort(): Promise<TestServer> {
+  const port = await new Promise<number>((resolve, reject) => {
+    const probe = createServer().once("error", reject);
+    probe.listen(0, () => {
+      const { port } = probe.address() as AddressInfo;
+      probe.close(() => resolve(port));
+    });
+  });
+  await appConfig.listen(port);
+  return new ColyseusTestServer<typeof appConfig>(appConfig);
+}
+
 declare const testServer: TestServer;
 type ConnectedClient<R extends Room> = Awaited<ReturnType<typeof testServer.connectTo<R>>>;
 

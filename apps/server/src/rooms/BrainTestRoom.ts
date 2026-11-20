@@ -14,6 +14,7 @@ import {
   BrainReadySchema,
   type BrainSaveStatus,
   type BrainTestResult,
+  brainChalkReward,
   brainTestDurationMs,
   computeBrainResult,
   getGame,
@@ -29,6 +30,13 @@ import {
 import { type Client, type Delayed, Room } from "colyseus";
 import { getResultStore, type ResultStore } from "../store/ResultStore";
 import { AnswerJudge } from "./AnswerJudge";
+import {
+  needsOwnership,
+  OWNERSHIP_RETRY_MARGIN_MS,
+  ownsRequested,
+  type RequestedLoadout,
+  resolveLoadout,
+} from "./loadout";
 import { parseMessage, replyPong, sendError } from "./messages";
 import { BrainGame, BrainState } from "./schema/BrainState";
 
@@ -41,8 +49,11 @@ import { BrainGame, BrainState } from "./schema/BrainState";
  * (close code `BRAIN_TEST_IDLE_CLOSE_CODE`).
  *
  * Xong game thứ 5: tính Điểm Não bằng `computeBrainResult`, ghi `brain_tests` + `brain_test_games`
- * nếu token hợp lệ. Rời phòng (hoặc hết giờ giữ chỗ khi rớt mạng) trước khi xong → huỷ, không lưu.
+ * nếu token hợp lệ, rồi cộng phấn (`brainChalkReward`, ref = id lượt vừa lưu) vào `chalkEarned`.
+ * Rời phòng (hoặc hết giờ giữ chỗ khi rớt mạng) trước khi xong → huỷ, không lưu.
  * Không có mã phòng, không vào lại sau khi đã rời; "Làm lại" là tạo phòng mới.
+ *
+ * Nhân vật (CR-024): thú khoá hiện `khoi` tới khi token hợp lệ + đã mở (nạp chạy nền), như party.
  */
 export class BrainTestRoom extends Room<{ state: BrainState }> {
   override maxClients = 1;
@@ -56,6 +67,8 @@ export class BrainTestRoom extends Room<{ state: BrainState }> {
   private connected = false;
   /** Người chơi đã rời hẳn trước khi xong: không lưu gì nữa. */
   private cancelled = false;
+  /** Hẹn đọc lại quyền thú (đệm chưa thấy thú vừa mở); không thuộc `timers` nên đổi pha không huỷ. */
+  private avatarRetry: Delayed | null = null;
   /** Đã bắt đầu ghi kết quả (mỗi lượt đúng một lần). */
   private saveStarted = false;
   /** Điểm Não + 5 kỹ năng, có khi xong lượt. */
@@ -102,9 +115,11 @@ export class BrainTestRoom extends Room<{ state: BrainState }> {
   override onJoin(_client: Client, options: unknown) {
     const opts = BrainJoinOptionsSchema.parse(options ?? {});
     this.state.name = opts.name;
-    this.state.avatar = opts.avatar;
+    // Bản an toàn ngay (thú khoá → khoi); `authenticate` nạp quyền rồi áp lại.
+    const requested: RequestedLoadout = { avatar: opts.avatar, accessories: [] };
+    this.state.avatar = resolveLoadout(requested, null).avatar;
     this.connected = true;
-    this.authenticate(opts.accessToken);
+    this.authenticate(opts.accessToken, requested);
     this.enterIntro(1);
   }
 
@@ -124,6 +139,7 @@ export class BrainTestRoom extends Room<{ state: BrainState }> {
 
   override onLeave() {
     this.connected = false;
+    this.cancelAvatarRetry();
     if (this.state.phase !== "finished") {
       // Thoát giữa chừng hoặc hết giờ giữ chỗ: huỷ lượt, không lưu.
       this.cancelled = true;
@@ -133,6 +149,7 @@ export class BrainTestRoom extends Room<{ state: BrainState }> {
 
   override onDispose() {
     this.clearTimers();
+    this.cancelAvatarRetry();
   }
 
   // ---------------------------------------------------------------- game flow
@@ -226,17 +243,56 @@ export class BrainTestRoom extends Room<{ state: BrainState }> {
 
   // ---------------------------------------------------------------- lưu kết quả
 
-  /** Xác thực token chạy nền, không chặn việc chơi. Không có/sai token → `guest`. */
-  private authenticate(token: string | undefined) {
+  /**
+   * Xác thực token chạy nền, không chặn việc chơi. Không có/sai token → `guest`. Hợp lệ mà xin thú
+   * khoá → nạp quyền (`loadCosmetics`) rồi dùng thú nếu đã mở.
+   */
+  private authenticate(token: string | undefined, requested: RequestedLoadout) {
     if (!this.store.enabled) return;
     if (!token) {
       this.setSaveStatus("guest");
       return;
     }
     this.userId = this.store.verifyToken(token).catch(() => null);
-    void this.userId.then((id) => {
-      if (!id) this.setSaveStatus("guest");
+    void this.userId.then(async (id) => {
+      if (!id) {
+        this.setSaveStatus("guest");
+        return;
+      }
+      if (needsOwnership(requested)) await this.loadAvatar(id, requested, false);
     });
+  }
+
+  /**
+   * Nạp quyền rồi áp thú đang xin. Đệm chưa có thú (vừa mở) → store đọc lại DB (≤ 1 lần mỗi người mỗi
+   * 5 giây); còn trong cửa sổ đó thì hẹn đúng một lần đọc lại khi hết cửa sổ (`retry` = lượt đó).
+   */
+  private async loadAvatar(userId: string, requested: RequestedLoadout, retry: boolean) {
+    let retryInMs = -1;
+    const owned = await this.store
+      .loadCosmetics(userId, {
+        isEnough: (o) => ownsRequested(requested, o),
+        onDeferred: retry
+          ? undefined
+          : (ms) => {
+              retryInMs = ms;
+            },
+      })
+      .catch(() => null);
+    // Đã huỷ lượt (rời phòng) thì thôi.
+    if (this.cancelled) return;
+    if (owned) this.state.avatar = resolveLoadout(requested, owned).avatar;
+    if (retryInMs < 0) return;
+    this.cancelAvatarRetry();
+    this.avatarRetry = this.clock.setTimeout(() => {
+      this.avatarRetry = null;
+      if (!this.cancelled) void this.loadAvatar(userId, requested, true);
+    }, retryInMs + OWNERSHIP_RETRY_MARGIN_MS);
+  }
+
+  private cancelAvatarRetry() {
+    this.avatarRetry?.clear();
+    this.avatarRetry = null;
   }
 
   private async save() {
@@ -247,8 +303,9 @@ export class BrainTestRoom extends Room<{ state: BrainState }> {
     const userId = await this.userId;
     if (!userId) return this.setSaveStatus("guest");
 
+    let brainTestId: string;
     try {
-      await this.store.saveBrainTest({
+      brainTestId = await this.store.saveBrainTest({
         userId,
         brainScore: result.brainScore,
         difficulty: BRAIN_TEST_DIFFICULTY,
@@ -265,7 +322,17 @@ export class BrainTestRoom extends Room<{ state: BrainState }> {
     } catch (err) {
       console.error(`[BrainTestRoom ${this.roomId}] Không lưu được kết quả:`, err);
       this.setSaveStatus("failed");
+      return;
     }
+    // Phấn sau khi lưu: ref = id lượt vừa lưu (idempotent). Lỗi phấn không đổi `saveStatus`.
+    // Lỗi (`null`) → `chalkEarned` giữ 0 như khi chạm trần (web ẩn dòng phấn khi 0).
+    const chalk = await this.store
+      .grantChalk(userId, "brain", brainTestId, brainChalkReward(result.brainScore))
+      .catch((err: unknown) => {
+        console.warn(`[BrainTestRoom ${this.roomId}] Không cộng được phấn:`, err);
+        return null;
+      });
+    if (chalk !== null) this.state.chalkEarned = chalk;
   }
 
   // ---------------------------------------------------------------- helpers

@@ -4,6 +4,10 @@ import { Character } from "@/components/characters";
 import { avatarColor } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 
+/**
+ * Cỡ có sẵn. Chỗ cần cỡ khác (phòng 12 người, ui-ux 6.8: 22–52 px) ghi đè bằng `className`
+ * (vd. `size-7.5 border-2`): nhân vật luôn theo tỉ lệ khung tròn nên không cần cỡ riêng.
+ */
 const avatarVariants = cva(
   "relative inline-block shrink-0 overflow-hidden rounded-full border-sticker",
   {
@@ -21,17 +25,31 @@ const avatarVariants = cva(
   },
 );
 
-/* Nhân vật to gấp ~1.6 lần khung tròn (mặt nằm đúng tâm), đẩy xuống chút để lộ cả tai. */
-const CHARACTER_SIZE = { sm: 50, md: 70, lg: 108 } as const;
-
 interface PlayerAvatarProps extends VariantProps<typeof avatarVariants> {
   avatar: CharacterId;
   colorIndex: number;
+  /**
+   * Phụ kiện đang đeo (`PlayerView.accessories`, CR-023) để cả phòng thấy. Server đã lọc; id lạ bị
+   * bỏ qua. Bỏ trống = không đeo (bot, bảng xếp hạng…).
+   */
+  accessories?: readonly string[];
+  /**
+   * Ẩn món chỗ mặt (kính, mặt nạ) cho mặt khỏi rối ở avatar nhỏ ≤ 46 px (ui-ux 6.12). Mặc định:
+   * ẩn ở cỡ `sm` / `md`, vẽ đủ ở `lg`. Chỗ ghi đè cỡ bằng className thì truyền rõ.
+   */
+  hideFaceAccessory?: boolean;
   className?: string;
 }
 
 /** Avatar tròn: nhân vật người chơi chọn trên nền màu của người chơi (màu do server cấp, không trùng). */
-export function PlayerAvatar({ avatar, colorIndex, size, className }: PlayerAvatarProps) {
+export function PlayerAvatar({
+  avatar,
+  colorIndex,
+  accessories,
+  hideFaceAccessory,
+  size,
+  className,
+}: PlayerAvatarProps) {
   return (
     <span
       aria-hidden
@@ -39,11 +57,16 @@ export function PlayerAvatar({ avatar, colorIndex, size, className }: PlayerAvat
       // Màu do server cấp lúc chạy nên phải gán inline, không viết trước thành class được.
       style={{ background: avatarColor(colorIndex) }}
     >
+      {/*
+       * Nhân vật to 1,6 lần khung tròn (mặt nằm đúng tâm), đẩy xuống chút để lộ cả tai. Cỡ theo
+       * khung bằng CSS (ghi đè width/height của SVG) nên đổi cỡ khung qua className vẫn đúng tỉ lệ.
+       */}
       <Character
         id={avatar}
-        size={CHARACTER_SIZE[size ?? "md"]}
         animated={false}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[43%]"
+        accessories={accessories}
+        hideFaceAccessory={hideFaceAccessory ?? size !== "lg"}
+        className="absolute top-1/2 left-1/2 size-[160%] -translate-x-1/2 -translate-y-[43%] [&>svg]:size-full"
       />
     </span>
   );

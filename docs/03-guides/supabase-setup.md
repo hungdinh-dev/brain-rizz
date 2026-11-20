@@ -15,6 +15,9 @@ Chưa làm các bước này thì app **vẫn chơi được** (party, Luyện t
 | 5. Site URL, Redirect URLs | Authentication → URL Configuration | Đăng nhập Google quay về đúng app |
 | 6. Biến môi trường | `apps/*/.env`, Fly secrets, Cloudflare Pages | Web và server nối được Supabase |
 | 7. Kiểm tra nhanh | Trình duyệt + SQL Editor | Có dòng trong `brain_tests` sau một lượt Kiểm tra não |
+| 8. Trang quản trị | SQL Editor | Admin đầu tiên vào được `/admin` |
+| 9. Game yêu thích | Chạy migration (bước 2) | ⭐ ở Luyện tập đồng bộ theo tài khoản |
+| 10. Phấn, máy quay, mở khoá thú | Chạy migration (bước 2) **trước** khi deploy server và web | Ví phấn, quà mỗi ngày, máy quay, tủ đồ, thú khoá chạy được |
 
 ## 1. Tạo project
 
@@ -33,7 +36,7 @@ Gói Free tự tạm dừng sau khoảng 1 tuần không có truy cập (rủi r
 
 ## 2. Chạy migration
 
-Chạy **mọi file** trong [`supabase/migrations/`](../../supabase/migrations/) theo thứ tự tên (hiện có `20261016000000_accounts.sql`, `20261019000000_match_category_scores.sql` của [CR-010](../00-tracking/change-requests.md#cr-010) và `20261021000000_match_bot_count.sql` của [CR-016](../00-tracking/change-requests.md#cr-016)). Chọn **một** trong hai cách, và đã chọn cách nào thì giữ cách đó cho các lần sau.
+Chạy **mọi file** trong [`supabase/migrations/`](../../supabase/migrations/) theo thứ tự tên (hiện có `20261016000000_accounts.sql`, `20261019000000_match_category_scores.sql` của [CR-010](../00-tracking/change-requests.md#cr-010), `20261021000000_match_bot_count.sql` của [CR-016](../00-tracking/change-requests.md#cr-016) và `20261119000000_admin_console.sql` của [CR-019](../00-tracking/change-requests.md#cr-019), file này phải chạy **trước** khi deploy game server mới, xem [mục 8](#8-trang-quản-trị-cr-019); `20261119100000_practice_favorites.sql` của [CR-020](../00-tracking/change-requests.md#cr-020), chạy **trước** khi deploy web mới, xem [mục 9](#9-game-yêu-thích-cr-020); `20261120000000_gacha.sql` của [CR-023](../00-tracking/change-requests.md#cr-023) / [CR-024](../00-tracking/change-requests.md#cr-024), chạy **trước** khi deploy game server và web mới, xem [mục 10](#10-phấn-máy-quay-phụ-kiện-mở-khoá-thú-cr-023-cr-024)). Chọn **một** trong hai cách, và đã chọn cách nào thì giữ cách đó cho các lần sau.
 
 **Cách A: Supabase CLI với chuỗi kết nối (nên dùng, CLI tự nhớ file nào đã chạy)**
 
@@ -63,7 +66,7 @@ Quên mật khẩu database: **Project Settings → Database → Reset database 
 
 Thay đổi về sau (thêm cột, sửa hàm) luôn là **file migration mới** trong `supabase/migrations/`, không sửa file đã chạy.
 
-Sau khi chạy, **Table Editor** có 5 bảng `profiles`, `brain_tests`, `brain_test_games`, `match_results`, `practice_bests`, đều có nhãn RLS enabled. **Database → Functions** có `submit_practice_result`, `leaderboard_brain`, `leaderboard_game`, `my_rank_brain`, `my_rank_game`, `delete_my_data` (cùng vài hàm nội bộ không gọi được từ API).
+Sau khi chạy, **Table Editor** có 5 bảng `profiles`, `brain_tests`, `brain_test_games`, `match_results`, `practice_bests`, đều có nhãn RLS enabled. **Database → Functions** có `submit_practice_result`, `leaderboard_brain`, `leaderboard_game`, `my_rank_brain`, `my_rank_game`, `delete_my_data` (cùng vài hàm nội bộ không gọi được từ API). File của trang quản trị thêm 4 bảng và 13 hàm, xem [mục 8](#8-trang-quản-trị-cr-019). File game yêu thích thêm 1 bảng và 3 hàm, xem [mục 9](#9-game-yêu-thích-cr-020). File phấn / máy quay thêm 5 bảng và 8 RPC, xem [mục 10](#10-phấn-máy-quay-phụ-kiện-mở-khoá-thú-cr-023-cr-024).
 
 ## 3. Bật đăng nhập khách và liên kết thủ công
 
@@ -152,8 +155,116 @@ Khoá secret bị lộ: Project Settings → API Keys → tạo secret key mới
 5. **Party**: chơi một trận 2 máy tới màn vinh danh → `match_results` có một dòng cho mỗi người có phiên, `bot_count = 0`. Chơi thêm một trận "Chơi với máy" (1 người + bot) → dòng mới có `bot_count` bằng số bot, `players` gồm cả bot.
 6. **Google**: ở màn Tài khoản bấm **Liên kết Google** → quay lại app, trạng thái "Đã liên kết Google"; Users hiện email, `user_id` không đổi.
 7. **RLS**: SQL Editor chạy `set role anon; select * from public.brain_tests;` → 0 dòng, và `select * from public.profiles;` → lỗi permission denied (hồ sơ không đọc công khai); chạy `reset role;` sau đó.
-8. **Xoá dữ liệu**: ở màn Tài khoản bấm **Xoá dữ liệu của tôi** → người dùng biến mất khỏi Authentication → Users và mọi dòng của họ trong 5 bảng bị xoá theo.
+8. **Xoá dữ liệu**: ở màn Tài khoản bấm **Xoá dữ liệu của tôi** → người dùng biến mất khỏi Authentication → Users và mọi dòng của họ trong 5 bảng (và `login_events`, `admins`) bị xoá theo. Riêng quản trị viên **duy nhất** bị chặn (lỗi `last-admin`, không xoá gì), xem [mục 8](#8-trang-quản-trị-cr-019).
 
 Có lỗi thì xem **Logs → Auth** (đăng nhập) hoặc **Logs → Postgres** (RPC), và `fly logs` (server ghi kết quả).
+
+## 8. Trang quản trị (CR-019)
+
+Trang `/admin` ([kế hoạch](../01-product/admin-console.md)) cần file `20261119000000_admin_console.sql`. File này thêm:
+
+- 4 bảng `admins`, `party_settings` (một dòng id 1, cấu hình điểm + game bị tắt của trận party), `party_settings_history`, `login_events`. Cả 4 bảng bật RLS nhưng **không có policy**: web không đọc/ghi thẳng được, chỉ đi qua RPC. Mục **Advisors** có thể báo "RLS Enabled No Policy" cho 4 bảng này. Đó là cố ý, không cần sửa.
+- Cột `match_results.settings_version` (phiên bản cấu hình trận đã dùng, 0 = mặc định trong code).
+- RPC `is_admin`, `log_login` (mọi phiên gọi được) và 11 hàm `admin_*` (tự kiểm người gọi có trong `admins`, không thì lỗi `forbidden`). Email người chơi chỉ lộ qua các hàm `admin_*`.
+
+**Thứ tự triển khai:**
+
+1. Chạy migration (bước 2, giữ đúng cách A hoặc B đã chọn).
+2. Sau đó mới deploy game server mới (`fly deploy`). Server mới luôn ghi `settings_version` và đọc `party_settings`, nên nếu DB chưa có cột thì ghi kết quả trận bị lỗi. Ngược lại, server cũ vẫn chạy bình thường trên DB đã chạy migration (cột nhận mặc định 0).
+3. Deploy web.
+
+**Thêm admin đầu tiên** (làm một lần, các admin sau thêm ngay trên trang):
+
+1. Mở app, vào màn **Tài khoản**, bấm **Liên kết Google** (hoặc đăng nhập Google) bằng email sẽ làm admin. Phiên khách ẩn danh không làm admin được.
+2. SQL Editor (thay email):
+
+   ```sql
+   insert into public.admins (user_id, note)
+   select id, 'chủ dự án' from auth.users
+   where lower(email) = lower('ban@example.com') and not is_anonymous;
+   ```
+
+   Kết quả có 1 dòng là xong. Nếu 0 dòng thì email chưa liên kết Google hoặc gõ sai: làm lại bước 1.
+3. Kiểm tra:
+
+   ```sql
+   select a.user_id, u.email, a.note, a.created_at
+   from public.admins a join auth.users u on u.id = a.user_id;
+   ```
+
+4. Trên web, đăng nhập Google bằng email đó rồi mở `/admin` (hoặc nút **Trang quản trị** ở màn Tài khoản).
+
+Thêm hoặc gỡ admin khác: dùng mục **Quản trị viên** trên trang. Người được thêm phải đăng nhập Google ít nhất một lần trước. Trang không cho tự gỡ mình và không cho gỡ admin cuối cùng; khi thật sự cần thì gỡ bằng SQL:
+
+```sql
+delete from public.admins
+where user_id = (select id from auth.users where lower(email) = lower('ban@example.com'));
+```
+
+**Admin cuối cùng muốn "Xoá dữ liệu của tôi":** hàm `delete_my_data` chặn quản trị viên duy nhất (lỗi `last-admin`, không xoá gì), vì dòng `admins` xoá theo tài khoản thì không còn ai vào được trang. Muốn xoá thì **thêm admin khác trước** (mục **Quản trị viên** trên trang, hoặc câu SQL ở bước "Thêm admin đầu tiên"), rồi mới bấm xoá. Hai admin cuối cùng xoá cùng lúc thì người sau bị chặn.
+
+**Cấu hình điểm làm trận chạy sai, cần về mặc định ngay:** bình thường dùng nút **Khôi phục mặc định** trên trang (có ghi lịch sử). Nếu trang không vào được thì chạy:
+
+```sql
+update public.party_settings
+set version = version + 1, scoring = '{}', disabled_games = '{}', updated_at = now(), updated_by = null
+where id = 1;
+```
+
+Game server nhận cấu hình mới sau tối đa 30 giây (bộ nhớ đệm), áp dụng từ trận bắt đầu sau đó. Trận đang chơi giữ cấu hình cũ.
+
+**Kiểm tra nhanh:**
+
+1. **RLS**: SQL Editor chạy `set role authenticated; select * from public.login_events;` → lỗi permission denied; `set role anon; select public.is_admin();` → lỗi permission denied. Chạy `reset role;` sau đó.
+2. **Ghi đăng nhập**: mở app (có phiên) rồi chạy `select event, provider, device, created_at from public.login_events order by created_at desc limit 5;` → có dòng `guest_created` hoặc `session_resumed`. Mở lại app trong vòng 30 phút sẽ không ghi thêm `session_resumed`.
+3. **Cấu hình**: lưu thử một thay đổi ở mục **Điểm & hệ số** → `select version, updated_at from public.party_settings;` tăng 1, `party_settings_history` có dòng mới. Trận party chơi sau đó có `match_results.settings_version` bằng version này.
+
+## 9. Game yêu thích (CR-020)
+
+⭐ ở màn Luyện tập ([kế hoạch](../01-product/practice-favorites-howto-routes.md) mục 3.1) cần file `20261119100000_practice_favorites.sql`. File này thêm:
+
+- Bảng `practice_favorites` (`user_id`, `game_id`, `created_at`), tối đa 64 game mỗi người. RLS bật, **không có policy** (Advisors báo "RLS Enabled No Policy" là cố ý). "Xoá dữ liệu của tôi" xoá theo cascade.
+- RPC `practice_favorites_get`, `practice_favorites_set`, `practice_favorites_merge` (mọi phiên kể cả khách; `anon` không gọi được).
+
+**Thứ tự triển khai:** chạy migration (bước 2) **trước** khi deploy web mới. Web mới gặp DB chưa có hàm thì chỉ lưu yêu thích trên máy, không báo lỗi; web cũ không gọi các hàm này. Không cần deploy lại game server.
+
+**Kiểm tra nhanh:**
+
+1. **Quyền**: SQL Editor chạy `set role authenticated; select * from public.practice_favorites;` → lỗi permission denied; `select public.practice_favorites_get();` → lỗi "Cần đăng nhập" (không có phiên); `set role anon; select public.practice_favorites_get();` → lỗi permission denied. Chạy `reset role;` sau đó.
+2. **Đồng bộ**: mở app (có phiên), bấm ⭐ một game ở Luyện tập → `select game_id, created_at from public.practice_favorites order by created_at desc limit 5;` có dòng mới. Mở app ở máy khác cùng tài khoản Google → game đó nằm trong mục **Yêu thích**.
+
+## 10. Phấn, máy quay phụ kiện, mở khoá thú (CR-023, CR-024)
+
+Ví phấn, quà mỗi ngày, máy quay `/gacha`, tủ đồ `/wardrobe` và bạn đồng hành khoá ([kế hoạch](../01-product/gacha-pets-unlocks.md) mục 5.3, [ADR 0016](../02-architecture/decisions/0016-chalk-economy-in-postgres.md)) cần file `20261120000000_gacha.sql`. File này thêm:
+
+- 5 bảng `chalk_ledger` (sổ phấn, số dư = tổng), `cosmetic_items` (24 phụ kiện, seed sẵn), `user_items`, `gacha_state` (bộ đếm bảo hiểm), `gacha_pulls` (lịch sử quay). RLS bật, **không có policy** (Advisors báo "RLS Enabled No Policy" là cố ý). "Xoá dữ liệu của tôi" xoá theo cascade.
+- RPC cho mọi phiên (kể cả khách; `anon` không gọi được): `my_wallet`, `claim_daily_chalk`, `gacha_pull`, `my_items`, `gacha_history`, `my_unlock_stats`. Thay `submit_practice_result` (giữ chữ ký) để cộng phấn luyện tập.
+- RPC chỉ cho game server (khoá secret): `grant_chalk`, `unlock_stats_for`.
+
+**Thứ tự triển khai:**
+
+1. Chạy migration (bước 2, giữ đúng cách A hoặc B đã chọn).
+2. Deploy game server mới (`fly deploy`): server gọi `grant_chalk` sau mỗi trận / lượt Kiểm tra não và `unlock_stats_for` khi người chơi vào phòng.
+3. Deploy web mới.
+
+Chạy migration sớm không hại gì: server và web cũ không gọi hàm mới, `submit_practice_result` trả kết quả như cũ. Ngược lại, deploy server/web mới trước khi chạy migration thì không ai nhận phấn và thú khoá luôn về nhân vật mặc định (trận vẫn chạy).
+
+**Đổi số kinh tế** (giá, tỉ lệ, bảo hiểm, trần): sửa `packages/shared/src/cosmetics/economy.ts` trước, rồi viết **migration mới** thay các hàm có dấu `/* @economy … */`, và đổi đường dẫn file trong `packages/shared/src/cosmetics/migration.test.ts`. Không sửa file đã chạy.
+
+**Kiểm tra nhanh:**
+
+1. **Quyền**: SQL Editor chạy `set role authenticated; select * from public.chalk_ledger;` → lỗi permission denied; `select public.grant_chalk(gen_random_uuid(), 'party', 'x', 10);` → lỗi permission denied; `select public.my_wallet();` → lỗi "Cần đăng nhập". `set role anon; select public.my_wallet();` → permission denied. Chạy `reset role;` sau đó.
+2. **Danh mục**: `select rarity, count(*) from public.cosmetic_items group by rarity;` → common 9, rare 8, epic 4, legendary 3.
+3. **Thưởng từ server** (SQL Editor chạy bằng quyền chủ, thay `<user_id>` bằng id một người thử trong Authentication → Users):
+
+   ```sql
+   select public.grant_chalk('<user_id>', 'admin', 'thu-nghiem-1', 1000);   -- 1000
+   select public.grant_chalk('<user_id>', 'admin', 'thu-nghiem-1', 1000);   -- vẫn 1000, không cộng thêm
+   select public.grant_chalk('<user_id>', 'party', 'thu-nghiem-2', 400);    -- 300 (trần party / ngày)
+   select source, ref, amount, day from public.chalk_ledger where user_id = '<user_id>';
+   ```
+
+4. **Quay trên web**: mở app bằng tài khoản đó → ví hiện số dư; quay 10 lần → `select rarity, item_id, duplicate, refund from public.gacha_pulls order by id desc limit 10;` có 10 dòng, ít nhất một dòng không phải `common`; `chalk_ledger` có dòng `gacha` −900 (và dòng `refund` nếu trùng).
+5. **Dọn**: xoá phấn thử bằng một dòng `admin` âm (`grant_chalk(…, 'admin', 'thu-nghiem-3', -1000)`), hoặc xoá người thử ở Authentication → Users.
 
 [← Hướng dẫn](README.md) · [Mục lục tài liệu](../README.md)

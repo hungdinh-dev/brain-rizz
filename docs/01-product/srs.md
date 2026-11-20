@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Phân tích yêu cầu |
-| Phiên bản tài liệu | 1.11 · 2026-10-21 — Chơi với bot theo [CR-016](../00-tracking/change-requests.md#cr-016) |
+| Phiên bản tài liệu | 1.14 · 2026-11-20 — Phấn, máy quay phụ kiện, bạn đồng hành mở khoá theo [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024) |
 | Đầu vào | [Yêu cầu nghiệp vụ](brd.md) |
 | Đầu ra cho | [Thiết kế game](game-design.md), [UI/UX](ui-ux.md), [Kiến trúc](../02-architecture/overview.md), [Kiểm thử](../03-guides/testing.md) |
 | Cập nhật khi | Thêm/đổi use case hoặc yêu cầu — tăng phiên bản tài liệu và ghi vào [Lịch sử thay đổi](#9-lịch-sử-thay-đổi-tài-liệu) |
@@ -59,6 +59,7 @@ Trình duyệt tải game một lần từ CDN, sau đó giữ một kết nối
 | Người chơi | Đã ở trong một phòng |
 | Chủ phòng | Người chơi có quyền điều khiển trận (người tạo phòng hoặc được chuyển quyền) |
 | Game server | Hệ thống `PartyRoom`: trọng tài về điểm, đồng hồ, pha |
+| Quản trị viên | Tài khoản Google có trong bảng `admins` (Supabase); chỉnh cấu hình trận party, xem số liệu vận hành ([CR-019](../00-tracking/change-requests.md#cr-019)) |
 
 ### 2.3 Môi trường vận hành
 
@@ -116,6 +117,9 @@ flowchart LR
 | UC-12 | Rời phòng | Người chơi | BR-01 | M | 0 |
 | UC-22 | Chat trong phòng (chữ, biểu cảm nhanh) | Người chơi, Chủ phòng, Server | BR-01, BR-11 | S | 1 ([CR-011](../00-tracking/change-requests.md#cr-011)) |
 | UC-23 | Chơi với bot (thêm bot vào phòng, nút "Chơi với máy") | Người chơi, Chủ phòng, Server | BR-10 | S | 1 ([CR-016](../00-tracking/change-requests.md#cr-016)) |
+| UC-25 | Kiếm phấn, quay phụ kiện, mặc đồ (tủ đồ) | Khách, Người chơi, Server | BR-10 | S | 1–2 ([CR-023](../00-tracking/change-requests.md#cr-023)) |
+| UC-26 | Mở khoá bạn đồng hành bằng thành tích | Khách, Người chơi, Server | BR-10 | S | 1–2 ([CR-024](../00-tracking/change-requests.md#cr-024)) |
+| UC-24 | Quản trị hệ thống (cấu hình điểm party, bật/tắt game, xem đăng nhập, người chơi, trận, phòng) | Quản trị viên, Server | BR-07, BR-12 | S | 1 ([CR-019](../00-tracking/change-requests.md#cr-019)) |
 | UC-13 | Luyện tập một minigame | Khách | BR-10 | S | 1–2 ([CR-009](../00-tracking/change-requests.md#cr-009)) |
 | UC-14 | Kiểm tra não (chơi một mình 5 game) | Khách, Server | BR-10 | S | 1–2 (CR-009) |
 | UC-15 | Đấu bóng ma | Khách | BR-10 | S | 3 |
@@ -162,7 +166,7 @@ UC-15, UC-17, UC-18 mới ở mức mô tả ngắn; phải viết chi tiết nh
   4. Hệ thống chuyển sang sảnh.
 - **Luồng rẽ:**
   - 3a. Phòng đang chơi → từ chối "Phòng đang chơi, vui lòng chờ hết trận."
-  - 3b. Phòng đủ 8 người hoặc mã không tồn tại → từ chối, báo lỗi ở menu.
+  - 3b. Phòng đủ 12 người (gồm bot không nhường được ghế) hoặc mã không tồn tại → từ chối, báo lỗi ở menu.
   - 3c. Hồ sơ không hợp lệ (tên rỗng/quá dài, nhân vật lạ) → từ chối.
 - **FR:** FR-PH-02 → FR-PH-04.
 
@@ -220,9 +224,9 @@ flowchart TD
 - **Tác nhân:** chủ phòng (quyết định), người chơi (bình chọn), server. **Tiền điều kiện:** pha `game-select`.
 - **Luồng chính — vòng quay:**
   1. Màn hình hiện "Vòng n/N · Chọn trò chơi". Chủ phòng chọn chế độ **Vòng quay may mắn**.
-  2. Vòng quay có một lát cho mỗi game hệ thống **chưa chơi** trong trận, màu theo nhóm kỹ năng.
+  2. **Trống quay dọc** (kiểu bộ chọn giờ iPhone, cuộn vô hạn — [CR-017](../00-tracking/change-requests.md#cr-017)) có một dòng cho mỗi game hệ thống **chưa chơi** và **không bị quản trị viên tắt**: biểu tượng, tên, màu nhóm kỹ năng. Không có danh sách game riêng bên cạnh.
   3. Chủ phòng bấm **Quay!** → server chọn ngẫu nhiên một game trong các lát, gửi kết quả và thời điểm bắt đầu quay cho mọi máy.
-  4. Mọi máy chạy cùng hiệu ứng quay và dừng đúng ở game server đã chọn.
+  4. Mọi máy chạy cùng hiệu ứng cuộn và dừng đúng game server đã chọn ở dải chọn giữa trống.
   5. Server chuyển pha `game-intro` với game đó (UC-21).
 - **Luồng chính — chủ phòng chọn:**
   1. Chủ phòng chọn chế độ **Chủ phòng chọn**: lưới thẻ game; game đã chơi hiện mờ "Đã chơi", game chưa làm hiện khoá "Sắp có".
@@ -267,7 +271,7 @@ flowchart TD
 #### UC-08 — Xem kết quả vòng, cộng điểm trận, vinh danh chung cuộc
 
 - **Luồng chính:**
-  1. Server xếp hạng theo điểm vòng, cộng điểm trận (10, 8, 6, 5, 4, 3, 2, 1), chuyển pha `round-results`.
+  1. Server xếp hạng theo điểm vòng, cộng điểm trận theo RULE-09 (co giãn theo số ghế: 12 người 15, 13, 11 … 1; 8 người 11, 9, 7, 5, 4, 3, 2, 1 — [CR-018](../00-tracking/change-requests.md#cr-018)), chuyển pha `round-results`.
   2. **Bảng điểm vòng** (bước 8): "Vòng n/N · <tên game> — Kết quả": hạng, nhân vật, tên, điểm vòng, số câu đúng, độ khó; người nhất vòng nổi bật.
   3. **Cộng điểm trận** (bước 9): bảng tổng điểm trận kiểu Kahoot, mỗi người có số "+10 / +8…" vừa cộng bay vào thanh điểm và mũi tên lên/xuống hạng so với vòng trước.
   4. Chưa phải vòng cuối → chủ phòng bấm **Vòng tiếp theo** → pha `game-select` (UC-20). Người khác thấy "Chờ chủ phòng…".
@@ -359,6 +363,50 @@ flowchart TD
   - Bot không bỏ phiếu chọn game, không bị nhắc độ khó, không tính vào độ khó đa số.
   - Thông số 4 mức theo [Kế hoạch chơi với bot](bot-players.md#31-bốn-mức), chỉnh sau chơi thử. Mức Siêu phải để người giỏi cố gắng vẫn thắng được.
 - **FR:** FR-PH-20 → FR-PH-26.
+
+#### UC-24 — Quản trị hệ thống
+
+- **Tác nhân:** quản trị viên, game server. **Tiền điều kiện:** đã đăng nhập Google, tài khoản có trong bảng `admins`; Supabase đã cấu hình. Kế hoạch + hợp đồng: [admin-console.md](admin-console.md).
+- **Luồng chính:**
+  1. Quản trị viên mở `/admin` (hoặc nút "Trang quản trị" ở màn Tài khoản). Hệ thống kiểm `is_admin()`.
+  2. **Tổng quan:** số người dùng (khách / Google), đăng nhập, người hoạt động, trận, lượt Kiểm tra não hôm nay và 14 ngày.
+  3. **Điểm & hệ số:** sửa điểm gốc, thưởng tốc độ, combo, hệ số 4 mức độ khó, thưởng top 3 của điểm thứ hạng; xem thử điểm một câu và bảng điểm thứ hạng 2 → 12 người; lưu kèm ghi chú → phiên bản cấu hình mới, ghi lịch sử.
+  4. **Game:** bật/tắt từng game khỏi trận party, ghi đè hệ số độ khó theo game, xem số lần chơi.
+  5. **Đăng nhập, Người chơi, Trận đấu, Phòng đang mở, Quản trị viên:** xem, lọc, tìm; thêm/xoá quản trị viên theo email Google.
+  6. Server nạp cấu hình mới khi **bắt đầu trận kế tiếp** (trận đang chơi giữ bản cũ).
+- **Luồng rẽ:**
+  - 1a. Chưa đăng nhập Google / không phải quản trị viên → màn "Không có quyền", không lộ dữ liệu; Supabase chưa cấu hình → "Chưa kết nối máy chủ dữ liệu".
+  - 3a. Giá trị ngoài giới hạn → báo lỗi tại ô, không lưu. Dữ liệu cấu hình trong DB hỏng → server dùng mặc định cho trường hỏng.
+  - 4a. Tắt tới mức còn dưới 2 game → không cho lưu.
+  - 5a. Xoá chính mình hoặc quản trị viên cuối cùng → từ chối.
+- **Quy tắc:** cấu hình chỉ áp dụng cho trận party; Luyện tập, Kiểm tra não giữ công thức chuẩn (bảng xếp hạng không lệch). Không ghi IP người chơi.
+- **FR:** FR-QT-01 → FR-QT-10.
+
+#### UC-25 — Kiếm phấn, quay phụ kiện, mặc đồ
+
+- **Tác nhân:** người chơi (khách có phiên hoặc Google), game server, Supabase. Kế hoạch + hợp đồng: [gacha-pets-unlocks.md](gacha-pets-unlocks.md).
+- **Luồng chính:**
+  1. Người chơi chơi trận party / Kiểm tra não / luyện tập → server (hoặc RPC luyện tập) cộng phấn theo bảng kinh tế, trong trần mỗi ngày; kết quả hiện "+N phấn".
+  2. Menu: nhận quà mỗi ngày (một lần, không bắt buộc).
+  3. Mở `/gacha`: xem số dư, tỉ lệ, danh sách món, bộ đếm bảo hiểm → Quay 1 / Quay 10 → Supabase trừ phấn, bốc món (RNG trong Postgres, bảo hiểm), trả kết quả → màn mở quà; trùng → đổi lại phấn.
+  4. Mở `/wardrobe` → chọn tối đa 1 món mỗi chỗ (đầu, mặt, cổ) → nhân vật mặc ở mọi màn; vào phòng thì cả phòng thấy (server kiểm sở hữu).
+- **Luồng rẽ:**
+  - 1a. Không có phiên / Supabase chưa cấu hình → không cộng phấn, gacha báo "Chưa kết nối máy chủ dữ liệu".
+  - 3a. Thiếu phấn → nút Quay tắt, chỉ cách kiếm.
+  - 4a. Món không sở hữu (sửa tay dữ liệu máy) → server bỏ món đó.
+- **Quy tắc:** không tiền thật, không đồng hồ áp lực; tỉ lệ + bảo hiểm công khai.
+- **FR:** FR-GC-01 → FR-GC-06, FR-GC-10.
+
+#### UC-26 — Mở khoá bạn đồng hành bằng thành tích
+
+- **Tác nhân:** người chơi, Supabase, game server.
+- **Luồng chính:**
+  1. Ở chọn nhân vật (hồ sơ, phòng chờ, tủ đồ): 6 nhân vật cũ mở sẵn; 6 thú mới hiện ổ khoá + điều kiện + thanh tiến độ (từ `my_unlock_stats`).
+  2. Bấm thú khoá → xem điều kiện, **Luyện ngay** (tới `/practice/<game>`) hoặc **Chơi party**.
+  3. Đạt điều kiện → lần mở app / màn kế tiếp hiện hộp chúc mừng; thú chọn được.
+  4. Vào phòng với thú mới → server kiểm lại bằng số liệu trên Supabase.
+- **Luồng rẽ:** 4a. Không có token hoặc chưa đạt → server thay bằng nhân vật mặc định, vẫn cho vào phòng.
+- **FR:** FR-GC-07 → FR-GC-09.
 
 #### Chế độ chơi một mình và tài khoản (CR-009)
 
@@ -461,7 +509,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | --- | --- | --- | --- | --- |
 | FR-PH-01 | Tạo phòng riêng (không ghép ngẫu nhiên) với mã 4 ký tự từ bảng `ABCDEFGHJKMNPQRSTUVWXYZ23456789`, không trùng phòng đang mở; người tạo là chủ phòng | UC-02 | M | 0 |
 | FR-PH-02 | Vào phòng bằng mã (tự chuẩn hoá chữ hoa) hoặc link `/r/<mã>` | UC-03 | M | 0 |
-| FR-PH-03 | Tối đa 8 người; chỉ vào được ở pha `lobby` | UC-03 | M | 0 |
+| FR-PH-03 | Tối đa 12 người (gồm bot, [CR-018](../00-tracking/change-requests.md#cr-018)); chỉ vào được ở pha `lobby` | UC-03 | M | 0 |
 | FR-PH-04 | Màu trùng → server cấp màu trống đầu tiên; nhân vật được phép trùng | UC-03 | M | 0 |
 | FR-PH-05 | Mời bạn: Web Share API trên điện thoại, copy link trên máy tính; URL luôn đồng bộ `/r/<mã>` | UC-04 | M | 0 |
 | FR-PH-06 | Ở phòng chờ: bật/tắt sẵn sàng; đổi tên, màu, nhân vật — trường không gửi giữ nguyên | UC-05 | M | 0 |
@@ -479,8 +527,8 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-PH-18 | Mỗi người tự tắt tiếng một người khác trên máy mình (ẩn tin và bong bóng biểu cảm), nhớ trên máy; không báo server, không báo người bị tắt | UC-22 | S | 1 |
 | FR-PH-19 | Server giữ `CHAT_HISTORY_SIZE` = 30 tin gần nhất trong RAM phòng (không DB), gửi cho người mới vào và người nối lại; biểu cảm hiện bong bóng ngắn trên avatar người gửi | UC-22, UC-10 | S | 1 |
 | FR-PH-20 | Chủ phòng thêm bot vào ô trống ở `lobby` và chọn mức (Dễ, Vừa, Khó, Siêu) ngay trong ô; đổi mức và bỏ bot cũng chỉ làm ở `lobby`. Người khác gửi → `not-host`, sai pha → `bad-phase` | UC-23 | S | 1 |
-| FR-PH-21 | Nút "Chơi với máy" ở menu: chọn 1–7 bot và một mức chung, tạo phòng party thường (có mã) kèm bot, người tạo là chủ phòng | UC-23 | S | 1 |
-| FR-PH-22 | Tổng người thật + bot ≤ 8. Người thật vào phòng đủ ghế ở `lobby` thì bot được thêm gần nhất rời để nhường ghế. Bot tính vào số người tối thiểu để bắt đầu và chơi lại (FR-PH-11) | UC-23, UC-03 | S | 1 |
+| FR-PH-21 | Nút "Chơi với máy" ở menu: chọn 1–11 bot và một mức chung, tạo phòng party thường (có mã) kèm bot, người tạo là chủ phòng | UC-23 | S | 1 |
+| FR-PH-22 | Tổng người thật + bot ≤ 12. Người thật vào phòng đủ ghế ở `lobby` thì bot được thêm gần nhất rời để nhường ghế. Bot tính vào số người tối thiểu để bắt đầu và chơi lại (FR-PH-11) | UC-23, UC-03 | S | 1 |
 | FR-PH-23 | Bot không bao giờ làm chủ phòng; không còn người thật thì phòng đóng. Bot luôn sẵn sàng, tự "Đã hiểu" sau 1–3 giây, không bỏ phiếu, không bị nhắc độ khó, không tính vào độ khó đa số | UC-23 | S | 1 |
 | FR-PH-24 | Server chơi thay bot: mỗi câu bốc thời gian nghĩ và đúng/sai theo mức, rồi chấm qua cùng luật điểm, combo, khoá khi sai, hạn trả lời như người. Cùng seed vòng thì bot chơi giống hệt nhau. Không đổi seed hay bộ sinh câu đố | UC-23, UC-07 | S | 1 |
 | FR-PH-25 | Bot có huy hiệu máy và tên dịch theo nhân vật ở mọi màn có tên người chơi. Bot gửi biểu cảm nhanh ở `round-results`, `podium`, theo cùng luật chat (FR-PH-14 → 17) | UC-23, UC-22 | S | 1 |
@@ -503,9 +551,9 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-VC-11 | Hiện điểm cộng từng câu (từ `answerResult`) và trạng thái khoá trên giao diện React | UC-07 | S | 1 |
 | FR-VC-12 | Màn hướng dẫn (pha `game-intro`) trước mỗi vòng: tên game, nhóm kỹ năng, hình minh hoạ, cách chơi ≤ 3 bước, điều khiển, tính điểm; nội dung lấy từ `games/<id>/locales.ts` | UC-21 | M | 1 |
 | FR-VC-13 | Đầu mỗi vòng (pha `game-select`) chọn game bằng một trong hai cách: vòng quay hoặc chủ phòng chọn từ danh sách | UC-20 | M | 1 |
-| FR-VC-14 | Vòng quay: mỗi lát là một game chưa chơi; server chọn kết quả và thời điểm quay, gửi cho mọi máy; mọi máy chạy cùng hiệu ứng và dừng đúng game đó | UC-20 | M | 1 |
+| FR-VC-14 | Vòng quay: trống quay dọc cuộn vô hạn, mỗi dòng một game chưa chơi và không bị tắt (biểu tượng + tên + màu nhóm); server chọn kết quả và thời điểm quay, gửi cho mọi máy; mọi máy chạy cùng hiệu ứng và dừng đúng game đó ở dải chọn ([CR-017](../00-tracking/change-requests.md#cr-017)) | UC-20 | M | 1 |
 | FR-VC-15 | Bình chọn: ở chế độ chủ phòng chọn, mỗi người 1 phiếu/vòng, đổi được; hiển thị số phiếu và người bầu; chỉ là gợi ý, không ảnh hưởng vòng quay; xoá khi sang vòng | UC-20 | S | 1 |
-| FR-VC-16 | Không lặp game trong một trận: game đã chơi bị loại khỏi vòng quay và hiện "Đã chơi" trong danh sách; hết game thì làm mới | UC-20 | M | 1 |
+| FR-VC-16 | Không lặp game trong một trận: game đã chơi bị loại khỏi trống quay và hiện "Đã chơi" ở lưới Chủ phòng chọn; hết game thì làm mới | UC-20 | M | 1 |
 | FR-VC-17 | Mỗi người tự chọn độ khó cho từng vòng ở màn hướng dẫn (mặc định mức lần trước); hệ số điểm theo RULE-06 | UC-21 | M | 1 |
 | FR-VC-18 | Chủ phòng xem độ khó và trạng thái "đã hiểu" của từng người; người lệch so với đa số được đánh dấu; chủ phòng bấm "Nhắc" gửi thông báo cho người đó (tối đa 1 lần/10 giây/người) | UC-21 | S | 1 |
 | FR-VC-19 | Người chơi bấm "Đã hiểu"; chủ phòng bắt đầu khi tất cả đã hiểu; server tự bắt đầu sau 20 giây | UC-21 | M | 1 |
@@ -538,6 +586,8 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-GD-10 | Nhạc nền nhiều bài: thanh nhạc trên header (phát/dừng, bài kế; máy tính thêm tên bài và âm lượng); phát lần lượt, hết danh sách thì lặp lại; mặc định bật, bắt đầu phát ở lần chạm đầu; nhớ bật/tắt, âm lượng, bài đang nghe; nhỏ còn một nửa khi đếm ngược và đang chơi; tạm dừng khi tab ẩn; danh sách bài lấy tự động từ thư mục nhạc, thêm bài không cần sửa code ([CR-007](../00-tracking/change-requests.md#cr-007)) | UC-11 | S | 1 |
 | FR-GD-11 | Rung phản hồi khi trả lời; giữ màn hình sáng khi chơi (Wake Lock) — tách từ FR-GD-07 (CR-008) | UC-07 | S | 2 |
 | FR-GD-12 | Nút **Hiệu ứng** trên hàng nút: "Theo hệ thống" (mặc định, giảm chuyển động khi máy báo `prefers-reduced-motion: reduce`) / "Luôn bật"; nhớ trên máy. Một nguồn "giảm chuyển động" cho cả giao diện React, CSS và scene minigame. Giảm chuyển động giữ nguyên nhịp hiện, chỉ thay trượt/nảy bằng mờ dần, bỏ pháo giấy; vòng quay dừng ngay ở kết quả ([CR-010](../00-tracking/change-requests.md#cr-010)) | UC-11, UC-08, UC-20 | S | 1 |
+| FR-GD-13 | Màn hướng dẫn (party, Luyện tập, Kiểm tra não): khung minh hoạ lớn, nút "Phóng to" toàn màn, hình động diễn cách chơi (SVG, chỉ `transform`/`opacity`, một demo mỗi lúc, dừng khi ẩn tab hoặc giảm chuyển động); game chưa có demo dùng hình tĩnh; thẻ nhỏ luôn dùng hình tĩnh ([CR-021](../00-tracking/change-requests.md#cr-021)) | UC-21, UC-13, UC-14 | S | 1–2 |
+| FR-GD-14 | Mỗi màn ngoài phòng có đường dẫn riêng (`/practice[/<game>]`, `/brain-test`, `/leaderboard[/<game>]`, `/account`, `/profile`, `/admin/<mục>`); Back/Forward/F5 giữ đúng màn; trong phòng giữ `/r/<mã>`, Back hỏi "Rời phòng?"; đường dẫn lạ → `/` ([CR-022](../00-tracking/change-requests.md#cr-022)) | UC-11, UC-13, UC-19 | S | 1–2 |
 
 ### 4.6 Chế độ mở rộng & tài khoản (MR)
 
@@ -558,7 +608,38 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-MR-13 | Hiện hạng của mình (tô nổi bật trong top hoặc ghim dòng riêng khi ngoài top) | UC-19 | S | 1–2 |
 | FR-MR-14 | Bảng xếp hạng bạn bè — chờ tính năng kết bạn (CR mới) | UC-19 | C | — |
 | FR-MR-15 | Thiếu biến môi trường Supabase hoặc Supabase không truy cập được: mọi chế độ vẫn chơi được, phần lưu/bảng xếp hạng báo "Chưa kết nối máy chủ dữ liệu" | UC-13, UC-14, UC-16, UC-19 | M | 1–2 |
+| FR-MR-17 | Game yêu thích ở Luyện tập: ⭐ trên thẻ game và ở màn hướng dẫn Luyện tập, mục "Yêu thích" đầu danh sách + chip lọc; lưu trên máy ngay, đồng bộ lên tài khoản khi có phiên (`practice_favorites`, tối đa 64), không có phiên thì chỉ lưu máy ([CR-020](../00-tracking/change-requests.md#cr-020)) | UC-13 | S | 1–2 |
 | FR-MR-16 | Kết quả trận party ghi thêm điểm theo thể loại (`match_results.category_scores`) và các thể loại người đó giành danh hiệu (`category_titles`) theo FR-VC-21; màn Tài khoản hiện thế mạnh party theo thể loại (số danh hiệu, điểm trung bình trên các trận có chơi thể loại đó) — CR-010 | UC-16 | S | 1–2 |
+
+### 4.7 Quản trị (QT) — [CR-019](../00-tracking/change-requests.md#cr-019)
+
+| ID | Yêu cầu | UC | Ưu tiên | GĐ |
+| --- | --- | --- | --- | --- |
+| FR-QT-01 | Quyền quản trị theo bảng `admins` (Supabase); mọi dữ liệu quản trị chỉ đọc/ghi qua RPC kiểm `is_admin()`, không có policy đọc trực tiếp; trang `/admin` tải lười, người không có quyền chỉ thấy màn "Không có quyền" | UC-24 | S | 1 |
+| FR-QT-02 | Cấu hình trận party (`party_settings`, có phiên bản): điểm gốc, thưởng tốc độ (mốc nhanh/chậm), combo (ngưỡng, bước, trần), hệ số 4 mức độ khó, hệ số ghi đè theo game, thưởng top 3 của điểm thứ hạng, danh sách game tắt; giới hạn theo `ScoringConfigSchema` | UC-24 | S | 1 |
+| FR-QT-03 | Server nạp cấu hình (đệm 30 giây) lúc tạo phòng và mỗi lần bắt đầu trận, giữ nguyên suốt trận, đồng bộ xuống client (`disabledGames`, `scoringJson`, `configVersion`); trường hỏng → mặc định của trường đó; Luyện tập, Kiểm tra não không dùng cấu hình này | UC-24, UC-07 | S | 1 |
+| FR-QT-04 | Xem thử điểm một câu và bảng điểm thứ hạng 2 → 12 người bằng chính hàm chấm của shared trước khi lưu; khôi phục mặc định; lịch sử thay đổi (ai, lúc nào, ghi chú) | UC-24 | S | 1 |
+| FR-QT-05 | Game bị tắt không có trên trống quay, không chọn/bầu được ở trận party; luôn còn ≥ 2 game bật | UC-24, UC-20 | S | 1 |
+| FR-QT-06 | Ghi sự kiện đăng nhập (`login_events`): tạo khách, đăng nhập Google, liên kết Google, mở lại app (tối đa 1 lần/30 phút), đăng xuất; kèm "trình duyệt · hệ điều hành", **không ghi IP**; "Xoá dữ liệu của tôi" xoá cả bảng này | UC-24, UC-16 | S | 1 |
+| FR-QT-07 | Xem lịch sử đăng nhập (lọc loại sự kiện, tìm tên/email, tải thêm), danh sách người chơi (lọc khách/Google, tìm, số trận, lần cuối vào), trận party gần đây (kết quả từng người, số bot, phiên bản cấu hình) | UC-24 | S | 1 |
+| FR-QT-08 | Tổng quan: tổng người dùng, đăng nhập, người hoạt động, người mới, trận, lượt Kiểm tra não hôm nay và theo ngày (14 ngày, giờ Việt Nam); số liệu từng game | UC-24 | S | 1 |
+| FR-QT-09 | Phòng đang mở: `GET /admin/rooms` trên game server (Bearer token Supabase + `isAdmin`), không trả tên người chơi; `POST /admin/config/reload` để trận kế tiếp nhận cấu hình mới ngay | UC-24 | S | 1 |
+| FR-QT-10 | Quản lý quản trị viên: thêm theo email tài khoản Google, xoá; không xoá chính mình hoặc quản trị viên cuối cùng | UC-24 | S | 1 |
+
+### 4.8 Phấn, phụ kiện, bạn đồng hành (GC) — [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024)
+
+| ID | Yêu cầu | UC | Ưu tiên | GĐ |
+| --- | --- | --- | --- | --- |
+| FR-GC-01 | Phấn chỉ kiếm bằng chơi: trận party, Kiểm tra não (server cộng sau khi ghi kết quả), luyện tập (RPC, trần thấp), quà mỗi ngày; trần mỗi ngày theo nguồn (giờ VN); trận chỉ 1 người thật + bot nhận ít hơn. Không có mua bằng tiền thật | UC-25 | S | 1–2 |
+| FR-GC-02 | Sổ phấn ghi từng lần cộng/trừ, idempotent theo nguồn + mã tham chiếu; số dư = tổng sổ; client không ghi trực tiếp | UC-25 | S | 1–2 |
+| FR-GC-03 | Máy quay `/gacha`: Quay 1 / Quay 10 tính trong Postgres (giá, tỉ lệ 4 độ hiếm, bảo hiểm 10 lần ≥ 1 Hiếm, ≤ 15 lần ra Sử thi+, ≤ 60 lần ra Huyền thoại), trùng đổi lại phấn; thiếu phấn → lỗi `insufficient` | UC-25 | S | 1–2 |
+| FR-GC-04 | Công khai: tỉ lệ, danh sách 24 món (có/chưa), bộ đếm bảo hiểm, lịch sử quay | UC-25 | S | 1–2 |
+| FR-GC-05 | Tủ đồ `/wardrobe`: xem trước, tối đa 1 món mỗi chỗ đầu/mặt/cổ; lưu trên máy (hồ sơ), gửi kèm khi vào phòng / đổi hồ sơ | UC-25 | S | 1–2 |
+| FR-GC-06 | Server kiểm sở hữu phụ kiện khi vào phòng / đổi hồ sơ (token hợp lệ + `user_items`), bỏ món không sở hữu; `PlayerView.accessories` cho cả phòng thấy | UC-25 | S | 1–2 |
+| FR-GC-07 | 6 bạn đồng hành mới khoá theo luật thành tích (`UNLOCK_RULES`): số trận / thắng party, kỷ lục luyện tập một game ở mức tối thiểu, trung bình kỷ lục một nhóm, trung bình điểm thể loại party, Điểm Não; 6 nhân vật cũ luôn mở | UC-26 | S | 1–2 |
+| FR-GC-08 | Hiện điều kiện + tiến độ + lối tắt (Luyện ngay / Chơi party) cho thú khoá ở mọi chỗ chọn nhân vật; hộp chúc mừng khi mở mới | UC-26 | S | 1–2 |
+| FR-GC-09 | Server kiểm thú khoá khi vào phòng / đổi hồ sơ bằng số liệu Supabase (`unlock_stats_for` + hàm shared); chưa mở / không token → nhân vật mặc định, không từ chối vào phòng; bot chỉ dùng 6 nhân vật cũ | UC-26 | S | 1–2 |
+| FR-GC-10 | Kết quả trận và Kiểm tra não hiện "+N phấn" (tin riêng cho từng người / `chalkEarned`); lỗi ghi phấn không làm hỏng trận | UC-25 | S | 1–2 |
 
 ## 5. Yêu cầu phi chức năng
 
@@ -571,7 +652,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | NFR-NET-01 | Mạng | Phản hồi đúng/sai hiện ngay phía client, không chờ server | Thử với giả lập 3G chậm |
 | NFR-NET-02 | Mạng | Đồng hồ dùng giờ server đã hiệu chỉnh (5 ping, lấy RTT nhỏ nhất); server quyết định hết giờ | Test `clock` + chơi thử 2 máy |
 | NFR-REL-01 | Tin cậy | Rớt mạng ≤ 45 giây không mất chỗ, không mất điểm | Ngắt mạng giữa trận |
-| NFR-REL-02 | Tin cậy | Phòng chịu 8 người trả lời liên tục không lỗi | `pnpm --filter @brain-rizz/server loadtest` |
+| NFR-REL-02 | Tin cậy | Phòng chịu 12 người trả lời liên tục không lỗi | `pnpm --filter @brain-rizz/server loadtest` |
 | NFR-SEC-01 | Bảo mật | Mọi tin nhắn client → server validate bằng zod; dữ liệu sai bị từ chối với mã `invalid` | Test protocol |
 | NFR-SEC-02 | Chống gian lận | Chỉ server tính điểm; giới hạn 10 đáp án/giây; bỏ đáp án ngoài giờ. Hạn chế đã biết: client biết seed nên người rành code có thể tự giải — chấp nhận ở mức chơi với bạn bè | Test `PartyRoom` |
 | NFR-COMP-01 | Tương thích | Chạy trên ma trận thiết bị ở [Kiểm thử](../03-guides/testing.md#5-ma-trận-thiết-bị) | Kiểm thủ công trước mỗi bản phát hành |
@@ -612,6 +693,12 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | Điểm theo thể loại và danh hiệu thể loại của mỗi trận party (CR-010) | Supabase Postgres, cột `match_results.category_scores` (jsonb, chỉ thể loại đã chơi) và `match_results.category_titles` (text[]) — migration `20261019000000_match_category_scores.sql`; trong trận: RAM game server (`PlayerView.categoryScores`) | Lâu dài, tới khi người chơi xoá; trong trận thì tới khi Chơi lại / Về phòng chờ |
 | Số bot của mỗi trận party (CR-016) | Supabase Postgres, cột `match_results.bot_count` (mặc định 0) | Lâu dài, tới khi người chơi xoá |
 | Bot trong phòng: mức, model, RNG, hẹn giờ trả lời (CR-016) | RAM của `PartyRoom` (`BotDriver`); chỉ `isBot`, `botLevel` nằm trong state đồng bộ | Tới khi bot bị bỏ hoặc phòng đóng |
+| Quản trị viên, cấu hình trận party (có phiên bản) và lịch sử thay đổi ([CR-019](../00-tracking/change-requests.md#cr-019)) | Supabase Postgres (`admins`, `party_settings`, `party_settings_history`), migration `20261119000000_admin_console.sql`; bản chụp mỗi trận: RAM `PartyRoom` + state (`scoringJson`, `disabledGames`, `configVersion`) | Lâu dài; bản chụp tới khi trận kết thúc |
+| Sự kiện đăng nhập (loại, khách/Google, trình duyệt · hệ điều hành; không IP) | Supabase Postgres (`login_events`) | Lâu dài, tới khi người chơi xoá |
+| Phiên bản cấu hình của mỗi trận party | Supabase Postgres, cột `match_results.settings_version` (mặc định 0) | Lâu dài, tới khi người chơi xoá |
+| Game yêu thích ở Luyện tập ([CR-020](../00-tracking/change-requests.md#cr-020)) | `localStorage` `brain-rizz:favorites`; khi có phiên: Supabase `practice_favorites` (migration `20261119100000_practice_favorites.sql`) | Lâu dài; tài khoản: tới khi người chơi xoá |
+| Phấn (sổ cộng/trừ), món đã có, trạng thái bảo hiểm, lịch sử quay ([CR-023](../00-tracking/change-requests.md#cr-023)) | Supabase Postgres (`chalk_ledger`, `user_items`, `gacha_state`, `gacha_pulls`; danh mục `cosmetic_items`), migration `20261120000000_gacha.sql` | Lâu dài, tới khi người chơi xoá |
+| Phụ kiện đang mặc ([CR-023](../00-tracking/change-requests.md#cr-023)) | `localStorage` `brain-rizz:profile`; trong phòng: `PlayerView.accessories` | Lâu dài trên máy; trong phòng tới khi rời |
 | Lượt chơi bóng ma (GĐ 3) | Supabase Postgres | Lâu dài |
 
 ## 8. Ma trận truy vết
@@ -632,6 +719,9 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | BR-11 | UC-05, UC-08 | FR-PH-12, FR-GD-06→08 | — |
 | BR-01, BR-11 | UC-22 | FR-PH-14 → FR-PH-19, NFR-SEC-04 | `packages/shared/src/chat/chat.test.ts` (lọc từ tục, làm sạch, token bucket), `protocol.test.ts` (schema chat); `apps/server/test/PartyChat.test.ts` (danh tính do server gắn, rate limit, lọc + cắt, bật/tắt + `not-host`, `bad-phase`, 30 tin cho người vào sau / nối lại) |
 | BR-10 | UC-23 | FR-PH-20 → FR-PH-26 | `packages/shared/src/bots/bots.test.ts`, `bots/balance-sim.test.ts`, `answer-judge.test.ts` (`judgeBotAnswer`), `protocol.test.ts` (lệnh bot); `apps/server/test/PartyBots.test.ts`; web `bot-name.test.ts`, `bot-setup.test.ts`, `bot-slot.test.tsx`, `create-party.test.ts`, `data-api.test.ts` (CR-016) |
+| BR-07, BR-12 | UC-24 | FR-QT-01 → FR-QT-10 | `packages/shared/src/party-config.test.ts`, `misc.test.ts` / `answer-judge.test.ts` (cấu hình điểm, điểm thứ hạng co giãn); `apps/server/test` (cấu hình phòng, game tắt, 12 người, route admin); web `features/admin` (CR-018, CR-019) |
+| BR-10, BR-03 | UC-13, UC-21, UC-19 | FR-MR-17, FR-GD-13, FR-GD-14 | web `features/practice` (yêu thích), `games/_shared/demo`, `stores/nav.store.test.ts` (URL) (CR-020 → CR-022) |
+| BR-10 | UC-25, UC-26 | FR-GC-01 → FR-GC-10 | `packages/shared/src/cosmetics/*.test.ts` (luật mở khoá, thưởng phấn, mô phỏng kinh tế, đối chiếu migration); server test thưởng + kiểm sở hữu; web `features/gacha`, `features/wardrobe` (CR-023, CR-024) |
 | BR-12 | — | NFR-COST-01 | — |
 
 ## 9. Lịch sử thay đổi tài liệu
@@ -650,5 +740,8 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | 1.9 | 2026-10-20 | Danh mục minigame 15 → 17 (thêm Luyện ngắm, Phấn trượt): sửa FR-MG-05 | [CR-012](../00-tracking/change-requests.md#cr-012) |
 | 1.10 | 2026-10-20 | Danh mục minigame 17 → 31 (14 game của kế hoạch mở rộng, hai đợt 7 game): sửa FR-MG-05 | [CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014) |
 | 1.11 | 2026-10-21 | Chơi với bot: thêm UC-23, FR-PH-20 → FR-PH-26, thuật ngữ "Bot", dòng Dữ liệu (`match_results.bot_count`, bot trong RAM phòng), ma trận truy vết | [CR-016](../00-tracking/change-requests.md#cr-016) |
+| 1.12 | 2026-11-19 | Trống quay dọc (UC-20, FR-VC-14, FR-VC-16); phòng 12 người + điểm thứ hạng co giãn (UC-03, UC-08, FR-PH-03/21/22, NFR-REL-02); trang quản trị: tác nhân Quản trị viên, UC-24, FR-QT-01 → 10, dòng Dữ liệu, truy vết | [CR-017](../00-tracking/change-requests.md#cr-017), [CR-018](../00-tracking/change-requests.md#cr-018), [CR-019](../00-tracking/change-requests.md#cr-019) |
+| 1.13 | 2026-11-19 | Game yêu thích (FR-MR-17), hướng dẫn động (FR-GD-13), tách URL theo màn (FR-GD-14), dòng Dữ liệu `practice_favorites`, truy vết | [CR-020](../00-tracking/change-requests.md#cr-020), [CR-021](../00-tracking/change-requests.md#cr-021), [CR-022](../00-tracking/change-requests.md#cr-022) |
+| 1.14 | 2026-11-20 | Phấn, máy quay phụ kiện, tủ đồ (UC-25), bạn đồng hành mở khoá (UC-26), mục 4.8 FR-GC-01 → 10, dòng Dữ liệu, truy vết | [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

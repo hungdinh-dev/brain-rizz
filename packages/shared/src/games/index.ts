@@ -74,7 +74,8 @@ export type GameId = keyof typeof GAMES;
 export const GAME_IDS = Object.keys(GAMES) as [GameId, ...GameId[]];
 
 export function isGameId(value: unknown): value is GameId {
-  return typeof value === "string" && value in GAMES;
+  // Object.hasOwn: `in` cũng nhận khoá của prototype ("constructor", "toString"…).
+  return typeof value === "string" && Object.hasOwn(GAMES, value);
 }
 
 export function getGame(id: GameId): AnyMinigame {

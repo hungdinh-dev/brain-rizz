@@ -1,11 +1,4 @@
-import {
-  availableGames,
-  ClientMessage,
-  GAME_IDS,
-  GAMES,
-  type GameId,
-  type PartyStateView,
-} from "@brain-rizz/shared";
+import { ClientMessage, GAMES, type GameId, type PartyStateView } from "@brain-rizz/shared";
 import { HandIcon, LockIcon, VoteIcon } from "lucide-react";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -14,7 +7,14 @@ import { useGameTextLookup } from "@/hooks/use-game-text";
 import { DESKTOP_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { usePendingAction } from "@/hooks/use-pending-action";
 import { send } from "@/net/connection";
-import { desktopSoonLayout, playedGameIds, tallyVotes, topVoted, UPCOMING } from "../catalog";
+import {
+  desktopSoonLayout,
+  enabledGames,
+  pickableGames,
+  tallyVotes,
+  topVoted,
+  UPCOMING,
+} from "../catalog";
 import { GameCard } from "./GameCard";
 
 /** Số ô của lưới thẻ trên máy tính (4 × 2). */
@@ -34,8 +34,9 @@ export function PickView({ party, sessionId, isHost }: PickViewProps) {
   const { t } = useTranslation();
   const text = useGameTextLookup();
   const desktop = useMediaQuery(DESKTOP_QUERY);
-  const played = playedGameIds(party);
-  const available = availableGames(played);
+  // Game admin tắt (CR-019) không hiện thẻ: không chọn, không bầu được (server cũng chặn).
+  const shown = enabledGames(party);
+  const available = pickableGames(party);
   const tally = tallyVotes(party);
   const top = topVoted(tally);
   const myVote = party.votes[sessionId];
@@ -49,7 +50,7 @@ export function PickView({ party, sessionId, isHost }: PickViewProps) {
     picked && available.includes(picked) ? picked : (top?.id ?? available[0] ?? null);
 
   // Ô "Sắp có": máy tính lấp lưới 4×2 (thừa thì gom thành "+N trò"), điện thoại gom một ô.
-  const soon = desktopSoonLayout(GAME_IDS.length, UPCOMING.length, DESKTOP_CELLS);
+  const soon = desktopSoonLayout(shown.length, UPCOMING.length, DESKTOP_CELLS);
 
   return (
     <div className="flex flex-1 flex-col gap-3 lg:gap-4">
@@ -83,7 +84,7 @@ export function PickView({ party, sessionId, isHost }: PickViewProps) {
       )}
 
       <div className="grid grid-cols-2 gap-x-3 gap-y-3.5 pt-1 lg:grid-cols-4 lg:auto-rows-fr lg:gap-x-4.5 lg:gap-y-4">
-        {GAME_IDS.map((id) => {
+        {shown.map((id) => {
           const isPlayed = !available.includes(id);
           const voters = tally.get(id) ?? [];
           return (

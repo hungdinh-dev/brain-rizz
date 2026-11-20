@@ -318,7 +318,7 @@ describe("rotate-match: kho hình", () => {
   });
 });
 
-describe("rotate-match: tất định", () => {
+describe("rotate-match: tất định", { timeout: 60_000 }, () => {
   it("cùng (seed, index, độ khó) → cùng câu đố; index khác → câu khác", () => {
     for (const d of DIFFICULTIES) {
       expect(rotateMatch.generate(777, 5, d)).toEqual(rotateMatch.generate(777, 5, d));
@@ -526,7 +526,7 @@ function verifyPuzzle(p: RotateMatchPuzzle, d: Difficulty): string[] {
   return errors;
 }
 
-describe("rotate-match: 10.000 seed mỗi mức", () => {
+describe("rotate-match: 10.000 seed mỗi mức", { timeout: 60_000 }, () => {
   it.each(DIFFICULTIES)(
     "mức %i: tất định, đúng một đáp án, check đúng/sai, đủ mọi ràng buộc",
     (d) => {

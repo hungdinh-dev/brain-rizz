@@ -56,6 +56,17 @@
   --color-analyze: #4d9de0;
   --color-compute: #3bb273;
   --color-visualize: #7768ae;
+
+  /*
+   * Đường cong chuyển động dùng chung (CR-021, ui-ux.md mục 6.11): khung diễn hướng dẫn động, nảy
+   * ⭐ Yêu thích (6.10)… Tailwind sinh `ease-glide`, `ease-settle`, `ease-pop`; keyframes dùng
+   * `var(--ease-pop)`. Không phụ thuộc sáng/tối.
+   * glide: lướt giữa hai điểm (tay, bóng ma xoay) · settle: vào/ra, mờ dần, sóng chạm ·
+   * pop: nảy có vượt (✓ ✗, vòng khoanh, huy hiệu, ⭐ bật).
+   */
+  --ease-glide: cubic-bezier(0.45, 0, 0.25, 1);
+  --ease-settle: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Token ngữ nghĩa kiểu shadcn → class Tailwind (bg-card, text-primary-foreground, ring-ring…). */
@@ -103,6 +114,15 @@
      Màu thép nhạt kiểu nhãn dán: luôn có viền sticker, giữ nguyên ở sáng/tối như màu nhóm kỹ năng. */
   --color-bot: var(--bot);
   --color-bot-foreground: var(--bot-foreground);
+
+  /* Độ hiếm phụ kiện (CR-023, ui-ux 6.12): nền nhãn/ô/viên nang kiểu nhãn dán, luôn kèm viền
+     sticker + số hạt ◆ (1–4) + chữ tên độ hiếm, không chỉ dựa vào màu. Chữ/icon trên nền này dùng
+     `text-rarity-foreground`. */
+  --color-rarity-common: var(--rarity-common);
+  --color-rarity-rare: var(--rarity-rare);
+  --color-rarity-epic: var(--rarity-epic);
+  --color-rarity-legendary: var(--rarity-legendary);
+  --color-rarity-foreground: var(--rarity-foreground);
 }
 
 :root {
@@ -142,6 +162,14 @@
   /* Icon/chữ mực trên nền này: 9,6:1. Nền so với thẻ giấy chỉ 1,6:1 nên luôn kèm viền sticker. */
   --bot: #b9c7dc;
   --bot-foreground: #1f1b3a;
+
+  /* Độ hiếm: chữ mực trên nền — Thường 11,4:1 · Hiếm 9,1:1 · Sử thi 8:1 · Huyền thoại 11,5:1.
+     Nền gần giấy (1,4–2,2:1 so với thẻ) nên luôn có viền sticker. */
+  --rarity-common: #dcd6c8;
+  --rarity-rare: #8ec5ff;
+  --rarity-epic: #c3a6ff;
+  --rarity-legendary: #ffd166;
+  --rarity-foreground: #1f1b3a;
 }
 
 .dark {
@@ -181,6 +209,14 @@
   /* Giữ như chế độ sáng (nhãn dán): icon mực 9,6:1; nền so với thẻ tối 7,8:1 */
   --bot: #b9c7dc;
   --bot-foreground: #1f1b3a;
+
+  /* Độ hiếm giữ như sáng (nhãn dán, như màu nhóm kỹ năng): chữ mực 8–11,5:1; nền so với thẻ tối
+     6,5–9,3:1, so với bảng tối 7,5–10,8:1 nên nổi rõ không cần đổi màu. */
+  --rarity-common: #dcd6c8;
+  --rarity-rare: #8ec5ff;
+  --rarity-epic: #c3a6ff;
+  --rarity-legendary: #ffd166;
+  --rarity-foreground: #1f1b3a;
 }
 
 @layer base {
@@ -222,6 +258,21 @@
   box-shadow:
     inset 0 0 0 4px rgb(0 0 0 / 0.22),
     inset 0 0 120px rgb(0 0 0 / 0.35);
+}
+
+/*
+ * Trống quay dọc (CR-017): bóng của mặt trống cong, phủ lên các dòng (pointer-events-none).
+ * Đặt trên nền bg-board + bg-board-shade; tối dần về mép trên/dưới, giữa 34–66% trong suốt
+ * để dải chọn rõ. Dùng chung sáng/tối vì chỉ làm tối nền bảng. Đặc tả: ui-ux.md mục 6.7.
+ */
+@utility drum-shade {
+  background-image: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0.52),
+    rgb(0 0 0 / 0) 34%,
+    rgb(0 0 0 / 0) 66%,
+    rgb(0 0 0 / 0.52)
+  );
 }
 
 /* Chữ logo kiểu nhãn dán: viền mực dày, bóng đổ xuống dưới. Độ dày viền đặt qua --stroke. */

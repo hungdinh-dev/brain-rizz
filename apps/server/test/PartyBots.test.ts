@@ -1,10 +1,10 @@
 import {
+  BASE_CHARACTER_IDS,
   BOT_CHAT_DELAY_MS,
   BOT_INTRO_READY_MS,
   type BotLevel,
   type BotYieldedPayload,
   botDifficulty,
-  CHARACTER_IDS,
   type ChatMessagePayload,
   ClientMessage,
   COUNTDOWN_MS,
@@ -21,24 +21,24 @@ import {
   ROOM_NAME,
   ServerMessage,
 } from "@brain-rizz/shared";
-import { boot, type ColyseusTestServer } from "@colyseus/testing";
 import { matchMaker } from "colyseus";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import appConfig from "../src/app.config";
 import type { PartyRoom } from "../src/rooms/PartyRoom";
 import {
   advance,
+  bootOnFreePort,
   connectTo,
   freezeNow,
   ignoreServerMessages,
   nextMessage,
   settle,
+  type TestServer,
   until,
 } from "./helpers";
 
 /** Chơi với bot (CR-016, ADR 0014): ghế, chủ phòng, đóng phòng, bot chơi và chat trên server. */
 
-let colyseus: ColyseusTestServer<typeof appConfig>;
+let colyseus: TestServer;
 
 async function join(room: PartyRoom, name: string, opts: Partial<JoinOptions> = {}) {
   return connectTo(colyseus, room, { name, ...opts });
@@ -166,7 +166,7 @@ describe("PartyRoom — chơi với bot (CR-016)", () => {
   let now: ReturnType<typeof freezeNow> | null = null;
 
   beforeAll(async () => {
-    colyseus = await boot(appConfig);
+    colyseus = await bootOnFreePort();
   });
   afterAll(async () => {
     await colyseus.shutdown();
@@ -217,30 +217,35 @@ describe("PartyRoom — chơi với bot (CR-016)", () => {
       const { room, host } = await setup(["An"], { count: MAX_PLAYERS - 1, level: 1 });
       expect(room.state.players.size).toBe(MAX_PLAYERS);
 
+      /** `bot-from` … `bot-to`. */
+      const range = (from: number, to: number) =>
+        Array.from({ length: to - from + 1 }, (_, i) => `bot-${from + i}`);
       const b = await join(room, "Bình");
       expect(room.state.players.size).toBe(MAX_PLAYERS);
       expect(room.state.players.has(b.sessionId)).toBe(true);
-      expect(botIds(room)).toEqual(["bot-1", "bot-2", "bot-3", "bot-4", "bot-5", "bot-6"]);
+      expect(botIds(room)).toEqual(range(1, MAX_PLAYERS - 2));
       // Người vào sau lấy được màu bot vừa nhường.
       expect(new Set(players(room).map((p) => p.colorIndex)).size).toBe(MAX_PLAYERS);
 
       await expectError(host, "invalid", () => host.send(ClientMessage.AddBot, { level: 0 }));
       expect(room.state.players.size).toBe(MAX_PLAYERS);
 
-      // Bỏ bot-1, thêm bot mới (bot-8): người kế tiếp vào thì bot-8 (thêm gần nhất) nhường, không phải bot-6.
+      // Bỏ bot-1, thêm bot mới (bot-<MAX_PLAYERS>): người kế tiếp vào thì bot mới (thêm gần nhất)
+      // nhường, không phải bot-<MAX_PLAYERS - 2>.
+      const fresh = `bot-${MAX_PLAYERS}`;
       host.send(ClientMessage.RemoveBot, { playerId: "bot-1" });
       await until(() => !room.state.players.has("bot-1"));
       host.send(ClientMessage.AddBot, { level: 3 });
-      await until(() => room.state.players.has("bot-8"));
-      expect(room.state.players.get("bot-8")).toMatchObject({ botLevel: 3, difficulty: 3 });
+      await until(() => room.state.players.has(fresh));
+      expect(room.state.players.get(fresh)).toMatchObject({ botLevel: 3, difficulty: 3 });
       await join(room, "Cúc");
-      expect(botIds(room)).toEqual(["bot-2", "bot-3", "bot-4", "bot-5", "bot-6"]);
+      expect(botIds(room)).toEqual(range(2, MAX_PLAYERS - 2));
       expect(room.state.players.size).toBe(MAX_PLAYERS);
     });
 
     it("Chơi với máy: người tạo giữ màu + nhân vật trong hồ sơ, bot tránh cả hai", async () => {
-      // Đủ bot để dùng hết nhân vật còn trống, rồi đủ 8 ghế (nhân vật phải dùng lại).
-      const freeCharacters = CHARACTER_IDS.length - 1;
+      // Đủ bot để dùng hết nhân vật còn trống, rồi đủ MAX_PLAYERS ghế (nhân vật phải dùng lại).
+      const freeCharacters = BASE_CHARACTER_IDS.length - 1;
       for (const count of [Math.min(freeCharacters, MAX_PLAYERS - 1), MAX_PLAYERS - 1]) {
         // Màu 0 là ca lỗi cũ: bot đầu tiên lấy màu trống từ 0 nên người tạo bị đổi màu.
         for (const [colorIndex, avatar] of [
@@ -277,6 +282,9 @@ describe("PartyRoom — chơi với bot (CR-016)", () => {
           const whileFree = bots(room).slice(0, freeCharacters);
           expect(whileFree.some((b) => b.avatar === avatar)).toBe(false);
           expect(new Set(whileFree.map((b) => b.avatar)).size).toBe(whileFree.length);
+          // Bot chỉ dùng 6 nhân vật luôn mở, không dùng thú khoá (CR-024).
+          const base: readonly string[] = BASE_CHARACTER_IDS;
+          expect(bots(room).every((b) => base.includes(b.avatar))).toBe(true);
           await me.leave();
         }
       }

@@ -1,4 +1,9 @@
-import { CHARACTER_IDS, CreateOptionsSchema, MAX_PLAYERS } from "@brain-rizz/shared";
+import {
+  BASE_CHARACTER_IDS,
+  CreateOptionsSchema,
+  MAX_PLAYERS,
+  PET_CHARACTER_IDS,
+} from "@brain-rizz/shared";
 import { createInstance, type TFunction } from "i18next";
 import { beforeAll, describe, expect, it } from "vitest";
 import { en } from "@/i18n/locales/en";
@@ -14,16 +19,16 @@ import {
 } from "./bot-setup";
 
 describe("hộp thoại Chơi với máy (CR-016)", () => {
-  it("mặc định 3 bot mức Vừa, chọn được 1–7 bot", () => {
+  it("mặc định 3 bot mức Vừa, chọn được 1–11 bot (phòng 12 ghế, CR-018)", () => {
     expect(DEFAULT_BOT_SETUP).toEqual({ count: 3, level: 1 });
     expect(BOT_COUNT_MIN).toBe(1);
     expect(BOT_COUNT_MAX).toBe(MAX_PLAYERS - 1);
-    expect(BOT_COUNT_MAX).toBe(7);
+    expect(BOT_COUNT_MAX).toBe(11);
   });
 
   it("số bot luôn trong khoảng cho phép", () => {
     expect(clampBotCount(0)).toBe(1);
-    expect(clampBotCount(9)).toBe(7);
+    expect(clampBotCount(13)).toBe(11);
     expect(clampBotCount(4.4)).toBe(4);
     expect(clampBotCount(Number.NaN)).toBe(DEFAULT_BOT_SETUP.count);
   });
@@ -42,16 +47,22 @@ describe("hộp thoại Chơi với máy (CR-016)", () => {
     });
   });
 
-  it("dải ghế: mình + N bot + ghế trống = 8", () => {
-    expect(freeSeats(3)).toBe(4);
-    expect(freeSeats(7)).toBe(0);
+  it("dải ghế: mình + N bot + ghế trống = 12", () => {
+    expect(freeSeats(3)).toBe(8);
+    expect(freeSeats(11)).toBe(0);
     const me = { avatar: "bo" as const, colorIndex: 2 };
-    const faces = previewBotFaces(me, 7);
-    expect(faces).toHaveLength(7);
-    expect(1 + faces.length + freeSeats(7)).toBe(MAX_PLAYERS);
+    const faces = previewBotFaces(me, 11);
+    expect(faces).toHaveLength(11);
+    expect(1 + faces.length + freeSeats(11)).toBe(MAX_PLAYERS);
     // Không lặp lại nhân vật / màu của mình khi còn lựa chọn khác.
-    expect(faces.slice(0, CHARACTER_IDS.length - 1).every((f) => f.avatar !== me.avatar)).toBe(
+    expect(faces.slice(0, BASE_CHARACTER_IDS.length - 1).every((f) => f.avatar !== me.avatar)).toBe(
       true,
+    );
+    // Bot chỉ là 6 nhân vật cũ, không bao giờ là thú khoá (CR-024).
+    const pets: readonly string[] = PET_CHARACTER_IDS;
+    expect(faces.every((f) => !pets.includes(f.avatar))).toBe(true);
+    expect(new Set(faces.map((f) => f.avatar))).toEqual(
+      new Set(BASE_CHARACTER_IDS.filter((id) => id !== me.avatar)),
     );
     expect(faces.every((f) => f.colorIndex !== me.colorIndex)).toBe(true);
   });
@@ -83,10 +94,10 @@ describe("chữ bot qua i18next (CR-016, ui-ux 6.6)", () => {
   it("câu ghế trống: số nhiều theo số bot, số ghế trống đứng cuối", () => {
     const seats = (t: TFunction, count: number) =>
       t("bots.seatsFree", { count, free: freeSeats(count) });
-    expect(seats(tEn, 1)).toBe("You + 1 bot · seats left for friends: 6");
-    expect(seats(tEn, 6)).toBe("You + 6 bots · seats left for friends: 1");
-    expect(seats(tVi, 1)).toBe("Bạn + 1 bot · còn 6 ghế cho bạn bè");
-    expect(seats(tVi, 6)).toBe("Bạn + 6 bot · còn 1 ghế cho bạn bè");
+    expect(seats(tEn, 1)).toBe("You + 1 bot · seats left for friends: 10");
+    expect(seats(tEn, 10)).toBe("You + 10 bots · seats left for friends: 1");
+    expect(seats(tVi, 1)).toBe("Bạn + 1 bot · còn 10 ghế cho bạn bè");
+    expect(seats(tVi, 10)).toBe("Bạn + 10 bot · còn 1 ghế cho bạn bè");
   });
 
   it("aria-label chip thêm bot: 'Add bot: <mức>'", () => {

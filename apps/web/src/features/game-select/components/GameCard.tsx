@@ -114,6 +114,7 @@ export function GameCard(props: GameCardProps) {
                 <PlayerAvatar
                   key={p.id}
                   avatar={p.avatar}
+                  accessories={p.accessories}
                   colorIndex={p.colorIndex}
                   size="sm"
                   className={cn(i > 0 && "-ml-2.5")}

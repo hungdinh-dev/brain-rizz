@@ -1,14 +1,19 @@
 import { FlameIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNumberFormat } from "@/hooks/use-number-format";
+import { useRoomScoring } from "@/hooks/use-room-scoring";
 import { cn } from "@/lib/utils";
 import { appliedComboMultiplier, hasCombo } from "../standings";
 
-/** Nhãn "Combo ×1,2" — chỉ hiện từ câu đúng liên tiếp thứ 3, sai một câu là mất. */
+/**
+ * Nhãn "Combo ×1,2" — chỉ hiện từ câu đúng liên tiếp thứ 3 (trận party: theo công thức của phòng),
+ * sai một câu là mất.
+ */
 export function ComboChip({ streak, className }: { streak: number; className?: string }) {
   const { t } = useTranslation();
   const fmt = useNumberFormat(1);
-  if (!hasCombo(streak)) return null;
+  const scoring = useRoomScoring();
+  if (!hasCombo(streak, scoring)) return null;
   return (
     <span
       className={cn(
@@ -17,7 +22,7 @@ export function ComboChip({ streak, className }: { streak: number; className?: s
       )}
     >
       <FlameIcon aria-hidden className="size-3.5" strokeWidth={2.6} />
-      {t("play.combo", { multiplier: fmt(appliedComboMultiplier(streak)) })}
+      {t("play.combo", { multiplier: fmt(appliedComboMultiplier(streak, scoring)) })}
     </span>
   );
 }
@@ -25,7 +30,8 @@ export function ComboChip({ streak, className }: { streak: number; className?: s
 /** Ngọn lửa nhỏ cạnh điểm đối thủ khi họ đang combo. */
 export function ComboFlame({ streak, className }: { streak: number; className?: string }) {
   const { t } = useTranslation();
-  if (!hasCombo(streak)) return null;
+  const scoring = useRoomScoring();
+  if (!hasCombo(streak, scoring)) return null;
   return (
     <FlameIcon
       role="img"

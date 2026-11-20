@@ -1,3 +1,4 @@
+import { DEFAULT_SCORING } from "@brain-rizz/shared";
 import { type SchemaType, schema, t } from "@colyseus/schema";
 
 /**
@@ -10,8 +11,16 @@ export const Player = schema(
     id: t.string(),
     name: t.string(),
     colorIndex: t.uint8(),
-    /** CharacterId — được phép trùng giữa người chơi. */
+    /**
+     * CharacterId — được phép trùng giữa người chơi. Đã kiểm sở hữu: thú khoá chưa mở (hoặc chưa
+     * nạp xong quyền) là `khoi` (CR-024).
+     */
     avatar: t.string().default("khoi"),
+    /**
+     * Id phụ kiện đang đeo (CR-023), đã lọc bằng `sanitizeLoadout` theo món đã có: ≤ 3, thứ tự
+     * đầu → mặt → cổ. Rỗng khi chưa có quyền; bot luôn rỗng.
+     */
+    accessories: t.array("string"),
     /** Độ khó cho vòng hiện tại; chọn lại ở pha game-intro. */
     difficulty: t.uint8().default(1),
     ready: t.boolean().default(false),
@@ -67,6 +76,14 @@ export const PartyState = schema(
      * nhắn một lần. Giữ nguyên qua Chơi lại / Về phòng chờ.
      */
     chatEnabled: t.boolean().default(true),
+    /**
+     * Cấu hình party của trận (CR-019), chụp lúc tạo phòng và mỗi lần bắt đầu trận; admin đổi giữa
+     * trận thì trận sau mới áp dụng. `disabledGames`: game admin tắt; `scoringJson`:
+     * `JSON.stringify(ScoringConfig)`; `configVersion`: `party_settings.version` (0 = mặc định).
+     */
+    disabledGames: t.array("string"),
+    scoringJson: t.string().default(JSON.stringify(DEFAULT_SCORING)),
+    configVersion: t.uint32().default(0),
     players: t.map(Player),
   },
   "PartyState",

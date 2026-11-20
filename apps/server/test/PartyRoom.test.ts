@@ -5,6 +5,7 @@ import {
   availableGames,
   ClientMessage,
   COUNTDOWN_MS,
+  DEFAULT_SCORING,
   type Difficulty,
   type ErrorPayload,
   GAME_IDS,
@@ -20,6 +21,7 @@ import {
   type NudgePayload,
   type PartyStateView,
   type PlayerView,
+  parseScoringJson,
   pourLineLevelAt,
   type RhythmEchoHit,
   ROOM_NAME,
@@ -30,13 +32,11 @@ import {
   WHEEL_SPIN_MS,
   WRONG_ANSWER_LOCK_MS,
 } from "@brain-rizz/shared";
-import { boot, type ColyseusTestServer } from "@colyseus/testing";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import appConfig from "../src/app.config";
 import type { PartyRoom } from "../src/rooms/PartyRoom";
-import { connectTo, ignoreServerMessages, SOLVE } from "./helpers";
+import { bootOnFreePort, connectTo, ignoreServerMessages, SOLVE, type TestServer } from "./helpers";
 
-let colyseus: ColyseusTestServer<typeof appConfig>;
+let colyseus: TestServer;
 
 // ------------------------------------------------------------------ helpers
 
@@ -173,7 +173,7 @@ async function answerCorrectly(room: PartyRoom, client: TestClient) {
 
 describe("PartyRoom", () => {
   beforeAll(async () => {
-    colyseus = await boot(appConfig);
+    colyseus = await bootOnFreePort();
   });
   afterAll(async () => {
     await colyseus.shutdown();
@@ -212,6 +212,9 @@ describe("PartyRoom", () => {
         wheelSpinMs: true,
         introEndsAt: true,
         chatEnabled: true,
+        disabledGames: true,
+        scoringJson: true,
+        configVersion: true,
         players: true,
       } satisfies Record<keyof PartyStateView, true>;
       const PLAYER_KEYS = {
@@ -219,6 +222,7 @@ describe("PartyRoom", () => {
         name: true,
         colorIndex: true,
         avatar: true,
+        accessories: true,
         difficulty: true,
         ready: true,
         introReady: true,
@@ -242,12 +246,20 @@ describe("PartyRoom", () => {
       expect(Object.keys(json.players[host.sessionId] ?? {}).sort()).toEqual(
         Object.keys(PLAYER_KEYS).sort(),
       );
-      // Người thật: không phải bot, mức 0 (CR-016).
-      expect(json.players[host.sessionId]).toMatchObject({ isBot: false, botLevel: 0 });
+      // Người thật: không phải bot, mức 0 (CR-016); chưa đeo phụ kiện (CR-023).
+      expect(json.players[host.sessionId]).toMatchObject({
+        isBot: false,
+        botLevel: 0,
+        accessories: [],
+      });
       expect(json.pickMode).toBe("wheel");
       expect(json.votes).toEqual({});
       expect(json.playedGames).toEqual([]);
       expect(json.wheelGameId).toBe("");
+      // Chưa cấu hình Supabase: cấu hình party mặc định (CR-019).
+      expect(json.disabledGames).toEqual([]);
+      expect(parseScoringJson(json.scoringJson)).toEqual(DEFAULT_SCORING);
+      expect(json.configVersion).toBe(0);
     });
 
     it("từ chối tên không hợp lệ", async () => {
@@ -681,14 +693,15 @@ describe("PartyRoom", () => {
 
       expect(room.state.phase).toBe("round-results");
       const h = player(room, host);
-      expect(h.lastPoints).toBe(10);
-      expect(h.matchPoints).toBe(10);
+      // 3 người (CR-018): nhất 3 + 3, nhì 2 + 2.
+      expect(h.lastPoints).toBe(6);
+      expect(h.matchPoints).toBe(6);
       expect(h.totalScore).toBe(h.roundScore);
       expect(h.totalScore).toBeGreaterThan(0);
-      // Bình và Cúc cùng 0 điểm → cùng hạng 2 → cùng +8.
+      // Bình và Cúc cùng 0 điểm → cùng hạng 2 → cùng +4.
       for (const guest of [b, c]) {
-        expect(player(room, guest).lastPoints).toBe(8);
-        expect(player(room, guest).matchPoints).toBe(8);
+        expect(player(room, guest).lastPoints).toBe(4);
+        expect(player(room, guest).matchPoints).toBe(4);
       }
     });
 
@@ -702,7 +715,8 @@ describe("PartyRoom", () => {
       await answerCorrectly(room, guest);
       finishRound(room);
       expect(room.state.phase).toBe("round-results");
-      expect(player(room, guest).matchPoints).toBe(10);
+      // 2 người: nhất 2 + 3.
+      expect(player(room, guest).matchPoints).toBe(5);
 
       await expectError(guest, "not-host", () => guest.send(ClientMessage.NextRound, {}));
       host.send(ClientMessage.NextRound, {});
@@ -935,8 +949,8 @@ describe("PartyRoom", () => {
       expect(room.state.phase).toBe("playing");
       finishRound(room);
       expect(room.state.phase).toBe("round-results");
-      // Chỉ người còn trong phòng được xếp hạng: hai người cùng 0 điểm → cùng nhất, cùng +10.
-      expect(players(room).map((p) => p.lastPoints)).toEqual([10, 10]);
+      // Chỉ người còn trong phòng được xếp hạng (2 ghế): hai người cùng 0 điểm → cùng nhất, cùng +5.
+      expect(players(room).map((p) => p.lastPoints)).toEqual([5, 5]);
 
       b.send(ClientMessage.NextRound, {});
       await until(() => room.state.phase === "game-select");
@@ -983,7 +997,7 @@ describe("PartyRoom", () => {
       host.send(ClientMessage.SetRounds, { totalRounds: 2 });
       await until(() => room.state.totalRounds === 2);
 
-      // Vòng 1: chỉ An đúng 1 câu → An +10, Bình và Cúc cùng hạng 2 → +8.
+      // Vòng 1 (3 người): chỉ An đúng 1 câu → An +6, Bình và Cúc cùng hạng 2 → +4.
       await toPlaying(room, clients);
       await answerCorrectly(room, host);
       finishRound(room);
@@ -998,7 +1012,7 @@ describe("PartyRoom", () => {
       expect(room.state.introEndsAt).toBe(0);
       for (const p of players(room)) expect(p.introReady).toBe(false);
 
-      // Vòng 2: bình chọn rồi chủ phòng chọn; không ai trả lời → cả ba cùng nhất, cùng +10.
+      // Vòng 2: bình chọn rồi chủ phòng chọn; không ai trả lời → cả ba cùng nhất, cùng +6.
       host.send(ClientMessage.SetPickMode, { mode: "pick" });
       await until(() => room.state.pickMode === "pick");
       const next = availableGames([...room.state.playedGames])[0] as GameId;
@@ -1013,10 +1027,10 @@ describe("PartyRoom", () => {
       expect(room.state.phase).toBe("round-results");
 
       const an = player(room, host);
-      expect([an.matchPoints, an.lastPoints, an.totalScore]).toEqual([20, 10, anRound1]);
+      expect([an.matchPoints, an.lastPoints, an.totalScore]).toEqual([12, 6, anRound1]);
       for (const g of [b, c]) {
         const p = player(room, g);
-        expect([p.matchPoints, p.lastPoints, p.totalScore]).toEqual([18, 10, 0]);
+        expect([p.matchPoints, p.lastPoints, p.totalScore]).toEqual([10, 6, 0]);
       }
 
       host.send(ClientMessage.NextRound, {});
@@ -1160,7 +1174,7 @@ describe("PartyRoom", () => {
       // Kết quả vòng: điểm trận vẫn nguyên sau khi tải lại.
       expect(room.state.phase).toBe("round-results");
       const points = player(room, guest).matchPoints;
-      expect(points).toBe(10);
+      expect(points).toBe(5);
       guest = await reload(room, guest);
       await until(() => guest.state.phase === "round-results");
       expect(player(room, guest).matchPoints).toBe(points);

@@ -16,22 +16,34 @@ interface QuitDialogProps {
   /** Câu giải thích (Luyện tập: không tính kỷ lục; Kiểm tra não: huỷ, không lưu). */
   description: string;
   onConfirm(): void;
+  /** Tiêu đề và nhãn hai nút; mặc định "Bỏ lượt này?" / "Chơi tiếp" / "Bỏ lượt". */
+  title?: string;
+  cancelLabel?: string;
+  confirmLabel?: string;
 }
 
-/** Hộp "Bỏ lượt này?" (khu 17): nút Chơi tiếp được focus trước. */
-export function QuitDialog({ open, onOpenChange, description, onConfirm }: QuitDialogProps) {
+/** Hộp "Bỏ lượt này?" (khu 17), cũng dùng cho "Rời phòng?" khi bấm Back trong phòng: nút ở lại được focus trước. */
+export function QuitDialog({
+  open,
+  onOpenChange,
+  description,
+  onConfirm,
+  title,
+  cancelLabel,
+  confirmLabel,
+}: QuitDialogProps) {
   const { t } = useTranslation();
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{t("common.quitTitle")}</AlertDialogTitle>
+          <AlertDialogTitle>{title ?? t("common.quitTitle")}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{t("common.keepPlaying")}</AlertDialogCancel>
+          <AlertDialogCancel>{cancelLabel ?? t("common.keepPlaying")}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" data-sfx="back" onClick={onConfirm}>
-            {t("common.quitConfirm")}
+            {confirmLabel ?? t("common.quitConfirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

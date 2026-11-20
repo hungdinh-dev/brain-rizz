@@ -6,7 +6,7 @@ import {
   isGameId,
 } from "@brain-rizz/shared";
 import { UnplugIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -30,7 +30,14 @@ import { hasStoredSession } from "@/lib/supabase";
 import { leaveBrainTest, sendBrain, startBrainTest } from "@/net/connection";
 import { fetchBrainHistory } from "@/net/data-api";
 import { useGame } from "@/stores/game.store";
-import { useNav } from "@/stores/nav.store";
+import {
+  enterRoomEntry,
+  pathForScreen,
+  type Route,
+  restoreEntry,
+  setBackGuard,
+  useNav,
+} from "@/stores/nav.store";
 import { BrainGameIntro } from "./components/BrainGameIntro";
 import { BrainIntro } from "./components/BrainIntro";
 import { BrainProgress } from "./components/BrainProgress";
@@ -46,11 +53,15 @@ export function BrainTestScreen() {
   const brain = useGame((s) => s.brain);
   const connection = useGame((s) => s.connection);
   const go = useNav((s) => s.go);
+  const goBack = useNav((s) => s.goBack);
   const setSoloFocus = useNav((s) => s.setSoloFocus);
   const { t } = useTranslation();
   const [connecting, setConnecting] = useState(false);
   const [confirmQuit, setConfirmQuit] = useState(false);
+  // Hộp "Bỏ lượt này?" mở do Back của trình duyệt: màn muốn về (Huỷ → đẩy lại mục phòng).
+  const backTarget = useRef<Route | null>(null);
   const phase = brain?.phase;
+  const inRoom = brain !== null;
 
   // Rời màn (về menu, sang bảng xếp hạng) → rời phòng; lượt dở bị huỷ, không lưu.
   useEffect(
@@ -59,6 +70,23 @@ export function BrainTestScreen() {
     },
     [],
   );
+
+  // Trong phòng (CR-022): một mục lịch sử riêng ở `/brain-test`; Back → hỏi bỏ lượt như nút Thoát.
+  useEffect(() => {
+    if (!inRoom) return;
+    enterRoomEntry("brain", pathForScreen({ screen: "brain-test" }));
+    return setBackGuard((target) => {
+      const { brain: now, connection: link } = useGame.getState();
+      // Đã xong lượt / phòng đã đóng: không còn gì để mất → rời phòng rồi đi luôn.
+      if (now?.phase === "finished" || link === "offline") {
+        void leaveBrainTest();
+        return false;
+      }
+      backTarget.current = target;
+      setConfirmQuit(true);
+      return true;
+    });
+  }, [inRoom]);
 
   useEffect(() => {
     setSoloFocus(phase === "countdown" || phase === "playing");
@@ -95,7 +123,7 @@ export function BrainTestScreen() {
         connecting={connecting}
         onStart={() => void start()}
         onLeaderboard={() => go("leaderboard")}
-        onBack={() => go("menu")}
+        onBack={() => goBack("menu")}
       />
     );
   }
@@ -108,11 +136,23 @@ export function BrainTestScreen() {
   const quitDialog = (
     <QuitDialog
       open={confirmQuit}
-      onOpenChange={setConfirmQuit}
+      onOpenChange={(open) => {
+        setConfirmQuit(open);
+        // Mở do Back mà chọn Chơi tiếp → đẩy lại mục phòng (URL về như cũ).
+        if (!open && backTarget.current) {
+          backTarget.current = null;
+          restoreEntry();
+        }
+      }}
       description={t("common.quitBrain")}
       onConfirm={() => {
+        // Chạy trước onOpenChange(false): xoá đích trước để không đẩy lại mục phòng.
+        const target = backTarget.current;
+        backTarget.current = null;
         setConfirmQuit(false);
-        void leaveBrainTest();
+        void leaveBrainTest().then(() => {
+          if (target) useNav.getState().go(target, { replace: true });
+        });
       }}
     />
   );

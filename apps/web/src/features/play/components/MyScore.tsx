@@ -4,6 +4,7 @@ import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { RankBadge } from "@/components/common/RankBadge";
 import { Card } from "@/components/ui/card";
 import { useNumberFormat } from "@/hooks/use-number-format";
+import { useRoomScoring } from "@/hooks/use-room-scoring";
 import { cn } from "@/lib/utils";
 import { hasCombo } from "../standings";
 import { ComboChip } from "./ComboChip";
@@ -36,13 +37,19 @@ export function MyScoreHud({ me, rank, className }: MyScoreProps) {
 export function MyScoreCard({ me, rank, className }: MyScoreProps) {
   const { t } = useTranslation();
   const fmt = useNumberFormat();
+  const scoring = useRoomScoring();
   return (
     <Card
       aria-label={t("play.yourScore")}
       className={cn("gap-2.5 rounded-[22px] border-4 px-4 py-3.5", className)}
     >
       <div className="flex items-center gap-3">
-        <PlayerAvatar avatar={me.avatar} colorIndex={me.colorIndex} size="md" />
+        <PlayerAvatar
+          avatar={me.avatar}
+          accessories={me.accessories}
+          colorIndex={me.colorIndex}
+          size="md"
+        />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5 leading-tight">
           <span className="flex items-baseline gap-1.5">
             <span className="truncate font-display text-[22px] font-extrabold">{me.name}</span>
@@ -63,7 +70,7 @@ export function MyScoreCard({ me, rank, className }: MyScoreProps) {
           </span>
         </span>
       </div>
-      {hasCombo(me.streak) && (
+      {hasCombo(me.streak, scoring) && (
         <div className="flex items-center gap-2.5">
           <ComboChip streak={me.streak} className="h-7 px-2.5 text-sm" />
           <span className="text-[13px] text-muted-foreground">

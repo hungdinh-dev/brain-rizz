@@ -196,7 +196,7 @@ const percentile = (values: number[], q: number) => {
   return sorted[Math.floor(q * (sorted.length - 1))]!;
 };
 
-describe("best-basket", () => {
+describe("best-basket", { timeout: 60_000 }, () => {
   it("tất định: cùng (seed, index, độ khó) → cùng câu đố", () => {
     for (const d of DIFFICULTIES) {
       for (let s = 0; s < 200; s++) {

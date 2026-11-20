@@ -1,6 +1,7 @@
 import {
   availableGames,
   type Category,
+  enabledGameIds,
   GAME_IDS,
   type GameId,
   isGameId,
@@ -71,12 +72,41 @@ export function playedGameIds(party: PartyStateView): GameId[] {
   return party.playedGames.filter(isGameId);
 }
 
-/** Lát của vòng quay: game còn chơi được; luôn chứa kết quả server đã chọn. */
+/**
+ * Game được bật ở trận này (CR-019): danh mục trừ game admin tắt. Tắt gần hết (còn < 2) thì dùng
+ * cả danh mục, khớp với server (`enabledGameIds`).
+ */
+export function enabledGames(party: PartyStateView): GameId[] {
+  return enabledGameIds(party.disabledGames ?? []);
+}
+
+/** Game còn chọn / bầu được: đang bật và chưa chơi trong trận (server kiểm lại, bất biến 2). */
+export function pickableGames(party: PartyStateView): GameId[] {
+  return availableGames(playedGameIds(party), enabledGames(party));
+}
+
+/**
+ * Dòng của trống quay, đúng thứ tự server dùng để chọn: game còn chơi được (bỏ game đã chơi và
+ * game bị tắt); luôn chứa kết quả server đã chọn.
+ */
 export function wheelSlices(party: PartyStateView): GameId[] {
-  const slices = availableGames(playedGameIds(party));
+  const slices = pickableGames(party);
   const result = party.wheelGameId;
   if (isGameId(result) && !slices.includes(result)) slices.push(result);
-  return slices.length > 0 ? slices : [...GAME_IDS];
+  return slices.length > 0 ? slices : enabledGames(party);
+}
+
+/**
+ * Dòng phấn dưới trống quay: game đã chơi trong trận (không còn trên trống), hiện tối đa `max` tên,
+ * còn lại gom thành "+n". Rỗng = chưa chơi game nào.
+ */
+export function playedNote(
+  party: PartyStateView,
+  slices: readonly GameId[],
+  max = 2,
+): { shown: GameId[]; more: number } {
+  const played = playedGameIds(party).filter((id) => !slices.includes(id));
+  return { shown: played.slice(0, max), more: Math.max(0, played.length - max) };
 }
 
 /** Gom phiếu bình chọn: gameId → người bầu (theo thứ tự vào phòng). */

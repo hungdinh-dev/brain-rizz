@@ -45,12 +45,23 @@ export const STORAGE_KEYS = {
   motion: "brain-rizz:motion",
   /** Kỷ lục luyện tập trên máy + độ khó lần trước của từng game (JSON, UC-13). */
   practice: "brain-rizz:practice",
+  /** Game yêu thích ở Luyện tập (CR-020): `{ ids, synced }` (JSON), đồng bộ với tài khoản khi có phiên. */
+  favorites: "brain-rizz:favorites",
   /** Chat trong phòng (CR-011): người bị tắt tiếng theo mã phòng (JSON, chỉ trên máy này). */
   chatMute: "brain-rizz:chat-mute",
   /** Cột chat máy tính đang thu gọn: "1" | không có. */
   chatCollapsed: "brain-rizz:chat-collapsed",
   /** Phiên Supabase (supabase-js tự đọc/ghi; app chỉ xem có hay không để khỏi tải thư viện sớm). */
   auth: "brain-rizz:auth",
-  /** sessionStorage: đang đi đăng nhập Google, quay về thì mở lại màn Tài khoản. */
+  /** sessionStorage: đang đi đăng nhập Google, quay về thì mở lại màn Tài khoản / trang quản trị. */
   oauthReturn: "brain-rizz:oauth-return",
+  /** sessionStorage: luồng Google đang đi ("link" | "signin") để ghi đúng sự kiện đăng nhập (CR-019). */
+  oauthFlow: "brain-rizz:oauth-flow",
+  /** Mục trang quản trị đang mở lần trước (CR-019, chỉ trên máy này). */
+  adminSection: "brain-rizz:admin-section",
+  /**
+   * Bạn đồng hành đã thấy mở khoá trên máy này (CR-024, JSON mảng id thú): thú mới mở mà chưa có ở
+   * đây thì hiện hộp chúc mừng. Chưa có khoá = lần đầu (ghi lại, không chúc mừng thú mở sẵn).
+   */
+  petsSeen: "brain-rizz:pets-seen",
 } as const;

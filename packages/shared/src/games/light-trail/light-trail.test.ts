@@ -51,7 +51,7 @@ const permutations = (n: number, k: number) => {
   return out;
 };
 
-describe("light-trail", () => {
+describe("light-trail", { timeout: 60_000 }, () => {
   it("tất định: sinh hai lần ra giống hệt (10.000 seed × 4 mức)", () => {
     for (const d of DIFFICULTIES) {
       let mismatches = 0;

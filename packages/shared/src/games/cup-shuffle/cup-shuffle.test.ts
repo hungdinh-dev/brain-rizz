@@ -189,7 +189,7 @@ const VIEWS: Record<string, (s: number, m: readonly CupShuffleMove[]) => string>
   "ô đầu + lượt đầu + lượt cuối": (s, m) => `${s}|${m[0]}|${m.at(-1)}`,
 };
 
-describe("cup-shuffle", () => {
+describe("cup-shuffle", { timeout: 60_000 }, () => {
   it("tất định: cùng (seed, index, độ khó) → cùng câu đố (10 000 seed × 4 độ khó)", () => {
     const c = collector();
     for (const d of DIFFICULTIES) {

@@ -24,9 +24,7 @@ import {
   ServerMessage,
   WRONG_ANSWER_LOCK_MS,
 } from "@brain-rizz/shared";
-import { boot, type ColyseusTestServer } from "@colyseus/testing";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import appConfig from "../src/app.config";
 import type { BrainTestRoom } from "../src/rooms/BrainTestRoom";
 import {
   MemoryResultStore,
@@ -36,17 +34,19 @@ import {
 } from "../src/store/ResultStore";
 import {
   advance,
+  bootOnFreePort,
   connectTo,
   freezeNow,
   ignoreServerMessages,
   nextMessage,
   SOLVE,
   settle,
+  type TestServer,
   until,
   wrongAnswer,
 } from "./helpers";
 
-let colyseus: ColyseusTestServer<typeof appConfig>;
+let colyseus: TestServer;
 
 const TOKEN = "jwt-hop-le-cua-an";
 const USER_ID = "00000000-0000-0000-0000-00000000000a";
@@ -139,7 +139,7 @@ async function drop(room: BrainTestRoom, client: TestClient) {
 
 describe("BrainTestRoom", () => {
   beforeAll(async () => {
-    colyseus = await boot(appConfig);
+    colyseus = await bootOnFreePort();
   });
   afterAll(async () => {
     setResultStore(new NoopResultStore());
@@ -167,6 +167,7 @@ describe("BrainTestRoom", () => {
       brainScore: true,
       skills: true,
       saveStatus: true,
+      chalkEarned: true,
     } satisfies Record<keyof BrainStateView, true>;
     const GAME_KEYS = {
       gameId: true,
@@ -194,6 +195,7 @@ describe("BrainTestRoom", () => {
       brainScore: 0,
       skills: {},
       saveStatus: "no-db",
+      chalkEarned: 0,
     });
   });
 

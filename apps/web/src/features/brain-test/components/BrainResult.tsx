@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { BrainRadar } from "@/components/common/BrainRadar";
+import { ChalkChip } from "@/components/common/ChalkChip";
 import { CATEGORY_BG } from "@/components/common/MatchChips";
 import { RankBadge } from "@/components/common/RankBadge";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,8 @@ export function BrainResult({ brain, onLeaderboard, onRetake, onMenu }: BrainRes
   const score = useCountUp(brain.brainScore, 800);
   const settled = brain.saveStatus !== "pending";
   const saved = brain.saveStatus === "saved";
+  // Server cũ chưa có trường này → coi như 0.
+  const chalk = typeof brain.chalkEarned === "number" ? brain.chalkEarned : 0;
 
   // Lịch sử (để so lần trước / kỷ lục) và hạng tuần: chỉ hỏi khi đã chốt việc lưu.
   const history = useData(() => fetchBrainHistory(50), [saved], settled && SUPABASE_CONFIGURED);
@@ -158,6 +161,20 @@ export function BrainResult({ brain, onLeaderboard, onRetake, onMenu }: BrainRes
                 {t("brainTest.outOf", { max: fmt(BRAIN_SCORE_MAX) })}
               </span>
             </span>
+            {/* Phấn của lượt này (CR-023): server cập nhật sau khi lưu xong; 0 → ẩn. */}
+            {chalk > 0 && (
+              <span className="flex flex-wrap items-center gap-2">
+                <ChalkChip tone="reward" size="sm" className="fx-tag-pop">
+                  {t("rewards.amount", { n: fmt(chalk) })}
+                </ChalkChip>
+                <span className="text-xs font-semibold text-muted-foreground">
+                  {t("rewards.wallet")}
+                </span>
+              </span>
+            )}
+            <p role="status" className="sr-only">
+              {chalk > 0 ? t("rewards.live", { n: fmt(chalk) }) : ""}
+            </p>
             {compare}
           </section>
           {saveBox}

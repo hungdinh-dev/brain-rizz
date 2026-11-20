@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Thiết kế — phần luật chơi và cảm giác chơi |
-| Phiên bản tài liệu | 1.6 · 2026-10-21 — mục Bot: tỉ lệ đúng của bot theo từng game, nới bot Dễ, mô phỏng mới theo [CR-016](../00-tracking/change-requests.md#cr-016) |
+| Phiên bản tài liệu | 1.8 · 2026-11-20 — mục Kinh tế: phấn, máy quay phụ kiện, bạn đồng hành khoá theo thành tích ([CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024)); 12 nhân vật |
 | Liên quan | [SRS](srs.md) (yêu cầu), [UI/UX](ui-ux.md) (màn hình), [Minigame](../04-minigames/README.md) (đặc tả từng game) |
 | Cập nhật khi | Đổi luật, điểm, độ khó, chế độ chơi — đổi luật nào cũng phải ghi [CR](../00-tracking/change-requests.md) |
 
@@ -37,15 +37,16 @@ Một trận mặc định 3 vòng; mỗi vòng khoảng 1,5 phút kể cả ch�
 - **Vòng quay may mắn:** mỗi lát là một game chưa chơi trong trận; server quyết định kết quả, mọi máy quay cùng lúc và dừng cùng chỗ.
 - **Chủ phòng chọn:** chủ phòng chọn bất kỳ game nào còn lại. Người chơi khác bình chọn để gợi ý ("Cả phòng đang muốn: Cân não · 3 phiếu"); phiếu không ràng buộc chủ phòng và không ảnh hưởng vòng quay.
 - **Không lặp:** game đã chơi bị loại khỏi các vòng sau; chơi hết mọi game thì làm mới danh sách.
+- **Game bị tắt** ([CR-019](../00-tracking/change-requests.md#cr-019)): game quản trị viên tắt không lên vòng quay, không chọn hay bầu được. Luôn còn ít nhất 2 game (tắt tới mức còn dưới 2 thì coi như bật cả danh mục).
 
 ## 3. Chế độ chơi
 
 | Chế độ | Mô tả | Số người | Giai đoạn |
 | --- | --- | --- | --- |
-| **Đấu nhóm** (chính) | Chủ phòng chọn 1–10 vòng (mặc định 3), mỗi vòng một minigame chọn bằng vòng quay hoặc chủ phòng chọn | 2–8, cùng lúc | GĐ 0–1 |
+| **Đấu nhóm** (chính) | Chủ phòng chọn 1–10 vòng (mặc định 3), mỗi vòng một minigame chọn bằng vòng quay hoặc chủ phòng chọn | 2–12, cùng lúc ([CR-018](../00-tracking/change-requests.md#cr-018)) | GĐ 0–1 |
 | **Luyện tập** | Chơi tự do từng minigame, chọn độ khó; client tự chấm nên không lên bảng xếp hạng | 1 | GĐ 1–2 ([CR-009](../00-tracking/change-requests.md#cr-009)) |
 | **Kiểm tra não** | 5 game, mỗi nhóm kỹ năng một game, độ khó cố định, server chấm → "Điểm Não" + biểu đồ 5 cạnh. Luật: [mục dưới](#kiểm-tra-não) | 1 | GĐ 1–2 (CR-009) |
-| **Chơi với máy** | Phòng Đấu nhóm có bot ngồi ghế trống, 4 mức Dễ · Vừa · Khó · Siêu. Luật: [mục dưới](#bot) | ≥ 1 người thật, tổng ≤ 8 tính cả bot | GĐ 1 ([CR-016](../00-tracking/change-requests.md#cr-016)) |
+| **Chơi với máy** | Phòng Đấu nhóm có bot ngồi ghế trống, 4 mức Dễ · Vừa · Khó · Siêu. Luật: [mục dưới](#bot) | ≥ 1 người thật, tổng ≤ 12 tính cả bot | GĐ 1 ([CR-016](../00-tracking/change-requests.md#cr-016)) |
 | **Đấu bóng ma** | Lưu lượt chơi; bạn bè đấu lại bất cứ lúc nào, không cần online cùng lúc | 1 vs bản ghi | GĐ 3 |
 | **Bảng xếp hạng** | Điểm Não toàn cầu và từng minigame, lấy từ các lượt Kiểm tra não | — | GĐ 1–2 (CR-009) |
 | Thử thách hôm nay, Tìm trận | Có trong bản thiết kế menu, chưa nằm trong phạm vi 1.0 | — | Chờ [CR-003](../00-tracking/change-requests.md#cr-003) |
@@ -284,7 +285,7 @@ Mỗi người **tự chọn độ khó cho từng game** ở màn hướng dẫ
 
 ## 7. Tính điểm
 
-Cài đặt ở `packages/shared/src/scoring.ts` (client và server dùng chung).
+Cài đặt ở `packages/shared/src/scoring.ts` (client và server dùng chung). Các con số dưới đây là **công thức chuẩn** (`DEFAULT_SCORING` trong `party-config.ts`): Luyện tập và Kiểm tra não luôn dùng; trận party dùng cấu hình của quản trị viên nếu có ([mục dưới](#cấu-hình-trận-party-của-quản-trị-viên)).
 
 **Điểm một câu đúng** = `(100 × hệ số độ khó của game + thưởng tốc độ) × hệ số combo`, làm tròn.
 
@@ -300,7 +301,37 @@ Ví dụ (hệ số mặc định, không miễn trừ thời gian — như Kẻ
 | Mầm, trả lời sau 4,75 giây | (80 + 25) × 1 | 105 |
 | Siêu khó, 1 giây, câu đúng thứ 3 liên tiếp | (150 + 50) × 1,1 | 220 |
 
-**Điểm trận:** hết mỗi vòng xếp hạng theo điểm vòng, quy ra 10, 8, 6, 5, 4, 3, 2, 1 điểm trận cho hạng 1 → 8. Tổng điểm trận quyết định chung cuộc. Cách này giữ trận hấp dẫn tới vòng cuối: một vòng thắng đậm không quyết định cả trận.
+**Điểm trận** (co giãn theo số người, [CR-018](../00-tracking/change-requests.md#cr-018)): hết mỗi vòng xếp hạng theo điểm vòng; hạng `r` (0 = nhất) trong phòng `N` ghế (tính cả bot và người đang rớt mạng được giữ chỗ) được `max(1, N − r) + thưởng top[r]` điểm trận, thưởng top mặc định 3 / 2 / 1 cho nhất / nhì / ba. Hoà điểm vòng thì cùng hạng, cùng điểm trận. Tổng điểm trận quyết định chung cuộc. Cách này giữ trận hấp dẫn tới vòng cuối: một vòng thắng đậm không quyết định cả trận; phòng đông thì khoảng cách giữa các hạng vẫn đều, ai cũng có ít nhất 1 điểm.
+
+| Số người | Điểm trận hạng 1 → N |
+| --- | --- |
+| 12 | 15, 13, 11, 9, 8, 7, 6, 5, 4, 3, 2, 1 |
+| 8 | 11, 9, 7, 5, 4, 3, 2, 1 |
+| 4 | 7, 5, 3, 1 |
+| 2 | 5, 3 |
+
+### Cấu hình trận party của quản trị viên
+
+[CR-019](../00-tracking/change-requests.md#cr-019), kế hoạch: [admin-console.md](admin-console.md). Quản trị viên chỉnh ở trang `/admin` (bảng `party_settings` trên Supabase); **chỉ áp dụng cho trận party**, Luyện tập và Kiểm tra não giữ công thức chuẩn để bảng xếp hạng không lệch.
+
+| Mục chỉnh được | Mặc định | Giới hạn |
+| --- | --- | --- |
+| Điểm gốc một câu | 100 | số nguyên 10 – 1 000 |
+| Thưởng tốc độ tối đa | 50 | số nguyên 0 – 500 |
+| Trọn thưởng khi trả lời trong | 1 500 ms | số nguyên 0 – 10 000 |
+| Hết thưởng sau | 8 000 ms | số nguyên, lớn hơn mốc trọn thưởng, tối đa 30 000 |
+| Combo bắt đầu từ câu đúng liên tiếp thứ | 3 | số nguyên 1 – 10 |
+| Mỗi câu combo cộng thêm | 0,1 | 0 – 1 |
+| Trần combo | × 1,5 | 1 – 5 |
+| Hệ số chung theo độ khó (Mầm, Thường, Khó, Siêu khó) | 0,8 / 1 / 1,25 / 1,5 | mỗi số (0, 5] |
+| Ghi đè hệ số của từng game | không có | mỗi số (0, 5] |
+| Thưởng top 3 điểm trận | 3 / 2 / 1 | số nguyên 0 – 50 |
+| Game bị tắt | không có | luôn còn ≥ 2 game bật |
+
+- **Hệ số của một game** lấy theo thứ tự: ghi đè của quản trị viên → hệ số game khai báo trong đặc tả ([CR-006](../00-tracking/change-requests.md#cr-006)) → hệ số chung của cấu hình. Miễn trừ thời gian, hạn trả lời và khoá 1,5 giây khi sai không chỉnh được.
+- **Khi nào áp dụng:** server nạp cấu hình lúc tạo phòng và mỗi lần bắt đầu trận (từ phòng chờ hoặc Chơi lại); cả trận dùng một bản chụp, đổi giữa trận thì trận sau mới áp dụng. Phòng hiện đúng hệ số và điểm thứ hạng của trận đang chơi.
+- **Bot** chấm theo cùng cấu hình với người, nhưng thời gian nghĩ của bot vẫn theo bảng Cân bằng của game, không đổi theo cấu hình.
+- **An toàn:** server không tin dữ liệu đọc từ DB, kiểm từng mục theo bảng trên; mục nào sai thì về mặc định của mục đó (mốc hết thưởng không lớn hơn mốc trọn thưởng thì cả hai về mặc định). Câu đố và seed không đổi theo cấu hình.
 
 ### Nguyên tắc cân bằng
 
@@ -313,16 +344,22 @@ Ví dụ (hệ số mặc định, không miễn trừ thời gian — như Kẻ
 
 - **Phong cách:** "bảng phấn lớp học" — nền bảng xanh trong khung gỗ, nội dung trên thẻ giấy dán viền mực, chữ phấn. Quyết định: [ADR 0009](../02-architecture/decisions/0009-chalkboard-style-and-characters.md). Hệ thống thiết kế: [UI/UX](ui-ux.md).
 - **Linh vật:** "Bộ não" giáo sư dẫn dắt ở menu và mẹo chơi.
-- **Bạn đồng hành:** 6 nhân vật chibi, người chơi chọn một; được phép trùng nhau, màu avatar phân biệt người chơi.
+- **Bạn đồng hành:** 12 nhân vật chibi, người chơi chọn một; được phép trùng nhau, màu avatar phân biệt người chơi. 6 nhân vật đầu luôn mở; 6 nhân vật sau **khoá** tới khi đạt thành tích ([CR-024](../00-tracking/change-requests.md#cr-024), điều kiện ở [mục Kinh tế](#kinh-tế-phấn-máy-quay-bạn-đồng-hành-khoá)). Bot chỉ dùng 6 nhân vật luôn mở.
 
-| ID | Tên | Loài |
-| --- | --- | --- |
-| `khoi` | Khói | Mèo tai cụp (mặc định) |
-| `bo` | Bơ | Cún tai xù |
-| `mochi` | Mochi | Thỏ trắng |
-| `bap` | Bắp | Gà con |
-| `cam` | Cam | Cáo lửa |
-| `tron` | Tròn | Gấu trúc |
+| ID | Tên | Loài | Mở |
+| --- | --- | --- | --- |
+| `khoi` | Khói | Mèo tai cụp (mặc định) | Luôn mở |
+| `bo` | Bơ | Cún tai xù | Luôn mở |
+| `mochi` | Mochi | Thỏ trắng | Luôn mở |
+| `bap` | Bắp | Gà con | Luôn mở |
+| `cam` | Cam | Cáo lửa | Luôn mở |
+| `tron` | Tròn | Gấu trúc | Luôn mở |
+| `pin` | Pin | Cánh cụt | 10 trận party |
+| `op` | Ộp | Ếch | Kỷ lục luyện tập Bóng bay số ≥ 2 200 (Thường trở lên) |
+| `thong` | Thông | Cú | Trung bình 3 kỷ lục cao nhất nhóm Phân tích ≥ 2 500 |
+| `gai` | Gai | Nhím | Về nhất 5 trận party |
+| `may` | Mây | Koala | Điểm Não ≥ 530 |
+| `lua` | Lửa | Rồng con | 120 trận party và trung bình mỗi nhóm ≥ 1 600 |
 
 Mỗi nhân vật có 7 biểu cảm dùng chung (`idle` bình thường, `happy` vui, `sad` buồn, `surprised` ngạc nhiên, `angry` tức, `thinking` suy nghĩ, `win` chiến thắng), hoạt ảnh CSS, tự tắt khi người dùng bật giảm chuyển động.
 
@@ -346,8 +383,37 @@ Mỗi nhân vật có 7 biểu cảm dùng chung (`idle` bình thường, `happy
 ## 10. Giữ chân người chơi (GĐ 3)
 
 - Lịch sử điểm theo từng minigame và biểu đồ 5 kỹ năng.
-- Mũ phần thưởng khi lập kỷ lục, đội trên nhân vật ở phòng chờ.
+- Phụ kiện đeo trên nhân vật (cả phòng thấy) và bạn đồng hành khoá theo thành tích: [mục dưới](#kinh-tế-phấn-máy-quay-bạn-đồng-hành-khoá) (CR-023, CR-024, làm sớm hơn GĐ 3).
 - Đấu bóng ma để thách bạn bè dù không online cùng lúc.
+
+### Kinh tế (phấn, máy quay, bạn đồng hành khoá)
+
+[CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024). Kế hoạch, hợp đồng và bảng mô phỏng đầy đủ: [gacha-pets-unlocks.md](gacha-pets-unlocks.md). Cài đặt: `packages/shared/src/cosmetics/` (`economy.ts`, `unlocks.ts`, `catalog.ts`); số dư, quay, kẹp trần chạy trong Postgres.
+
+**Nguyên tắc:** không tiền thật (phấn chỉ kiếm bằng chơi); tỉ lệ công khai; có bảo hiểm; trùng món đổi lại phấn; không đồng hồ đếm ngược, không sự kiện giới hạn, không phạt mất chuỗi; server quyết; trần phấn mỗi ngày theo nguồn.
+
+**Kiếm phấn** (trần tính theo ngày giờ VN):
+
+| Nguồn | Phấn | Trần mỗi ngày |
+| --- | --- | --- |
+| Trận party | 10 + 5 × số vòng + thưởng hạng (nhất 20, nhì 12, ba 8); trận chỉ 1 người thật (còn lại bot) × 0,5. Trận 3 vòng: 45 / 37 / 33 / 25 | 300 phấn |
+| Kiểm tra não | 30 + Điểm Não / 20 (30 – 80) | 3 lượt |
+| Luyện tập | 5 mỗi lượt | 10 lượt |
+| Quà mỗi ngày | 20 | 1 lần, không có chuỗi |
+
+**Máy quay phụ kiện:** 1 lần 100 phấn, 10 lần 900 phấn (chắc ≥ 1 món Hiếm). Tỉ lệ Thường 60 % · Hiếm 30 % · Sử thi 8 % · Huyền thoại 2 %; lần thứ 15 kể từ Sử thi trở lên gần nhất chắc Sử thi trở lên, lần thứ 60 kể từ Huyền thoại gần nhất chắc Huyền thoại. Trong một độ hiếm bốc đều 24 món (9 / 8 / 4 / 3), riêng Huyền thoại không trùng tới khi đủ cả 3 món; trùng đổi lại 10 / 30 / 80 / 200 phấn.
+
+**Nhịp tiến độ** (mô phỏng `economy-sim.test.ts`, người lớn điển hình = người chơi chuẩn của mô phỏng bot):
+
+| Kiểu chơi | Phấn / ngày | Lượt quay đầu | Đủ 24 món (trung vị) |
+| --- | --- | --- | --- |
+| Nhẹ: 2 trận | 90 | ngày 2 | ~4 tháng |
+| Vừa: 5 trận + 1 Kiểm tra não + 5 luyện tập | 237 | ngày 1 | ~50 ngày (p90 79) |
+| Nhiều: chạm mọi trần | 528 | ngày 1 | ~23 ngày |
+
+**Bạn đồng hành khoá** (bảng ở [mục 8](#8-nhân-vật--phong-cách-hình-ảnh)): ba thú "chăm chơi" (`pin` số trận, `gai` số trận về nhất — phòng bot Dễ cũng tính, `thong` luyện tập nhóm Phân tích — tính cả Mầm) mở trong vài ngày với mọi người kể cả trẻ em; `op` (kỷ lục một game ở Thường+) và `may` (Điểm Não) cần chơi tốt ở mức người lớn, người chơi vừa mở trong ~2 ngày và ~1 tuần; `lua` là thú khó nhất: 120 trận party (~3,5 tuần chơi vừa) và không bỏ nhóm nào (trung bình mỗi nhóm ≥ 1 600). Mỗi thú có thanh tiến độ và nút **Luyện ngay** / **Chơi party** dẫn tới đúng màn.
+
+**Thiết kế để không ai bị kẹt:** điều kiện số trận / số trận thắng / luyện tập Mầm cho ai chịu chơi cũng đạt; điều kiện kỹ năng đặt quanh p90 của người lớn điển hình (vài lượt thử là chạm), không đặt ở mức chỉ người giỏi đạt. Chỉnh số: sửa `economy.ts` / `UNLOCK_RULES`, chạy lại mô phỏng, cập nhật bảng ở kế hoạch, ở đây, và migration Supabase (test shared đọc file SQL).
 
 ## 11. Lịch sử thay đổi tài liệu
 
@@ -360,5 +426,7 @@ Mỗi nhân vật có 7 biểu cảm dùng chung (`idle` bình thường, `happy
 | 1.4 | 2026-10-20 | Danh mục §5 thêm 14 game của kế hoạch mở rộng (tổng 31); bảng điểm chuẩn Kiểm tra não thêm 14 dòng, phiên bản luật 4; hạn chế đã biết về game đo thời gian phía client và game có pha trình chiếu ngoài nhóm Ghi nhớ | [CR-013](../00-tracking/change-requests.md#cr-013), [CR-014](../00-tracking/change-requests.md#cr-014) |
 | 1.5 | 2026-10-21 | Chế độ Chơi với máy và mục Bot: bot mô phỏng kết quả (không giải câu đố), 4 mức Dễ · Vừa · Khó · Siêu, `expectedSolveMs` theo bảng Cân bằng, kết quả mô phỏng và hạn chế đã biết | [CR-016](../00-tracking/change-requests.md#cr-016) |
 | 1.6 | 2026-10-21 | Bot: tỉ lệ đúng tương đối theo `expectedAccuracy` của từng game (giữ tỉ số tỉ lệ sai so với người chuẩn), Dễ nới thành T × 1,2 / 78 %, Kẻ lạc đàn có thời gian ước lượng; hạn chế mới: hệ số điểm chung của Kẻ lạc đàn | [CR-016](../00-tracking/change-requests.md#cr-016) |
+| 1.7 | 2026-11-19 | Đấu nhóm 2–12 người; điểm trận theo hạng co giãn `max(1, N − hạng) + thưởng top`; cấu hình trận party của quản trị viên (công thức điểm, hệ số, thưởng top, game bật/tắt), game bị tắt không lên vòng quay | [CR-018](../00-tracking/change-requests.md#cr-018), [CR-019](../00-tracking/change-requests.md#cr-019) |
+| 1.8 | 2026-11-20 | Mục Kinh tế (§10): nguồn phấn + trần ngày, giá / tỉ lệ / bảo hiểm / phấn trùng của máy quay, nhịp tiến độ theo mô phỏng; 6 bạn đồng hành khoá theo thành tích (§8), bot chỉ dùng 6 nhân vật luôn mở | [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ChatSettingRow } from "@/features/chat";
 import { loadProfile, saveProfile } from "@/features/home";
 import { usePendingAction } from "@/hooks/use-pending-action";
+import { CLASSIC_SEATS, lobbySlotCount } from "@/lib/room-size";
 import { cn } from "@/lib/utils";
 import { leaveParty, SERVER_ERROR_TOAST_ID, send } from "@/net/connection";
 import { useAuth } from "@/stores/auth.store";
@@ -44,7 +45,10 @@ export function LobbyScreen() {
   // Bot luôn sẵn sàng và được tính vào "Người chơi" / "Sẵn sàng" (CR-016).
   const readyCount = players.filter((p) => p.ready).length;
   const botCount = players.filter((p) => p.isBot).length;
-  const emptyCount = Math.max(0, MAX_PLAYERS - players.length);
+  // Tới 7 người: 8 ô như cũ. Từ 8 người: đủ 12 ô, bố cục gọn (CR-018, ui-ux 6.8).
+  const slotCount = lobbySlotCount(players.length);
+  const compact = slotCount > CLASSIC_SEATS;
+  const emptyCount = Math.max(0, slotCount - players.length);
   const isHost = party.hostId === sessionId;
   const hostName = party.players[party.hostId]?.name ?? "";
   const inviteUrl = `${location.origin}/r/${party.code}`;
@@ -110,9 +114,10 @@ export function LobbyScreen() {
   }
 
   function pickCharacter(avatar: CharacterId) {
-    send(ClientMessage.SetProfile, { avatar });
     // Nhớ cho lần sau vào phòng (hồ sơ lưu ở máy) và đồng bộ lên tài khoản nếu có phiên.
     const next = { ...loadProfile(), avatar };
+    // Gửi kèm phụ kiện đang đeo (CR-023): server kiểm lại cả hai theo quyền sở hữu.
+    send(ClientMessage.SetProfile, { avatar, accessories: next.accessories });
     saveProfile(next);
     void useAuth.getState().syncProfile(next);
   }
@@ -132,7 +137,9 @@ export function LobbyScreen() {
   );
 
   return (
-    <main className="@container flex flex-1 flex-col gap-3 lg:gap-4">
+    // Phòng 12 ghế trên điện thoại: khe giữa các khối 8 px (như khe lưới ghế) để nút Sẵn sàng
+    // vẫn nằm trong màn đầu ở 390×844 (ui-ux 6.8).
+    <main className={cn("@container flex flex-1 flex-col lg:gap-4", compact ? "gap-2" : "gap-3")}>
       <header className="flex items-center gap-2.5 lg:gap-4">
         <Button
           variant="chalk"
@@ -151,14 +158,19 @@ export function LobbyScreen() {
         {inviteButton("lg:hidden")}
         <RoomCodePanel code={party.code} invite={inviteButton()} className="hidden lg:flex" />
       </header>
-      <RoomCodePanel code={party.code} className="lg:hidden" />
+      <RoomCodePanel code={party.code} className={cn("lg:hidden", compact && "h-15")} />
 
       {/*
         Điện thoại: một cột theo thứ tự khai báo. Máy tính: 3 cột, thẻ thiết lập chiếm cột phải.
         Màn hẹp (cột chat CR-011 chiếm 340 px) thì chọn nhân vật và nút Sẵn sàng xếp chồng
         thay vì nằm cạnh nhau, theo bề rộng thật của màn (container query).
       */}
-      <div className="flex flex-1 flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_21.25rem] lg:grid-rows-[auto_auto_1fr_auto] lg:gap-x-5 lg:gap-y-3.5 lg:[grid-template-areas:'meter_meter_setup'_'grid_grid_setup'_'chars_chars_setup'_'ready_ready_setup'] @min-[66rem]:lg:grid-rows-[auto_auto_1fr] @min-[66rem]:lg:[grid-template-areas:'meter_meter_setup'_'grid_grid_setup'_'chars_ready_setup']">
+      <div
+        className={cn(
+          "flex flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_auto_21.25rem] lg:grid-rows-[auto_auto_1fr_auto] lg:gap-x-5 lg:gap-y-3.5 lg:[grid-template-areas:'meter_meter_setup'_'grid_grid_setup'_'chars_chars_setup'_'ready_ready_setup'] @min-[66rem]:lg:grid-rows-[auto_auto_1fr] @min-[66rem]:lg:[grid-template-areas:'meter_meter_setup'_'grid_grid_setup'_'chars_ready_setup']",
+          compact ? "gap-2" : "gap-3",
+        )}
+      >
         <ReadyMeter
           players={players.length}
           ready={readyCount}
@@ -167,10 +179,19 @@ export function LobbyScreen() {
         />
 
         <div className="flex flex-col gap-2.5 lg:gap-3 lg:[grid-area:grid]">
-          {/* Điện thoại: ô đang mở bảng chọn mức cao hơn, ô bên cạnh giữ 60 px (items-start). */}
+          {/*
+            Điện thoại: ô đang mở bảng chọn mức cao hơn, ô bên cạnh giữ chiều cao (items-start).
+            Phòng 12 ô trên máy tính: tối đa 6 cột (ô ≥ 7rem); vùng lưới hẹp (có cột chat) tự
+            xuống 4 cột × 3 hàng. Ô mở bảng chọn mức thì hàng đó cao thêm.
+          */}
           <section
             aria-label={t("lobby.playersLabel")}
-            className="grid grid-cols-2 items-start gap-2.5 lg:grid-cols-4 lg:auto-rows-[9.25rem] lg:items-stretch lg:gap-x-4 lg:gap-y-4.5 lg:pt-1"
+            className={cn(
+              "grid grid-cols-2 items-start lg:items-stretch",
+              compact
+                ? "gap-2 pt-1 lg:auto-rows-[minmax(7rem,auto)] lg:grid-cols-[repeat(auto-fill,minmax(max(7rem,calc((100%_-_3.75rem)/6)),1fr))] lg:gap-x-3 lg:gap-y-4 lg:pt-1.5"
+                : "gap-2.5 lg:auto-rows-[9.25rem] lg:grid-cols-4 lg:gap-x-4 lg:gap-y-4.5 lg:pt-1",
+            )}
           >
             {players.map((p) =>
               p.isBot ? (
@@ -180,9 +201,10 @@ export function LobbyScreen() {
                   canEdit={isHost}
                   open={openSlot === p.id}
                   onOpenChange={slotOpenChange(p.id)}
+                  compact={compact}
                 />
               ) : (
-                <PlayerSlot key={p.id} player={p} isMe={p.id === sessionId} />
+                <PlayerSlot key={p.id} player={p} isMe={p.id === sessionId} compact={compact} />
               ),
             )}
             {Array.from({ length: emptyCount }, (_, i) =>
@@ -194,17 +216,26 @@ export function LobbyScreen() {
                   onOpenChange={slotOpenChange(`add:${i}`)}
                   onAdd={addBot}
                   pending={adding && openSlot === `add:${i}` ? adding.level : null}
+                  compact={compact}
                 />
               ) : (
-                // biome-ignore lint/suspicious/noArrayIndexKey: ô trống không có danh tính riêng
-                <EmptySlot key={`empty-${i}`} onInvite={() => void share()} />
+                <EmptySlot
+                  // biome-ignore lint/suspicious/noArrayIndexKey: ô trống không có danh tính riêng
+                  key={`empty-${i}`}
+                  onInvite={() => void share()}
+                  compact={compact}
+                />
               ),
             )}
           </section>
           {emptyCount === 0 && botCount > 0 && (
             <p
               role="note"
-              className="flex items-start gap-2 text-[13px] leading-snug font-semibold text-chalk-muted lg:text-sm"
+              className={cn(
+                "flex items-start gap-2 text-[13px] leading-snug font-semibold text-chalk-muted lg:text-sm",
+                // Điện thoại, người thường: nhường chỗ cho nút Sẵn sàng (chỉ chủ phòng thêm/bỏ bot).
+                compact && !isHost && "max-lg:hidden",
+              )}
             >
               <InfoIcon aria-hidden className="mt-px size-4 shrink-0 text-chalk" />
               {t("bots.full", { max: MAX_PLAYERS })}
@@ -231,6 +262,7 @@ export function LobbyScreen() {
               <HostStatusCard
                 hostName={hostName}
                 rounds={party.totalRounds}
+                compact={compact}
                 className="lg:hidden"
               />
               <MatchSetupCard
@@ -249,6 +281,7 @@ export function LobbyScreen() {
           <CharacterPicker
             value={me.avatar}
             onChange={pickCharacter}
+            compact={compact}
             className="lg:self-end lg:[grid-area:chars]"
           />
         )}
@@ -256,7 +289,13 @@ export function LobbyScreen() {
         {me && (
           <div className="mt-auto flex flex-col gap-2 lg:mt-0 lg:self-end lg:justify-self-end lg:[grid-area:ready]">
             {me.ready && !isHost && (
-              <p className="flex items-center justify-center gap-1.5 text-[13px] font-semibold text-chalk-muted lg:hidden">
+              // Phòng 12 ghế: dòng này xuống dưới nút để bấm Sẵn sàng không đẩy nút ra khỏi màn.
+              <p
+                className={cn(
+                  "flex items-center justify-center gap-1.5 text-[13px] font-semibold text-chalk-muted lg:hidden",
+                  compact && "order-last",
+                )}
+              >
                 <CheckIcon aria-hidden className="size-4 shrink-0" strokeWidth={3} />
                 {t("lobby.readyWaitHost")}
               </p>

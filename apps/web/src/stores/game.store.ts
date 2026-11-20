@@ -25,6 +25,11 @@ interface GameStore {
   /** serverTime ≈ Date.now() + clockOffset */
   clockOffset: number;
   connection: ConnectionStatus;
+  /**
+   * Phấn vừa nhận sau trận party (`ServerMessage.Reward`, CR-023), đã kẹp trần ngày; `null` = chưa
+   * nhận (khách không phiên, chưa xong trận). Bỏ khi phòng rời pha vinh danh (chơi lại / về phòng chờ).
+   */
+  reward: number | null;
 
   setSession(id: string): void;
   setParty(party: PartyStateView): void;
@@ -35,6 +40,7 @@ interface GameStore {
   pushError(): void;
   setClockOffset(offset: number): void;
   setConnection(status: ConnectionStatus): void;
+  setReward(chalk: number): void;
   reset(): void;
 }
 
@@ -46,6 +52,7 @@ const initial = {
   errorSeq: 0,
   clockOffset: 0,
   connection: "offline" as ConnectionStatus,
+  reward: null,
 };
 
 export const useGame = create<GameStore>((set) => ({
@@ -54,7 +61,12 @@ export const useGame = create<GameStore>((set) => ({
   // State đồng bộ thắng tin nhắn một lần: seed đổi (sang vòng mới, kể cả khi tin `roundStart`
   // bị mất lúc SDK tự nối lại) thì bỏ kết quả câu trả lời của vòng cũ.
   setParty: (party) =>
-    set((s) => (s.party?.seed === party.seed ? { party } : { party, lastAnswer: null })),
+    set((s) => ({
+      party,
+      ...(s.party?.seed === party.seed ? {} : { lastAnswer: null }),
+      // Phấn chỉ hiện ở vinh danh của trận vừa xong: rời vinh danh (chơi lại, về phòng chờ) thì bỏ.
+      ...(s.party?.phase === "podium" && party.phase !== "podium" ? { reward: null } : {}),
+    })),
   setBrain: (brain) =>
     set((s) => (s.brain?.seed === brain.seed ? { brain } : { brain, lastAnswer: null })),
   onRoundStart: () => set({ lastAnswer: null }),
@@ -62,6 +74,8 @@ export const useGame = create<GameStore>((set) => ({
   pushError: () => set((s) => ({ errorSeq: s.errorSeq + 1 })),
   setClockOffset: (clockOffset) => set({ clockOffset }),
   setConnection: (connection) => set({ connection }),
+  setReward: (chalk) =>
+    set({ reward: Number.isFinite(chalk) ? Math.max(0, Math.floor(chalk)) : 0 }),
   reset: () => set(initial),
 }));
 

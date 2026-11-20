@@ -111,6 +111,28 @@ export interface GameClient {
   locales: Record<Language, GameLocale>;
   /** Hình minh hoạ cách chơi (SVG nhỏ) cho màn Hướng dẫn và thẻ game; không có thì hiện biểu tượng nhóm kỹ năng. */
   Illustration?: ComponentType<{ className?: string }>;
+  /**
+   * (Tuỳ chọn) Biểu tượng riêng của game, gọn hơn hình minh hoạ: ô hình trên trống quay và thẻ
+   * game (CR-017). Có thì ưu tiên hơn `Illustration`. SVG vẽ trên nền bảng (`bg-board`), cao kín ô.
+   */
+  Icon?: ComponentType<{ className?: string }>;
+  /**
+   * (Tuỳ chọn) Hình minh hoạ động (CR-021, UI-UX 6.11): khung diễn SVG + CSS trong
+   * `games/_shared/demo/`, tải lười (`React.lazy`). Màn Hướng dẫn dùng `Demo` nếu có, không có thì
+   * `Illustration` tĩnh. KHÔNG dùng ở thẻ nhỏ (`GameThumb`, lưới chọn game, trống quay).
+   */
+  Demo?: ComponentType<DemoProps>;
+}
+
+/** Prop của `GameClient.Demo`. */
+export interface DemoProps {
+  className?: string;
+  /** `false` = dừng ở khung hiện tại (mặc định chạy). */
+  playing?: boolean;
+  /** Số vòng chạy rồi đứng ở khung tĩnh; bỏ trống = lặp mãi. */
+  loops?: number;
+  /** Gọi một lần khi chạy đủ `loops` vòng. */
+  onEnd?: () => void;
 }
 
 /** Kích thước thiết kế (dọc), Phaser scale FIT theo màn hình thật. */

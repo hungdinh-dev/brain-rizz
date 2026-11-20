@@ -223,14 +223,19 @@ export function MatchSetupCard({
   );
 }
 
-/** Thẻ gọn cho người chơi thường trên điện thoại: chủ phòng đang thiết lập mấy vòng. */
+/**
+ * Thẻ gọn cho người chơi thường trên điện thoại: chủ phòng đang thiết lập mấy vòng.
+ * `compact` (phòng 12 ghế, ui-ux 6.8): cao 52 px, chữ 13 px để nút Sẵn sàng vẫn trong màn đầu.
+ */
 export function HostStatusCard({
   hostName,
   rounds,
+  compact = false,
   className,
 }: {
   hostName: string;
   rounds: number;
+  compact?: boolean;
   className?: string;
 }) {
   const { t } = useTranslation();
@@ -238,12 +243,13 @@ export function HostStatusCard({
     <div
       role="status"
       className={cn(
-        "flex min-h-12.5 items-center gap-2.5 rounded-2xl border-[3px] border-sticker bg-card px-3 py-2 text-card-foreground shadow-sticker-sm",
+        "flex items-center gap-2.5 rounded-2xl border-[3px] border-sticker bg-card px-3 text-card-foreground shadow-sticker-sm",
+        compact ? "min-h-13 py-1.5" : "min-h-12.5 py-2",
         className,
       )}
     >
       <Settings2Icon aria-hidden className="size-5 shrink-0" strokeWidth={2.6} />
-      <span className="text-sm leading-snug">
+      <span className={compact ? "text-[13px] leading-tight" : "text-sm leading-snug"}>
         <Trans
           i18nKey="lobby.setup.hostSetting"
           count={rounds}

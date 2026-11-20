@@ -1,0 +1,128 @@
+/*
+ * Máy quay phụ kiện (CR-023, ui-ux 6.12): quầng độ hiếm, tia sáng, hoạt ảnh máy quay và viên nang.
+ * Tải cùng chunk của màn (features/gacha). Màu lấy từ token `--rarity-*` (globals.css).
+ *
+ * Lớp có hoạt ảnh mang tiền tố `fx-` nên khối giảm chuyển động cuối `styles/characters.css` tắt
+ * được (máy báo giảm chuyển động); component cũng không gắn các lớp này khi `useReducedMotion()`.
+ */
+
+/* Quầng tròn sau món vừa mở, đậm dần theo độ hiếm */
+.gacha-glow-common {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--rarity-common) 95%, transparent) 0 38%,
+    transparent 70%
+  );
+}
+.gacha-glow-rare {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--rarity-rare) 95%, transparent) 0 38%,
+    transparent 72%
+  );
+}
+.gacha-glow-epic {
+  background-image: radial-gradient(circle, var(--rarity-epic) 0 40%, transparent 74%);
+}
+.gacha-glow-legendary {
+  background-image: radial-gradient(circle, var(--rarity-legendary) 0 42%, transparent 76%);
+}
+
+/* Tia sáng: Sử thi 12 tia, Huyền thoại 15 tia vàng */
+.gacha-rays {
+  position: absolute;
+  inset: -18%;
+  border-radius: 9999px;
+  mask-image: radial-gradient(circle, #000 30%, transparent 70%);
+}
+.gacha-rays-epic {
+  background-image: repeating-conic-gradient(
+    color-mix(in srgb, var(--rarity-epic) 75%, transparent) 0 9deg,
+    transparent 9deg 30deg
+  );
+}
+.gacha-rays-legendary {
+  background-image: repeating-conic-gradient(
+    color-mix(in srgb, var(--rarity-legendary) 85%, transparent) 0 10deg,
+    transparent 10deg 24deg
+  );
+}
+
+/* Các phần của máy quay xoay / lắc quanh tâm của chính nó */
+.gacha-part {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Tay quay xoay 360° (900 ms), đống viên nang lắc 3 lần, viên nang rơi ra cửa */
+.fx-gacha-crank {
+  animation: fx-gacha-crank 900ms cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.fx-gacha-shake {
+  animation: fx-gacha-shake 300ms ease-in-out 3;
+}
+.fx-gacha-drop {
+  animation: fx-gacha-drop 500ms 450ms var(--ease-pop) both;
+}
+/* Viên nang đang tới lượt lắc ±6° */
+.fx-gacha-wobble {
+  animation: fx-gacha-wobble 500ms ease-in-out infinite;
+}
+/* Món bật ra: 0,55 → 1,08 → 1 (320 ms) */
+.fx-gacha-pop {
+  animation: fx-gacha-pop 320ms var(--ease-pop) both;
+}
+.fx-gacha-rays {
+  animation: fx-gacha-spin 9s linear infinite;
+}
+
+@keyframes fx-gacha-crank {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes fx-gacha-shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-3px, 1px) rotate(-1deg);
+  }
+  75% {
+    transform: translate(3px, -1px) rotate(1deg);
+  }
+}
+@keyframes fx-gacha-drop {
+  from {
+    transform: translateY(-16px);
+    opacity: 0;
+  }
+}
+@keyframes fx-gacha-wobble {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(6deg);
+  }
+}
+@keyframes fx-gacha-pop {
+  0% {
+    transform: scale(0.55);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes fx-gacha-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
