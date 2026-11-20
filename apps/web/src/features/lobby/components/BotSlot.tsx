@@ -26,7 +26,7 @@ const CARD_MOBILE =
   "relative flex h-15 min-w-0 items-center gap-2 rounded-2xl border-[3px] border-sticker bg-card px-2 text-card-foreground shadow-sticker-sm";
 const CARD_DESKTOP =
   "relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-[20px] border-4 border-sticker bg-card px-2 pt-2 pb-1.5 text-card-foreground shadow-sticker";
-/** Phòng 12 ghế (ui-ux 6.8): điện thoại ô 52 px, máy tính thẻ 112 px trong lưới 6 cột. */
+/** Phòng 12 ghế (ui-ux 6.8): điện thoại ô 52 px, máy tính thẻ cao 136 px trong lưới 4 cột. */
 const CARD_MOBILE_COMPACT =
   "relative flex h-13 min-w-0 items-center gap-2 rounded-[15px] border-[3px] border-sticker bg-card pr-2 pl-1.75 text-card-foreground shadow-sticker-sm";
 const CARD_DESKTOP_COMPACT =
