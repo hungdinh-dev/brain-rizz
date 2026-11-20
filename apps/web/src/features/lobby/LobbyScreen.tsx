@@ -29,7 +29,7 @@ import { RoomCodePanel } from "./components/RoomCodePanel";
 const ADD_BOT_TIMEOUT_MS = 5_000;
 
 /**
- * Phòng chờ 2D (khu 5): mã phòng, 8 ô người chơi, đổi nhân vật, sẵn sàng; chủ phòng thiết lập trận.
+ * Phòng chờ 2D (khu 5): mã phòng, 12 ô người chơi, đổi nhân vật, sẵn sàng; chủ phòng thiết lập trận.
  * Điện thoại một cột; máy tính chia lưới: người chơi bên trái, thẻ thiết lập bên phải.
  * Bot (CR-016): chủ phòng thêm bot ở ô trống, đổi mức / bỏ bot ngay trong ô bot.
  */
@@ -45,7 +45,7 @@ export function LobbyScreen() {
   // Bot luôn sẵn sàng và được tính vào "Người chơi" / "Sẵn sàng" (CR-016).
   const readyCount = players.filter((p) => p.ready).length;
   const botCount = players.filter((p) => p.isBot).length;
-  // Tới 7 người: 8 ô như cũ. Từ 8 người: đủ 12 ô, bố cục gọn (CR-018, ui-ux 6.8).
+  // Luôn đủ 12 ô (khớp "Người chơi n/12"), bố cục gọn (CR-018, ui-ux 6.8).
   const slotCount = lobbySlotCount(players.length);
   const compact = slotCount > CLASSIC_SEATS;
   const emptyCount = Math.max(0, slotCount - players.length);

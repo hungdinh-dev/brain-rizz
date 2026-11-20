@@ -199,7 +199,7 @@ flowchart TD
 
 - **Tiền điều kiện:** pha `lobby`.
 - **Luồng chính:**
-  1. Phòng chờ hiện mã phòng (ẩn/hiện được, nút sao chép), nút Mời bạn, bộ đếm "Người chơi x/8" và "Sẵn sàng y/x", 8 ô người chơi: nhân vật, tên, vương miện chủ phòng, trạng thái sẵn sàng, đang kết nối; ô trống ghi "Chỗ trống · Mời bạn".
+  1. Phòng chờ hiện mã phòng (ẩn/hiện được, nút sao chép), nút Mời bạn, bộ đếm "Người chơi x/12" và "Sẵn sàng y/x", 12 ô người chơi (CR-018): nhân vật, tên, vương miện chủ phòng, trạng thái sẵn sàng, đang kết nối; ô trống ghi "Chỗ trống · Mời bạn".
   2. Người chơi đổi nhân vật ngay trong phòng nếu muốn (không làm mất trạng thái sẵn sàng).
   3. Người chơi bấm **Sẵn sàng** (bấm lại để huỷ). Mọi máy thấy thay đổi ngay.
 - **Ràng buộc:** không có cảnh 3D ([ADR 0010](../02-architecture/decisions/0010-drop-3d-2d-lobby-and-podium.md)).
@@ -518,7 +518,7 @@ Cột "UC" cho biết yêu cầu thuộc use case nào. Hằng số nằm ở `p
 | FR-PH-09 | Hiện mã QR link mời trên màn hình rộng | UC-04 | S | 1 |
 | FR-PH-10 | Rời phòng chủ động từ sảnh hoặc màn kết quả | UC-12 | M | 0 |
 | FR-PH-11 | Số người tối thiểu để bắt đầu (và chơi lại): 2 | UC-06, UC-09 | M | 1 |
-| FR-PH-12 | Phòng chờ 2D (không 3D): 8 ô người chơi có nhân vật, tên, vương miện chủ phòng, trạng thái sẵn sàng/kết nối; ô trống mời bạn; bộ đếm "Người chơi x/8", "Sẵn sàng y/x" | UC-05 | M | 1 |
+| FR-PH-12 | Phòng chờ 2D (không 3D): 12 ô người chơi (CR-018) có nhân vật, tên, vương miện chủ phòng, trạng thái sẵn sàng/kết nối; ô trống mời bạn; bộ đếm "Người chơi x/12", "Sẵn sàng y/x" | UC-05 | M | 1 |
 | FR-PH-13 | Mã phòng ẩn/hiện được và có nút sao chép; đổi nhân vật ngay trong phòng chờ, không mất trạng thái sẵn sàng | UC-05 | M | 1 |
 | FR-PH-14 | Chat trong phòng: gửi chữ tự do (sau khi làm sạch tối đa `CHAT_MAX_LENGTH` = 120 ký tự, server tự cắt) hoặc một biểu cảm/câu chọn sẵn (`CHAT_QUICK_IDS`: laugh, fire, clap, shock, gg, hurry); phát cho cả phòng bằng tin nhắn một lần, không nằm trong state đồng bộ; tên, màu, nhân vật người gửi do server gắn | UC-22 | S | 1 |
 | FR-PH-15 | Chỉ chat được ở các pha `CHAT_PHASES` (`lobby`, `game-select`, `game-intro`, `round-results`, `podium`); lúc `countdown`/`playing` khung chat ẩn, server từ chối (`bad-phase`); tin đến khi khung ẩn được đếm thành số chưa đọc | UC-22 | S | 1 |

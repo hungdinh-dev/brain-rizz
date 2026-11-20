@@ -12,7 +12,7 @@ interface ReadyMeterProps {
   className?: string;
 }
 
-/** Bộ đếm "Người chơi x/8", "Sẵn sàng y/x" và thanh tiến độ sẵn sàng, viết thẳng trên bảng. */
+/** Bộ đếm "Người chơi x/12", "Sẵn sàng y/x" và thanh tiến độ sẵn sàng, viết thẳng trên bảng. */
 export function ReadyMeter({ players, ready, bots = 0, className }: ReadyMeterProps) {
   const { t } = useTranslation();
   const pct = players > 0 ? (ready / players) * 100 : 0;

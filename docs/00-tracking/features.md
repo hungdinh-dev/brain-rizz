@@ -2,7 +2,7 @@
 
 Bảng theo dõi **cái gì đã xong, cái gì chưa** ở mức người dùng nhìn thấy. Mỗi dòng trỏ về use case (UC) hoặc yêu cầu (FR) trong [SRS](../01-product/srs.md); muốn biết chi tiết hành vi thì mở SRS, muốn biết tiến độ thì xem ở đây.
 
-Cập nhật lần cuối: **2026-11-19** · Phiên bản code: 0.1.0 (chưa gắn tag)
+Cập nhật lần cuối: **2026-11-20** · Phiên bản code: 0.1.0 (chưa gắn tag)
 
 ## Tổng quan
 
@@ -37,7 +37,7 @@ Cập nhật lần cuối: **2026-11-19** · Phiên bản code: 0.1.0 (chưa g�
 | UC-10 | Nối lại khi rớt mạng (giữ chỗ 45 giây, tải lại trang vẫn vào lại) | 0 | ✅ | 0.1.0 | `PartyRoom.test.ts` "tải lại trang ở game-select…, game-intro, round-results: vào lại đúng chỗ"; rớt mạng giữa chừng mới kiểm tay |
 | UC-12 | Rời phòng, chuyển quyền chủ phòng | 0 | ✅ | 0.1.0 | Kiểm tay |
 | FR-PH-11 | Số người tối thiểu để bắt đầu và chơi lại = 2 | 1 | ✅ | 0.1.0 | `PartyRoom.test.ts` "không bắt đầu trận khi chưa đủ người…", "chơi lại cần ≥ 2 người…" |
-| FR-PH-12 | Phòng chờ 2D: 12 ô người chơi (bố cục gọn từ 8 người, [CR-018](change-requests.md#cr-018)), đếm sẵn sàng x/y, gỡ sân khấu 3D | 1 | ✅ | 0.1.0 | Kiểm tay; đã gỡ three.js (ADR 0010) |
+| FR-PH-12 | Phòng chờ 2D: 12 ô người chơi, luôn hiện đủ 12 ô bố cục gọn ([CR-018](change-requests.md#cr-018), ui-ux 1.11), đếm sẵn sàng x/y, gỡ sân khấu 3D | 1 | ✅ | 0.1.0 | Kiểm tay; đã gỡ three.js (ADR 0010) |
 | FR-PH-13 | Ẩn/hiện + sao chép mã phòng; đổi nhân vật trong phòng chờ | 1 | ✅ | 0.1.0 | Kiểm tay |
 | UC-22 | Chat trong phòng: chữ 120 ký tự + 6 biểu cảm/câu chọn sẵn, bong bóng trên avatar, lọc từ tục, chủ phòng tắt chat, tắt tiếng trên máy mình, 30 tin gần nhất khi vào/nối lại; ẩn lúc đếm ngược/đang chơi (FR-PH-14 → 19, NFR-SEC-04) | 1 | ✅ | chưa phát hành | [CR-011](change-requests.md#cr-011) · `packages/shared/src/chat/chat.test.ts`, `PartyChat.test.ts`, `stores/chat.store.test.ts`; kiểm Chrome headless 390/1280 px với bot Colyseus (gửi, lọc, giới hạn tần suất, tắt tiếng, tắt chat, ẩn ở countdown/playing) · **chưa thử 2 điện thoại thật, chưa thử bàn phím ảo iOS** |
 | UC-23 | Chơi với bot: chủ phòng thêm bot 4 mức (Dễ, Vừa, Khó, Siêu) vào ô trống, nút "Chơi với máy" ở menu (1–11 bot sau CR-018, một mức chung), bot nhường ghế cho người thật, biểu cảm nhanh, lịch sử gắn nhãn "Đấu với máy" (FR-PH-20 → 26) | 1 | ✅ | chưa phát hành | [CR-016](change-requests.md#cr-016) · [Kế hoạch chơi với bot](../01-product/bot-players.md) · [ADR 0014](../02-architecture/decisions/0014-server-side-bots.md) · `packages/shared/src/bots/bots.test.ts`, `bots/balance-sim.test.ts` (mô phỏng 1 000 vòng × 30 game × 4 mức), `answer-judge.test.ts`, `protocol.test.ts`, `apps/server/test/PartyBots.test.ts`, web: `components/characters/bot-name.test.ts`, `features/home/bot-setup.test.ts`, `features/lobby/bot-slot.test.tsx`, `net/create-party.test.ts`, `net/data-api.test.ts`, `net/bot-yielded.test.ts`; kiểm Chrome 390/1280 px: tạo phòng 7 bot, đổi mức / bỏ / thêm bot, chơi 3 vòng tới vinh danh, người thật vào phòng đầy thì bot nhường ghế và người cũ thấy toast, người tạo giữ màu + nhân vật · migration `20261021000000_match_bot_count.sql` đã chạy trên Supabase thật 2026-11-19 (trước đó thiếu cột `bot_count`: server mới không ghi được `match_results`) · nhãn "Đấu với máy" chưa xem trên trình duyệt (cần Supabase có cột mới) |
