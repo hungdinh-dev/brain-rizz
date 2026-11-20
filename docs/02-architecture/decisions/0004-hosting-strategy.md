@@ -1,6 +1,6 @@
 # ADR 0004: Hosting — Cloudflare Pages + Fly.io tự tắt, Render Free dự phòng
 
-- Trạng thái: Đã chấp nhận
+- Trạng thái: Đã chấp nhận — phần game server chính thay bởi [ADR 0017](0017-first-deploy-render-free.md) (deploy đầu tiên dùng Render Free)
 - Ngày: 2026-10-09
 
 ## Bối cảnh

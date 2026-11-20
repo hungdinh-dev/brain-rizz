@@ -28,7 +28,7 @@ flowchart LR
   web --> shared
   server --> shared
   CF["Cloudflare Pages"] -.->|host| web
-  FLY["Fly.io Singapore<br/>(Docker)"] -.->|host| server
+  RENDER["Render Free Singapore<br/>(Docker, ADR 0017)"] -.->|host| server
 ```
 
 ## 2. Client — `apps/web`
@@ -85,12 +85,12 @@ Chỉ phụ thuộc `zod`. Chứa: PRNG có seed (`rng.ts`, mulberry32), giao th
 | --- | --- | --- | --- | --- |
 | GitHub | Mã nguồn, CI | 0 | Chủ dự án | GĐ 0 |
 | Cloudflare Pages | Host web tĩnh + CDN | 0 | Chủ dự án | GĐ 1 |
-| Fly.io (region `sin`) | Game server Docker, tự tắt khi không ai chơi | < 1 USD/tháng | Chủ dự án (cần thẻ) | GĐ 1 |
-| Render Free | Dự phòng game server 0 đồng | 0 | — | Khi cần |
+| Render Free (region Singapore) | Game server Docker, cấu hình `render.yaml` ([ADR 0017](decisions/0017-first-deploy-render-free.md)) | 0 | Chủ dự án (đăng nhập GitHub) | GĐ 1 |
+| Fly.io (region `sin`) | Game server khi cần khởi động nhanh hơn, tự tắt khi không ai chơi | < 1 USD/tháng | Chủ dự án (cần thẻ) | Khi cần |
 | Sentry | Bắt lỗi JavaScript | 0 (gói Free) | — | GĐ 2 |
 | Supabase (region Singapore) | Đăng nhập khách + Google, lịch sử điểm, bảng xếp hạng (Postgres + RLS) | 0 (gói Free) | Chủ dự án ([cài đặt](../03-guides/supabase-setup.md)) | GĐ 1–2 (CR-009) |
 
-Chi tiết và so sánh: [Triển khai](../03-guides/deployment.md), [ADR 0004](decisions/0004-hosting-strategy.md).
+Chi tiết và so sánh: [Triển khai](../03-guides/deployment.md), [ADR 0004](decisions/0004-hosting-strategy.md), [ADR 0017](decisions/0017-first-deploy-render-free.md).
 
 ### Biến môi trường
 
@@ -101,8 +101,8 @@ Chi tiết và so sánh: [Triển khai](../03-guides/deployment.md), [ADR 0004](
 | `NODE_ENV` | `apps/server/.env` | `production` tắt `/monitor` và `/playground` |
 | `VITE_SUPABASE_URL` | `apps/web/.env` | URL dự án Supabase (`https://<ref>.supabase.co`); trống → ẩn đăng nhập, lịch sử, bảng xếp hạng |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | `apps/web/.env` | Khoá publishable (`sb_publishable_…` hoặc anon key kiểu cũ), công khai được |
-| `SUPABASE_URL` | `apps/server/.env` (production: Fly secrets) | URL dự án Supabase; trống → server không xác thực token, không lưu kết quả |
-| `SUPABASE_SECRET_KEY` | `apps/server/.env` (production: Fly secrets) | Khoá secret (`sb_secret_…` hoặc service_role kiểu cũ), bỏ qua RLS; **chỉ** nằm trên game server (NFR-SEC-03) |
+| `SUPABASE_URL` | `apps/server/.env` (production: Render Environment) | URL dự án Supabase; trống → server không xác thực token, không lưu kết quả |
+| `SUPABASE_SECRET_KEY` | `apps/server/.env` (production: Render Environment) | Khoá secret (`sb_secret_…` hoặc service_role kiểu cũ), bỏ qua RLS; **chỉ** nằm trên game server (NFR-SEC-03) |
 
 Cách tạo project và lấy khoá: [Cài đặt Supabase](../03-guides/supabase-setup.md). Bối cảnh: [ADR 0011](decisions/0011-supabase-accounts-and-solo-modes.md).
 

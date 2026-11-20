@@ -461,7 +461,8 @@ brain-rizz/
    ├─ turbo.json               Thứ tự chạy build/test giữa các package
    ├─ tsconfig.base.json       Cấu hình TypeScript chung (mỗi app có tsconfig.json riêng kế thừa)
    ├─ biome.json               Quy tắc lint/format
-   ├─ fly.toml                 Deploy server lên Fly.io
+   ├─ render.yaml              Blueprint deploy game server lên Render Free (ADR 0017)
+   ├─ fly.toml                 Deploy server lên Fly.io (dự phòng)
    ├─ .github/workflows/ci.yml Kiểm tra tự động khi push lên GitHub
    ├─ .vscode/                 Cài đặt và extension gợi ý cho VS Code
    ├─ .claude/agents/          5 phòng ban AI agent: game-designer, ui-designer, frontend-dev, backend-dev, qa-tester
@@ -510,7 +511,7 @@ brain-rizz/
 | Thay tiếng bấm nút, đếm ngược, đúng/sai | Chép `<loại>.mp3` vào `apps/web/src/assets/sfx/` (xem README.md trong đó), ghi nguồn vào `assets/LICENSES.md`; tiếng tổng hợp: `apps/web/src/features/sfx/recipes.ts`; đổi tiếng một nút: thuộc tính `data-sfx` |
 | Thêm/bớt bài nhạc nền | Chép file vào `apps/web/src/assets/music/` (xem README.md trong đó), ghi nguồn vào `assets/LICENSES.md`; cách phát: `apps/web/src/features/music/` |
 | Thêm model/ảnh/âm thanh | File gốc vào `assets/source/`, bản tối ưu vào `apps/web/public/assets/`, ghi giấy phép vào `assets/LICENSES.md` |
-| Đổi địa chỉ server khi deploy | `apps/web/.env` (`VITE_SERVER_URL`), `fly.toml` |
+| Đổi địa chỉ server khi deploy | Biến `VITE_SERVER_URL` trên Cloudflare Pages (dev: `apps/web/.env`); cấu hình server: `render.yaml` (Fly: `fly.toml`) |
 | Thêm thư viện | `pnpm --filter @brain-rizz/web add <tên>` (hoặc `@brain-rizz/server`, `@brain-rizz/shared`) |
 | Ghi lại một quyết định kỹ thuật | Copy `docs/02-architecture/decisions/_template.md` thành ADR mới, thêm vào `docs/02-architecture/decisions/README.md` |
 | Thêm tài liệu | Xem bảng "Thêm tài liệu mới vào đâu" trong [docs/README.md](../README.md) |
