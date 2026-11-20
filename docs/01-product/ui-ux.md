@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Thiết kế — phần giao diện và trải nghiệm |
-| Phiên bản tài liệu | 1.10 · 2026-11-20 — máy quay phụ kiện, tủ đồ, thú khoá, 24 phụ kiện theo [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024) |
+| Phiên bản tài liệu | 1.11 · 2026-11-20 — phòng chờ luôn hiện đủ 12 ô (mục 6.8); 1.10: máy quay phụ kiện, tủ đồ, thú khoá, 24 phụ kiện theo [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024) |
 | Bản mẫu (canvas) | **[Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ)** (7 trang: Màn chờ & luồng trận · Minigame · Một mình & tài khoản · Quản trị · Yêu thích & hướng dẫn động · Nhân vật · Phấn & phụ kiện) |
 | Liên quan | [Thiết kế game](game-design.md), [ADR 0006 — shadcn & token](../02-architecture/decisions/0006-ui-shadcn-and-theme-tokens.md), [ADR 0009 — bảng phấn & nhân vật](../02-architecture/decisions/0009-chalkboard-style-and-characters.md) |
 | Cập nhật khi | Thêm màn hình, đổi luồng, thêm artboard vào canvas, đổi token màu/font |
@@ -620,7 +620,7 @@ Bản mẫu: [canvas khu 24](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ) 
 
 ### 6.8 Phòng 12 người (CR-018)
 
-Bản mẫu: [canvas khu 25](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ). Nguyên tắc: **≤ 8 ghế giữ đúng bố cục cũ**; bố cục gọn bật theo số ghế đang có (`players.length`, tính cả bot), không theo `MAX_PLAYERS`.
+Bản mẫu: [canvas khu 25](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ). Nguyên tắc: **≤ 8 ghế giữ đúng bố cục cũ**; bố cục gọn bật theo số ghế đang có (`players.length`, tính cả bot), không theo `MAX_PLAYERS`. **Riêng phòng chờ** (1.11): luôn hiện đủ 12 ô bằng bố cục gọn cột "9–12 ghế", kể cả khi mới có 1 người — 8 ô cũ cạnh dòng "Người chơi 1/12" làm người chơi tưởng phòng chỉ có 8 chỗ.
 
 **Màu avatar (đã duyệt)** — thêm vào cuối `AVATAR_COLORS` (vị trí 8–11), 8 màu cũ giữ thứ tự:
 
@@ -635,8 +635,8 @@ Mọi cặp trong 12 màu có ΔE2000 ≥ 14,7 (bằng cặp gần nhất của 
 
 | Màn | ≤ 8 ghế | 9–12 ghế |
 | --- | --- | --- |
-| Phòng chờ · máy tính | Lưới 4 × 2, ô 194×148 | Lưới 6 cột × 2 hàng, ô cao 112 px (≈ 127 px rộng ở 1280), khe 16 × 12: avatar 52 (huy hiệu máy `md`→`sm`), tên 17 px, nhãn trạng thái / chip mức cao 22 px · 11,5 px, vương miện 34 px lệch −13/−11; nút × bỏ bot 44 px (vòng 28) lệch −12 ra góc trên phải; chọn mức trong ô: lưới 2×2 chip 52×44. Có cột chat (vùng lưới hẹp): `grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr))` → 4 cột × 3 hàng, nội dung bảng cuộn dọc |
-| Phòng chờ · điện thoại | 2 cột, ô 60 px | 2 cột × 6 hàng, ô 52 px, khe 8: avatar 36 (huy hiệu `xs`), tên 16 px, nhãn 20 px · 10,5 px, vương miện 22 px. Thẻ chủ phòng gọn 52 px, chọn nhân vật 6 × 44 px, nút Sẵn sàng 58 px vẫn trong màn đầu ở 390×844 |
+| Phòng chờ · máy tính | Không dùng từ 1.11 (trước: lưới 4 × 2, ô 194×148) — luôn theo cột 9–12 ghế | Lưới 6 cột × 2 hàng, ô cao 112 px (≈ 127 px rộng ở 1280), khe 16 × 12: avatar 52 (huy hiệu máy `md`→`sm`), tên 17 px, nhãn trạng thái / chip mức cao 22 px · 11,5 px, vương miện 34 px lệch −13/−11; nút × bỏ bot 44 px (vòng 28) lệch −12 ra góc trên phải; chọn mức trong ô: lưới 2×2 chip 52×44. Có cột chat (vùng lưới hẹp): `grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr))` → 4 cột × 3 hàng, nội dung bảng cuộn dọc |
+| Phòng chờ · điện thoại | Không dùng từ 1.11 (trước: 2 cột, ô 60 px) — luôn theo cột 9–12 ghế | 2 cột × 6 hàng, ô 52 px, khe 8: avatar 36 (huy hiệu `xs`), tên 16 px, nhãn 20 px · 10,5 px, vương miện 22 px. Thẻ chủ phòng gọn 52 px, chọn nhân vật 6 × 44 px, nút Sẵn sàng 58 px vẫn trong màn đầu ở 390×844 |
 | Hộp thoại Chơi với máy | 1–7 bot, dải 8 ghế 32 px | 1–11 bot (`MAX_PLAYERS − 1`), dải 12 ghế: vòng 26 px cách 5 (máy tính, 367 px), điện thoại 22 px cách 4 (308 px). Câu chữ dùng `{{max}}` sẵn có |
 | Bảng điểm khi chơi · máy tính | Hàng 62 px | Hàng 40 px, khe 4: hạng 24 · avatar 30 (huy hiệu `xs`) · tên `font-display` 16 px tối đa 96 px · chấm độ khó 11 px (viền mực, `title` là tên mức) · "câu n" 11 px · lửa combo 13 px · điểm 20 px. 12 hàng vừa cột 392 px, không cuộn |
 | Dải điểm khi chơi · điện thoại | Dải thẻ ngang (≤ 5 đối thủ) | Từ 6 đối thủ: lưới 6 cột × 2 hàng, ô cao 46 px gồm **cả mình** (ô của mình nền `bg-primary`): avatar 26 + hạng 17 px góc trên trái + điểm 12 px; lửa combo 12 px góc trên phải. Tên chỉ có trong `aria-label` và `title` ("Minh, hạng 1, 1.320 điểm, câu 9"). Thêm 34 px so với dải cũ, khung minigame co lại (scale FIT) |
@@ -648,7 +648,7 @@ Mọi cặp trong 12 màu có ΔE2000 ≥ 14,7 (bằng cặp gần nhất của 
 | `AvatarStrip` (chọn game, hướng dẫn) | Một hàng avatar 44 có tên | Máy tính: lưới 6 cột, avatar 40, tên 12 px. Điện thoại: avatar chồng nhau 30 px, lệch −8, viền 2 px màu bảng, không tên |
 
 - **Nhịp vinh danh** (mục 6.2) không đổi công thức; 12 người: hàng hạng 4+ cuối lúc 4.200 ms, hạng 1 lúc 9.400 ms. Ở lưới 2 cột, thứ tự lật vẫn từ hạng thấp nhất lên (cột phải 12 → 9, rồi cột trái 8 → 4).
-- **Trạng thái:** đang tải phòng chờ hiện 12 ô khung nhạt khi phòng có 12 ghế; mất kết nối dùng banner chung; người mất kết nối mờ 50–60% như cũ.
+- **Trạng thái:** đang tải phòng chờ hiện 12 ô khung nhạt (chưa làm: hiện chưa có khung tải phòng chờ); mất kết nối dùng banner chung; người mất kết nối mờ 50–60% như cũ.
 
 ### 6.9 Trang quản trị (S18, CR-019)
 
@@ -1028,5 +1028,6 @@ Bản mẫu: [canvas trang "Phấn & phụ kiện"](https://claude.ai/artifact/G
 | 1.8 | 2026-11-19 | Trang canvas "Yêu thích & hướng dẫn động": khu 27 (⭐ trên thẻ game, mục + chip Yêu thích, trống, đặc tả nút, mục 6.10), khu 28 (khung minh hoạ 16:9 to hơn ở 3 màn Hướng dẫn, Phóng to, trạng thái), khu 29 (khung diễn, `HowToDemo` chạy được, kịch bản 5 game MVP, mục 6.11); S11–S13; token `--ease-glide`, `--ease-settle`, `--ease-pop` | [CR-020](../00-tracking/change-requests.md#cr-020), [CR-021](../00-tracking/change-requests.md#cr-021) |
 | 1.9 | 2026-11-20 | Trang canvas "Nhân vật": bảng 12 bạn đồng hành × 7 biểu cảm + điểm neo, bảng cỡ nhỏ 22–46 px sáng/tối; 6 thú mới (Pin, Ộp, Thông, Gai, Mây, Lửa) trong `specs.tsx`; `anchors` head/face/neck cho cả 12 loài; hoạt ảnh `fx-flap-l/-r`, `fx-flicker` | [CR-024](../00-tracking/change-requests.md#cr-024) |
 | 1.10 | 2026-11-20 | Trang canvas "Phấn & phụ kiện" khu 30–33: Máy quay phụ kiện (S19), Tủ đồ + thú khoá + hộp chúc mừng (S20), menu (thẻ, chip số dư, quà mỗi ngày), "+N phấn", khoá thú ở hồ sơ/phòng chờ, đặc tả độ hiếm/phấn/24 món; mục 6.12; bản đồ màn hình; 24 phụ kiện SVG + `Character accessories`; token `rarity-*`; component `RarityBadge`, `ChalkChip`, `ChalkIcon`, `AccessoryIcon`; hoạt ảnh `fx-halo` | [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024) |
+| 1.11 | 2026-11-20 | Mục 6.8: phòng chờ luôn hiện đủ 12 ô (bố cục gọn) cho mọi số người, thay cho 8 ô tới 7 người; máy tính 6 × 2 (có cột chat: 4 × 3), điện thoại 2 × 6 | [CR-018](../00-tracking/change-requests.md#cr-018) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

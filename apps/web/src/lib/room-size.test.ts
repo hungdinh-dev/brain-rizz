@@ -11,19 +11,18 @@ describe("bố cục theo số ghế (CR-018)", () => {
     expect(isCrowded(MAX_PLAYERS)).toBe(true);
   });
 
-  it("phòng chờ: 8 ô tới 7 người, đủ 12 ô từ 8 người; luôn còn ô trống khi chưa đầy", () => {
+  it("phòng chờ: luôn đủ 12 ô (khớp n/12), còn ô trống khi chưa đầy, bố cục gọn", () => {
     expect(MAX_PLAYERS).toBe(12);
-    for (let n = 1; n <= 7; n++) expect(lobbySlotCount(n)).toBe(8);
-    for (let n = 8; n <= MAX_PLAYERS; n++) expect(lobbySlotCount(n)).toBe(MAX_PLAYERS);
+    for (let n = 0; n <= MAX_PLAYERS; n++) {
+      expect(lobbySlotCount(n)).toBe(MAX_PLAYERS);
+      // LobbyScreen bật bố cục gọn theo số ô: 12 ô thì luôn gọn, kể cả khi mới có 1 người.
+      expect(lobbySlotCount(n) > CLASSIC_SEATS).toBe(true);
+    }
     for (let n = 1; n < MAX_PLAYERS; n++) expect(lobbySlotCount(n)).toBeGreaterThan(n);
-    expect(lobbySlotCount(MAX_PLAYERS)).toBe(MAX_PLAYERS);
   });
 
-  it("danh sách cả phòng (Hướng dẫn): hàng gọn từ 8 người, cùng ngưỡng 12 ô của phòng chờ", () => {
+  it("danh sách cả phòng (Hướng dẫn): hàng gọn từ 8 người", () => {
     for (let n = 1; n <= 7; n++) expect(isCompactRoster(n)).toBe(false);
-    for (let n = 8; n <= MAX_PLAYERS; n++) {
-      expect(isCompactRoster(n)).toBe(true);
-      expect(isCompactRoster(n)).toBe(lobbySlotCount(n) > CLASSIC_SEATS);
-    }
+    for (let n = 8; n <= MAX_PLAYERS; n++) expect(isCompactRoster(n)).toBe(true);
   });
 });

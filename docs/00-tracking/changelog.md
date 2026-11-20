@@ -94,6 +94,7 @@ Luồng trận mới theo [CR-005](change-requests.md#cr-005), 4 minigame MVP v�
 
 ### Sửa lỗi
 
+- **Phòng chờ hiện đủ 12 chỗ:** trước đây phòng dưới 8 người chỉ hiện 8 ô (lưới 4 × 2 cũ) dù thanh trên ghi "Người chơi 1/12", nên trông như phòng chỉ có 8 chỗ. Giờ luôn hiện 12 ô ở bố cục gọn: máy tính 6 cột × 2 hàng (mở cột chat ở màn hẹp: 4 × 3), điện thoại 2 cột × 6 hàng; chủ phòng thêm bot ở bất kỳ ô trống nào. Kỹ thuật: `lobbySlotCount` (`apps/web/src/lib/room-size.ts`) luôn trả `MAX_PLAYERS`.
 - **Tải lại trang giữa trận không còn mất phòng:** trước đây tải lại lần hai có thể rơi về menu, ghế cũ bị treo và lệnh (Sẵn sàng, thêm bot) đi nhầm phòng. Nguyên nhân: nối lại chạy hai lần cùng một token trong chế độ phát triển (StrictMode), lần thua xoá token lần thắng vừa lưu. Giờ nối lại dùng chung một lần gọi, chỉ xoá token khi chưa đổi, và phòng cũ không ghi đè state (`net/connection.ts`, test `net/resume-party.test.ts`).
 - **Bảng điểm vòng:** bấm "Xem lại kết quả vòng" sau khi đã tự sang tổng điểm không còn bị đẩy ngay về tổng điểm.
 - Máy tắt "Animation effects" của Windows (trình duyệt báo giảm chuyển động) không thấy vòng quay, bục hiện cùng lúc và mất pháo giấy, khác hẳn người chơi khác. Giờ giảm chuyển động vẫn giữ nhịp hiện lần lượt (chỉ đổi trượt thành mờ dần), và nút Hiệu ứng "Luôn bật" bật lại đủ hiệu ứng ([CR-010](change-requests.md#cr-010)).
