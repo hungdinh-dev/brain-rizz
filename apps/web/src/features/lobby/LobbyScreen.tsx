@@ -12,8 +12,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ChatSettingRow } from "@/features/chat";
 import { loadProfile, saveProfile } from "@/features/home";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { usePendingAction } from "@/hooks/use-pending-action";
-import { CLASSIC_SEATS, lobbySlotCount } from "@/lib/room-size";
+import { CLASSIC_SEATS, LOBBY_ROOMY_QUERY, lobbySlotCount } from "@/lib/room-size";
 import { cn } from "@/lib/utils";
 import { leaveParty, SERVER_ERROR_TOAST_ID, send } from "@/net/connection";
 import { useAuth } from "@/stores/auth.store";
@@ -45,9 +46,11 @@ export function LobbyScreen() {
   // Bot luôn sẵn sàng và được tính vào "Người chơi" / "Sẵn sàng" (CR-016).
   const readyCount = players.filter((p) => p.ready).length;
   const botCount = players.filter((p) => p.isBot).length;
-  // Luôn đủ 12 ô (khớp "Người chơi n/12"), bố cục gọn (CR-018, ui-ux 6.8).
+  // Luôn đủ 12 ô (khớp "Người chơi n/12"), bố cục gọn (CR-018, ui-ux 6.8). Màn máy tính đủ cao
+  // (màn lớn) thì dùng thẻ to: 12 ô thành 4 cột × 3 hàng, lấp khoảng trống dưới lưới.
   const slotCount = lobbySlotCount(players.length);
-  const compact = slotCount > CLASSIC_SEATS;
+  const roomy = useMediaQuery(LOBBY_ROOMY_QUERY);
+  const compact = slotCount > CLASSIC_SEATS && !roomy;
   const emptyCount = Math.max(0, slotCount - players.length);
   const isHost = party.hostId === sessionId;
   const hostName = party.players[party.hostId]?.name ?? "";
@@ -180,16 +183,17 @@ export function LobbyScreen() {
 
         <div className="flex flex-col gap-2.5 lg:gap-3 lg:[grid-area:grid]">
           {/*
-            Điện thoại: ô đang mở bảng chọn mức cao hơn, ô bên cạnh giữ chiều cao (items-start).
-            Phòng 12 ô trên máy tính: tối đa 6 cột (ô ≥ 7rem); vùng lưới hẹp (có cột chat) tự
-            xuống 4 cột × 3 hàng. Ô mở bảng chọn mức thì hàng đó cao thêm.
+            Điện thoại: 2 cột × 6 hàng; ô đang mở bảng chọn mức cao hơn, ô bên cạnh giữ chiều cao
+            (items-start). Máy tính: luôn 4 cột × 3 hàng cho ô rộng (chỗ cho thú và phụ kiện).
+            Hàng cao cố định, đủ chứa bảng chọn mức đang mở (cao nhất 133 px) nên mở/đóng bảng
+            không xô lệch các hàng dưới: thẻ gọn 136 px; màn lớn (`LOBBY_ROOMY_QUERY`) thẻ to 148 px.
           */}
           <section
             aria-label={t("lobby.playersLabel")}
             className={cn(
               "grid grid-cols-2 items-start lg:items-stretch",
               compact
-                ? "gap-2 pt-1 lg:auto-rows-[minmax(7rem,auto)] lg:grid-cols-[repeat(auto-fill,minmax(max(7rem,calc((100%_-_3.75rem)/6)),1fr))] lg:gap-x-3 lg:gap-y-4 lg:pt-1.5"
+                ? "gap-2 pt-1 lg:auto-rows-[8.5rem] lg:grid-cols-4 lg:gap-x-4 lg:gap-y-4 lg:pt-1.5"
                 : "gap-2.5 lg:auto-rows-[9.25rem] lg:grid-cols-4 lg:gap-x-4 lg:gap-y-4.5 lg:pt-1",
             )}
           >

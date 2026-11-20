@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Lớp của ô người chơi theo bố cục (ui-ux 6.8). Thường: điện thoại ô ngang 60 px, máy tính thẻ
- * đứng 194×148 (lưới 4 × 2). Gọn (phòng 12 ghế): điện thoại 52 px, máy tính thẻ 112 px (6 cột).
+ * đứng 194×148 (lưới 4 × 2). Gọn (phòng 12 ghế): điện thoại 52 px, máy tính thẻ cao 136 px (4 cột × 3 hàng).
  */
 export const SLOT_FRAME = {
   classic:
@@ -25,7 +25,7 @@ export const EMPTY_FRAME = {
 
 /**
  * Ô người chơi ở phòng chờ: nhân vật, tên, vương miện chủ phòng, "(bạn)", trạng thái.
- * Điện thoại: ô ngang thấp (lưới 2 cột); máy tính: thẻ đứng (lưới 4×2, phòng đông 6 cột).
+ * Điện thoại: ô ngang thấp (lưới 2 cột); máy tính: thẻ đứng (lưới 4 cột × 3 hàng).
  */
 export function PlayerSlot({
   player,
