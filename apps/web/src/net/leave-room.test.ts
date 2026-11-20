@@ -70,6 +70,7 @@ function fakeRoom(roomId: string) {
     onStateChange: vi.fn((cb: Listener) => state.push(cb)),
     onReconnect: vi.fn((cb: Listener) => reconnect.push(cb)),
     onLeave: vi.fn((cb: Listener) => leave.push(cb)),
+    onError: vi.fn(),
     emitState(code: string) {
       for (const cb of state) cb({ toJSON: () => ({ code, phase: "lobby", seed: 1 }) });
     },

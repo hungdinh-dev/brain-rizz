@@ -9,6 +9,7 @@ import {
   type ChatMessagePayload,
   type ChatSendPayload,
   ClientMessage,
+  type ClosingPayload,
   type CreateOptions,
   type ErrorPayload,
   estimateClock,
@@ -55,6 +56,23 @@ let room: Room | null = null;
 
 /** Id toast lỗi server (`ServerMessage.Error`): gọi `toast.error(…, { id })` để thay câu chung. */
 export const SERVER_ERROR_TOAST_ID = "server-error";
+
+/** Id toast "mất kết nối với phòng": phòng đóng ngoài ý muốn nhiều lần liền thì chỉ hiện một toast. */
+const ROOM_LOST_TOAST_ID = "room-lost";
+
+/** Toast báo phòng đóng (huỷ lượt vì chờ lâu, mất phòng party) hiện lâu hơn toast thường. */
+const ROOM_CLOSED_TOAST_MS = 8_000;
+
+/**
+ * Mã đóng server báo trước bằng tin `closing`, theo từng phòng. Qua Render/Cloudflare khung đóng của
+ * server không tới trình duyệt, nên `onLeave` thường chỉ thấy 1006 (hoặc mã client tự đóng): handler
+ * đọc mã ở đây trước, rồi mới tới mã của sự kiện đóng.
+ */
+const announcedCloseCodes = new WeakMap<Room, number>();
+
+function leaveCode(r: Room, code: number) {
+  return announcedCloseCodes.get(r) ?? code;
+}
 
 /**
  * Token phiên Supabase để server ghi kết quả vào tài khoản (FR-MR-10). Tạo phiên khách lười nếu
@@ -312,6 +330,20 @@ function attachParty(r: Room) {
     }),
   );
   r.onReconnect(whileCurrent(r, () => safeSession.set(TOKEN_KEY, r.reconnectionToken)));
+  // Phòng đóng ngoài ý muốn (server khởi động lại, nối lại thất bại, server báo đóng). `leaveParty`
+  // bỏ `room` trước nên tự rời không tới đây. Không về menu thì phòng chờ / màn chơi đứng yên, mọi
+  // nút không còn tác dụng mà không có lời nào báo.
+  r.onLeave(whileCurrent(r, onPartyLost));
+}
+
+/** Mất phòng party: bỏ phòng như `leaveParty` (không gửi gì, kết nối đã đóng) rồi báo người chơi. */
+function onPartyLost() {
+  room = null;
+  safeSession.remove(TOKEN_KEY);
+  useGame.getState().reset();
+  useChat.getState().reset();
+  useNav.getState().go("menu", { replace: true });
+  toast(i18n.t("connection.roomLost"), { id: ROOM_LOST_TOAST_ID, duration: ROOM_CLOSED_TOAST_MS });
 }
 
 function attachBrain(r: Room) {
@@ -322,20 +354,64 @@ function attachBrain(r: Room) {
     }),
   );
   // Server huỷ lượt vì chờ Sẵn sàng quá lâu (close code riêng, SDK không tự nối lại): bỏ phòng,
-  // về màn giới thiệu Kiểm tra não (brain = null) và báo cho người chơi.
+  // về màn giới thiệu Kiểm tra não (brain = null) và báo cho người chơi. Mã lấy từ tin `closing` nếu
+  // có, vì khung đóng mang mã này có thể không tới (sự kiện đóng chỉ còn 1006).
   r.onLeave(
     whileCurrent(r, (code: number) => {
-      if (brainLeaveAction(code) !== "idle") return;
+      if (brainLeaveAction(leaveCode(r, code)) !== "idle") return;
       room = null;
       useGame.getState().reset();
-      toast(i18n.t("brainTest.idleCancelled"), { duration: 8_000 });
+      toast(i18n.t("brainTest.idleCancelled"), { duration: ROOM_CLOSED_TOAST_MS });
     }),
   );
+}
+
+/** Mã client được gửi khi tự đóng WebSocket: 1000 hoặc 3000–4999. */
+function isClientCloseCode(code: number) {
+  return Number.isInteger(code) && (code === 1000 || (code >= 3000 && code <= 4999));
+}
+
+/** Đóng kết nối phía client, bỏ qua lỗi khi socket đã đóng / chưa mở. */
+function closeConnection(r: Room, code: number) {
+  try {
+    r.connection.close(code);
+  } catch {
+    /* kết nối đã đóng */
+  }
+}
+
+/**
+ * Tin `closing`: server sắp chủ động đóng với `code`. Khung đóng của server không tới (Render nuốt),
+ * nên ghi nhớ mã cho `onLeave`, tắt nối lại và tự đóng: SDK gọi `onLeave` ngay thay vì chờ 20 giây
+ * rồi tưởng rớt mạng.
+ */
+function onServerClosing(r: Room, msg: ClosingPayload) {
+  const code = msg?.code;
+  const known = typeof code === "number" && Number.isInteger(code);
+  if (known) announcedCloseCodes.set(r, code);
+  r.reconnection.enabled = false;
+  closeConnection(r, known && isClientCloseCode(code) ? code : CloseCode.CONSENTED);
+}
+
+/**
+ * Lỗi của phòng `r`. Lần nối lại bị server từ chối (phòng không còn, token hết hạn): server gửi
+ * Protocol.ERROR (tới được) rồi đóng 4003, nhưng khung đóng bị Render nuốt nên mỗi lần thử treo 20 giây
+ * rồi thành 1006, SDK thử lại tới 15 lần. Lỗi có mã số khi đang nối lại → thôi nối lại, tự đóng 4003
+ * để `onLeave` chạy ngay. Lỗi socket (sự kiện `error`, không có mã, vd. mất mạng giữa lần thử) để SDK
+ * thử tiếp như rớt mạng thường; lỗi khi không nối lại thì bỏ qua như cũ.
+ */
+function onRoomError(r: Room, code: number | undefined) {
+  if (typeof code !== "number" || !r.reconnection.isReconnecting) return;
+  r.reconnection.enabled = false;
+  closeConnection(r, CloseCode.FAILED_TO_RECONNECT);
 }
 
 /** Phần chung của hai loại phòng: kết quả câu, lỗi, đồng bộ giờ, trạng thái kết nối. */
 function attachCommon(r: Room) {
   room = r;
+  // Không bọc `whileCurrent`: phòng cũ (đã rời) cũng nên đóng ngay thay vì treo chờ khung đóng.
+  r.onMessage(ServerMessage.Closing, (msg: ClosingPayload) => onServerClosing(r, msg));
+  r.onError((code: number | undefined) => onRoomError(r, code));
   useGame.getState().setSession(r.sessionId);
   // Vòng, seed, đồng hồ đọc từ state; tin này chỉ để bỏ kết quả câu cũ sớm (và SDK không cảnh báo
   // tin chưa đăng ký).

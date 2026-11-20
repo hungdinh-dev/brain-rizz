@@ -98,7 +98,14 @@ Tự deploy: mỗi commit lên `main` mà CI xanh (`autoDeployTrigger: checksPas
 | Rớt mạng rồi tự nối lại | ~0,25 giây | ~10 giây (thanh "Mất kết nối, đang nối lại" hiện trong lúc đó) |
 | Tin nhắn thường (thêm bot, sẵn sàng, trả lời…) | Bình thường | Bình thường, ping khứ hồi ~75 ms |
 
-Quy tắc cho code: **không dựa vào mã đóng do server gửi**. Rời phòng = gửi lệnh rời rồi trình duyệt tự đóng kết nối (`closeRoom` trong `apps/web/src/net/connection.ts`); server cần báo lý do đóng (vd. Kiểm tra não hết giờ chờ) thì gửi một tin nhắn trước khi đóng. Kiểm tra lại bất cứ lúc nào (Node ≥ 22):
+Quy tắc cho code: **không dựa vào khung đóng, ở cả hai chiều**.
+
+- **Rời phòng:** gửi lệnh rời rồi trình duyệt tự đóng kết nối (`closeRoom` trong `apps/web/src/net/connection.ts`).
+- **Server chủ động đóng:** gửi `ServerMessage.Closing` (`{ code }`) ngay trước khi đóng. Client nhận thì tự đóng và xử lý theo mã đó (đang dùng cho Kiểm tra não hết giờ chờ).
+- **Nối lại bị từ chối** (phòng không còn): server gửi tin ERROR, tin này vẫn tới. Client đang nối lại mà nhận lỗi thì dừng nối lại ngay. Phòng party mất thì về menu kèm thông báo (`onPartyLost`).
+- **Biết người chơi rớt:** server chỉ biết nhờ ping. Transport đặt `pingInterval` 1500 ms × `pingMaxRetries` 2, tức 3–4,5 giây (`apps/server/src/app.config.ts`).
+
+Kiểm tra lại bất cứ lúc nào (Node ≥ 22):
 
 ```powershell
 node -e "const t=Date.now();const w=new WebSocket('wss://brain-rizz-server.onrender.com/x/NOPE?sessionId=a');w.onclose=e=>console.log('code',e.code,'sau',Date.now()-t,'ms')"

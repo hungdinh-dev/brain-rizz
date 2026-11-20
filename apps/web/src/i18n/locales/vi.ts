@@ -631,6 +631,9 @@ export const vi = {
   connection: {
     reconnecting: "Mất kết nối, đang nối lại…",
     failed: "Không kết nối được tới server.",
+    /** Toast khi phòng party đóng ngoài ý muốn (không phải tự rời) và app đưa về menu. */
+    roomLost:
+      "Mất kết nối với phòng và không vào lại được. Hãy tạo phòng mới hoặc vào lại bằng mã.",
   },
   difficulty: {
     "0": "Mầm",

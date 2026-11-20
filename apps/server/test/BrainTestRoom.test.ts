@@ -14,6 +14,7 @@ import {
   type BrainStateView,
   brainTestDurationMs,
   CATEGORIES,
+  type ClosingPayload,
   computeBrainResult,
   type Difficulty,
   type ErrorPayload,
@@ -359,7 +360,7 @@ describe("BrainTestRoom", () => {
     expect(store.brainTests).toEqual([]);
   });
 
-  it("chờ quá lâu ở intro (cả game đầu lẫn game sau): huỷ lượt, đóng phòng với mã riêng, không lưu", async () => {
+  it("chờ quá lâu ở intro (cả game đầu lẫn game sau): huỷ lượt, báo tin closing rồi đóng phòng với mã riêng, không lưu", async () => {
     const store = new MemoryResultStore(new Map([[TOKEN, USER_ID]]));
     const { room, client } = await start(store, { accessToken: TOKEN });
 
@@ -373,12 +374,24 @@ describe("BrainTestRoom", () => {
     ]);
     finishGame(room);
 
-    // Game 2: không bấm Sẵn sàng → hết hạn thì phòng đóng.
+    // Game 2: không bấm Sẵn sàng → hết hạn thì phòng đóng. Trước khung đóng có tin `closing` cùng mã
+    // (qua Render khung đóng không tới trình duyệt, client dựa vào tin này).
     expect(room.state.phase).toBe("intro");
     expect(room.state.round).toBe(2);
-    const closed = new Promise<number>((resolve) => client.onLeave((code) => resolve(code)));
+    const events: unknown[] = [];
+    client.onMessage(ServerMessage.Closing, (msg: ClosingPayload) => events.push(msg));
+    const closed = new Promise<number>((resolve) =>
+      client.onLeave((code) => {
+        events.push(`leave ${code}`);
+        resolve(code);
+      }),
+    );
     advance(room, BRAIN_TEST_INTRO_IDLE_MS);
     expect(await closed).toBe(BRAIN_TEST_IDLE_CLOSE_CODE);
+    expect(events).toEqual([
+      { code: BRAIN_TEST_IDLE_CLOSE_CODE },
+      `leave ${BRAIN_TEST_IDLE_CLOSE_CODE}`,
+    ]);
     await settle();
     expect(store.brainTests).toEqual([]);
   });

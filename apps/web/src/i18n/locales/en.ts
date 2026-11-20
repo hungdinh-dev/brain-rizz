@@ -606,6 +606,8 @@ export const en: LocaleMessages = {
   connection: {
     reconnecting: "Connection lost, reconnecting…",
     failed: "Couldn't reach the server.",
+    roomLost:
+      "Lost connection to the room and couldn't rejoin. Create a new room or join again with the code.",
   },
   difficulty: {
     "0": "Sprout",

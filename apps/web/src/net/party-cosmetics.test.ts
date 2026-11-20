@@ -47,6 +47,7 @@ function fakeRoom() {
     onStateChange: vi.fn(),
     onReconnect: vi.fn(),
     onLeave: vi.fn(),
+    onError: vi.fn(),
   };
 }
 

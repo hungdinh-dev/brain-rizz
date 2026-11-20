@@ -33,6 +33,7 @@ import {
   WRONG_ANSWER_LOCK_MS,
 } from "@brain-rizz/shared";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { TRANSPORT_PING_INTERVAL_MS, TRANSPORT_PING_MAX_RETRIES } from "../src/app.config";
 import type { PartyRoom } from "../src/rooms/PartyRoom";
 import { bootOnFreePort, connectTo, ignoreServerMessages, SOLVE, type TestServer } from "./helpers";
 
@@ -1222,6 +1223,48 @@ describe("PartyRoom", () => {
       expect((await result).correct).toBe(true);
       await until(() => player(room, guest).progress === 2);
       expect(gotRoundStart).toBe(false);
+    });
+
+    const dropDetectMs = TRANSPORT_PING_INTERVAL_MS * (TRANSPORT_PING_MAX_RETRIES + 1);
+    it(`máy thôi trả lời ping (mất sóng, không có khung đóng): server thấy rớt trong ${dropDetectMs / 1000} giây, giữ chỗ; máy còn sống không bị cắt`, async () => {
+      // Mục tiêu: thấy rớt trong ≤ 4,5 s (mặc định của transport mất ~10 s qua Render).
+      expect(dropDetectMs).toBeLessThanOrEqual(4_500);
+      const { room, clients } = await setup(["An", "Bình"]);
+      const [host, guest] = clients as [TestClient, TestClient];
+      // Chỉ đo lúc server phát hiện rớt: không để SDK tự nối lại sau khi bị cắt.
+      guest.reconnection.enabled = false;
+      // Giả lập mất sóng như qua Render: không có khung đóng nào tới, và với server máy này không còn
+      // trả lời ping (bỏ bộ xử lý pong của transport trên kết nối phía server).
+      const ref = room.clients.find((c) => c.sessionId === guest.sessionId)?.ref;
+      if (!ref) throw new Error("Không thấy kết nối của máy khách trên server");
+      ref.removeAllListeners("pong");
+      const start = Date.now();
+      await until(() => player(room, guest).connected === false, dropDetectMs + 3_000);
+      // Transport thật dùng đúng hai hằng trên (mặc định 3000 ms × 2 cần ít nhất 6 s, quá trần này).
+      expect(Date.now() - start).toBeLessThanOrEqual(dropDetectMs + 1_000);
+      // Rớt mạng (onDrop) chứ không phải rời phòng: vẫn giữ chỗ chờ nối lại.
+      expect(room.state.players.has(guest.sessionId)).toBe(true);
+      // Máy còn trả lời ping không bị cắt oan dù nhịp ping dày hơn.
+      expect(player(room, host).connected).toBe(true);
+    });
+
+    it("transport tự dựng (chỉ đổi nhịp ping) vẫn giữ Express (/healthz) và mặc định của ws-transport", async () => {
+      // `defineServer({ transport })` thay cho transport mặc định: không được mất route Express hay
+      // giới hạn gói tin / tắt nén mà transport mặc định vẫn có.
+      const port = (colyseus.server as unknown as { port: number }).port;
+      const res = await fetch(`http://127.0.0.1:${port}/healthz`);
+      expect(res.status).toBe(200);
+      expect(await res.json()).toMatchObject({ ok: true });
+
+      const transport = colyseus.server.transport as unknown as {
+        pingIntervalMS: number;
+        pingMaxRetries: number;
+        wss: { options: { maxPayload?: number; perMessageDeflate?: unknown } };
+      };
+      expect(transport.pingIntervalMS).toBe(TRANSPORT_PING_INTERVAL_MS);
+      expect(transport.pingMaxRetries).toBe(TRANSPORT_PING_MAX_RETRIES);
+      expect(transport.wss.options.maxPayload).toBe(4 * 1024);
+      expect(transport.wss.options.perMessageDeflate).toBe(false);
     });
   });
 
