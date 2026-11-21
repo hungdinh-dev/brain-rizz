@@ -356,6 +356,8 @@ brain-rizz/
 │  │  │                        muốn → về menu + toast; nối lại bị từ chối / tin `closing` → client tự đóng (khung đóng
 │  │  │                        của server bị Render nuốt); create-party.test.ts, resume-party.test.ts, leave-room.test.ts,
 │  │  │                        room-lost.test.ts (giả lập Colyseus)
+│  │  ├─ net/lazy-connection.ts Cửa tải lười của connection.ts cho App + trang chủ (createParty, joinParty, resumeParty
+│  │  │                        — không có token nối lại thì không tải chunk), giữ Colyseus + zod ngoài gói đầu + test
 │  │  ├─ net/gacha-api.ts      RPC phấn + máy quay (my_wallet, claim_daily_chalk, gacha_pull, my_items, gacha_history) + test
 │  │  ├─ net/unlocks-api.ts    RPC my_unlock_stats → parseUnlockStats (CR-024) + test; net/party-cosmetics.test.ts (gửi
 │  │  │                        accessories, nhận tin Reward)

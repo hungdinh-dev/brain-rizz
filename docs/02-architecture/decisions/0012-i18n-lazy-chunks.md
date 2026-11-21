@@ -24,3 +24,5 @@ Gói đầu chỉ chứa namespace `common` của các màn luôn cần (giới 
 
 - Chữ mới của màn một mình thêm vào `locales/solo/`, chữ màn luôn cần vẫn ở `locales/vi.ts`/`en.ts`.
 - Còn chỗ giảm tiếp: zod (~80 KB chưa nén) đang nằm trong gói đầu dù web không validate; xem lại khi gói đầu lại gần mức trần.
+- Bổ sung 2026-11-21: gói đầu lên 331,0 KiB gzip vì `net/connection.ts` (Colyseus SDK + zod + danh mục minigame) được App và trang chủ import tĩnh. App và trang chủ chuyển sang `net/lazy-connection.ts` (`import()` khi bấm Tạo/Vào phòng, hoặc khi có token nối lại), gói đầu còn 251,4 KiB. Còn ~48 KiB gzip có thể tách tiếp: bộ sinh câu đố của 30 game vào gói đầu chỉ vì `isGameId`/`GAME_IDS` (nav.store, data-api, menu) cần danh sách id, mà danh sách này đọc từ `GAMES` (giữ cả hàm `generate`).
+- Cách đo gói đầu: cộng gzip (mức mặc định) của `index-*.js` và mọi chunk `modulepreload` trong `dist/index.html` sau `pnpm --filter @brain-rizz/web build`.
