@@ -25,10 +25,10 @@ const pal = (species: number, hat = 0, held = 0, glasses = 0): Buddy => ({
 });
 
 /** Khói (mèo) đội mũ chóp tiệc, đeo kính tròn. */
-const TARGET = pal(0, 1, 0, 1);
+export const TARGET = pal(0, 1, 0, 1);
 
 /** Lưới 3×3 bên phải: [bạn, cột, hàng]. Ô giữa là đáp án, ô bên phải là mèo mũ chóp không kính. */
-const CROWD: readonly (readonly [Buddy, number, number])[] = [
+export const CROWD: readonly (readonly [Buddy, number, number])[] = [
   [pal(1, 3), 0, 0],
   [pal(2, 0, 1), 1, 0],
   [pal(4, 1, 0, 1), 2, 0],
@@ -38,13 +38,13 @@ const CROWD: readonly (readonly [Buddy, number, number])[] = [
   [pal(0, 2, 0, 1), 1, 2],
   [pal(1, 0, 3, 1), 2, 2],
 ];
-const NEAR_MISS = pal(0, 1);
+export const NEAR_MISS = pal(0, 1);
 
 /** Lưới bên phải: tâm cột / hàng, cỡ hộp mỗi bạn. */
 const GRID = { x: 340, y: 118, step: 80, box: 66 } as const;
 
 /** Một bạn đứng giữa (x, chân ở `feet`) trong hộp cạnh `box`; `halo` thêm viền phấn. */
-function Pal({
+export function Pal({
   buddy,
   x,
   feet,

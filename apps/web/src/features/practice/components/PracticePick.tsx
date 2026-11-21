@@ -1,4 +1,4 @@
-import { CATEGORIES, type Category, GAME_IDS, GAMES, type GameId } from "@brain-rizz/shared";
+import { CATEGORIES, type Category, GAMES, type GameId } from "@brain-rizz/shared";
 import { StarIcon, TrophyIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { CATEGORY_BG, CATEGORY_FG, CATEGORY_ICON } from "@/components/common/MatchChips";
@@ -9,6 +9,7 @@ import { useGameTextLookup } from "@/hooks/use-game-text";
 import { useNumberFormat } from "@/hooks/use-number-format";
 import { cn } from "@/lib/utils";
 import type { PracticeFilter } from "@/stores/nav.store";
+import { onlyEnabled } from "../enabled-games";
 import { useFavorites } from "../favorites";
 import type { PracticeRecords } from "../records";
 import { topBestOfGame } from "../records";
@@ -19,6 +20,8 @@ type Filter = PracticeFilter | "all";
 
 interface PracticePickProps {
   records: PracticeRecords;
+  /** Game đang bật (theo thứ tự `GAME_IDS`): game quản trị viên tắt không hiện ở đâu cả (CR-019). */
+  games: readonly GameId[];
   /** Chip lọc đang chọn, đọc từ đường dẫn (`/practice?cat=<nhóm|fav>`; không có = Tất cả). */
   filter: Filter;
   /** Đổi chip: cập nhật đường dẫn (thay mục lịch sử). */
@@ -33,14 +36,23 @@ interface PracticePickProps {
  */
 export function PracticePick({
   records,
-  filter,
+  games,
+  filter: routeFilter,
   onFilter: setFilter,
   onPick,
   onBack,
 }: PracticePickProps) {
   const { t } = useTranslation();
-  const favorites = useFavorites((s) => s.ids);
-  const groups = CATEGORIES.filter((c) => filter === "all" || filter === c);
+  const storedFavorites = useFavorites((s) => s.ids);
+  // Yêu thích vẫn giữ trên máy/tài khoản game bị tắt (bật lại là hiện lại), chỉ ẩn khỏi màn.
+  const favorites = onlyEnabled(storedFavorites, games);
+  // Nhóm không còn game nào đang bật thì ẩn cả chip lẫn cột; lọc đúng nhóm đó → coi như "Tất cả".
+  const categories = CATEGORIES.filter((c) => games.some((id) => GAMES[id].category === c));
+  const filter: Filter =
+    routeFilter === "all" || routeFilter === "fav" || categories.includes(routeFilter)
+      ? routeFilter
+      : "all";
+  const groups = categories.filter((c) => filter === "all" || filter === c);
 
   let favoritesBlock: React.ReactNode = null;
   if (filter === "all" || filter === "fav") {
@@ -91,7 +103,7 @@ export function PracticePick({
             />
             {t("practice.favorites")}
           </FilterChip>
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <FilterChip key={c} active={filter === c} onClick={() => setFilter(c)}>
               <span
                 aria-hidden
@@ -116,6 +128,7 @@ export function PracticePick({
             <CategoryColumn
               key={category}
               category={category}
+              games={games}
               records={records}
               wide={filter !== "all"}
               onPick={onPick}
@@ -230,17 +243,19 @@ function FavoritesEmpty({ onShowAll }: { onShowAll(): void }) {
 
 function CategoryColumn({
   category,
+  games,
   records,
   wide,
   onPick,
 }: {
   category: Category;
+  games: readonly GameId[];
   records: PracticeRecords;
   wide: boolean;
   onPick(gameId: GameId): void;
 }) {
   const { t } = useTranslation();
-  const ids = GAME_IDS.filter((id) => GAMES[id].category === category);
+  const ids = games.filter((id) => GAMES[id].category === category);
   return (
     <section className="flex min-w-0 flex-col gap-2.5 lg:gap-3">
       <h2 className="flex items-center gap-2">

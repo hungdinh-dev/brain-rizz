@@ -8,7 +8,7 @@ const FINGER = "M-13 -64 L-13 -13 A13 13 0 0 0 13 -13 L13 -64";
 const NAIL = "M-7 -16 A7 7 0 0 0 7 -16";
 
 /** Giọt nước trên nút giữ (tâm 0,0), cùng hình với scene. */
-const DROP =
+export const DROP =
   "M0 -36 C12 -20 26 -6 26 10 C26 26 14 36 0 36 C-14 36 -26 26 -26 10 C-26 -6 -12 -20 0 -36 Z";
 
 const TICK = "M-12 1 L-3 10 L13 -9";

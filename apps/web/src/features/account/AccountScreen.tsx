@@ -28,9 +28,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { loadProfile } from "@/features/home";
 import { loadRecords } from "@/features/practice";
 import { playSfx } from "@/features/sfx";
+import { useProfile } from "@/lib/profile";
 import { fetchIsAdmin } from "@/net/admin-api";
 import { useAuth } from "@/stores/auth.store";
 import { useNav } from "@/stores/nav.store";
@@ -46,7 +46,8 @@ export function AccountScreen() {
   const go = useNav((s) => s.go);
   const goBack = useNav((s) => s.goBack);
   const auth = useAuth();
-  const [profile] = useState(loadProfile);
+  // Hồ sơ dùng chung (store): tên kéo về từ tài khoản Google hiện ngay, không cần tải lại trang.
+  const profile = useProfile((s) => s.profile);
   const [opening, setOpening] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -128,13 +129,23 @@ export function AccountScreen() {
     }
   }
 
+  // Đã liên kết: huy hiệu ngắn + email dòng riêng (email dài cắt "…", di chuột / đọc màn hình
+  // vẫn có đủ). `max-w-full` để huy hiệu không bao giờ rộng hơn thẻ.
   const statusChip =
     auth.status === "google" ? (
-      <span className="inline-flex min-h-8 items-center gap-1.5 self-start rounded-full border-[2.5px] border-sticker bg-mint px-3 text-[13px] font-bold text-ink">
-        <CheckIcon aria-hidden className="size-4 shrink-0" strokeWidth={3} />
-        <span className="truncate">
-          {auth.email ? t("account.linkedAs", { email: auth.email }) : t("account.linked")}
+      <span className="flex max-w-full min-w-0 flex-col items-start gap-1">
+        <span className="inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full border-[2.5px] border-sticker bg-mint px-3 text-[13px] font-bold text-ink">
+          <CheckIcon aria-hidden className="size-4 shrink-0" strokeWidth={3} />
+          <span className="min-w-0 truncate">{t("account.linked")}</span>
         </span>
+        {auth.email && (
+          <span
+            title={auth.email}
+            className="block max-w-full min-w-0 truncate pl-1 text-[13px] text-muted-foreground"
+          >
+            {auth.email}
+          </span>
+        )}
       </span>
     ) : (
       <span className="inline-flex min-h-8 items-center gap-1.5 self-start rounded-full border-[2.5px] border-dashed border-muted-foreground px-3 text-[13px] font-bold text-muted-foreground">
@@ -186,7 +197,7 @@ export function AccountScreen() {
       {isAdmin && (
         <Button variant="outline" className="min-h-13 justify-start" onClick={() => go("admin")}>
           <ShieldCheckIcon aria-hidden />
-          <span className="flex-1 text-left">{t("account.adminConsole")}</span>
+          <span className="min-w-0 flex-1 truncate text-left">{t("account.adminConsole")}</span>
           <ChevronRightIcon aria-hidden />
         </Button>
       )}
@@ -230,7 +241,7 @@ export function AccountScreen() {
   } else if (!hasSession) {
     content = (
       <div aria-busy="true" className="flex min-w-0 flex-1 flex-col gap-3">
-        <Skeleton className="h-11 w-80 max-w-full bg-board-shade" />
+        <Skeleton tone="board" className="h-11 w-80 max-w-full" />
         <Skeleton className="h-72 w-full" />
       </div>
     );
@@ -242,7 +253,7 @@ export function AccountScreen() {
     <main className="flex flex-1 flex-col gap-3.5 lg:gap-4.5">
       <ScreenHeader title={t("account.title")} onBack={() => goBack("menu")} />
       <div className="flex flex-1 flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
-        <div className="flex flex-col gap-3.5 lg:w-90 lg:shrink-0">
+        <div className="flex min-w-0 flex-col gap-3.5 lg:w-90 lg:shrink-0">
           {profileCard}
           <div className="hidden lg:block">{dangerZone}</div>
         </div>

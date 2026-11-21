@@ -4,11 +4,25 @@
  * (`defineScript`) và vẽ vật của mình (`<Name>Demo.tsx` trong thư mục game).
  */
 export { DemoStage, DemoStill } from "./DemoStage";
-export { A, Cursor, LockPill, Mark, NumberBadge, Question, Ring, Ripple, StepBadge } from "./parts";
+export {
+  A,
+  Cursor,
+  IconBadge,
+  LockPill,
+  Mark,
+  NumberBadge,
+  Question,
+  RectRing,
+  Ring,
+  Ripple,
+  StepBadge,
+} from "./parts";
 export {
   type DemoScript,
   defineScript,
   type Ease,
+  flashes,
+  flyIn,
   type PoseInput,
   popIn,
   questionIn,

@@ -1,6 +1,6 @@
 import { type Difficulty, type GameId, getGame, LATE_ANSWER_GRACE_MS } from "@brain-rizz/shared";
 import { create } from "zustand";
-import { loadProfile } from "@/features/home";
+import { currentProfile } from "@/lib/profile";
 import { hasStoredSession, SUPABASE_CONFIGURED } from "@/lib/supabase";
 import { fetchPracticeBests, submitPracticeResult } from "@/net/data-api";
 import { serverNow, useGame } from "@/stores/game.store";
@@ -107,7 +107,7 @@ export const usePractice = create<PracticeStore>((set, get) => ({
   pickGame(gameId, minLevel) {
     const { records } = get();
     // Mặc định mức lần trước của game này, không có thì mức trong hồ sơ.
-    const remembered = records.lastDifficulty[gameId] ?? loadProfile().difficulty;
+    const remembered = records.lastDifficulty[gameId] ?? currentProfile().difficulty;
     const difficulty = minLevel !== undefined && minLevel > remembered ? minLevel : remembered;
     set({ step: "setup", gameId, difficulty, outcome: null });
   },
@@ -205,7 +205,7 @@ function finish(round: PracticeRound) {
   useGame.getState().pushAnswerResult(null);
 
   if (!SUPABASE_CONFIGURED) return;
-  const profile = loadProfile();
+  const profile = currentProfile();
   void submitPracticeResult(round.gameId, round.difficulty, p.score, p.correct, {
     name: profile.name,
     avatar: profile.avatar,

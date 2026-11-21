@@ -7,43 +7,59 @@ import {
   sanitizeLoadout,
 } from "@brain-rizz/shared";
 import { BanIcon, CheckIcon, PlusIcon, ShirtIcon } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { AccessoryIcon, Character } from "@/components/characters";
+import { AccessoryIcon } from "@/components/characters";
 import { RarityBadge } from "@/components/common/RarityBadge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { loadProfile, saveAccessories } from "@/features/home";
-import { useReducedMotion } from "@/features/motion";
+import { DESKTOP_QUERY, useMediaQuery } from "@/hooks/use-media-query";
+import { currentProfile, saveAccessories } from "@/lib/profile";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/stores/auth.store";
+import { useLoadingWhile } from "@/stores/top-loading.store";
 import { useWallet } from "@/stores/wallet.store";
 
 /** Toast đeo / bỏ món: 2,2 giây (ui-ux 6.12). */
 const TOAST_MS = 2_200;
 
 interface AccessoriesTabProps {
-  desktop: boolean;
   /** "Mặc thử" từ màn mở quà: đeo ngay món này và mở đúng chỗ của nó. */
   tryOn?: CosmeticId;
+  /** Sang Máy quay (ô "Lấy thêm", màn trống). */
   onMachine(): void;
+  /**
+   * Nhân vật nhỏ đang đeo, đặt cạnh 3 chỗ đeo trong hàng dính trên cùng (điện thoại / máy tính bảng
+   * dọc: thẻ hồ sơ đã cuộn khuất mà vẫn thấy món vừa đeo). Từ `md` trở lên thẻ hồ sơ đã dính bên
+   * cạnh nên hàng này thôi dính và ẩn nhân vật nhỏ.
+   */
+  preview?: React.ReactNode;
 }
 
 /**
- * Tab Phụ kiện của Tủ đồ (S20, ui-ux 6.12): nhân vật lớn đang đeo, 3 chỗ (Đầu / Mặt / Cổ), lưới món
- * đã có của chỗ đang chọn. Bấm = đeo, bấm lại / "Không đeo" = bỏ. Lưu ngay vào hồ sơ trên máy (gửi
- * kèm khi vào phòng; server lọc theo món sở hữu). Chưa kết nối: vẫn mặc được món đang lưu trên máy.
+ * Tab Phụ kiện của trang Hồ sơ (Tủ đồ cũ, S20, ui-ux 6.12): 3 chỗ (Đầu / Mặt / Cổ) và lưới món đã
+ * có của chỗ đang chọn; nhân vật đang đeo vẽ ở thẻ hồ sơ bên cạnh. Bấm = đeo, bấm lại / "Không đeo"
+ * = bỏ. Lưu ngay vào hồ sơ trên máy (gửi kèm khi vào phòng; server lọc theo món sở hữu). Chưa kết
+ * nối: vẫn mặc được món đang lưu trên máy. Tải lười cùng chữ 24 món (i18n/gacha).
  */
-export function AccessoriesTab({ desktop, tryOn, onMachine }: AccessoriesTabProps) {
+export function AccessoriesTab({ tryOn, onMachine, preview }: AccessoriesTabProps) {
   const { t } = useTranslation();
-  const reduced = useReducedMotion();
-  const profile = useMemo(() => loadProfile(), []);
-  const [worn, setWorn] = useState<string[]>(() => sanitizeLoadout(profile.accessories));
+  const desktop = useMediaQuery(DESKTOP_QUERY);
+  const authStatus = useAuth((s) => s.status);
+  const [worn, setWorn] = useState<string[]>(() => sanitizeLoadout(currentProfile().accessories));
   const [slot, setSlot] = useState<CosmeticSlot>(
     () => (tryOn && getCosmetic(tryOn)?.slot) || "head",
   );
   const itemsStatus = useWallet((s) => s.itemsStatus);
   const items = useWallet((s) => s.items);
+
+  // Đọc ví + món đã có; đọc lại khi trạng thái phiên đổi (vd. vừa đăng nhập).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: đọc lại khi trạng thái phiên đổi
+  useEffect(() => {
+    void useWallet.getState().load();
+    void useWallet.getState().loadItems();
+  }, [authStatus]);
 
   // Món đã có: từ máy chủ; chưa kết nối / lỗi → chỉ những món đang lưu trên máy.
   const owned: readonly string[] | null =
@@ -53,6 +69,8 @@ export function AccessoriesTab({ desktop, tryOn, onMachine }: AccessoriesTabProp
         ? null
         : worn;
   const offline = itemsStatus === "offline" || itemsStatus === "error";
+  // Đang đọc món đã có (khung xương trong thẻ lưới món) → thanh tải trên đầu.
+  useLoadingWhile(owned === null);
 
   // Món đang đeo mà máy chủ nói không còn sở hữu (`my_items`: đổi tài khoản, bị thu hồi…) → bỏ khỏi
   // hồ sơ trên máy, để xem trước khớp với điều cả phòng thấy (server cũng lọc theo sở hữu). Chỉ đối
@@ -61,7 +79,7 @@ export function AccessoriesTab({ desktop, tryOn, onMachine }: AccessoriesTabProp
   const itemsAtMount = useRef(items);
   useEffect(() => {
     if (itemsStatus !== "ok" || !items || items === itemsAtMount.current) return;
-    const current = sanitizeLoadout(loadProfile().accessories);
+    const current = sanitizeLoadout(currentProfile().accessories);
     const kept = current.filter((id) => items.includes(id as CosmeticId));
     if (kept.length !== current.length) setWorn(saveAccessories(kept));
   }, [itemsStatus, items]);
@@ -102,17 +120,14 @@ export function AccessoriesTab({ desktop, tryOn, onMachine }: AccessoriesTabProp
     : [];
   const empty = owned !== null && owned.length === 0;
 
+  const cols = desktop ? "grid-cols-5" : "grid-cols-4";
+
   return (
-    <div
-      className={cn(
-        "flex flex-1 flex-col gap-4",
-        desktop && "grid grid-cols-[minmax(0,380px)_minmax(0,1fr)] items-start gap-7",
-      )}
-    >
-      <div className="flex flex-col items-center gap-4">
-        <Preview avatar={profile.avatar} worn={worn} size={desktop ? 300 : 176} reduced={reduced} />
-        {!empty && (
-          <fieldset className="grid w-full min-w-0 grid-cols-3 gap-2.5">
+    <div className="flex flex-col gap-4">
+      {!empty && (
+        <div className="sticky top-0 z-20 -mx-1.5 flex items-center gap-2 rounded-b-2xl bg-background px-1.5 py-2 md:static md:mx-0 md:bg-transparent md:p-0">
+          {preview && <div className="shrink-0 md:hidden">{preview}</div>}
+          <fieldset className="grid min-w-0 flex-1 grid-cols-3 gap-2.5">
             <legend className="sr-only">{t("wardrobe.slotsLabel")}</legend>
             {COSMETIC_SLOTS.map((s) => {
               const id = wornBySlot(s);
@@ -157,8 +172,8 @@ export function AccessoriesTab({ desktop, tryOn, onMachine }: AccessoriesTabProp
               );
             })}
           </fieldset>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="flex flex-col gap-3">
         {empty ? (
@@ -182,14 +197,15 @@ export function AccessoriesTab({ desktop, tryOn, onMachine }: AccessoriesTabProp
               )}
             </div>
             {owned === null ? (
-              <div className={cn("grid gap-2.5", desktop ? "grid-cols-6" : "grid-cols-4")}>
-                {Array.from({ length: desktop ? 6 : 4 }, (_, i) => (
+              <div aria-busy="true" className={cn("grid gap-2.5", cols)}>
+                <span className="sr-only">{t("common.loading")}</span>
+                {Array.from({ length: desktop ? 5 : 4 }, (_, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: khung xương cố định
                   <Skeleton key={i} className={desktop ? "h-32" : "h-25"} />
                 ))}
               </div>
             ) : (
-              <ul className={cn("grid gap-2.5", desktop ? "grid-cols-6" : "grid-cols-4")}>
+              <ul className={cn("grid gap-2.5", cols)}>
                 <li>
                   <Tile
                     desktop={desktop}
@@ -254,39 +270,6 @@ export function AccessoriesTab({ desktop, tryOn, onMachine }: AccessoriesTabProp
         {offline && <p className="text-[13px] text-chalk-muted">{t("wardrobe.offlineNote")}</p>}
         <p className="text-[13px] text-chalk-muted">{t("wardrobe.footer")}</p>
       </div>
-    </div>
-  );
-}
-
-/** Nhân vật đang đeo, viền nhãn dán, đứng trên bệ phấn nét đứt. */
-function Preview({
-  avatar,
-  worn,
-  size,
-  reduced,
-}: {
-  avatar: ReturnType<typeof loadProfile>["avatar"];
-  worn: readonly string[];
-  size: number;
-  reduced: boolean;
-}) {
-  const { t } = useTranslation();
-  return (
-    <div className="relative flex flex-col items-center">
-      <Character
-        id={avatar}
-        size={size}
-        sticker
-        accessories={worn}
-        animated={!reduced}
-        label={t("wardrobe.previewLabel", { name: t(`characters.${avatar}.name`) })}
-        className="relative z-10"
-      />
-      <span
-        aria-hidden
-        className="rounded-[50%] border-[3px] border-dashed border-chalk/60 bg-board-shade"
-        style={{ width: size * 0.8, height: size * 0.18, marginTop: -size * 0.12 }}
-      />
     </div>
   );
 }

@@ -37,19 +37,26 @@ interface HistoryTabsProps {
   go(screen: Screen): void;
 }
 
+const TAB =
+  "min-w-0 px-1.5 text-[15px] leading-tight whitespace-normal min-[360px]:px-2 min-[360px]:whitespace-nowrap sm:px-3 sm:text-base lg:px-4";
+
 /** Lịch sử 3 tab (FR-MR-09, khu 15): Kiểm tra não · Trận party · Luyện tập. */
 export function HistoryTabs({ sessionKey, go }: HistoryTabsProps) {
   const { t } = useTranslation();
   return (
     <Tabs defaultValue="brain" className="min-w-0 flex-1">
-      <TabsList aria-label={t("account.historyLabel")} className="px-2 lg:px-3">
-        <TabsTrigger value="brain" className="px-3 lg:px-4">
+      {/*
+        Điện thoại: chữ / lề nhỏ lại để 3 tab nằm gọn; dưới 360 px tab được co và xuống dòng
+        ("Kiểm tra / não") thay vì tràn khỏi mép thẻ.
+      */}
+      <TabsList aria-label={t("account.historyLabel")} className="px-1 sm:px-2 lg:px-3">
+        <TabsTrigger value="brain" className={TAB}>
           {t("account.tabBrain")}
         </TabsTrigger>
-        <TabsTrigger value="party" className="px-3 lg:px-4">
+        <TabsTrigger value="party" className={TAB}>
           {t("account.tabParty")}
         </TabsTrigger>
-        <TabsTrigger value="practice" className="px-3 lg:px-4">
+        <TabsTrigger value="practice" className={TAB}>
           {t("account.tabPractice")}
         </TabsTrigger>
       </TabsList>

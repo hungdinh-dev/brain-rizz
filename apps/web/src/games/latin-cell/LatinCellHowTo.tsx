@@ -37,7 +37,7 @@ const at = (cell: number) => ({
 });
 
 /** Hình theo bảng hình của game: màu phụ + viền mực (như scene). */
-function Shape({ shape, x, y, r }: { shape: number; x: number; y: number; r: number }) {
+export function Shape({ shape, x, y, r }: { shape: number; x: number; y: number; r: number }) {
   const geom = SHAPES[shape];
   const className = cn(SHAPE_PAINTS[shape]?.className, "stroke-sticker");
   const width = Math.max(2, r * 0.11);

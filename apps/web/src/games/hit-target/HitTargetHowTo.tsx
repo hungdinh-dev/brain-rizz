@@ -11,7 +11,7 @@ const SELECTED = "#cdeedb";
 const CHALK = "fill-none stroke-chalk filter-[url(#chalk)]";
 
 /** Thẻ số 76 × 76: bóng đổ mực, mặt giấy. Thẻ đã chọn lún xuống 3 px, viền đậm hơn. */
-function Card(props: { x: number; y: number; value: number; on?: boolean }) {
+export function Card(props: { x: number; y: number; value: number; on?: boolean }) {
   const { x, y, value, on } = props;
   const sink = on ? 3 : 0;
   return (

@@ -11,7 +11,7 @@ const CHALK = {
 } as const;
 
 /** Thẻ phấn của một bóng (khung chữ nhật bo góc, nền phấn mờ). */
-function ChalkCard({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+export function ChalkCard({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
   return (
     <rect
       x={x}
@@ -58,7 +58,7 @@ function Parts({
 }
 
 /** Bóng đen viền phấn (như bóng ở nền tối của game) đặt tại (x, y), cỡ `scale`, xoay `rotate`. */
-function Shadow({
+export function Shadow({
   item,
   variant,
   x,
@@ -98,7 +98,7 @@ function Shadow({
 }
 
 /** Đồ vật có màu (hình gốc), viền mực. */
-function ColoredItem({
+export function ColoredItem({
   item,
   x,
   y,

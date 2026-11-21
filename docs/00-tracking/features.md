@@ -2,7 +2,7 @@
 
 Bảng theo dõi **cái gì đã xong, cái gì chưa** ở mức người dùng nhìn thấy. Mỗi dòng trỏ về use case (UC) hoặc yêu cầu (FR) trong [SRS](../01-product/srs.md); muốn biết chi tiết hành vi thì mở SRS, muốn biết tiến độ thì xem ở đây.
 
-Cập nhật lần cuối: **2026-11-20** · Phiên bản code: 0.1.0 (chưa gắn tag)
+Cập nhật lần cuối: **2026-11-21** · Phiên bản code: 0.1.0 (chưa gắn tag)
 
 ## Tổng quan
 
@@ -12,9 +12,9 @@ Cập nhật lần cuối: **2026-11-20** · Phiên bản code: 0.1.0 (chưa g�
 | E2 Phòng chơi | 10 | 1 | 0 | 0 |
 | E3 Vòng chơi & chấm điểm | 7 | 0 | 0 | 0 |
 | E4 Minigame | 5 game | 8 game (🚧 chờ chơi thử) | 2 game | 0 |
-| E5 Giao diện & trải nghiệm | 8 | 0 | 2 | 0 (+1 huỷ) |
+| E5 Giao diện & trải nghiệm | 9 | 2 (🚧 chờ QA: FR-GD-13 đợt hai, FR-GD-15) | 2 | 0 (+1 huỷ) |
 | E6 Vận hành & chất lượng | 3 | 1 | 3 | 0 |
-| E7 Chế độ mở rộng & tài khoản | 0 | 6 (CR-009, CR-010, CR-019, chờ Supabase thật) | 2 | 3 |
+| E7 Chế độ mở rộng & tài khoản | 0 | 6 (CR-009, CR-010, CR-019, chờ Supabase thật) + 1 🚧 (FR-MR-18, CR-027) | 2 | 3 |
 
 **Chú thích trạng thái:** ✅ Xong (chạy được, có test hoặc đã kiểm tay) · 🟡 Một phần · 🚧 Đang làm · ⏳ Chưa làm (đã có trong kế hoạch) · 💡 Ý tưởng, chờ [yêu cầu thay đổi](change-requests.md) được duyệt · ❌ Huỷ
 
@@ -24,7 +24,7 @@ Cập nhật lần cuối: **2026-11-20** · Phiên bản code: 0.1.0 (chưa g�
 
 | ID | Tính năng | GĐ | Trạng thái | Có từ bản | Bằng chứng / ghi chú |
 | --- | --- | --- | --- | --- | --- |
-| UC-01 | Thiết lập hồ sơ: tên, 6 nhân vật, độ khó; lưu trên máy; làm tiếp thao tác dở | 0 | ✅ | 0.1.0 | `features/home/profile.test.ts`; FR-HS-01 → 04 |
+| UC-01 | Thiết lập hồ sơ: tên, 6 nhân vật, độ khó; lưu trên máy; làm tiếp thao tác dở | 0 | ✅ | 0.1.0 | `features/home/profile.test.ts`; FR-HS-01 → 04 · 2026-11-21: có phiên Google thì tên + nhân vật của tài khoản thắng, máy mới không bắt nhập lại tên (UC-01 1b, FR-MR-11; sửa lỗi) — `lib/profile.test.ts` (`mergeAccountProfile`), `stores/auth.store.test.ts`; 🚧 chờ QA |
 
 ## E2 — Phòng chơi
 
@@ -79,8 +79,9 @@ Trạng thái từng game theo dõi ở **[Danh mục minigame](../04-minigames/
 | FR-GD-12 | Nút Hiệu ứng: Theo hệ thống / Luôn bật; một nguồn "giảm chuyển động" cho React, CSS, scene minigame | 1 | ✅ | chưa phát hành | [CR-010](change-requests.md#cr-010) · `features/motion/motion.test.ts`; kiểm Chrome headless có `--force-prefers-reduced-motion` (chấm cam, bấm → `data-motion="on"`, nhớ lựa chọn) |
 | FR-GD-11 | Rung phản hồi, Wake Lock | 2 | ⏳ | | Tách từ FR-GD-07 (CR-008) |
 | FR-GD-08 | PWA cài lên màn hình chính | 2 | ⏳ | | |
-| FR-GD-13 | Màn hướng dẫn: khung minh hoạ 16:9 lớn, nút Phóng to (Dialog / Sheet), hình động diễn cách chơi — đợt đầu 5 game MVP (Kẻ lạc đàn, Theo dấu ánh đèn, Cân não, Bóng bay số, Xoay hình); game khác dùng hình tĩnh | 1–2 | 🟡 5/30 game có demo | chưa phát hành | [CR-021](change-requests.md#cr-021) · `games/_shared/demo/timeline.test.ts`, `demo-scripts.test.ts` (khớp kịch bản canvas từng mốc ms); mỗi demo 0,9–1,7 KB gzip, chỉ `transform`/`opacity`; kiểm Chrome 390/1280 px · 25 game còn lại chờ chủ dự án duyệt đợt đầu |
-| FR-GD-14 | Tách URL theo màn ngoài phòng (`/practice[/<game>]`, `/brain-test`, `/leaderboard[/<game>]`, `/account`, `/profile`, `/admin/<mục>`), Back/Forward/F5 giữ màn, link sâu, Back trong phòng hỏi "Rời phòng?" | 1–2 | ✅ | chưa phát hành | [CR-022](change-requests.md#cr-022) · `stores/nav.store.test.ts` (13 ca, trình duyệt giả có ngăn lịch sử); kiểm Chrome: Back/Forward/F5, id lạ, link mời, Back trong phòng party + Kiểm tra não · không thêm thư viện router |
+| FR-GD-13 | Màn hướng dẫn: khung minh hoạ 16:9 lớn, nút Phóng to (Dialog / Sheet), hình động diễn cách chơi cho cả 30 game — đợt đầu 5 game MVP (2026-11-20), đợt hai 25 game còn lại (2026-11-21) | 1–2 | 🚧 30/30 game có demo, đợt hai chờ QA | chưa phát hành | [CR-021](change-requests.md#cr-021) · `games/_shared/demo/timeline.test.ts`, `demo-scripts.test.ts` (5 game MVP khớp kịch bản canvas từng mốc ms); đợt hai: 17 `games/<id>/<Name>Demo.test.ts`; mỗi demo 0,9–1,7 KB gzip (đợt đầu), chỉ `transform`/`opacity`; kiểm Chrome 390/1280 px (đợt đầu) · danh sách: [UI-UX 6.11](../01-product/ui-ux.md#611-hướng-dẫn-to--động-s11-s12-s13-cr-021) |
+| FR-GD-14 | Tách URL theo màn ngoài phòng (`/practice[/<game>]`, `/brain-test`, `/leaderboard[/<game>]`, `/account`, `/profile`, `/profile/accessories`, `/gacha`, `/admin/<mục>`), Back/Forward/F5 giữ màn, link sâu, Back trong phòng hỏi "Rời phòng?"; link cũ `/wardrobe[/pets]` chuyển hướng ([CR-026](change-requests.md#cr-026)) | 1–2 | ✅ | chưa phát hành | [CR-022](change-requests.md#cr-022) · `stores/nav.store.test.ts` (13 ca, trình duyệt giả có ngăn lịch sử; 2026-11-21 thêm ca `/profile/accessories`, `/wardrobe` cũ, đổi tab thay mục lịch sử); kiểm Chrome: Back/Forward/F5, id lạ, link mời, Back trong phòng party + Kiểm tra não · không thêm thư viện router |
+| FR-GD-15 | Thanh tải mảnh trên đầu trang (kiểu YouTube) + khung xương thay vòng xoay khi tải màn lười / dữ liệu; tải nền không bật thanh; giảm chuyển động thì đứng yên | 1–2 | 🚧 Code xong, chờ QA | chưa phát hành | [CR-025](change-requests.md#cr-025) · `stores/top-loading.store.test.ts`; `components/common/TopLoadingBar.tsx`, `ScreenSkeleton.tsx`, `Skeleton tone`; [UI-UX 6.13](../01-product/ui-ux.md#613-thanh-tải-trên-đầu-trang-và-khung-xương-cr-025) |
 
 ## E6 — Vận hành & chất lượng
 
@@ -99,11 +100,12 @@ Trạng thái từng game theo dõi ở **[Danh mục minigame](../04-minigames/
 | ID | Tính năng | GĐ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
 | UC-13 | Luyện tập: chọn game + độ khó, chơi trên máy, kỷ lục | 1–2 | 🟡 Code xong, chờ kiểm với Supabase thật | [CR-009](change-requests.md#cr-009) · FR-MR-01, FR-MR-07 |
+| FR-MR-18 | Luyện tập ẩn game quản trị viên tắt (lưới, chip nhóm, Yêu thích, `/practice/<game>`); số game ở thẻ menu đếm game bật; Kiểm tra não chưa áp (chờ quyết định) | 1–2 | 🚧 Code xong, chờ QA + chủ dự án chạy migration `20261121000000_public_disabled_games.sql` | [CR-027](change-requests.md#cr-027) · `lib/enabled-games.test.ts`, `features/practice/enabled-games.test.ts` · chưa chạy migration thì hiện đủ danh mục như cũ |
 | UC-14 | Kiểm tra não: 5 game server chấm, Điểm Não, biểu đồ 5 kỹ năng | 1–2 | 🟡 Code xong, chờ kiểm với Supabase thật | CR-009 · FR-MR-02, FR-MR-08 · phòng `BrainTestRoom` |
 | UC-15 | Đấu bóng ma | 3 | ⏳ | |
-| UC-16 | Tài khoản Supabase (khách + Google), lịch sử 3 loại, xoá dữ liệu | 1–2 | 🟡 Code xong, chờ kiểm với Supabase thật + Google | CR-009 · FR-MR-04, FR-MR-09 → 11, FR-MR-15 · [ADR 0011](../02-architecture/decisions/0011-supabase-accounts-and-solo-modes.md) |
+| UC-16 | Tài khoản Supabase (khách + Google), lịch sử 3 loại, xoá dữ liệu | 1–2 | 🟡 Code xong, chờ kiểm với Supabase thật + Google | CR-009 · FR-MR-04, FR-MR-09 → 11, FR-MR-15 · [ADR 0011](../02-architecture/decisions/0011-supabase-accounts-and-solo-modes.md) · 2026-11-21 (sửa lỗi, chờ QA): kéo tên + nhân vật từ `profiles` về máy khi có phiên Google (FR-MR-11); huy hiệu "Đã liên kết Google" + email không tràn thẻ, hàng tab Lịch sử không tràn ở 375/320 px |
 | FR-MR-16 | Lưu điểm + danh hiệu theo thể loại của trận party; thẻ "Thế mạnh trong trận party" ở Tài khoản | 1–2 | 🟡 Code xong, chờ chạy migration trên Supabase thật | [CR-010](change-requests.md#cr-010) · `PartyResults.test.ts`, `features/account/strengths.test.ts` · migration `20261019000000_match_category_scores.sql` |
-| UC-25 | Phấn (kiếm khi chơi, không tiền thật), máy quay phụ kiện `/gacha` (tỉ lệ công khai, bảo hiểm, Huyền thoại không trùng tới khi đủ bộ), tủ đồ `/wardrobe` (24 món, 3 chỗ, cả phòng thấy), quà mỗi ngày, "+N phấn" sau trận | 1–2 | 🟡 Code xong; migration đã chạy trên Supabase thật (2026-11-20, gọi thử trong khối tự huỷ: quà ngày, trần party/brain/practice, quay 10 + gọi lại cùng mã, không đủ phấn, quyền anon/authenticated); chờ thử trên web + trận thật | [CR-023](change-requests.md#cr-023) · FR-GC-01 → 06, 10 · [kế hoạch](../01-product/gacha-pets-unlocks.md) · [ADR 0016](../02-architecture/decisions/0016-chalk-economy-in-postgres.md) · shared `cosmetics/*.test.ts` (kinh tế, mô phỏng, đối chiếu migration), server `Cosmetics.test.ts`, `PartyCosmetics.test.ts`, web `gacha-api.test.ts`, `wallet.store.test.ts`, `pulls.test.ts`, `accessories.test.tsx` |
+| UC-25 | Phấn (kiếm khi chơi, không tiền thật), máy quay phụ kiện `/gacha` (tỉ lệ công khai, bảo hiểm, Huyền thoại không trùng tới khi đủ bộ), tủ đồ (24 món, 3 chỗ, cả phòng thấy; từ 2026-11-21 là tab Phụ kiện của Hồ sơ `/profile/accessories`, [CR-026](change-requests.md#cr-026), 🚧 chờ QA), quà mỗi ngày, "+N phấn" sau trận | 1–2 | 🟡 Code xong; migration đã chạy trên Supabase thật (2026-11-20, gọi thử trong khối tự huỷ: quà ngày, trần party/brain/practice, quay 10 + gọi lại cùng mã, không đủ phấn, quyền anon/authenticated); chờ thử trên web + trận thật | [CR-023](change-requests.md#cr-023) · FR-GC-01 → 06, 10 · [kế hoạch](../01-product/gacha-pets-unlocks.md) · [ADR 0016](../02-architecture/decisions/0016-chalk-economy-in-postgres.md) · shared `cosmetics/*.test.ts` (kinh tế, mô phỏng, đối chiếu migration), server `Cosmetics.test.ts`, `PartyCosmetics.test.ts`, web `gacha-api.test.ts`, `wallet.store.test.ts`, `pulls.test.ts`, `accessories.test.tsx` |
 | UC-26 | 6 bạn đồng hành mới (Pin, Ộp, Thông, Gai, Mây, Lửa) khoá theo thành tích, điều kiện + tiến độ + Luyện ngay, hộp chúc mừng; server kiểm khi vào phòng | 1–2 | 🟡 Code xong; migration đã chạy trên Supabase thật (2026-11-20, `my_unlock_stats` gọi thử đúng dạng JSON); chờ thử mở thú với dữ liệu thật | [CR-024](change-requests.md#cr-024) · FR-GC-07 → 09 · shared `cosmetics/unlocks.test.ts`, server `Cosmetics.test.ts`, web `features/pets/*.test.ts`, `character-picker.test.tsx` |
 | FR-MR-17 | Game yêu thích ở Luyện tập: ⭐, mục + chip Yêu thích, đồng bộ tài khoản khi có phiên | 1–2 | 🟡 Code xong; migration đã chạy trên Supabase thật (2026-11-20, gọi thử thêm/bỏ/gộp); chờ thử đồng bộ hai máy | [CR-020](change-requests.md#cr-020) · `features/practice/favorites.test.ts`, `net/data-api.test.ts`; kiểm Chrome 390/1280 px |
 | FR-MR-05 | Mũ phần thưởng khi lập kỷ lục | 3 | ⏳ | Tách khỏi UC-16 đợt CR-009 |

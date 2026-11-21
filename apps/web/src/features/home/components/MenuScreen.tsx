@@ -23,7 +23,7 @@ import {
   TrophyIcon,
   UserRoundIcon,
 } from "lucide-react";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { BrainMascot, Logo } from "@/components/brand";
@@ -36,6 +36,7 @@ import { MusicBar } from "@/features/music";
 import { SfxToggle } from "@/features/sfx";
 import { useData } from "@/hooks/use-data";
 import { useNumberFormat } from "@/hooks/use-number-format";
+import { enabledGames } from "@/lib/enabled-games";
 import { hasStoredSession } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { fetchBrainHistory } from "@/net/data-api";
@@ -85,11 +86,20 @@ export function MenuScreen({
   const fmt = useNumberFormat();
   const authStatus = useAuth((s) => s.status);
   // "Cao nhất 742" trên thẻ Kiểm tra não: chỉ hỏi khi máy đã có phiên (không tạo phiên mới).
-  const history = useData(() => fetchBrainHistory(50), [authStatus], hasStoredSession());
+  // Tải nền: không bật thanh tải trên đầu lúc mở app.
+  const history = useData(() => fetchBrainHistory(50), [authStatus], hasStoredSession(), {
+    background: true,
+  });
   // Ví phấn (chip số dư, quà mỗi ngày): chưa có phiên thì không gọi mạng, không tải supabase-js.
   useEffect(() => {
     if (authStatus !== "unknown") void useWallet.getState().load();
   }, [authStatus]);
+  // Số game Luyện tập: trừ game quản trị viên đang tắt (CR-019). Loader dùng `fetch` (không kéo
+  // supabase-js); chưa tải xong / lỗi thì đủ danh mục.
+  useEffect(() => {
+    void enabledGames.refresh();
+  }, []);
+  const practiceCount = useSyncExternalStore(enabledGames.subscribe, enabledGames.get).length;
   const brainBest =
     history.status === "ok" && history.data.length > 0
       ? Math.max(...history.data.map((r) => r.brainScore))
@@ -238,7 +248,7 @@ export function MenuScreen({
                 />
               ))}
               <span className="ml-1 text-[13px] font-bold">
-                {t("home.menu.practiceMeta", { count: GAME_IDS.length })}
+                {t("home.menu.practiceMeta", { count: practiceCount })}
               </span>
             </span>
           </MenuCard>

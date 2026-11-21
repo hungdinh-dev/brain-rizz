@@ -3,6 +3,13 @@ import { MAX_NAME_LENGTH } from "@brain-rizz/shared";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { create } from "zustand";
 import { currentDeviceLabel } from "@/lib/device-label";
+import {
+  adoptAccountProfile,
+  mergeAccountProfile,
+  profileMeta,
+  setProfileMeta,
+  useProfile,
+} from "@/lib/profile";
 import { STORAGE_KEYS, safeSession } from "@/lib/storage";
 import {
   hasStoredSession,
@@ -79,8 +86,13 @@ interface AuthStore {
   signOut(): Promise<void>;
   /** RPC `delete_my_data` rồi đăng xuất. Quản trị viên duy nhất bị chặn (không xoá gì). */
   deleteMyData(): Promise<DeleteDataResult>;
-  /** Đồng bộ tên + nhân vật lên `profiles` (chỉ khi đã có phiên; trùng lần trước thì bỏ qua). */
-  syncProfile(profile: ProfileForAccount): Promise<void>;
+  /**
+   * Đồng bộ tên + nhân vật lên `profiles` (chỉ khi đã có phiên và đúng hồ sơ đang dùng trên máy;
+   * trùng lần trước thì bỏ qua). Phiên Google: phải kéo được hồ sơ tài khoản về trước (chưa kéo thì
+   * thử lại; vẫn lỗi thì KHÔNG đẩy, để lần sau). `edited`: người chơi chủ động đổi tên (Xác nhận ở
+   * màn Hồ sơ) → ghi dấu bền trên máy, bản sửa tay thắng ở lần kéo thành công kế tiếp.
+   */
+  syncProfile(profile: ProfileForAccount, options?: { edited?: boolean }): Promise<void>;
   clearOAuthIssue(): void;
 }
 
@@ -110,6 +122,10 @@ let subscribed = false;
 let initializing: Promise<void> | null = null;
 let ensuring: Promise<string | null> | null = null;
 let lastSynced = "";
+/** Tài khoản Google đã kéo hồ sơ về THÀNH CÔNG trong lần tải trang này (đăng xuất thì kéo lại). */
+let pulledOk: string | null = null;
+/** Lần kéo đang chạy (theo tài khoản). */
+let pulling: { userId: string; run: Promise<void> } | null = null;
 
 function statusOf(session: Session | null): Pick<AuthStore, "status" | "userId" | "email"> {
   if (!session) return { status: "signed-out", userId: null, email: null };
@@ -301,6 +317,9 @@ export const useAuth = create<AuthStore>((set, get) => ({
 
   async signOut() {
     lastSynced = "";
+    // Giữ tên trên máy (khách vẫn chơi được); đăng nhập lại thì kéo hồ sơ tài khoản về lần nữa.
+    pulledOk = null;
+    pulling = null;
     try {
       const sb = await client();
       // Ghi `sign_out` bằng token của phiên sắp bỏ (không chờ kết quả, lỗi bỏ qua). Đọc phiên có thể
@@ -335,20 +354,43 @@ export const useAuth = create<AuthStore>((set, get) => ({
     return "deleted";
   },
 
-  async syncProfile(profile) {
-    const { userId } = get();
+  async syncProfile(profile, options = {}) {
+    const start = get();
+    if (options.edited) {
+      // Đang đăng nhập Google → nhớ "đã sửa tay cho tài khoản này, chưa đẩy". Khách / chưa đăng
+      // nhập → hồ sơ trên máy thôi gắn tài khoản cũ (đăng nhập tài khoản mới chưa có tên thì đẩy lên).
+      if (start.status === "google" && start.userId) setProfileMeta({ editedFor: start.userId });
+      else setProfileMeta({ owner: null, editedFor: null });
+    }
+    const userId = start.userId;
+    if (!userId) return;
+    const google = start.status === "google";
+    // Chưa biết tên trên tài khoản thì không đẩy: kéo về (hoặc chờ lần đang kéo) trước; lỗi → để sau.
+    if (google && !(await ensurePulled(userId))) return;
+    if (get().userId !== userId) return;
     const name = profile.name.trim().slice(0, MAX_NAME_LENGTH);
-    if (!userId || !name) return;
+    if (!name) return;
+    // Chỉ đẩy đúng hồ sơ đang dùng trên máy: giá trị cũ (màn mở trước khi hồ sơ tài khoản về tới,
+    // hay hồ sơ của tài khoản trước trên máy này) không được đè tên của tài khoản.
+    const current = useProfile.getState().profile;
+    if (current.name !== name || current.avatar !== profile.avatar) return;
     const key = `${userId}|${name}|${profile.avatar}`;
     if (key === lastSynced) return;
     lastSynced = key;
     try {
       const sb = await client();
-      const { error } =
-        (await sb
-          ?.from("profiles")
-          .upsert({ id: userId, display_name: name, avatar: profile.avatar })) ?? {};
+      if (!sb) throw new Error("no-client");
+      const { error } = await withTimeout(
+        Promise.resolve(
+          sb.from("profiles").upsert({ id: userId, display_name: name, avatar: profile.avatar }),
+        ),
+      );
       if (error) throw error;
+      if (google) {
+        // Đã lên tài khoản: hồ sơ trên máy theo tài khoản này, bỏ dấu sửa tay.
+        const { editedFor } = profileMeta();
+        setProfileMeta({ owner: userId, editedFor: editedFor === userId ? null : editedFor });
+      }
     } catch (err) {
       lastSynced = "";
       console.warn("[auth] Không đồng bộ được hồ sơ:", err);
@@ -357,6 +399,62 @@ export const useAuth = create<AuthStore>((set, get) => ({
 
   clearOAuthIssue: () => set({ oauthIssue: null }),
 }));
+
+/**
+ * Kéo tên + nhân vật của tài khoản Google (hàng `profiles` của chính mình, RLS cho đọc) về hồ sơ
+ * trên máy rồi hợp nhất bằng `mergeAccountProfile`. Thành công thì một lần cho mỗi tài khoản mỗi lần
+ * tải trang; lỗi mạng / Supabase tạm dừng / quá giờ → chỉ cảnh báo, lần `syncProfile` sau kéo lại.
+ */
+function pullAccountProfile(userId: string): Promise<void> {
+  if (pulledOk === userId) return Promise.resolve();
+  if (pulling?.userId === userId) return pulling.run;
+  const before = useProfile.getState().profile;
+  const run = (async () => {
+    try {
+      const sb = await client();
+      if (!sb) throw new Error("no-client");
+      const { data, error } = await withTimeout(
+        Promise.resolve(
+          sb.from("profiles").select("display_name, avatar").eq("id", userId).maybeSingle(),
+        ),
+      );
+      if (error) throw error;
+      // Đổi tài khoản trong lúc chờ → bỏ, lần kéo của tài khoản mới tự lo.
+      if (useAuth.getState().userId !== userId) return;
+      const local = useProfile.getState().profile;
+      const meta = profileMeta();
+      // Bản sửa tay chưa đẩy (dấu bền), hoặc vừa sửa tên / nhân vật trong lúc chờ → bản trên máy thắng.
+      const edited =
+        meta.editedFor === userId || local.name !== before.name || local.avatar !== before.avatar;
+      const merged = mergeAccountProfile(local, data, { userId, owner: meta.owner, edited });
+      pulledOk = userId;
+      if (merged.changed) adoptAccountProfile(merged.profile, userId);
+      else if (!merged.push) setProfileMeta({ owner: userId });
+      // Không chờ: `syncProfile` chờ chính lần kéo này xong.
+      if (merged.push) void useAuth.getState().syncProfile(merged.profile);
+    } catch (err) {
+      console.warn("[auth] Không đọc được hồ sơ tài khoản:", err);
+    }
+  })();
+  const entry = { userId, run };
+  pulling = entry;
+  void run.finally(() => {
+    if (pulling === entry) pulling = null;
+  });
+  return run;
+}
+
+/** Đã có hồ sơ tài khoản (kéo về được) chưa; chưa thì kéo / chờ lần đang kéo. */
+async function ensurePulled(userId: string): Promise<boolean> {
+  await pullAccountProfile(userId);
+  return pulledOk === userId;
+}
+
+// Có phiên Google (đọc phiên lúc mở app, quay về từ Google, đổi sang tài khoản khác) → kéo hồ sơ về.
+useAuth.subscribe((s, prev) => {
+  if (s.status !== "google" || !s.userId) return;
+  if (s.userId !== prev.userId || prev.status !== "google") void pullAccountProfile(s.userId);
+});
 
 /**
  * Lần quay về từ Google: mở thẳng màn Tài khoản (đọc một lần rồi xoá dấu). Đi từ trang quản trị thì

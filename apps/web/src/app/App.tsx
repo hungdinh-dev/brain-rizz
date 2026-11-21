@@ -1,12 +1,12 @@
 import { isChatPhase, type Phase } from "@brain-rizz/shared";
-import { LoaderCircleIcon } from "lucide-react";
 import { lazy, Suspense, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ChalkDefs } from "@/components/brand";
 import { ConnectionBanner } from "@/components/common/ConnectionBanner";
 import { LanguageToggle } from "@/components/common/LanguageToggle";
+import { ScreenSkeleton } from "@/components/common/ScreenSkeleton";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { TopLoadingBar } from "@/components/common/TopLoadingBar";
 import { Toaster } from "@/components/ui/sonner";
 import { HomeScreen } from "@/features/home";
 import { MotionToggle } from "@/features/motion";
@@ -55,19 +55,13 @@ const LeaderboardScreen = lazy(() =>
 );
 
 /*
- * Máy quay phụ kiện và Tủ đồ (CR-023, CR-024): chunk riêng kèm chữ 24 món / độ hiếm
- * (i18n/gacha.ts). Tủ đồ còn có tab Bạn đồng hành ghi điều kiện mở theo tên minigame nên tải thêm
- * chữ các màn một mình (kèm registry minigame).
+ * Máy quay phụ kiện (CR-023): chunk riêng kèm chữ 24 món / độ hiếm (i18n/gacha.ts). Tủ đồ đã gộp
+ * vào trang Hồ sơ (`/profile/accessories`), tab Phụ kiện tự tải lười trong ProfileScreen.
  */
 const GachaScreen = lazy(() =>
   Promise.all([import("@/features/gacha"), loadGachaLocales()]).then(([m]) => ({
     default: m.GachaScreen,
   })),
-);
-const WardrobeScreen = lazy(() =>
-  Promise.all([import("@/features/wardrobe"), loadGachaLocales(), loadSoloLocales()]).then(
-    ([m]) => ({ default: m.WardrobeScreen }),
-  ),
 );
 
 /*
@@ -86,7 +80,6 @@ const SOLO_SCREENS: Partial<Record<Screen, React.ComponentType>> = {
   account: AccountScreen,
   leaderboard: LeaderboardScreen,
   gacha: GachaScreen,
-  wardrobe: WardrobeScreen,
 };
 
 /** Pha cần tập trung: ẩn nút ngôn ngữ/theme/nhạc để nhường chỗ, nhạc nền nhỏ lại. */
@@ -173,15 +166,15 @@ export function App() {
           )}
           <ConnectionBanner />
           {phase ? (
-            <Suspense fallback={<ScreenLoading />}>
+            <Suspense fallback={<ScreenSkeleton />}>
               <PartyScreen phase={phase} />
             </Suspense>
           ) : SoloScreen ? (
-            <Suspense fallback={<ScreenLoading />}>
+            <Suspense fallback={<ScreenSkeleton />}>
               <SoloScreen />
             </Suspense>
           ) : admin ? (
-            <Suspense fallback={<ScreenLoading />}>
+            <Suspense fallback={<ScreenSkeleton />}>
               <AdminScreen />
             </Suspense>
           ) : (
@@ -190,18 +183,9 @@ export function App() {
         </div>
       </div>
       <ChalkTray />
+      {/* Thanh tải mảnh trên đầu trang: chunk màn lười (fallback ScreenSkeleton) và dữ liệu Supabase */}
+      <TopLoadingBar />
       <Toaster position="bottom-center" />
-    </div>
-  );
-}
-
-/** Đang tải chunk của màn (mạng chậm). */
-function ScreenLoading() {
-  const { t } = useTranslation();
-  return (
-    <div role="status" className="flex flex-1 items-center justify-center gap-2 text-chalk">
-      <LoaderCircleIcon aria-hidden className="size-6 motion-safe:animate-spin" />
-      {t("common.loading")}
     </div>
   );
 }

@@ -63,7 +63,7 @@ const CHALK = {
 } as const;
 
 /** Mảnh ghép ô: viền mực ngoài, ô tím nhóm Hình dung, đường chia ô mờ. */
-function Piece({ cells }: { cells: readonly Cell[] }) {
+export function Piece({ cells }: { cells: readonly Cell[] }) {
   const rects = cells.map(([x, y]) => (
     <rect key={`${x},${y}`} x={x} y={y} width={CELL} height={CELL} />
   ));
@@ -81,7 +81,7 @@ function Piece({ cells }: { cells: readonly Cell[] }) {
 }
 
 /** Thẻ giấy viền mực có bóng đổ. */
-function Card({ x, y }: { x: number; y: number }) {
+export function Card({ x, y }: { x: number; y: number }) {
   return (
     <>
       <rect x={x} y={y + 4} width={130} height={130} rx={16} className="fill-ink" />
@@ -99,7 +99,7 @@ function Card({ x, y }: { x: number; y: number }) {
 }
 
 /** Hộp 5 × 5 đã xếp kín (giấy, gạch chéo, đường chia ô), khoảng trống màu bảng viền phấn gạch đứt. */
-function Box() {
+export function Box() {
   const [left, top] = BOX;
   return (
     <>

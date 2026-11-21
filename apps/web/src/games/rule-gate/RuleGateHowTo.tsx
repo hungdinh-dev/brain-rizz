@@ -17,7 +17,7 @@ import {
 const CHALK = "filter-[url(#chalk)]";
 
 /** Đường viền vé (tâm (0, 0)): chữ nhật bo góc, khuyết nửa tròn giữa hai cạnh bên, như trong scene. */
-function ticketD(w: number, h: number, r = 12, notch = 9): string {
+export function ticketD(w: number, h: number, r = 12, notch = 9): string {
   const x0 = -w / 2;
   const y0 = -h / 2;
   const x1 = w / 2;
@@ -44,7 +44,7 @@ function Hat() {
 }
 
 /** Một bạn nhãn dán (viền trắng), tay không; neo giữa thân tại (x, y). */
-function Buddy({
+export function Buddy({
   species,
   hat,
   x,

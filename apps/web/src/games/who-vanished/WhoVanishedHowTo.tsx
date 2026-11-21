@@ -7,7 +7,17 @@ import { ITEM_ART, partKey } from "./items";
 const CHALK = "filter-[url(#chalk)]";
 
 /** Một vật vẽ từ bảng hình chung với scene (items.ts), viền mực. */
-function Item({ item, x, y, size }: { item: WhoVanishedItem; x: number; y: number; size: number }) {
+export function Item({
+  item,
+  x,
+  y,
+  size,
+}: {
+  item: WhoVanishedItem;
+  x: number;
+  y: number;
+  size: number;
+}) {
   return (
     <g
       transform={`translate(${x} ${y}) scale(${size})`}

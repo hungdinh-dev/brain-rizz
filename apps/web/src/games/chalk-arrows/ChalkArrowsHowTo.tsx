@@ -4,15 +4,15 @@ import { cn } from "@/lib/utils";
 const CHALK = "filter-[url(#chalk)]";
 
 /** Phấn vàng của game (cùng mã với scene; phấn trắng dùng token `chalk`). */
-const YELLOW = "#f2b632";
+export const YELLOW = "#f2b632";
 
 /** Mũi tên chỉ LÊN, cùng hình với scene (đơn vị khung). */
-const SOLID = "M0 56 L0 -54 M-30 -26 L0 -58 L30 -26";
-const DOUBLE = "M-11 56 L-11 -24 M11 56 L11 -24 M0 -60 L32 -24 L-32 -24 Z";
-const BUTTON_ARROW = "M0 15 L0 -15 M-11 -4 L0 -15 L11 -4";
+export const SOLID = "M0 56 L0 -54 M-30 -26 L0 -58 L30 -26";
+export const DOUBLE = "M-11 56 L-11 -24 M11 56 L11 -24 M0 -60 L32 -24 L-32 -24 Z";
+export const BUTTON_ARROW = "M0 15 L0 -15 M-11 -4 L0 -15 L11 -4";
 const TICK = "M-12 1 L-3 10 L13 -9";
 const GUIDE = "M0 0 L44 0 M34 -10 L44 0 L34 10";
-const GUIDE_SMALL = "M0 0 L22 0 M15 -7 L22 0 L15 7";
+export const GUIDE_SMALL = "M0 0 L22 0 M15 -7 L22 0 L15 7";
 /** Chấm bụi phấn sau mũi tên trượt LÊN (nằm phía dưới). */
 const DUST = [
   [-8, 70, 4.5, 0.7],
@@ -23,10 +23,10 @@ const DUST = [
   [3, 121, 1.8, 0.22],
 ] as const;
 
-type Tone = "white" | "yellow";
+export type Tone = "white" | "yellow";
 
 /** Vệt bụi phấn phía sau mũi tên trượt LÊN; xoay để đổi hướng trượt. */
-function Trail({ tone }: { tone: Tone }) {
+export function Trail({ tone }: { tone: Tone }) {
   const color = tone === "white" ? undefined : YELLOW;
   const colorClass = tone === "white" ? "stroke-chalk fill-chalk" : undefined;
   return (

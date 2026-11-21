@@ -7,11 +7,11 @@ import { ChalkChip } from "@/components/common/ChalkChip";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { loadProfile } from "@/features/home";
 import { useReducedMotion } from "@/features/motion";
 import { useClaimDaily } from "@/hooks/use-claim-daily";
 import { DESKTOP_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { useNumberFormat } from "@/hooks/use-number-format";
+import { currentProfile } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 import {
   gachaPull,
@@ -24,6 +24,7 @@ import {
 } from "@/net/gacha-api";
 import { useAuth } from "@/stores/auth.store";
 import { useNav } from "@/stores/nav.store";
+import { useLoadingWhile } from "@/stores/top-loading.store";
 import { useWallet, type WalletStatus } from "@/stores/wallet.store";
 import { GachaMachine } from "./components/GachaMachine";
 import { OddsPanel, RatesList } from "./components/OddsPanel";
@@ -70,7 +71,7 @@ export function GachaScreen() {
   const status = useWallet((s) => s.status);
   const storeWallet = useWallet((s) => s.wallet);
   const items = useWallet((s) => s.items);
-  const profile = useMemo(() => loadProfile(), []);
+  const profile = useMemo(() => currentProfile(), []);
   const { claim, claiming } = useClaimDaily(profile);
 
   const [phase, setPhase] = useState<Phase>("idle");
@@ -133,6 +134,8 @@ export function GachaScreen() {
 
   const offline = status === "offline";
   const loading = status === "loading";
+  // Ví đang đọc lần đầu (khung xương số dư + bảo hiểm) → thanh tải trên đầu trang.
+  useLoadingWhile(loading);
   const hasWallet = !!storeWallet && (status === "ok" || status === "no-session");
   const shown = walletOnScreen({ wallet: storeWallet, frozen, batch, openedAll });
   const balance = shown.wallet?.balance ?? 0;
@@ -238,7 +241,8 @@ export function GachaScreen() {
     setOpenedAll(true);
     setFrozen(null);
   }, []);
-  const tryOn = (item: PullResult) => go({ screen: "wardrobe", tryOn: item.itemId });
+  const tryOn = (item: PullResult) =>
+    go({ screen: "profile", tab: "accessories", tryOn: item.itemId }, { profileReturn: "gacha" });
 
   // Đóng màn mở quà (điện thoại: nội dung màn đổi lại; máy tính: hộp thoại đóng) → tiêu điểm về
   // nút quay đã mở nó, không rơi về <body>.
@@ -292,7 +296,7 @@ export function GachaScreen() {
     <Button
       variant="chalk"
       className="h-11 gap-1.5 px-3.5 text-[15px]"
-      onClick={() => go("wardrobe")}
+      onClick={() => go({ screen: "profile", tab: "accessories" }, { profileReturn: "gacha" })}
     >
       <ShirtIcon aria-hidden className="size-4.5" />
       {t("gacha.wardrobe")}

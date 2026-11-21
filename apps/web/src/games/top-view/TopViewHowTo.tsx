@@ -75,7 +75,13 @@ function Slab() {
 }
 
 /** Thẻ hình chiếu 130×130: lưới 3×3 ô 24 px, ô tô tím, vạch cam dưới lưới. */
-function ViewCard({ x, cells }: { x: number; cells: readonly (readonly [number, number])[] }) {
+export function ViewCard({
+  x,
+  cells,
+}: {
+  x: number;
+  cells: readonly (readonly [number, number])[];
+}) {
   const gx = x + 29;
   const gy = 222;
   return (
@@ -132,13 +138,13 @@ function ViewCard({ x, cells }: { x: number; cells: readonly (readonly [number, 
 }
 
 /** Hình chiếu đúng: chữ L (cột trái + ô góc dưới), và bản lật gương của nó. */
-const L_SHAPE = [
+export const L_SHAPE = [
   [0, 0],
   [0, 1],
   [0, 2],
   [1, 2],
 ] as const;
-const L_MIRRORED = [
+export const L_MIRRORED = [
   [2, 0],
   [2, 1],
   [1, 2],
@@ -154,40 +160,7 @@ const L_MIRRORED = [
 export function TopViewHowTo({ className }: { className?: string }) {
   return (
     <svg viewBox="4 4 552 352" aria-hidden className={cn("overflow-visible", className)}>
-      {/* Thẻ mô hình + huy hiệu con mắt và mũi tên chỉ xuống */}
-      <rect x={200} y={22} width={160} height={136} rx={16} className="fill-ink" />
-      <rect
-        x={200}
-        y={18}
-        width={160}
-        height={136}
-        rx={16}
-        className="fill-paper stroke-ink"
-        strokeWidth={5}
-      />
-      <circle cx={280} cy={18} r={13} fill={SLAB_TOP} className="stroke-ink" strokeWidth={2} />
-      <path
-        d="M268 18 C271.5 12.5 275.5 11 280 11 C284.5 11 288.5 12.5 292 18 C288.5 23.5 284.5 25 280 25 C275.5 25 271.5 23.5 268 18 Z"
-        className="fill-paper stroke-ink"
-        strokeWidth={1.8}
-        strokeLinejoin="round"
-      />
-      <circle cx={280} cy={18} r={3.5} className="fill-visualize stroke-ink" strokeWidth={1.2} />
-      <circle cx={280} cy={18} r={1.3} className="fill-ink" />
-      <path
-        d="M280 35 L280 46 M275.5 41.5 L280 47 L284.5 41.5"
-        fill="none"
-        className="stroke-ink"
-        strokeWidth={2.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <g transform="translate(280 90)">
-        <Slab />
-        {CUBES.map(([x, y]) => (
-          <Cube key={`${x},${y}`} x={x} y={y} />
-        ))}
-      </g>
+      <ModelCard />
 
       {/* Hai thẻ hình chiếu */}
       <ViewCard x={110} cells={L_SHAPE} />
@@ -232,5 +205,49 @@ export function TopViewHowTo({ className }: { className?: string }) {
         <path d="M-4 0 L-15 0 M-11 -4 L-15 0 L-11 4 M4 0 L15 0 M11 -4 L15 0 L11 4" />
       </g>
     </svg>
+  );
+}
+
+/**
+ * Thẻ mô hình (160 × 136 tại 200, 18): bốn cột khối xếp chữ L trên bệ 3×3 (đỉnh sau bệ ở 280, 90),
+ * huy hiệu con mắt + mũi tên chỉ nhìn từ trên xuống. Dùng chung với hình động `TopViewDemo`.
+ */
+export function ModelCard() {
+  return (
+    <>
+      <rect x={200} y={22} width={160} height={136} rx={16} className="fill-ink" />
+      <rect
+        x={200}
+        y={18}
+        width={160}
+        height={136}
+        rx={16}
+        className="fill-paper stroke-ink"
+        strokeWidth={5}
+      />
+      <circle cx={280} cy={18} r={13} fill={SLAB_TOP} className="stroke-ink" strokeWidth={2} />
+      <path
+        d="M268 18 C271.5 12.5 275.5 11 280 11 C284.5 11 288.5 12.5 292 18 C288.5 23.5 284.5 25 280 25 C275.5 25 271.5 23.5 268 18 Z"
+        className="fill-paper stroke-ink"
+        strokeWidth={1.8}
+        strokeLinejoin="round"
+      />
+      <circle cx={280} cy={18} r={3.5} className="fill-visualize stroke-ink" strokeWidth={1.2} />
+      <circle cx={280} cy={18} r={1.3} className="fill-ink" />
+      <path
+        d="M280 35 L280 46 M275.5 41.5 L280 47 L284.5 41.5"
+        fill="none"
+        className="stroke-ink"
+        strokeWidth={2.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <g transform="translate(280 90)">
+        <Slab />
+        {CUBES.map(([x, y]) => (
+          <Cube key={`${x},${y}`} x={x} y={y} />
+        ))}
+      </g>
+    </>
   );
 }

@@ -10,7 +10,7 @@ import { useNav } from "@/stores/nav.store";
 import { IntroScreen } from "./components/IntroScreen";
 import { MenuScreen } from "./components/MenuScreen";
 import { ProfileScreen } from "./components/ProfileScreen";
-import { loadProfile, type Profile, saveProfile } from "./profile";
+import { type Profile, saveProfile, useProfile } from "./profile";
 
 type PartyAction = (profile: Profile) => Promise<void>;
 
@@ -30,7 +30,9 @@ export function HomeScreen() {
   const profileReturn = useNav((s) => s.profileReturn);
   // Hồ sơ mở thay cho màn cần hồ sơ (link sâu): xong thì thay mục lịch sử bằng màn đó.
   const profileRedirect = useNav((s) => s.profileRedirect);
-  const [profile, setProfile] = useState(loadProfile);
+  // Hồ sơ dùng chung (store): hồ sơ kéo về từ tài khoản Google hiện ngay, không cần tải lại trang.
+  const profile = useProfile((s) => s.profile);
+  const accountRev = useProfile((s) => s.accountRev);
   // Bấm Tạo/Vào phòng, Luyện tập, Kiểm tra não khi chưa có tên → điền hồ sơ trước, xong thì làm
   // tiếp việc đang dở.
   const [pending, setPending] = useState<PartyAction | null>(null);
@@ -100,10 +102,11 @@ export function HomeScreen() {
   }
 
   function confirmProfile(next: Profile) {
+    // Đổi tên tay: tên này thắng tên trên tài khoản ở lần đồng bộ kế tiếp (kể cả khi lần này lỗi mạng).
+    const edited = next.name !== profile.name;
     saveProfile(next);
-    setProfile(next);
     // Đã có phiên tài khoản thì đồng bộ tên + nhân vật lên bảng xếp hạng (FR-MR-11).
-    void useAuth.getState().syncProfile(next);
+    void useAuth.getState().syncProfile(next, { edited });
     if (pending) {
       // /profile được đẩy trên mục menu (`/` hoặc `/r/<mã>`): quay lại đúng mục đó, không thay
       // /profile bằng một mục `/` thứ hai (Back đầu tiên sẽ như không làm gì). Về tới menu thì làm
@@ -122,7 +125,6 @@ export function HomeScreen() {
   function choosePet(pet: PetId) {
     const next = { ...profile, avatar: pet };
     saveProfile(next);
-    setProfile(next);
     void useAuth.getState().syncProfile(next);
     toast(t("pets.picked", { name: t(`characters.${pet}.name`) }), { duration: 2_200 });
   }
@@ -132,6 +134,8 @@ export function HomeScreen() {
   if (step === "profile") {
     return (
       <ProfileScreen
+        // Hồ sơ tài khoản về tới khi đang ở màn này → điền lại ô tên / nhân vật theo tài khoản.
+        key={accountRev}
         profile={profile}
         onBack={() => {
           setPending(null);

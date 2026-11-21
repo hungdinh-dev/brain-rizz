@@ -114,7 +114,6 @@ export const enSolo: SoloLocaleMessages = {
     title: "Account & history",
     editProfile: "Edit profile",
     guest: "Guest · this device only",
-    linkedAs: "Linked to Google · {{email}}",
     linked: "Linked to Google",
     linkHint:
       "Link Google to keep your history when you switch devices or clear browser data. Your current history stays.",

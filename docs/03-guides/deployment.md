@@ -22,6 +22,8 @@ Web client là file tĩnh (deploy lên CDN miễn phí). Game server là một t
 
 **Thứ tự deploy:** (1) chạy đủ migration Supabase ([Cài đặt Supabase](supabase-setup.md)) → (2) game server trên Render, lấy địa chỉ `https://<tên>.onrender.com` → (3) web trên Cloudflare Pages với `VITE_SERVER_URL` là địa chỉ đó → (4) Supabase: Site URL + Redirect URLs theo domain `*.pages.dev` ([mục 5](supabase-setup.md#5-site-url-và-redirect-urls)) → (5) Google: thêm domain vào Authorized domains / JavaScript origins, Publish app nếu muốn ai cũng đăng nhập Google được ([mục 4](supabase-setup.md)) → (6) kiểm tra ở cuối trang.
 
+**Migration mới chờ chạy (2026-11-21):** `20261121000000_public_disabled_games.sql` (RPC `party_disabled_games`, [CR-027](../00-tracking/change-requests.md#cr-027)) — chạy lúc nào cũng được, trước hay sau khi deploy web, không cần deploy lại server; xem [Cài đặt Supabase mục 11](supabase-setup.md#11-ẩn-game-bị-tắt-ở-luyện-tập-cr-027). Chưa chạy thì Luyện tập vẫn hiện cả game quản trị viên đã tắt.
+
 Cách tính: shared-cpu-1x 512 MB ở Ashburn khoảng 3,69 USD/tháng nếu chạy liên tục ([Temps](https://temps.sh/blog/fly-io-pricing-2026)), giá Singapore nhân 1,269 ([Fly.io](https://fly.io/pricing.md)) ≈ 4,7 USD. Fly tính tiền theo giây lúc máy chạy; máy đã tắt chỉ tính phí ổ đĩa 0,15 USD/GB/tháng ([Fly.io](https://fly.io/pricing.md)). Fly hiện không còn gói miễn phí cho tài khoản mới.
 
 ## So sánh các lựa chọn miễn phí và giá rẻ cho game server
@@ -155,4 +157,5 @@ Hạn chế gói Free ([Render](https://render.com/docs/free)):
 - [ ] Mở web trên điện thoại 4G (không dùng Wi-Fi), tạo phòng, gửi link cho một người khác vào được.
 - [ ] Chơi trọn một trận 3 vòng; khoá màn hình 10 giây giữa trận rồi mở lại vẫn ở trong phòng.
 - [ ] Đăng nhập Google từ bản deploy quay về đúng trang (không về localhost); quản trị viên mở được `/admin`; nhận quà phấn mỗi ngày và quay thử máy quay được.
+- [ ] Game đang tắt ở `/admin` → **Game** không hiện ở Luyện tập (cần migration `20261121000000_public_disabled_games.sql`).
 - [ ] Nếu đã cấu hình Supabase: log server (Render → Logs, hoặc `fly logs`) không có dòng `[store] Chưa đặt SUPABASE_URL`; làm một lượt Kiểm tra não thấy "đã lưu" và có dòng mới trong `brain_tests` (xem [mục Kiểm tra nhanh](supabase-setup.md#7-kiểm-tra-nhanh)).

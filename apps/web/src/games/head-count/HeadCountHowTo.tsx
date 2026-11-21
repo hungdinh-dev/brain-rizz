@@ -51,7 +51,7 @@ function ChalkLine({ d, className }: { d: string; className?: string }) {
 }
 
 /** Bàn (gốc ở giữa mép trên mặt bàn), cỡ một nửa bàn trong scene. */
-function Desk({ x, y }: { x: number; y: number }) {
+export function Desk({ x, y }: { x: number; y: number }) {
   return (
     <g transform={`translate(${x} ${y})`} strokeWidth={2} className="stroke-ink">
       <rect x={-23} y={3.5} width={46} height={17} rx={3} className="fill-wood" />

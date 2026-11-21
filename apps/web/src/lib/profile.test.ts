@@ -1,6 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { STORAGE_KEYS } from "@/lib/storage";
-import { loadProfile, saveAccessories, saveProfile } from "./profile";
+import {
+  adoptAccountProfile,
+  loadProfile,
+  mergeAccountProfile,
+  type Profile,
+  saveAccessories,
+  saveProfile,
+  useProfile,
+} from "./profile";
 
 /** localStorage giả trong bộ nhớ (vitest chạy môi trường node, không có DOM). */
 function memoryStorage() {
@@ -153,5 +161,164 @@ describe("phụ kiện trong hồ sơ (CR-023)", () => {
     });
     expect(saveAccessories([])).toEqual([]);
     expect(loadProfile().accessories).toEqual([]);
+  });
+});
+
+describe("mergeAccountProfile (hồ sơ theo tài khoản)", () => {
+  const local: Profile = {
+    name: "Lan",
+    colorIndex: 2,
+    avatar: "op",
+    difficulty: 3,
+    accessories: ["crown"],
+  };
+
+  it("tài khoản có tên → tên + nhân vật của tài khoản thắng, giữ màu / độ khó / phụ kiện", () => {
+    expect(mergeAccountProfile(local, { display_name: "Hùng", avatar: "mochi" })).toEqual({
+      profile: { ...local, name: "Hùng", avatar: "mochi" },
+      changed: true,
+      push: false,
+    });
+  });
+
+  it("máy chưa có tên (máy mới, xoá dữ liệu) → nhận tên tài khoản", () => {
+    const empty: Profile = { ...local, name: "" };
+    const merged = mergeAccountProfile(empty, { display_name: "  Hùng  ", avatar: "khoi" });
+    expect(merged.profile.name).toBe("Hùng");
+    expect(merged.changed).toBe(true);
+  });
+
+  it("nhân vật lạ / sai kiểu từ tài khoản → giữ nhân vật trên máy", () => {
+    expect(
+      mergeAccountProfile(local, { display_name: "Hùng", avatar: "dragon" }).profile.avatar,
+    ).toBe("op");
+    expect(mergeAccountProfile(local, { display_name: "Hùng", avatar: 7 }).profile.avatar).toBe(
+      "op",
+    );
+  });
+
+  it("trùng hồ sơ trên máy → không đổi, không đẩy", () => {
+    expect(mergeAccountProfile(local, { display_name: "Lan", avatar: "op" })).toEqual({
+      profile: local,
+      changed: false,
+      push: false,
+    });
+  });
+
+  it("tài khoản chưa có tên → giữ hồ sơ trên máy, máy có tên thì đẩy lên", () => {
+    for (const remote of [null, undefined, {}, { display_name: "   " }, { display_name: 42 }]) {
+      expect(mergeAccountProfile(local, remote)).toEqual({
+        profile: local,
+        changed: false,
+        push: true,
+      });
+    }
+    expect(mergeAccountProfile({ ...local, name: "" }, null).push).toBe(false);
+  });
+
+  it("tên tài khoản quá dài → cắt theo MAX_NAME_LENGTH", () => {
+    const merged = mergeAccountProfile(local, { display_name: "x".repeat(40) });
+    expect(merged.profile.name.length).toBeLessThanOrEqual(16);
+  });
+});
+
+describe("useProfile (store hồ sơ dùng chung)", () => {
+  it("saveProfile cập nhật store ngay (màn đang mở thấy hồ sơ mới)", () => {
+    saveProfile({ name: "Chi", colorIndex: 1, avatar: "lua", difficulty: 2, accessories: [] });
+    expect(useProfile.getState().profile.name).toBe("Chi");
+    saveAccessories(["halo"]);
+    expect(useProfile.getState().profile.accessories).toEqual(["halo"]);
+  });
+
+  it("localStorage bị chặn → store vẫn nhớ hồ sơ trong phiên", () => {
+    vi.stubGlobal("localStorage", {
+      getItem() {
+        throw new Error("blocked");
+      },
+      setItem() {
+        throw new Error("blocked");
+      },
+    });
+    saveProfile({ name: "Chi", colorIndex: 0, avatar: "khoi", difficulty: 1, accessories: [] });
+    expect(useProfile.getState().profile.name).toBe("Chi");
+  });
+
+  it("adoptAccountProfile lưu hồ sơ và tăng accountRev", () => {
+    const rev = useProfile.getState().accountRev;
+    adoptAccountProfile({
+      name: "Hùng",
+      colorIndex: 0,
+      avatar: "mochi",
+      difficulty: 1,
+      accessories: [],
+    });
+    expect(loadProfile().name).toBe("Hùng");
+    expect(useProfile.getState().profile.avatar).toBe("mochi");
+    expect(useProfile.getState().accountRev).toBe(rev + 1);
+  });
+});
+
+describe("mergeAccountProfile: dấu sửa tay + chủ hồ sơ (máy dùng chung)", () => {
+  const local: Profile = {
+    name: "Lan",
+    colorIndex: 2,
+    avatar: "op",
+    difficulty: 3,
+    accessories: ["crown"],
+  };
+  const remote = { display_name: "Hùng", avatar: "mochi" };
+
+  it("sửa tay chưa đẩy → bản trên máy thắng tên tài khoản, đẩy lên", () => {
+    expect(mergeAccountProfile(local, remote, { userId: "u1", owner: "u1", edited: true })).toEqual(
+      {
+        profile: local,
+        changed: false,
+        push: true,
+      },
+    );
+  });
+
+  it("tài khoản chưa có tên: hồ sơ chưa gắn ai / gắn đúng tài khoản → đẩy lên", () => {
+    expect(mergeAccountProfile(local, null, { userId: "u1", owner: null }).push).toBe(true);
+    expect(mergeAccountProfile(local, null, { userId: "u1", owner: "u1" }).push).toBe(true);
+  });
+
+  it("tài khoản chưa có tên, hồ sơ của tài khoản khác → không đẩy, xoá tên + phụ kiện, giữ phần còn lại", () => {
+    expect(mergeAccountProfile(local, null, { userId: "u1", owner: "u0" })).toEqual({
+      profile: { ...local, name: "", accessories: [] },
+      changed: true,
+      push: false,
+    });
+  });
+
+  it("tài khoản có tên, hồ sơ của tài khoản khác → nhận tên tài khoản, bỏ phụ kiện của người trước", () => {
+    expect(mergeAccountProfile(local, remote, { userId: "u1", owner: "u0" }).profile).toEqual({
+      ...local,
+      name: "Hùng",
+      avatar: "mochi",
+      accessories: [],
+    });
+  });
+});
+
+describe("ghép hồ sơ từ store (localStorage bị chặn)", () => {
+  it("đeo phụ kiện không xoá tên", () => {
+    saveProfile({ name: "Chi", colorIndex: 0, avatar: "op", difficulty: 2, accessories: [] });
+    vi.stubGlobal("localStorage", {
+      getItem() {
+        throw new Error("blocked");
+      },
+      setItem() {
+        throw new Error("blocked");
+      },
+    });
+    saveAccessories(["halo"]);
+    expect(useProfile.getState().profile).toEqual({
+      name: "Chi",
+      colorIndex: 0,
+      avatar: "op",
+      difficulty: 2,
+      accessories: ["halo"],
+    });
   });
 });

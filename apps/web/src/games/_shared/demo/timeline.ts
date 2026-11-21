@@ -128,6 +128,28 @@ export const questionOut = (at: number) => track().to(at, 160, { s: 0.96, o: 0 }
 /** Câu mới vào: 0,96 → 1 + hiện trong 200 ms. */
 export const questionIn = (at: number) => track({ s: 0.96, o: 0 }).to(at, 200, { s: 1, o: 1 });
 
+/**
+ * Vật bay từ thẻ vào chỗ của nó (hạt vào chỗ trống, mảnh vào ô…): ẩn ở độ lệch `from` (so với chỗ
+ * đích, cỡ `from.s`), hiện ngay lúc `at` rồi lướt về (0, 0) cỡ 1 trong `dur` ms (glide).
+ */
+export const flyIn = (at: number, from: { x: number; y: number; s: number }, dur = 320) =>
+  track({ ...from, o: 0 })
+    .jump(at, { o: 1 })
+    .to(at + 1, dur, { x: 0, y: 0, s: 1 }, "glide");
+
+/**
+ * Bật/tắt nhiều lần (đèn, trống sáng, số trong ô tổng): mỗi khoảng `[bật, tắt?]` hiện ngay lúc bật,
+ * mờ hết trong `out` ms bắt đầu lúc tắt (mặc định 1 ms = tắt ngay); thiếu mốc tắt thì giữ tới hết vòng.
+ */
+export function flashes(spans: readonly (readonly [on: number, off?: number])[], out = 1) {
+  const t = track({ o: 0 });
+  for (const [on, off] of spans) {
+    t.jump(on, { o: 1 });
+    if (off !== undefined) t.to(off, out, { o: 0 }, "linear");
+  }
+  return t;
+}
+
 /** Mờ cả sân khấu: vào 0–300, ra 300 ms bắt đầu lúc `T − 600` (giữ khung cuối, nghỉ 300). */
 export function sceneTrack(T: number): Track {
   return track({ o: 0 })
@@ -169,10 +191,12 @@ export interface HandScript {
   moves: readonly HandMove[];
   /** Mốc bắt đầu mỗi lần nhấn (cùng lúc sóng chạm). */
   taps: readonly number[];
+  /** Ấn giữ (vuốt, giữ nút): nhấn lúc `press`, giữ nguyên, nhả lúc `release` (≥ press + 90). */
+  holds?: readonly (readonly [press: number, release: number])[];
 }
 
 /** Ba làn của con trỏ: vị trí (`hand`), nhấn (`press`, chuột `pressMouse`) và bóng (`shadow`). */
-export function handTracks({ moves, taps }: HandScript) {
+export function handTracks({ moves, taps, holds = [] }: HandScript) {
   const hand = track(HAND_OFF);
   for (const [at, dur, target] of moves) {
     const to = target
@@ -183,11 +207,15 @@ export function handTracks({ moves, taps }: HandScript) {
   const press = track();
   const pressMouse = track();
   const shadow = track();
-  for (const at of taps) {
-    // Nhấn 90 ms (settle) rồi bật lại 160 ms (pop); bóng sát lại (2, 3) và nhạt còn 45 %.
-    press.to(at, 90, { s: 0.86 }).to(at + 90, 160, { s: 1 }, "pop");
-    pressMouse.to(at, 90, { s: 0.9 }).to(at + 90, 160, { s: 1 }, "pop");
-    shadow.to(at, 90, { x: -3, y: -4, o: 0.45 }).to(at + 90, 160, { x: 0, y: 0, o: 1 });
+  // Một lần chạm = ấn giữ đúng 90 ms; gộp rồi xếp theo thời gian vì làn không được lùi.
+  const presses = [...taps.map((at) => [at, at + 90] as const), ...holds].sort(
+    (a, b) => a[0] - b[0],
+  );
+  for (const [at, release] of presses) {
+    // Nhấn 90 ms (settle), giữ tới lúc nhả, bật lại 160 ms (pop); bóng sát lại (2, 3) và nhạt còn 45 %.
+    press.to(at, 90, { s: 0.86 }).to(release, 160, { s: 1 }, "pop");
+    pressMouse.to(at, 90, { s: 0.9 }).to(release, 160, { s: 1 }, "pop");
+    shadow.to(at, 90, { x: -3, y: -4, o: 0.45 }).to(release, 160, { x: 0, y: 0, o: 1 });
   }
   return {
     hand: hand.build(),
@@ -264,6 +292,13 @@ export function sample(stops: Track, ms: number): Pose {
   return (stops[stops.length - 1] as Stop).pose;
 }
 
+/** Tư thế của làn `lane` trong kịch bản ở mốc `ms`; thiếu làn thì ném lỗi (dùng trong test). */
+export function poseAt(script: DemoScript, lane: string, ms: number): Pose {
+  const stops = script.tracks[lane];
+  if (!stops) throw new Error(`${script.id}: thiếu làn ${lane}`);
+  return sample(stops, ms);
+}
+
 /** Vòng lặp thứ mấy (từ 0) và mốc trong vòng sau `elapsed` ms; `done` khi đã chạy đủ `loops` vòng. */
 export function loopAt(elapsed: number, T: number, loops = Number.POSITIVE_INFINITY) {
   const total = loops * T;
@@ -306,9 +341,22 @@ export function keyframesCss(name: string, stops: Track, T: number): string {
   return `@keyframes ${name}{${frames.join("")}}`;
 }
 
+/**
+ * Tên làn khung tự dựng trong `defineScript`, game KHÔNG được đặt trùng (sẽ ném lỗi):
+ * - `scene`: mờ vào/ra cả sân khấu;
+ * - `s1`, `s2`, `s3`: số trên huy hiệu bước;
+ * - `hand` (vị trí tay), `hp` / `hpm` (nhấn tay / chuột), `hs` (bóng tay): con trỏ, dựng từ `hand`.
+ * Ấn giữ (vuốt, giữ nút) khai báo bằng `hand.holds`, không ghi đè `hp`/`hpm`/`hs`.
+ */
+export const RESERVED_LANES = ["scene", "s1", "s2", "s3", "hand", "hp", "hpm", "hs"] as const;
+
 /** Kịch bản một game: vòng lặp T, mốc 3 bước và các làn (khoá = tên lớp `dk-<khoá>` trong JSX). */
 export interface DemoScript {
-  /** Tiền tố ngắn, duy nhất giữa các game (tên keyframes `dk-<id>-<làn>`). */
+  /**
+   * Tiền tố ngắn, duy nhất giữa các game (tên keyframes `dk-<id>-<làn>`, thẻ `<style href="demo-<id>">`).
+   * Không được là `base` (trùng `demo-base` của khung) và không là `<id khác>-…` để tên keyframes
+   * hai game không thể trùng; test `demo-scripts.test.ts` kiểm cả 30 game.
+   */
   id: string;
   T: number;
   steps: StepStarts;
@@ -317,7 +365,8 @@ export interface DemoScript {
 
 /**
  * Dựng kịch bản: thêm làn chung `scene` (mờ vào/ra), `s1`–`s3` (huy hiệu bước) và con trỏ
- * (`hand`, `hp`, `hpm`, `hs`) từ `hand`.
+ * (`hand`, `hp`, `hpm`, `hs`) từ `hand`. Làn của game trùng tên dành sẵn (`RESERVED_LANES`)
+ * thì ném lỗi.
  */
 export function defineScript(script: {
   id: string;
@@ -333,6 +382,9 @@ export function defineScript(script: {
     Object.assign(tracks, { hand: h.hand, hp: h.press, hpm: h.pressMouse, hs: h.shadow });
   }
   for (const [key, value] of Object.entries(script.tracks)) {
+    if ((RESERVED_LANES as readonly string[]).includes(key)) {
+      throw new Error(`${script.id}: làn "${key}" là tên dành sẵn của khung diễn`);
+    }
     tracks[key] = value instanceof TrackBuilder ? value.build() : value;
   }
   for (const [key, stops] of Object.entries(tracks)) checkTrack(stops, script.T, key);

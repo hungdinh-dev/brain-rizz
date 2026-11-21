@@ -5,11 +5,14 @@ import {
   cubicBezier,
   defineScript,
   EASE_POINTS,
+  flashes,
+  flyIn,
   HAND_OFF,
   handTracks,
   keyframesCss,
   loopAt,
   popIn,
+  RESERVED_LANES,
   ripple,
   sample,
   sceneTrack,
@@ -67,6 +70,21 @@ describe("dựng làn", () => {
     expect(sample(t, 1099).o).toBe(0);
     expect(sample(t, 1101).o).toBeCloseTo(0.95);
     expect(sample(t, 1550)).toMatchObject({ sx: 1.3, o: 0 });
+  });
+
+  it("bay vào: ẩn ở độ lệch, hiện ngay lúc chạm, lướt về chỗ", () => {
+    const t = flyIn(1000, { x: 40, y: -20, s: 0.5 }).build();
+    expect(sample(t, 999)).toMatchObject({ x: 40, y: -20, sx: 0.5, o: 0 });
+    expect(sample(t, 1001)).toMatchObject({ x: 40, y: -20, o: 1 });
+    expect(sample(t, 1321)).toMatchObject({ x: 0, y: 0, sx: 1, sy: 1, o: 1 });
+  });
+
+  it("bật/tắt: hiện ngay, tắt ngay hoặc mờ dần; thiếu mốc tắt thì giữ", () => {
+    const t = flashes([[100, 300], [500]]).build();
+    expect([50, 150, 302, 600, 4000].map((ms) => sample(t, ms).o)).toEqual([0, 1, 0, 1, 1]);
+    const slow = flashes([[100, 220]], 80).build();
+    expect(sample(slow, 260).o).toBeCloseTo(0.5);
+    expect(sample(slow, 300).o).toBe(0);
   });
 
   it("nảy vào từ 0,2 tới 1 trong 240 ms", () => {
@@ -128,6 +146,21 @@ describe("con trỏ", () => {
     expect(sample(h.press, 1350).sx).toBe(1);
     expect(sample(h.shadow, 1190)).toMatchObject({ x: -3, y: -4, o: 0.45 });
   });
+
+  it("ấn giữ: nhấn như chạm, giữ tới lúc nhả rồi bật lại; chạm và giữ xen nhau", () => {
+    const g = handTracks({ moves: [], taps: [2500], holds: [[1000, 1800]] });
+    expect(sample(g.press, 1090).sx).toBe(0.86);
+    expect(sample(g.press, 1800).sx).toBe(0.86);
+    expect(sample(g.press, 1960).sx).toBe(1);
+    expect(sample(g.pressMouse, 1500).sx).toBe(0.9);
+    expect(sample(g.shadow, 1500)).toMatchObject({ x: -3, y: -4, o: 0.45 });
+    expect(sample(g.press, 2590).sx).toBe(0.86);
+    // Chạm = ấn giữ đúng 90 ms.
+    const tap = handTracks({ moves: [], taps: [1100] });
+    const hold = handTracks({ moves: [], taps: [], holds: [[1100, 1190]] });
+    expect(hold.press).toEqual(tap.press);
+    expect(hold.shadow).toEqual(tap.shadow);
+  });
 });
 
 describe("vòng lặp", () => {
@@ -169,5 +202,13 @@ describe("sinh CSS", () => {
     expect(css).toContain(".demo-zz .dk{animation-duration:3000ms}");
     expect(css).toContain(".demo-zz .dk-a{animation-name:dk-zz-a}");
     expect(css).toContain("@keyframes dk-zz-scene{");
+  });
+
+  it("làn của game trùng tên dành sẵn thì báo lỗi", () => {
+    for (const lane of RESERVED_LANES) {
+      expect(() =>
+        defineScript({ id: "zz", T: 3000, steps: [0, 1000, 2000], tracks: { [lane]: popIn(500) } }),
+      ).toThrow(lane);
+    }
   });
 });

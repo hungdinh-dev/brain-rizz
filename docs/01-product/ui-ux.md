@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Thiết kế — phần giao diện và trải nghiệm |
-| Phiên bản tài liệu | 1.12 · 2026-11-20 — phòng chờ máy tính 4 × 3, màn lớn thẻ to (mục 6.8); 1.11: phòng chờ luôn hiện đủ 12 ô; 1.10: máy quay phụ kiện, tủ đồ, thú khoá, 24 phụ kiện theo [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024) |
+| Phiên bản tài liệu | 1.13 · 2026-11-21 — thanh tải + khung xương (mục 6.13, [CR-025](../00-tracking/change-requests.md#cr-025)), Tủ đồ gộp vào Hồ sơ (mục 6.12, [CR-026](../00-tracking/change-requests.md#cr-026)), hướng dẫn động đủ 30 game (mục 6.11); 1.12: phòng chờ máy tính 4 × 3, màn lớn thẻ to (mục 6.8); 1.11: phòng chờ luôn hiện đủ 12 ô; 1.10: máy quay phụ kiện, tủ đồ, thú khoá, 24 phụ kiện theo [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024) |
 | Bản mẫu (canvas) | **[Brain Rizz — Màn chờ & Menu](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ)** (7 trang: Màn chờ & luồng trận · Minigame · Một mình & tài khoản · Quản trị · Yêu thích & hướng dẫn động · Nhân vật · Phấn & phụ kiện) |
 | Liên quan | [Thiết kế game](game-design.md), [ADR 0006 — shadcn & token](../02-architecture/decisions/0006-ui-shadcn-and-theme-tokens.md), [ADR 0009 — bảng phấn & nhân vật](../02-architecture/decisions/0009-chalkboard-style-and-characters.md) |
 | Cập nhật khi | Thêm màn hình, đổi luồng, thêm artboard vào canvas, đổi token màu/font |
@@ -25,7 +25,7 @@ App không dùng router: màn hình được chọn theo pha của phòng (`apps
 flowchart TD
   I["Giới thiệu<br/>Chạm để bắt đầu"] --> M["Menu chính"]
   L0(["Mở link /r/ABCD"]) --> M
-  M <--> P["Chọn bạn đồng hành<br/>(hồ sơ)"]
+  M <--> P["Hồ sơ /profile<br/>tab Bạn đồng hành · Phụ kiện"]
   M -->|"Tạo phòng / Vào phòng"| LB["Phòng chờ 2D (tối đa 12 ghế)<br/>sẵn sàng, đổi nhân vật,<br/>chủ phòng đặt số vòng,<br/>thêm / đổi mức / bỏ bot"]
   M -->|"Chơi với máy"| BD["Hộp thoại Chơi với máy<br/>số bot 1–11, mức chung"]
   BD -->|"Vào phòng"| LB
@@ -46,9 +46,9 @@ flowchart TD
   M --> AC["Tài khoản & lịch sử<br/>3 tab, liên kết Google"]
   M --> GA["Máy quay phụ kiện /gacha<br/>Quay 1 / 10, tỉ lệ, bảo hiểm"]
   GA --> GR["Mở quà<br/>viên nang mở lần lượt"]
-  GR -->|"Mặc thử"| WD["Tủ đồ /wardrobe<br/>Phụ kiện · Bạn đồng hành"]
-  M --> WD
-  WD -.->|"thú khoá: Luyện ngay"| PK
+  GR -->|"Mặc thử"| P
+  GA -->|"Tủ đồ"| P
+  P -.->|"thú khoá: Luyện ngay"| PK
   AC -->|"Trang quản trị<br/>(chỉ quản trị viên)"| AD["Trang quản trị /admin<br/>8 mục, tải lười"]
   L1(["Mở link /admin"]) --> AD
   LB -->|"Chủ phòng bấm Bắt đầu"| GS["Chọn game<br/>trống quay dọc / chủ phòng chọn"]
@@ -71,10 +71,10 @@ flowchart TD
 | --- | --- | --- | --- | --- | --- |
 | S1 | Giới thiệu | `features/home/components/IntroScreen.tsx` | ✅ Desktop + Điện thoại | ✅ | |
 | S2 | Menu chính | `features/home/components/MenuScreen.tsx` | ✅ Khu 2 (cũ) · Khu 12 (CR-009) | ✅ | Theo khu 12: thẻ Luyện tập, Kiểm tra não ("Cao nhất …"), dòng Bảng xếp hạng, Tài khoản & lịch sử (trạng thái phiên); còn "Sắp có": Tìm trận, Đấu bóng ma (ô nét đứt), Thử thách hôm nay. Bỏ linh vật + câu gợi ý ở cột phải cho vừa 1280×720 |
-| S3 | Chọn bạn đồng hành (hồ sơ) | `features/home/components/ProfileScreen.tsx` | ✅ "Chọn bạn đồng hành" (tương tác) | ✅ | |
+| S3 | Hồ sơ của bạn `/profile` (thẻ danh thiếp + tab Bạn đồng hành · Phụ kiện) | `features/home/components/ProfileScreen.tsx`, tab Phụ kiện `features/wardrobe/components/AccessoriesTab.tsx` | ✅ "Chọn bạn đồng hành" (tương tác) · Khu 31 (Tủ đồ cũ) | ✅ | CR-026: gộp Tủ đồ, tab Phụ kiện `/profile/accessories` ([mục 6.12](#612-máy-quay-phụ-kiện-tủ-đồ-thú-khoá-s19-s20-cr-023-cr-024)); chưa có artboard cho bố cục gộp |
 | S4 | Phòng chờ 2D | `features/lobby/LobbyScreen.tsx` | ✅ Khu 5 · Khu 23 (CR-016) · Khu 25 (CR-018) | ✅ (bot: ❌, 12 ghế: ❌) | Đã gỡ 3D (ADR 0010). Chưa có mã QR như bản máy tính. CR-016: ô trống thêm bot, ô bot đổi mức / bỏ ngay trong ô ([mục 6.6](#66-chơi-với-máy-s17-cr-016)). CR-018: 9–12 ghế dùng lưới gọn ([mục 6.8](#68-phòng-12-người-cr-018)) |
 | S10 | Chọn game (trống quay dọc / chủ phòng chọn + bình chọn) | `features/game-select/` | ✅ Khu 6 (cũ) · Khu 24 (CR-017) | ✅ (trống quay: ❌) | CR-005. CR-017: trống quay dọc thay vòng quay tròn, bỏ danh sách "Trong vòng quay" ([mục 6.7](#67-trống-quay-dọc-s10-cr-017)); chế độ Chủ phòng chọn giữ khu 6 |
-| S11 | Hướng dẫn & độ khó | `features/game-intro/` | ✅ Khu 7 · Khu 28 (CR-021) | ✅ (hướng dẫn động: ✅ 5 game MVP) | CR-005; lời nhắc của chủ phòng hiện bằng toast. CR-021: khung minh hoạ 16:9 rộng hết thẻ, nút Phóng to, hình động ([mục 6.11](#611-hướng-dẫn-to--động-s11-s12-s13-cr-021)) |
+| S11 | Hướng dẫn & độ khó | `features/game-intro/` | ✅ Khu 7 · Khu 28 (CR-021) | ✅ (hướng dẫn động: ✅ 30/30 game) | CR-005; lời nhắc của chủ phòng hiện bằng toast. CR-021: khung minh hoạ 16:9 rộng hết thẻ, nút Phóng to, hình động ([mục 6.11](#611-hướng-dẫn-to--động-s11-s12-s13-cr-021)) |
 | S5 | Chơi (đếm ngược 5 giây, dải điểm, khung minigame) | `features/play/CountdownScreen.tsx`, `PlayScreen.tsx` | ✅ Khu 8 + trang Minigame M1 · Khu 25 (12 người) | ✅ (12 người: ❌) | CR-018: bảng điểm gọn / lưới điểm 2×6 khi đông ([mục 6.8](#68-phòng-12-người-cr-018)) |
 | S6 | Bảng điểm vòng + cộng điểm trận | `features/results/ResultsScreen.tsx` | ✅ Khu 9, 10 · Khu 25 (12 người) | ✅ (12 người: ❌) | Tự sang bảng tổng điểm sau 5 giây. CR-018: bảng 2 cột, hàng gọn, hàng của mình dính mép |
 | S7 | Vinh danh top 3 kiểu Kahoot | `features/results/PodiumScreen.tsx` | ✅ Khu 11 · Khu 19–20 (CR-010) · Khu 25 (12 người) | ✅ (nhịp CR-010: ❌, 12 người: ❌) | 2D, không 3D; pháo giấy CSS. CR-010: hạng 4+ → 3 → 2 → trống dồn → 1, thẻ Giỏi nhất mỗi thể loại ([mục 6.2](#62-vinh-danh-s7-cr-010), [6.3](#63-thẻ-giỏi-nhất-mỗi-thể-loại-cr-010)) |
@@ -86,6 +86,7 @@ flowchart TD
 | S14 | Tài khoản & lịch sử | `features/account/` | ✅ Khu 15 · Khu 21 (CR-010) | ✅ (thẻ thế mạnh: ❌) | UC-16. 3 tab, Liên kết Google, Xoá dữ liệu. CR-010: thẻ Thế mạnh trong trận party đầu tab Trận party ([mục 6.4](#64-thế-mạnh-trong-trận-party-s14-cr-010)) |
 | S15 | Bảng xếp hạng | `features/leaderboard/` | ✅ Khu 16 | ✅ | UC-19. Điểm Não / Theo minigame, Tuần này / Mọi thời đại |
 | — | Trạng thái chung (tải, trống, lỗi, chưa kết nối máy chủ dữ liệu, hộp xác nhận) | dùng chung 4 màn trên | ✅ Khu 17 | ❌ | FR-MR-15 |
+| — | Thanh tải trên đầu trang + khung xương màn lười (thay vòng xoay "Đang tải…") | `components/common/TopLoadingBar.tsx`, `ScreenSkeleton.tsx`, `stores/top-loading.store.ts`, `components/ui/skeleton.tsx` (`tone`) | ❌ (code trước) | ✅ | CR-025, FR-GD-15 ([mục 6.13](#613-thanh-tải-trên-đầu-trang-và-khung-xương-cr-025)) |
 | — | Hàng nút trên cùng · nút Hiệu ứng | `app/App.tsx`, `IntroScreen.tsx`, `MenuScreen.tsx`, `features/motion/` | ✅ Khu 18 (CR-010) | ❌ | Theo hệ thống / Luôn bật ([mục 6.1](#61-hàng-nút-trên-cùng--nút-hiệu-ứng-cr-010)) |
 | S16 | Chat trong phòng (nút nổi + sheet điện thoại, cột phải máy tính, bong bóng biểu cảm) | `features/chat/` | ✅ Khu 22 (CR-011) | ❌ | Hiện ở 5 pha, ẩn lúc đếm ngược/đang chơi ([mục 6.5](#65-khung-chat-trong-phòng-s16-cr-011)) |
 | S17 | Chơi với máy (thẻ menu + hộp thoại) | `features/home/` | ✅ Khu 23 (CR-016), khu 25 (CR-018) | ✅ | Số bot 1–11 (CR-018), một mức chung, trạng thái đang tạo / lỗi ([mục 6.6](#66-chơi-với-máy-s17-cr-016)) |
@@ -93,13 +94,13 @@ flowchart TD
 | — | Trống quay dọc (`Drum`, thay `LuckyWheel` đã xoá) | `features/game-select/components/Drum.tsx`, hình học `drum.ts` | ✅ Khu 24 (CR-017), artboard thành phần "Drum" | ✅ | Utility `drum-shade` ([mục 6.7](#67-trống-quay-dọc-s10-cr-017)) |
 | — | 12 màu avatar | `AVATAR_COLORS` (`packages/shared/src/constants.ts`) | ✅ Khu 25 "12 màu avatar" | ❌ | 4 màu mới đã duyệt ([mục 6.8](#68-phòng-12-người-cr-018)) |
 | S18 | Trang quản trị (8 mục, cổng đăng nhập/quyền) | `features/admin/` (tải lười), lối vào ở `features/account` | ✅ Trang "Quản trị", khu 26 (CR-019) | ✅ | Một component co giãn: máy tính cột menu trái, điện thoại tab cuộn ngang ([mục 6.9](#69-trang-quản-trị-s18-cr-019)) |
-| — | Khung diễn hướng dẫn (sân khấu, con trỏ bàn tay, sóng chạm, ✓ ✗ ⚡ khoá, huy hiệu bước) + Demo 5 game MVP | `games/_shared/demo/`, `games/<id>/<Name>Demo.tsx` | ✅ Khu 29 (CR-021): đặc tả + `HowToDemo` chạy được + 5 artboard kịch bản | ✅ (5 game MVP) | Chỉ `transform`/`opacity`; 25 game còn lại làm sau khi duyệt ([mục 6.11](#611-hướng-dẫn-to--động-s11-s12-s13-cr-021)) |
+| — | Khung diễn hướng dẫn (sân khấu, con trỏ bàn tay, sóng chạm, ✓ ✗ ⚡ khoá, huy hiệu bước) + Demo 30 game | `games/_shared/demo/`, `games/<id>/<Name>Demo.tsx` | ✅ Khu 29 (CR-021): đặc tả + `HowToDemo` chạy được + 5 artboard kịch bản (5 game MVP) | ✅ (30/30 game) | Chỉ `transform`/`opacity`; 25 game đợt hai (2026-11-21) viết kịch bản thẳng trong code, chưa có artboard ([mục 6.11](#611-hướng-dẫn-to--động-s11-s12-s13-cr-021)) |
 | S19 | Máy quay phụ kiện `/gacha` (máy quay, Quay 1 / 10, bảo hiểm, Tỉ lệ & 24 món, mở quà) | `features/gacha/` | ✅ Trang "Phấn & phụ kiện" khu 30 (CR-023) | ❌ | 6 trạng thái: bình thường, thiếu phấn, chưa kết nối, đang tải, lỗi quay, giảm chuyển động ([mục 6.12](#612-máy-quay-phụ-kiện-tủ-đồ-thú-khoá-s19-s20-cr-023-cr-024)) |
-| S20 | Tủ đồ `/wardrobe` (tab Phụ kiện, tab Bạn đồng hành, hộp chúc mừng mở thú) | `features/wardrobe/` | ✅ Khu 31 (CR-023, CR-024) | ❌ | Thú khoá: ổ khoá + điều kiện + thanh tiến độ + nút đi tới ([mục 6.12](#612-máy-quay-phụ-kiện-tủ-đồ-thú-khoá-s19-s20-cr-023-cr-024)) |
+| S20 | ~~Tủ đồ `/wardrobe`~~ — **gộp vào S3** (CR-026, 2026-11-21): tab Phụ kiện = `/profile/accessories`, tab Bạn đồng hành = `/profile`; link cũ chuyển hướng | `features/wardrobe/` (chỉ còn `AccessoriesTab`) | ✅ Khu 31 (CR-023, CR-024; vẽ màn Tủ đồ cũ) | ✅ (trong S3) | Thú khoá: ổ khoá + điều kiện + thanh tiến độ + nút đi tới ([mục 6.12](#612-máy-quay-phụ-kiện-tủ-đồ-thú-khoá-s19-s20-cr-023-cr-024)) |
 | — | Thẻ Máy quay + chip số dư + quà mỗi ngày ở menu; "+N phấn" ở kết quả trận / Kiểm tra não / luyện tập; thú khoá ở hồ sơ, phòng chờ | `features/home/`, `features/results/`, `features/brain-test/`, `features/practice/`, `features/lobby/` | ✅ Khu 32 | ❌ | S2, S3, S4, S6, S7, S12, S13 |
 | — | 24 phụ kiện SVG, `AccessoryIcon`, `Character accessories`, `RarityBadge`, `ChalkChip` / `ChalkIcon` | `components/characters/accessories.tsx`, `components/common/` | ✅ Khu 33 (đặc tả + thành phần `Wearer`, `AccItem`) | ✅ | Token `rarity-*` |
 
-Thứ tự thiết kế tiếp theo (đề xuất): kịch bản hướng dẫn động cho 25 game còn lại (sau khi chủ dự án duyệt 5 game MVP, mục 6.11); 5 minigame của giai đoạn 2 khi tới lúc.
+Thứ tự thiết kế tiếp theo (đề xuất): vẽ bù lên canvas những phần code làm trước ngày 2026-11-21 — trang Hồ sơ gộp (2 tab, điện thoại + máy tính, sáng/tối), thanh tải + khung xương (mục 6.13), khung tĩnh của 25 kịch bản hướng dẫn động; 5 minigame của giai đoạn 2 khi tới lúc.
 
 ## 4. Bản mẫu trên canvas
 
@@ -253,8 +254,8 @@ Cả hai tải từ Google Fonts trong `apps/web/index.html`, đủ dấu tiến
 
 ### Component
 
-- **UI cơ bản** (`components/ui/`): AlertDialog, Badge, Button, Card, Dialog (CR-016: như AlertDialog nhưng đóng được bằng Esc / lớp phủ / nút ×; nút đóng chỉ hiện khi truyền `closeLabel`; giảm chuyển động chỉ mờ; cao quá màn thì cuộn trong hộp), DropdownMenu, Input, Label, Sheet (CR-011: viền mực 4 px, bo 3xl ở cạnh hướng vào màn, giảm chuyển động chỉ mờ; nút đóng chỉ hiện khi truyền `closeLabel` đã dịch), Skeleton, Slider, Sonner (toast), Switch (CR-011: rãnh 48×28 viền mực, bật = `primary`, vùng chạm 64×44), Tabs (`variant` "folder" kiểu bìa hồ sơ / "pill" trên bảng), Toggle, ToggleGroup; thêm bằng `pnpm dlx shadcn@latest add <tên>` trong `apps/web`. Lưu ý (2026-10-16): CLI hiện sinh `import { cn } from "cn"` và đòi ghi đè `button.tsx`; chạy kèm `--dry-run --view`, chép mã về rồi sửa import thành `@/lib/utils`.
-- **Dùng chung** (`components/common/`): `PlayerAvatar`, `DifficultyPicker`, `LanguageToggle`, `ThemeToggle`, `ConnectionBanner`, `RankBadge`, `MatchChips` (`RoundChip`, `CategoryChip`, `DifficultyChip`), `HostWaitCard`, `AvatarStrip`, `RarityBadge` + `RarityPips` + `RARITY_BG` (CR-023: cỡ `xs` chỉ hạt ◆ + aria-label, `sm`, `md`; nhận `label` đã dịch), `ChalkIcon` + `ChalkChip` (CR-023: tông `board` số dư trên bảng, `card` giá trong thẻ, `reward` "+N phấn"; cỡ `sm` 28 / `md` 36 / `lg` 44; `srLabel` cho trình đọc màn hình).
+- **UI cơ bản** (`components/ui/`): AlertDialog, Badge, Button, Card, Dialog (CR-016: như AlertDialog nhưng đóng được bằng Esc / lớp phủ / nút ×; nút đóng chỉ hiện khi truyền `closeLabel`; giảm chuyển động chỉ mờ; cao quá màn thì cuộn trong hộp), DropdownMenu, Input, Label, Sheet (CR-011: viền mực 4 px, bo 3xl ở cạnh hướng vào màn, giảm chuyển động chỉ mờ; nút đóng chỉ hiện khi truyền `closeLabel` đã dịch), Skeleton (CR-025: prop `tone` — `card` mặc định `bg-muted` trong thẻ, `board` `bg-board-shade` thẳng trên bảng; nhấp nháy chỉ khi `motion-safe`; `aria-hidden`), Slider, Sonner (toast), Switch (CR-011: rãnh 48×28 viền mực, bật = `primary`, vùng chạm 64×44), Tabs (`variant` "folder" kiểu bìa hồ sơ / "pill" trên bảng), Toggle, ToggleGroup; thêm bằng `pnpm dlx shadcn@latest add <tên>` trong `apps/web`. Lưu ý (2026-10-16): CLI hiện sinh `import { cn } from "cn"` và đòi ghi đè `button.tsx`; chạy kèm `--dry-run --view`, chép mã về rồi sửa import thành `@/lib/utils`.
+- **Dùng chung** (`components/common/`): `PlayerAvatar`, `DifficultyPicker`, `LanguageToggle`, `ThemeToggle`, `ConnectionBanner`, `RankBadge`, `MatchChips` (`RoundChip`, `CategoryChip`, `DifficultyChip`), `HostWaitCard`, `AvatarStrip`, `RarityBadge` + `RarityPips` + `RARITY_BG` (CR-023: cỡ `xs` chỉ hạt ◆ + aria-label, `sm`, `md`; nhận `label` đã dịch), `ChalkIcon` + `ChalkChip` (CR-023: tông `board` số dư trên bảng, `card` giá trong thẻ, `reward` "+N phấn"; cỡ `sm` 28 / `md` 36 / `lg` 44; `srLabel` cho trình đọc màn hình), `TopLoadingBar` + `ScreenSkeleton` (CR-025, [mục 6.13](#613-thanh-tải-trên-đầu-trang-và-khung-xương-cr-025)).
 - **Hàng nút trên cùng** (thứ tự cố định): `MusicBar` · `SfxToggle` · nút Hiệu ứng (CR-010, `features/motion/`) · `LanguageToggle` · `ThemeToggle`. Mọi nút là `Button variant="chalk" size="icon-chalk"` (44×44).
 - **Thương hiệu** (`components/brand/`): `Logo`, `BrainMascot`, `ChalkDoodle`.
 - **Nhân vật** (`components/characters/`): `<Character id mood size animated />`. 12 loài trong `CHARACTER_SPECS` (`specs.tsx`), mỗi loài có `anchors: { head, face, neck }` để đặt phụ kiện (gacha-pets-unlocks 5.5), toạ độ trong khung 200×200: **head** = đỉnh đầu giữa hai tai, chỗ đặt đáy món, thấp hơn mép viền trên ~6 (thường `100, 40`); **face** = điểm giữa hai mắt, `scale` = khoảng cách hai mắt / 48; **neck** = tâm cổ ngay dưới miệng/mỏ (140–152 tuỳ loài). Ếch: neo đầu `scale 0.85` giữa hai mắt lồi.
@@ -740,6 +741,18 @@ Bản mẫu: [canvas trang "Yêu thích & hướng dẫn động", khu 27](https
 
 Bản mẫu: [canvas trang "Yêu thích & hướng dẫn động"](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ), khu 28 (3 màn, Phóng to, trạng thái) và khu 29 (khung diễn, `HowToDemo` chạy được, 5 artboard kịch bản). Hợp đồng `GameClient.Demo`: [kế hoạch mục 3.3](practice-favorites-howto-routes.md#33-hướng-dẫn-động-ui-designer--frontend-dev).
 
+**Game có hình động (2026-11-21: đủ 30/30)** — đợt đầu (2026-11-20, kịch bản ở cuối mục này): Kẻ lạc đàn, Theo dấu ánh đèn, Cân não, Bóng bay số, Xoay hình. Đợt hai (2026-11-21, chủ dự án duyệt; kịch bản viết thẳng trong `games/<id>/<Name>Demo.tsx` theo khung diễn chung, tham chiếu `…HowTo.tsx` làm khung tĩnh):
+
+| Nhóm | Game |
+| --- | --- |
+| Nhận diện | Luyện ngắm `aim-trainer` · Bóng của ai `shadow-match` · Tráo cốc `cup-shuffle` · Tìm bạn `crowd-search` · Hình to hình nhỏ `navon-shapes` |
+| Ghi nhớ | Ai vừa biến mất `who-vanished` · Lật cặp `pair-flip` · Xếp lại tháp `stack-recall` · Nhại nhịp `rhythm-echo` |
+| Phân tích | Đếm khối `cube-count` · Bi rơi đâu `marble-drop` · Phấn trượt `chalk-arrows` · Chuỗi quy luật `bead-pattern` · Ô bí ẩn `latin-cell` · Cổng luật `rule-gate` |
+| Tính toán | Chạm đích `hit-target` · Đếm tiền nhanh `cash-count` · Đếm sĩ số `head-count` · Giỏ hời nhất `best-basket` · Đường số `number-path` |
+| Hình dung | Nhìn từ trên `top-view` · Gấp hộp `fold-box` · Mảnh vừa khít `piece-fit` · Nối mạch `circuit-link` · Rót vừa vạch `pour-line` |
+
+- Đợt hai chưa có artboard kịch bản trên canvas (code làm trước); khi vẽ bù thì lấy mốc ms trong `<Name>Demo.tsx`. 17 game có test mốc riêng `<Name>Demo.test.ts`.
+
 **Bố cục thẻ hướng dẫn (`GuideCard`)**
 
 | | Điện thoại (`compact`) | Máy tính |
@@ -932,6 +945,8 @@ Bố cục: thẻ mẫu 108 tâm (320, 68); thẻ lựa chọn 128 tâm (232, 25
 
 ### 6.12 Máy quay phụ kiện, tủ đồ, thú khoá (S19, S20, CR-023, CR-024)
 
+> **2026-11-21 ([CR-026](../00-tracking/change-requests.md#cr-026)):** màn Tủ đồ `/wardrobe` đã **gộp vào trang Hồ sơ** — xem "Hồ sơ `/profile`: tab Bạn đồng hành · Phụ kiện" bên dưới. Canvas khu 31 vẫn vẽ màn Tủ đồ cũ; các thông số lưới món, chỗ đeo, thú khoá trong khu 31 vẫn đúng.
+
 Bản mẫu: [canvas trang "Phấn & phụ kiện"](https://claude.ai/artifact/GJZbipfsLC2TNo7TPws7CZ#page-gacha), khu 30–33. Hợp đồng dữ liệu, giá, tỉ lệ, bảo hiểm: [gacha-pets-unlocks.md](gacha-pets-unlocks.md) mục 2, 4, 5.4 (số đọc từ `economy.ts`, có thể đổi sau mô phỏng — giao diện không viết cứng).
 
 **Nguyên tắc giao diện (mục 2 của kế hoạch)**
@@ -963,7 +978,7 @@ Bản mẫu: [canvas trang "Phấn & phụ kiện"](https://claude.ai/artifact/G
 
 - **10 lượt:** điện thoại thay nội dung màn (giữ tiêu đề), máy tính hộp thoại 1000 px trên lớp phủ. Tiêu đề "Mở quà" + "10 lượt · đã mở n/10" (`aria-live="polite"`) + nút "Mở hết" (bỏ qua, hiện ngay cả 10). Lưới: điện thoại 2 × 5 ô ngang cao 76 (quầng 58, món 44); máy tính 5 × 2 ô dọc cao 214 (quầng 112, món 84). Viên nang chưa mở giống hệt nhau (nửa trên giấy, nửa dưới hồng, dấu "?") — không lộ độ hiếm trước.
 - Nhịp: viên đang tới lượt lắc ±6° (500 ms lặp); cứ **420 ms** mở một viên: món nảy 0,55 → 1,08 → 1 (320 ms, `--ease-pop`) trên quầng màu độ hiếm; Sử thi thêm 12 tia, Huyền thoại 15 tia vàng xoay 9 s + lấp lánh. Hạt ◆ ở góc quầng. Món mới: chip bạc hà "Mới!"; trùng: chip vàng `ChalkChip reward` "+N" (aria "Trùng, đổi lại N phấn").
-- Xong: dòng tổng "6 món mới · 4 món trùng đổi lại" + chip "+40 phấn" (4 món Thường × 10); nút "Mặc thử" (→ `/wardrobe`, chỗ của món hiếm nhất vừa ra) và "Xong" (chính).
+- Xong: dòng tổng "6 món mới · 4 món trùng đổi lại" + chip "+40 phấn" (4 món Thường × 10); nút "Mặc thử" (→ tab Phụ kiện `/profile/accessories`, chỗ của món hiếm nhất vừa ra; xong hồ sơ thì về lại máy quay) và "Xong" (chính).
 - **1 lượt:** viên nang 150 lắc 900 ms rồi bật; món 160 trên quầng 270; tên (Baloo 32), nhãn độ hiếm `md`, "Mới!" hoặc "+N phấn", "Đã cất vào tủ đồ."; "Mặc thử" / "Xong".
 - **Giảm chuyển động:** không quay máy, không lắc, không tia xoay; mở thẳng màn kết quả với cả 10 món hiện ngay (mờ dần ≤ 300 ms), số dư cập nhật ngay.
 
@@ -972,18 +987,22 @@ Bản mẫu: [canvas trang "Phấn & phụ kiện"](https://claude.ai/artifact/G
 - "Tỉ lệ mỗi lượt": 4 dòng nhãn độ hiếm + "60 %" (Baloo 22) + "9 món · mỗi món 6,67 %". "Bảo hiểm": 3 dòng có ✓. "Trùng món": "Trùng món được đổi lại phấn: 10 (Thường) · 30 (Hiếm) · 80 (Sử thi) · 200 (Huyền thoại)." (số theo `DUPLICATE_REFUND`, `packages/shared/src/cosmetics/economy.ts`)
 - "24 món · đã có n": nhóm theo độ hiếm (tiêu đề nhãn + "đã có a/b"), ô 3 cột (điện thoại) / 6 cột (máy tính): ảnh `AccessoryIcon` 48/56 + tên. Đã có: nền `muted` + huy hiệu ✓ xanh; chưa có: viền nét đứt, ảnh xám 45 % + chữ ẩn "Chưa có" cho trình đọc màn hình. Không giấu món nào.
 
-**Tủ đồ `/wardrobe`**
+**Hồ sơ `/profile`: tab Bạn đồng hành · Phụ kiện** (thay Tủ đồ `/wardrobe`, CR-026)
 
-- Đầu màn: "‹" + "Tủ đồ"; chip số dư dẫn sang Máy quay (điện thoại: chip 44 cạnh tiêu đề; máy tính: nút phấn "1.240 · Máy quay ›" cạnh tab). Tab kiểu viên thuốc trên bảng (`Tabs variant="pill"`, cao 42 trong khung 50): **Phụ kiện** · **Bạn đồng hành**.
-- **Tab Phụ kiện:** nhân vật đang chọn to (điện thoại 176, máy tính 300) có viền nhãn dán trên bệ phấn nét đứt; 3 nút chỗ (Đầu / Mặt / Cổ, cao ≥ 56) hiện món đang đeo hoặc "Chưa đeo"; nút đang chọn nền vàng (`aria-pressed`). Lưới món đã có của chỗ đang chọn: điện thoại 4 cột ô cao 100 (ảnh 46), máy tính 6 cột ô 128 (ảnh 64); ô đầu "Không đeo" (nét đứt, ⊘), ô cuối "Quay thêm" (→ `/gacha`). Bấm món = đeo (ô vàng + ✓), bấm lại hoặc "Không đeo" = bỏ. Lưu ngay vào hồ sơ trên máy, toast 2,2 s "Đã đeo Vương miện" / "Đã bỏ món đầu". Dòng chân: "Cả phòng thấy đồ bạn đang đeo. Tự lưu trên máy này."
+- Bố cục: thẻ danh thiếp (nhân vật đang đeo 140 + tên loài + ô tên + dòng tài khoản) bên trái, hai tab bên phải (máy tính / máy tính bảng ≥ `md`: thẻ dính trên cùng `sticky` để luôn thấy món vừa đeo); điện thoại thẻ ở trên, tab ở dưới. Nút Quay lại / Xác nhận ở chân như cũ. Bỏ nút "Phụ kiện · Tủ đồ" trên thẻ.
+- Tab kiểu viên thuốc trên bảng (`Tabs variant="pill"`): **Bạn đồng hành** (`/profile`, mặc định) · **Phụ kiện** (`/profile/accessories`). Đổi tab **thay** mục lịch sử (Back không đi qua từng tab). Tab Phụ kiện là chunk lười, tải trước khi rê chuột / focus vào tab; đang tải → khung xương 3 chỗ + lưới (mục 6.13).
+- Ở tab Phụ kiện: nút số dư trên bảng cao 44 (`ChalkIcon` + số + ›, từ `sm` thêm chữ "· Máy quay") dẫn sang Máy quay; chưa kết nối máy chủ thì ẩn.
+- Tên + nhân vật là bản nháp, lưu khi bấm **Xác nhận**; phụ kiện lưu ngay khi đeo. Rời trang giữa chừng (Tài khoản, Máy quay, "Luyện ngay") thì lưu bản nháp trước.
+- Link cũ: `/wardrobe` → `/profile/accessories`, `/wardrobe/pets` → `/profile` (thay mục lịch sử). Nút "Tủ đồ" ở menu và máy quay, "Mặc thử" ở màn mở quà đều mở tab Phụ kiện.
+- **Tab Phụ kiện:** nhân vật đang đeo vẽ ở thẻ danh thiếp (không còn nhân vật to riêng trong tab); điện thoại / máy tính bảng dọc: hàng 3 chỗ dính đầu vùng cuộn kèm nhân vật nhỏ 56 bên trái (thẻ hồ sơ đã cuộn khuất vẫn thấy món vừa đeo); lưới món điện thoại 4 cột, máy tính 5 cột. Phần dưới đây là thông số gốc của Tủ đồ, vẫn áp dụng cho 3 chỗ và lưới món. 3 nút chỗ (Đầu / Mặt / Cổ, cao ≥ 56) hiện món đang đeo hoặc "Chưa đeo"; nút đang chọn nền vàng (`aria-pressed`). Lưới món đã có của chỗ đang chọn: điện thoại 4 cột ô cao 100 (ảnh 46), máy tính 6 cột ô 128 (ảnh 64); ô đầu "Không đeo" (nét đứt, ⊘), ô cuối "Quay thêm" (→ `/gacha`). Bấm món = đeo (ô vàng + ✓), bấm lại hoặc "Không đeo" = bỏ. Lưu ngay vào hồ sơ trên máy, toast 2,2 s "Đã đeo Vương miện" / "Đã bỏ món đầu". Dòng chân: "Cả phòng thấy đồ bạn đang đeo. Tự lưu trên máy này."
 - **Trống:** thẻ móc áo nét đứt "Chưa có phụ kiện nào" + "Quay ở Máy quay phụ kiện để có món đầu tiên…" + nút chính "Đến máy quay". Chưa kết nối máy chủ: vẫn mặc được món đã lưu trên máy, ẩn chip số dư.
-- **Tab Bạn đồng hành** (cùng lưới dùng ở Hồ sơ): dòng "Đã mở 9/12. Bạn đồng hành khoá mở bằng thành tích khi chơi, không cần phấn." Điện thoại 3 cột thẻ cao 128 (nhân vật 70); máy tính 6 cột thẻ 248 (nhân vật 118 / 84). Đã mở: như Hồ sơ hiện nay (đang chọn = vàng + ✓, nhân vật vui). Vừa mở chưa xem: chip "Mới!" nghiêng ở góc. **Khoá:** nền `muted`, nhân vật xám (`grayscale` + mờ 55 %), ổ khoá tròn mực góc phải (tối: nền giấy), điều kiện ngắn ("Nhất 1/3 trận") + thanh tiến độ vàng; máy tính ghi đủ điều kiện + tiến độ + nút phụ ("Luyện ngay" / "Chơi party" / "Kiểm tra não") ngay trong thẻ.
+- **Tab Bạn đồng hành** (lưới `PetGrid` của Hồ sơ; bản 6 cột thẻ cao của Tủ đồ cũ đã bỏ cùng `PetsTab`): dòng "Đã mở 9/12. Bạn đồng hành khoá mở bằng thành tích khi chơi, không cần phấn." Điện thoại 3 cột thẻ cao 128 (nhân vật 70); máy tính 6 cột thẻ 248 (nhân vật 118 / 84). Đã mở: như Hồ sơ hiện nay (đang chọn = vàng + ✓, nhân vật vui). Vừa mở chưa xem: chip "Mới!" nghiêng ở góc. **Khoá:** nền `muted`, nhân vật xám (`grayscale` + mờ 55 %), ổ khoá tròn mực góc phải (tối: nền giấy), điều kiện ngắn ("Nhất 1/3 trận") + thanh tiến độ vàng; máy tính ghi đủ điều kiện + tiến độ + nút phụ ("Luyện ngay" / "Chơi party" / "Kiểm tra não") ngay trong thẻ.
 - **Sheet / hộp điều kiện** (điện thoại sheet; Hồ sơ máy tính và phòng chờ: hộp nhỏ / popover): nhân vật xám 104 + ổ khoá, "Chưa mở khoá", tên + loài; "Cách mở khoá" (điều kiện đủ câu); "Tiến độ" + thanh 16 (`role="progressbar"`) + gợi ý; Lửa có thêm 5 chấm nhóm (✓ nhóm đã đạt, số = trung bình hiện tại). Nút "Đóng" + nút chính đi tới đúng màn theo URL CR-022 (`/practice/<game>` chọn sẵn mức, `/practice?cat=analyze`, menu tạo phòng, `/brain-test`). Bấm thú khoá không đổi nhân vật.
 - **Hộp chúc mừng** (mở khoá mới so với danh sách đã thấy lưu trên máy): chip "Vừa mở khoá", "Bạn đồng hành mới!", nhân vật vui 150/170 + pháo giấy vẽ phấn tĩnh, tên + loài, "✓ Đã đạt: …", nút chính "Chọn Pin làm bạn đồng hành", nút phụ "Để sau". Nhiều thú cùng lúc: lần lượt từng hộp. Giảm chuyển động: chỉ mờ dần.
 
 **Chọn nhân vật ở Hồ sơ và Phòng chờ**
 
-- Hồ sơ: lưới 12 thẻ như tab Bạn đồng hành (thú khoá ở cuối, theo thứ tự `CHARACTER_IDS`); thẻ danh thiếp thêm nút "Phụ kiện · Tủ đồ" (máy tính).
+- Hồ sơ (tab Bạn đồng hành): lưới 12 thẻ, điện thoại 3 cột, máy tính 4 cột (thú khoá ở cuối, theo thứ tự `CHARACTER_IDS`); đang tải tiến độ mở khoá lần đầu → dòng đếm + 12 thẻ khung xương.
 - Phòng chờ (`CharacterPicker`): điện thoại một hàng nút tròn 44–46 **cuộn ngang** (snap, mờ mép phải), đã mở trước, khoá sau (xám + ổ khoá 22); máy tính 12 nút 56 một hàng. Bấm thú khoá → popover/sheet điều kiện như trên. Phòng 12 ghế (`compact`) giữ một hàng.
 
 **Menu**
@@ -1008,6 +1027,23 @@ Bản mẫu: [canvas trang "Phấn & phụ kiện"](https://claude.ai/artifact/G
 
 **Cần điều phối quyết:** (1) Quay 1 làm nút chính, Quay 10 nút phụ (đề xuất trên) — khác thói quen gacha thường đặt Quay 10 nổi bật; (2) thú khoá hiện màu xám (thấy rõ con gì) thay vì bóng đen bí ẩn; (3) Mochi đội mũ len/mũ lưỡi trai che tai — có thể cho neo đầu `scale 0.85` như ếch nếu muốn lộ tai.
 
+### 6.13 Thanh tải trên đầu trang và khung xương (CR-025)
+
+Chưa có artboard (code làm trước, 2026-11-21). Thay vòng xoay "Đang tải…" giữa màn bằng hai lớp: thanh mảnh báo *có gì đang tải* và khung xương giữ đúng bố cục *sắp hiện*.
+
+| Phần | Đặc tả |
+| --- | --- |
+| Thanh tải (`TopLoadingBar`, đặt một lần ở `App`) | Cố định mép trên, cao 3 px, `bg-primary` + quầng `0 0 8px` cùng màu, bo phải; trên mọi lớp (`z-100`), không nhận chạm. Chạy bằng `scaleX` từ trái (không đổi bố cục). Hiện khi còn ≥ 1 việc tải **sau 150 ms** (tải nhanh hơn thì không hiện). Bắt đầu ở 8 %, cứ 250 ms nhích nhanh rồi chậm dần, dừng ở 94 % tới khi xong; xong → chạy tới 100 % (220 ms) rồi mờ (300 ms). Việc mới chen vào lúc đang mờ → chạy lại |
+| Giảm chuyển động | Thanh đứng yên ở 50 % tới khi xong rồi biến mất, không nhích giả, không chuyển tiếp; khung xương không nhấp nháy |
+| Bật thanh khi | Tải chunk màn lười (fallback `Suspense`), `useData` (trừ `{ background: true }`), cổng / mục trang quản trị, ví và lịch sử quay ở Máy quay, lưới thú ở Hồ sơ lần đầu, tab Phụ kiện (chunk + món đã có) |
+| Không bật khi | Dữ liệu phụ tải nền: "Cao nhất …" trên thẻ Kiểm tra não ở menu, đồng bộ yêu thích / kỷ lục, danh sách game đang bật |
+| Khung xương màn lười (`ScreenSkeleton`) | Đầu màn: tròn 44 (máy tính 48) + tiêu đề 30 × 208 (máy tính 40 × 288) + dòng mô tả 14 × 160; dưới: khối 176 bo 24 + 5 dòng 48 bo 16 (máy tính 2 cột 1 : 1,4). Mọi khối `tone="board"`. Hiện mờ dần sau 150 ms (`starting:`) để tải nhanh không nháy; `role="status"` + chữ ẩn "Đang tải…" |
+| Khung xương trong màn | Cổng trang quản trị (hàng tab điện thoại / menu cạnh + thẻ máy tính, đúng bố cục thật); Hồ sơ: dòng đếm + 12 thẻ cao 128 bo 24 (3 cột, máy tính 4); tab Phụ kiện: 3 chỗ cao 56 + khối 240, lưới món trong thẻ 4 / 5 ô |
+| `Skeleton` | `tone="card"` (`bg-muted`) bên trong thẻ giấy, `tone="board"` (`bg-board-shade`) thẳng trên bảng — không dùng `bg-muted` trên bảng (chìm ở chế độ tối) |
+| Trợ năng | Thanh và khung xương `aria-hidden`; vùng đang tải tự có `aria-busy="true"` + chữ `sr-only` "Đang tải…" |
+
+**Màn Tài khoản (sửa lỗi tràn, 2026-11-21):** huy hiệu "Đã liên kết Google" chỉ còn chữ ngắn, email ở dòng riêng dưới huy hiệu (`text-muted-foreground` 13, cắt "…", `title` đủ email); huy hiệu không rộng quá thẻ. Hàng 3 tab Lịch sử: điện thoại chữ 15, lề tab 6–8 px; dưới 360 px tab được co và xuống dòng ("Kiểm tra / não") thay vì tràn mép thẻ.
+
 ## 7. Đa ngôn ngữ & nội dung
 
 - Mọi chữ qua `t()`: khoá thêm vào `apps/web/src/i18n/locales/vi.ts` trước, rồi `en.ts`. Tên/cách chơi minigame ở `apps/web/src/games/<id>/locales.ts`.
@@ -1031,5 +1067,6 @@ Bản mẫu: [canvas trang "Phấn & phụ kiện"](https://claude.ai/artifact/G
 | 1.10 | 2026-11-20 | Trang canvas "Phấn & phụ kiện" khu 30–33: Máy quay phụ kiện (S19), Tủ đồ + thú khoá + hộp chúc mừng (S20), menu (thẻ, chip số dư, quà mỗi ngày), "+N phấn", khoá thú ở hồ sơ/phòng chờ, đặc tả độ hiếm/phấn/24 món; mục 6.12; bản đồ màn hình; 24 phụ kiện SVG + `Character accessories`; token `rarity-*`; component `RarityBadge`, `ChalkChip`, `ChalkIcon`, `AccessoryIcon`; hoạt ảnh `fx-halo` | [CR-023](../00-tracking/change-requests.md#cr-023), [CR-024](../00-tracking/change-requests.md#cr-024) |
 | 1.11 | 2026-11-20 | Mục 6.8: phòng chờ luôn hiện đủ 12 ô (bố cục gọn) cho mọi số người, thay cho 8 ô tới 7 người; máy tính 6 × 2 (có cột chat: 4 × 3), điện thoại 2 × 6 | [CR-018](../00-tracking/change-requests.md#cr-018) |
 | 1.12 | 2026-11-20 | Mục 6.8: phòng chờ máy tính luôn 4 cột × 3 hàng (ô rộng hơn, chừa chỗ cho thú động theo phụ kiện), hàng cố định 136 px để mở bảng chọn mức bot không xô lệch, điện thoại giữ 2 × 6; màn lớn (vùng trình duyệt ≥ 1500 × 1020 px) dùng thẻ to cao 148 | [CR-018](../00-tracking/change-requests.md#cr-018) |
+| 1.13 | 2026-11-21 | Mục 6.13 mới: thanh tải trên đầu trang + khung xương (`TopLoadingBar`, `ScreenSkeleton`, `Skeleton tone`), sửa tràn màn Tài khoản; mục 6.12: Tủ đồ gộp vào Hồ sơ (2 tab, URL `/profile/accessories`, link cũ); mục 6.11: danh sách 30 game có hình động; bản đồ màn hình, S3, S11, S20, mục 5 Component. Chưa vẽ artboard cho 3 thay đổi này | [CR-025](../00-tracking/change-requests.md#cr-025), [CR-026](../00-tracking/change-requests.md#cr-026), [CR-021](../00-tracking/change-requests.md#cr-021) |
 
 [← Sản phẩm](README.md) · [Mục lục tài liệu](../README.md)

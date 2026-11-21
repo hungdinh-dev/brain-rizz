@@ -13,7 +13,7 @@ Cho người chơi **lý do quay lại**:
 
 1. **Phấn** (tiền trong game, không mua bằng tiền thật) kiếm được khi chơi: trận party, Kiểm tra não, luyện tập, quà mỗi ngày.
 2. **Máy quay phụ kiện** (`/gacha`): tiêu phấn để quay ra phụ kiện (mũ, kính, khăn…) gắn lên nhân vật. Tỉ lệ công khai, có bảo hiểm, trùng món thì đổi lại phấn.
-3. **Tủ đồ** (`/wardrobe`): mặc phụ kiện đã có (tối đa 1 món mỗi chỗ: đầu, mặt, cổ); cả phòng thấy.
+3. **Tủ đồ** (`/wardrobe`; từ 2026-11-21 là tab **Phụ kiện** của Hồ sơ `/profile/accessories`, [CR-026](../00-tracking/change-requests.md#cr-026)): mặc phụ kiện đã có (tối đa 1 món mỗi chỗ: đầu, mặt, cổ); cả phòng thấy.
 4. **6 bạn đồng hành mới**, **khoá** cho tới khi đạt thành tích (vd "kỷ lục Bóng bay số ≥ 2 200 ở mức Thường", "trung bình 3 kỷ lục cao nhất nhóm Phân tích ≥ 2 500", "về nhất 5 trận party" — đủ ở mục 3.2). Có thanh tiến độ và nút **Luyện ngay** dẫn tới đúng game.
 
 ## 2. Nguyên tắc (bắt buộc)
@@ -181,7 +181,7 @@ Hằng số giá/tỉ lệ/bảo hiểm/trần trong SQL phải khớp `economy.
 ### 5.4 Web — frontend-dev
 
 - `/gacha` (`features/gacha/`): số dư phấn, máy quay (SVG + CSS), nút Quay 1 / Quay 10 (giá, thiếu phấn thì tắt + chỉ cách kiếm), bộ đếm bảo hiểm, nút **Tỉ lệ** (hộp thoại: tỉ lệ, 24 món có/chưa), màn mở quà (viên nang mở lần lượt, sáng theo độ hiếm, trùng → "+N phấn"), giảm chuyển động → hiện thẳng kết quả.
-- `/wardrobe` (`features/wardrobe/`): tab **Phụ kiện** (xem trước nhân vật, 3 chỗ, chọn/bỏ món) và tab **Bạn đồng hành** (12 nhân vật; thú khoá hiện ổ khoá + điều kiện + thanh tiến độ + nút **Luyện ngay** / **Chơi party** dẫn tới đúng màn bằng URL của CR-022).
+- `/wardrobe` (`features/wardrobe/`; 2026-11-21 gộp vào Hồ sơ theo [CR-026](../00-tracking/change-requests.md#cr-026): tab Phụ kiện `/profile/accessories`, tab Bạn đồng hành `/profile`, link cũ chuyển hướng): tab **Phụ kiện** (xem trước nhân vật, 3 chỗ, chọn/bỏ món) và tab **Bạn đồng hành** (12 nhân vật; thú khoá hiện ổ khoá + điều kiện + thanh tiến độ + nút **Luyện ngay** / **Chơi party** dẫn tới đúng màn bằng URL của CR-022).
 - Chọn nhân vật ở hồ sơ và phòng chờ: thú khoá hiện khoá, bấm vào mở điều kiện. Mở khoá mới (so với danh sách đã thấy lưu trên máy) → hộp chúc mừng.
 - Menu: thẻ **Máy quay phụ kiện** + chip số dư phấn + nút nhận quà mỗi ngày.
 - Kết quả trận / Kiểm tra não: "+N phấn" từ `ServerMessage.Reward` / `chalkEarned`.

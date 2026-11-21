@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useDateFormat } from "@/hooks/use-date-format";
 import { cn } from "@/lib/utils";
 import { fetchGachaHistory, type GachaHistoryRow } from "@/net/gacha-api";
+import { useLoadingWhile } from "@/stores/top-loading.store";
 import { itemShare, itemsOfRarity } from "../pulls";
 
 /** Số phần trăm có tối đa 2 chữ số thập phân theo ngôn ngữ ("6,67" / "6.67"). */
@@ -190,6 +191,7 @@ function HistorySection() {
   const { t } = useTranslation();
   const date = useDateFormat();
   const [state, setState] = useState<HistoryState>({ status: "loading" });
+  useLoadingWhile(state.status === "loading");
   useEffect(() => {
     let live = true;
     void fetchGachaHistory(30).then((res) => {

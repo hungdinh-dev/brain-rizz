@@ -24,7 +24,7 @@ const ORIGIN: Point = [155, 191.7];
 const SCALE = 0.7;
 
 /** Khối theo thứ tự vẽ r + c + k tăng dần; `top`: khối trên cùng của cột (mặt trên sáng vàng). */
-const CUBES = HEIGHTS.flatMap((row, r) =>
+export const CUBES = HEIGHTS.flatMap((row, r) =>
   row.flatMap((h, c) => Array.from({ length: h }, (_, k) => ({ r, c, k, top: k === h - 1 }))),
 ).sort((a, b) => a.r + a.c + a.k - (b.r + b.c + b.k));
 
@@ -44,7 +44,7 @@ const STEPS: readonly Point[] = [
 ];
 
 /** Khối bị che dưới cùng của cột sau, vẽ nét đứt như nhìn xuyên qua. */
-const GHOST =
+export const GHOST =
   "M0 -56 L48.5 -28 L48.5 28 L0 56 L-48.5 28 L-48.5 -28 Z M-48.5 -28 L0 0 L48.5 -28 M0 0 L0 56";
 const HAND =
   "M9 11 L9 5.5 C9 4.4 9.9 3.5 11 3.5 C12.1 3.5 13 4.4 13 5.5 L13 10 L17 10.8 C18.5 11.1 19.4 12.5 19 14 L17.8 18.5 C17.5 19.7 16.4 20.5 15.2 20.5 L11.3 20.5 C10.5 20.5 9.8 20.1 9.3 19.5 L5.6 14.9 C5 14.1 5.2 13 6 12.5 C6.7 12 7.6 12.1 8.2 12.7 L9 13.5 Z";
@@ -58,7 +58,7 @@ const CHALK = {
 } as const;
 
 /** Bệ 2×2: mặt trên, đường chia ô, hai mặt bên. */
-function Slab() {
+export function Slab() {
   const s = slabCorners(2, 2);
   const down = ([x, y]: Point): Point => [x, y + SLAB_THICK];
   return (
@@ -82,7 +82,7 @@ function Slab() {
 }
 
 /** Một khối: mặt trên vàng (token `primary`) nếu là khối trên cùng của cột. */
-function Cube({ at, top }: { at: Point; top: boolean }) {
+export function Cube({ at, top }: { at: Point; top: boolean }) {
   return (
     <g className="stroke-ink" strokeWidth={4} strokeLinejoin="round">
       <polygon
@@ -97,7 +97,14 @@ function Cube({ at, top }: { at: Point; top: boolean }) {
 }
 
 /** Thẻ giấy viền mực có bóng đổ. */
-function Card({ x, y, w, h, r, border }: Record<"x" | "y" | "w" | "h" | "r" | "border", number>) {
+export function Card({
+  x,
+  y,
+  w,
+  h,
+  r,
+  border,
+}: Record<"x" | "y" | "w" | "h" | "r" | "border", number>) {
   return (
     <>
       <rect x={x} y={y + 4} width={w} height={h} rx={r} className="fill-ink" />

@@ -13,7 +13,6 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { QuitDialog } from "@/components/common/QuitDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { loadProfile } from "@/features/home";
 import {
   brainProgress,
   CountdownStage,
@@ -26,6 +25,7 @@ import { playSfx } from "@/features/sfx";
 import type { MinigameBridge } from "@/games/types";
 import { useData } from "@/hooks/use-data";
 import { DESKTOP_QUERY, useMediaQuery } from "@/hooks/use-media-query";
+import { currentProfile } from "@/lib/profile";
 import { hasStoredSession } from "@/lib/supabase";
 import { leaveBrainTest, sendBrain, startBrainTest } from "@/net/connection";
 import { fetchBrainHistory } from "@/net/data-api";
@@ -99,7 +99,7 @@ export function BrainTestScreen() {
     if (connecting) return;
     setConnecting(true);
     try {
-      const profile = loadProfile();
+      const profile = currentProfile();
       await startBrainTest({ name: profile.name, avatar: profile.avatar });
     } catch {
       // UC-14 luồng rẽ 2a: ở lại màn giới thiệu.

@@ -31,11 +31,13 @@ export type Screen =
   | "account"
   | "leaderboard"
   | "admin"
-  | "gacha"
-  | "wardrobe";
+  | "gacha";
 
-/** Tab của Tủ đồ (CR-023, CR-024): `/wardrobe` = Phụ kiện, `/wardrobe/pets` = Bạn đồng hành. */
-export type WardrobeTab = "accessories" | "pets";
+/**
+ * Tab của trang Hồ sơ (đã gộp Tủ đồ): `/profile` = Bạn đồng hành, `/profile/accessories` = Phụ kiện.
+ * Link cũ `/wardrobe` → `/profile/accessories`, `/wardrobe/pets` → `/profile` (replace).
+ */
+export type ProfileTab = "pets" | "accessories";
 
 /** 8 mục của trang quản trị (ui-ux 6.9) theo thứ tự menu, cũng là `<mục>` trong `/admin/<mục>`. */
 export const ADMIN_SECTIONS = [
@@ -84,17 +86,17 @@ export interface Route {
   section?: AdminSection;
   /** Menu mở từ link mời `/r/<mã>` (mã điền sẵn). */
   room?: string;
-  /** `/wardrobe/pets` → `"pets"`; bỏ trống = tab Phụ kiện. */
-  tab?: WardrobeTab;
+  /** `/profile/accessories` → `"accessories"`; bỏ trống = tab Bạn đồng hành. */
+  tab?: ProfileTab;
   /**
-   * Nút "Mặc thử" ở màn mở quà: món Tủ đồ đeo thử ngay và mở đúng chỗ của món. Chỉ trong bộ nhớ,
-   * không lên đường dẫn (tải lại trang thì thôi).
+   * Nút "Mặc thử" ở màn mở quà: món đeo thử ngay ở tab Phụ kiện của Hồ sơ, mở đúng chỗ của món. Chỉ
+   * trong bộ nhớ, không lên đường dẫn (tải lại trang thì thôi).
    */
   tryOn?: CosmeticId;
 }
 
-/** Màn cần hồ sơ (tên + bạn đồng hành) trước khi vào, như nút ở menu. Tủ đồ sửa hồ sơ nên cũng cần. */
-const PROFILE_SCREENS: readonly Screen[] = ["practice", "brain-test", "wardrobe"];
+/** Màn cần hồ sơ (tên + bạn đồng hành) trước khi vào, như nút ở menu. */
+const PROFILE_SCREENS: readonly Screen[] = ["practice", "brain-test"];
 
 const HOME: Route = { screen: "intro" };
 
@@ -146,7 +148,10 @@ export function screenForPath(path: string): Route {
     case "admin":
       return isAdminSection(arg) ? { screen: "admin", section: arg } : { screen: "admin" };
     case "profile":
-      return param === undefined ? { screen: "profile" } : HOME;
+      // Tab lạ → tab Bạn đồng hành (như game lạ → màn cha).
+      return arg === "accessories"
+        ? { screen: "profile", tab: "accessories" }
+        : { screen: "profile" };
     case "brain-test":
       return param === undefined ? { screen: "brain-test" } : HOME;
     case "account":
@@ -154,8 +159,8 @@ export function screenForPath(path: string): Route {
     case "gacha":
       return param === undefined ? { screen: "gacha" } : HOME;
     case "wardrobe":
-      // Tab lạ → tab Phụ kiện (như game lạ → màn cha).
-      return arg === "pets" ? { screen: "wardrobe", tab: "pets" } : { screen: "wardrobe" };
+      // Tủ đồ cũ đã gộp vào Hồ sơ: giữ link cũ (mở trang thì đường dẫn được sửa bằng replace).
+      return arg === "pets" ? { screen: "profile" } : { screen: "profile", tab: "accessories" };
     default:
       return HOME;
   }
@@ -182,8 +187,8 @@ export function pathForScreen(route: Route): string {
       return route.gameId ? `/leaderboard/${route.gameId}` : "/leaderboard";
     case "admin":
       return route.section ? `/admin/${route.section}` : "/admin";
-    case "wardrobe":
-      return route.tab === "pets" ? "/wardrobe/pets" : "/wardrobe";
+    case "profile":
+      return route.tab === "accessories" ? "/profile/accessories" : "/profile";
     default:
       return `/${route.screen}`;
   }
@@ -451,6 +456,11 @@ interface NavStore {
    * mà không để lại hai mục giống nhau liền nhau).
    */
   goBack(to: Screen | Route, options?: { replace?: boolean }): void;
+  /**
+   * Đổi tab ở trang Hồ sơ: thay mục lịch sử (không chất thêm mục), giữ đích quay về sau khi xong hồ
+   * sơ (`next`, `redirect`); `profileReturn` / `profileRedirect` không đổi.
+   */
+  setProfileTab(tab: ProfileTab): void;
   setSoloFocus(focused: boolean): void;
 }
 
@@ -490,6 +500,16 @@ export const useNav = create<NavStore>((set, get) => ({
       return;
     }
     get().go(route, { replace: options.replace });
+  },
+
+  setProfileTab(tab) {
+    if (get().screen !== "profile") return;
+    const route: Route = tab === "accessories" ? { screen: "profile", tab } : { screen: "profile" };
+    if (canUseHistory()) {
+      const { idx: _idx, menu: _menu, ...extra } = readState(history.state);
+      write("replace", route, extra);
+    }
+    set({ route });
   },
 
   setSoloFocus: (soloFocus) => set({ soloFocus }),

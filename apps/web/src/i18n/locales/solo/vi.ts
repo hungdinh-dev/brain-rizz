@@ -118,7 +118,6 @@ export const viSolo = {
     title: "Tài khoản & lịch sử",
     editProfile: "Sửa hồ sơ",
     guest: "Khách · chỉ trên máy này",
-    linkedAs: "Đã liên kết Google · {{email}}",
     linked: "Đã liên kết Google",
     linkHint:
       "Liên kết Google để giữ lịch sử khi đổi máy hoặc xoá dữ liệu trình duyệt. Lịch sử hiện tại vẫn giữ nguyên.",

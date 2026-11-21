@@ -3,6 +3,7 @@ import {
   Cursor,
   DemoStage,
   defineScript,
+  IconBadge,
   LockPill,
   Mark,
   popIn,
@@ -224,17 +225,13 @@ export function RotateMatchDemo(props: DemoProps) {
           <Outline />
         </A>
         <Mark k="x2" x={MARK[0]} y={MARK[1]} kind="bad" />
-        <A k="mir" x={174} y={196}>
-          <circle cy={3} r={18} className="fill-ink" />
-          <circle r={18} className="fill-board stroke-chalk" strokeWidth={2.5} />
-          <g fill="none" className="stroke-chalk" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M0 -11 L0 11" strokeWidth={2.4} strokeDasharray="3.5 3" />
-            <path
-              d="M-4 0 L-13 0 M-9 -4 L-13 0 L-9 4 M4 0 L13 0 M9 -4 L13 0 L9 4"
-              strokeWidth={2.6}
-            />
-          </g>
-        </A>
+        <IconBadge k="mir" x={174} y={196} r={18}>
+          <path d="M0 -11 L0 11" strokeWidth={2.4} strokeDasharray="3.5 3" />
+          <path
+            d="M-4 0 L-13 0 M-9 -4 L-13 0 L-9 4 M4 0 L13 0 M9 -4 L13 0 L9 4"
+            strokeWidth={2.6}
+          />
+        </IconBadge>
         <Mark k="ok2" x={RIGHT[0] + 58} y={RIGHT[1] - 58} kind="ok" />
         <LockPill k="lk" kb="lkb" x={206} y={64} />
         <Ripple k="rp2" x={LEFT[0]} y={LEFT[1]} />

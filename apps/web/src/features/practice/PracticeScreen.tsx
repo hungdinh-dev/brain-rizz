@@ -10,6 +10,7 @@ import { type PracticeFilter, restoreEntry, setBackGuard, useNav } from "@/store
 import { PracticePick } from "./components/PracticePick";
 import { PracticeResult } from "./components/PracticeResult";
 import { PracticeSetup } from "./components/PracticeSetup";
+import { useEnabledGames } from "./enabled-games";
 import { PRACTICE_COUNTDOWN_MS, usePractice } from "./practice.store";
 import { bestFor } from "./records";
 
@@ -41,16 +42,28 @@ export function PracticeScreen() {
     return () => usePractice.getState().leave();
   }, []);
 
+  // Game quản trị viên đã tắt (CR-019) không mở được từ đường dẫn / thú khoá: về lưới chọn game.
+  const enabled = useEnabledGames();
+  const routeDisabled = routeGame !== undefined && !enabled.includes(routeGame);
+
   // Đường dẫn → bước: có `gameId` thì mở hướng dẫn game đó (giữ nguyên nếu đang chơi / xem kết quả
   // của chính game này; `?d=` = mức tối thiểu chọn sẵn), không có thì về lưới chọn game.
   useLayoutEffect(() => {
     const p = usePractice.getState();
     if (routeGame) {
+      if (routeDisabled) return;
       if (p.step === "pick" || p.gameId !== routeGame) p.pickGame(routeGame, routeLevel);
     } else if (p.step !== "pick") {
       p.backToPick();
     }
-  }, [routeGame, routeLevel]);
+  }, [routeGame, routeLevel, routeDisabled]);
+
+  // Game bị tắt: chỉ đẩy về lưới khi chưa vào lượt (danh sách tải xong giữa lượt thì cho chơi nốt).
+  useLayoutEffect(() => {
+    if (routeDisabled && (s.step === "pick" || s.step === "setup")) {
+      go({ screen: "practice" }, { replace: true });
+    }
+  }, [routeDisabled, s.step, go]);
 
   // Back của trình duyệt lúc đếm ngược / đang chơi → giữ URL, hỏi "Bỏ lượt này?" như nút Thoát.
   useEffect(() => {
@@ -95,6 +108,7 @@ export function PracticeScreen() {
     return (
       <PracticePick
         records={s.records}
+        games={enabled}
         filter={filter}
         onFilter={changeFilter}
         onPick={pick}

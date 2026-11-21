@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadProfile } from "@/features/home";
+import { useProfile } from "@/lib/profile";
 import { fetchIsAdmin, fetchRooms } from "@/net/admin-api";
 import { useAuth } from "@/stores/auth.store";
 import { useNav } from "@/stores/nav.store";
@@ -31,7 +31,8 @@ export function AdminScreen() {
   const lost = useAdminStore((s) => s.lost);
   const [access, setAccess] = useState<GateKind | "ok">("checking");
   const [attempt, setAttempt] = useState(0);
-  const [profile] = useState(loadProfile);
+  // Hồ sơ dùng chung (store): tên kéo về từ tài khoản Google hiện ngay.
+  const profile = useProfile((s) => s.profile);
 
   // Rời trang: bỏ bản nháp và số liệu đã tải.
   useEffect(() => () => useAdminStore.getState().reset(), []);

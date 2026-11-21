@@ -12,7 +12,7 @@ const GAP = { x: GRID.x + 2 * CELL, y: GRID.y } as const;
 const GRID_RIGHT = GRID.x + 3 * CELL;
 
 /** Thẻ: 96 × 86 dưới lưới; mảnh trên thẻ ô 52 px. */
-const CARD = { y: 244, w: 96, h: 86, r: 14 } as const;
+export const CARD = { y: 244, w: 96, h: 86, r: 14 } as const;
 const CARD_XS = [168, 280, 392] as const;
 const PIECE = 26;
 /** Mảnh dây trên thẻ (tâm 0,0, nửa cạnh 26): khúc cua ┐, khúc cua └, dây thẳng ─. */
@@ -22,14 +22,14 @@ const CARD_PIECES = [
   `M-${PIECE} 0 L${PIECE} 0`,
 ] as const;
 
-const QUESTION = "M-9 -9 C-9 -21 10 -21 10 -10 C10 -2 0 -1 0 7";
+export const QUESTION = "M-9 -9 C-9 -21 10 -21 10 -10 C10 -2 0 -1 0 7";
 const TICK = "M-12 1 L-3 10 L13 -9";
 /** Mũi tên phấn cong từ thẻ dây thẳng lên ô trống. */
 const GUIDE = "M410 232 C448 180 440 112 372 84";
 const GUIDE_HEAD = "M382 97 L372 84 L388 82";
 
 /** Pin (gốc = điểm nối, trục +x hướng ra ngoài lưới), cùng hình với scene. */
-function Battery({ x, y }: { x: number; y: number }) {
+export function Battery({ x, y }: { x: number; y: number }) {
   return (
     <g transform={`translate(${x} ${y}) scale(0.9) rotate(180)`} className={CHALK}>
       <path d="M0 0 L13 0" strokeWidth={14} className="stroke-chalk" />
@@ -92,7 +92,7 @@ function Bulb({ x, y }: { x: number; y: number }) {
 }
 
 /** Thẻ mảnh dây: giấy viền mực có bóng, khung ô mờ, nét dây mực. */
-function Card({ x, piece }: { x: number; piece: string }) {
+export function Card({ x, piece }: { x: number; piece: string }) {
   const left = x - CARD.w / 2;
   return (
     <g>

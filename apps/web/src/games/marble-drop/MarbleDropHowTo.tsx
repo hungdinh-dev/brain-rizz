@@ -4,18 +4,18 @@ import { cn } from "@/lib/utils";
 const CHALK = "filter-[url(#chalk)]";
 
 /** Cần gạt hình mũi tên (chỉ xuống khi chưa xoay), cùng hình với scene. */
-const ARROW = "M-6 0 L-6 44 L-14 44 L0 70 L14 44 L6 44 L6 0 Z";
+export const ARROW = "M-6 0 L-6 44 L-14 44 L0 70 L14 44 L6 44 L6 0 Z";
 /** Vòng mũi tên trên chốt công tắc. */
-const FLIP_ICON =
+export const FLIP_ICON =
   "M-10.3 -3.8 A11 11 0 0 1 10.3 -3.8 M3.6 -7.7 L10.3 -3.8 L13 -11.1 M10.3 3.8 A11 11 0 0 1 -10.3 3.8 M-3.6 7.7 L-10.3 3.8 L-13 11.1";
-const CUP = "M-44 0 L44 0 L35 92 C34 100 29 104 21 104 L-21 104 C-29 104 -34 100 -35 92 Z";
+export const CUP = "M-44 0 L44 0 L35 92 C34 100 29 104 21 104 L-21 104 C-29 104 -34 100 -35 92 Z";
 const HAND =
   "M9 11 L9 5.5 C9 4.4 9.9 3.5 11 3.5 C12.1 3.5 13 4.4 13 5.5 L13 10 L17 10.8 C18.5 11.1 19.4 12.5 19 14 L17.8 18.5 C17.5 19.7 16.4 20.5 15.2 20.5 L11.3 20.5 C10.5 20.5 9.8 20.1 9.3 19.5 L5.6 14.9 C5 14.1 5.2 13 6 12.5 C6.7 12 7.6 12.1 8.2 12.7 L9 13.5 Z";
 /** Ống của khung dọc (Mầm: 2 tầng, 3 cốc) và hai chạc ở cột trái. */
 const PIPES =
   "M285 50 L285 88 M248 176.8 L285 88 L322 176.8 M211 265.6 L248 176.8 L285 265.6 M285 265.6 L322 176.8 L359 265.6 M211 265.6 L211 276 M285 265.6 L285 276 M359 265.6 L359 276 M80 28 L80 74 M54.4 135.4 L80 74 L105.6 135.4 M80 200 L80 246 M54.4 307.4 L80 246 L105.6 307.4";
 /** Góc nghiêng cần gạt: dương = chỉ trái, âm = chỉ phải. */
-const TILT = 22.6;
+export const TILT = 22.6;
 
 function Lever({ x, y, size, tilt }: { x: number; y: number; size: number; tilt: number }) {
   return (
@@ -29,7 +29,7 @@ function Lever({ x, y, size, tilt }: { x: number; y: number; size: number; tilt:
   );
 }
 
-function Ball({ x, y, gold }: { x: number; y: number; gold?: boolean }) {
+export function Ball({ x, y, gold }: { x: number; y: number; gold?: boolean }) {
   return (
     <>
       <circle
