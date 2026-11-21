@@ -49,6 +49,9 @@ let rpcCalls: RpcCall[] = [];
 /** Lỗi RPC giả theo tên hàm (vd. `delete_my_data` → `last-admin`). */
 let rpcErrors: Record<string, { message: string; code: string }> = {};
 let storage: Storage;
+/** Hàng `profiles` của người đang đăng nhập (null = chưa có) và các lần upsert. */
+let profileRow: Record<string, unknown> | null = null;
+let upserts: Record<string, unknown>[] = [];
 
 const auth = {
   getSession: vi.fn(async () => ({ data: { session } })),
@@ -85,7 +88,15 @@ function rpc(name: string, args: Record<string, unknown>) {
 const sb = {
   auth,
   rpc: vi.fn(rpc),
-  from: vi.fn(() => ({ upsert: async () => ({ error: null }) })),
+  from: vi.fn(() => ({
+    upsert: async (row: Record<string, unknown>) => {
+      upserts.push(row);
+      return { error: null };
+    },
+    select: () => ({
+      eq: () => ({ maybeSingle: async () => ({ data: profileRow, error: null }) }),
+    }),
+  })),
 };
 
 async function load({ href = "http://app.test/", stored = true } = {}) {
@@ -309,5 +320,263 @@ describe("đi Google rồi quay về đúng màn (CR-019)", { timeout: 30_000 },
     await expect(useAuth.getState().linkGoogle()).resolves.toBe(false);
     expect(storage.getItem("brain-rizz:oauth-flow")).toBeNull();
     expect(storage.getItem("brain-rizz:oauth-return")).toBeNull();
+  });
+});
+
+describe("hồ sơ theo tài khoản: kéo tên + nhân vật về khi có phiên Google", {
+  timeout: 30_000,
+}, () => {
+  let local: Storage;
+  beforeEach(() => {
+    session = null;
+    rpcCalls = [];
+    rpcErrors = {};
+    profileRow = null;
+    upserts = [];
+    storage = memoryStorage();
+    local = memoryStorage();
+    vi.clearAllMocks();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+  });
+  afterEach(() => {
+    vi.doUnmock("@/lib/supabase");
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  /** Tải lại module với hồ sơ trên máy `saved` (localStorage giả). */
+  async function loadWith(saved: Record<string, unknown> | null, opts?: { href?: string }) {
+    if (saved) local.setItem("brain-rizz:profile", JSON.stringify(saved));
+    vi.stubGlobal("localStorage", local);
+    const mod = await load(opts);
+    const profile = await import("@/lib/profile");
+    return { ...mod, ...profile };
+  }
+
+  it("máy mới / đã xoá dữ liệu: tên tài khoản về hồ sơ trên máy, không bắt nhập lại", async () => {
+    session = GOOGLE;
+    profileRow = { display_name: "Hùng", avatar: "mochi" };
+    const { useAuth, useProfile, loadProfile } = await loadWith(null, {
+      href: "http://app.test/?code=abc",
+    });
+    void useAuth.getState().init();
+    await vi.waitFor(() => expect(useProfile.getState().profile.name).toBe("Hùng"));
+    expect(useProfile.getState().profile.avatar).toBe("mochi");
+    expect(useProfile.getState().accountRev).toBe(1);
+    expect(loadProfile().name).toBe("Hùng");
+    expect(upserts).toEqual([]);
+  });
+
+  it("máy đang giữ tên của tài khoản khác → tên tài khoản thắng, giữ độ khó + phụ kiện", async () => {
+    session = GOOGLE;
+    profileRow = { display_name: "Hùng", avatar: "dragon" };
+    const saved = {
+      name: "Lan",
+      colorIndex: 2,
+      avatar: "op",
+      difficulty: 3,
+      accessories: ["crown"],
+    };
+    const { useAuth, useProfile } = await loadWith(saved);
+    void useAuth.getState().init();
+    await vi.waitFor(() => expect(useProfile.getState().profile.name).toBe("Hùng"));
+    // Nhân vật lạ từ tài khoản → giữ nhân vật trên máy.
+    expect(useProfile.getState().profile).toEqual({ ...saved, name: "Hùng" });
+    // Màn mở từ trước (giá trị cũ "Lan") gọi đồng bộ → không đè tên tài khoản.
+    await useAuth.getState().syncProfile({ name: "Lan", avatar: "op" });
+    expect(upserts).toEqual([]);
+  });
+
+  it("tài khoản chưa có tên mà máy có → đẩy tên trên máy lên", async () => {
+    session = GOOGLE;
+    const { useAuth, useProfile } = await loadWith({ name: "Lan", avatar: "op" });
+    void useAuth.getState().init();
+    await vi.waitFor(() => expect(upserts).toHaveLength(1));
+    expect(upserts[0]).toEqual({ id: "u-google", display_name: "Lan", avatar: "op" });
+    expect(useProfile.getState().profile.name).toBe("Lan");
+  });
+
+  it("phiên khách → không kéo hồ sơ; đăng xuất không xoá tên trên máy", async () => {
+    session = GUEST;
+    profileRow = { display_name: "Khác", avatar: "khoi" };
+    const { useAuth, useProfile } = await loadWith({ name: "Lan", avatar: "op" });
+    await useAuth.getState().init();
+    await new Promise((r) => setTimeout(r, 20));
+    expect(useProfile.getState().profile.name).toBe("Lan");
+    await useAuth.getState().signOut();
+    expect(useProfile.getState().profile.name).toBe("Lan");
+  });
+
+  it("đổi sang tài khoản Google khác → hồ sơ theo tài khoản mới", async () => {
+    session = GOOGLE;
+    profileRow = { display_name: "Hùng", avatar: "mochi" };
+    const { useAuth, useProfile } = await loadWith(null);
+    void useAuth.getState().init();
+    await vi.waitFor(() => expect(useProfile.getState().profile.name).toBe("Hùng"));
+    profileRow = { display_name: "Mai", avatar: "lua" };
+    useAuth.setState({ status: "google", userId: "u-google-2" });
+    await vi.waitFor(() => expect(useProfile.getState().profile.name).toBe("Mai"));
+    expect(useProfile.getState().profile.avatar).toBe("lua");
+  });
+
+  it("Supabase lỗi khi đọc hồ sơ → chỉ cảnh báo, giữ hồ sơ trên máy", async () => {
+    session = GOOGLE;
+    sb.from.mockImplementationOnce(() => {
+      throw new Error("paused");
+    });
+    const { useAuth, useProfile } = await loadWith({ name: "Lan", avatar: "op" });
+    await useAuth.getState().init();
+    await vi.waitFor(() => expect(console.warn).toHaveBeenCalled());
+    expect(useProfile.getState().profile.name).toBe("Lan");
+  });
+
+  /** Lần đọc `profiles` kế tiếp treo tới khi gọi `resolve(row)` (mô phỏng mạng chậm). */
+  function holdNextProfileRead() {
+    let resolve!: (row: Record<string, unknown> | null) => void;
+    const pending = new Promise<{ data: Record<string, unknown> | null; error: null }>((r) => {
+      resolve = (row) => r({ data: row, error: null });
+    });
+    sb.from.mockImplementationOnce(
+      () =>
+        ({
+          select: () => ({ eq: () => ({ maybeSingle: () => pending }) }),
+        }) as unknown as ReturnType<typeof sb.from>,
+    );
+    return (row: Record<string, unknown> | null) => resolve(row);
+  }
+
+  it("syncProfile gọi lúc đang kéo hồ sơ (giá trị cũ trên máy) → chờ kéo xong, không đè tên tài khoản", async () => {
+    session = GOOGLE;
+    const release = holdNextProfileRead();
+    const { useAuth, useProfile } = await loadWith({ name: "Lan", avatar: "op" });
+    await useAuth.getState().init();
+    // Vd. ensureSession(profile) khi vào phòng, hồ sơ đọc trước khi tài khoản về tới.
+    const sync = useAuth.getState().syncProfile({ name: "Lan", avatar: "op" });
+    await new Promise((r) => setTimeout(r, 20));
+    expect(upserts).toEqual([]);
+    release({ display_name: "Hùng", avatar: "mochi" });
+    await sync;
+    await new Promise((r) => setTimeout(r, 20));
+    expect(useProfile.getState().profile.name).toBe("Hùng");
+    expect(upserts).toEqual([]);
+  });
+
+  it("người chơi sửa tên trong lúc đang kéo hồ sơ → bản vừa sửa thắng và được đẩy lên một lần", async () => {
+    session = GOOGLE;
+    const release = holdNextProfileRead();
+    const { useAuth, useProfile, saveProfile, loadProfile } = await loadWith({
+      name: "Lan",
+      avatar: "op",
+    });
+    await useAuth.getState().init();
+    // Như confirmProfile ở HomeScreen: lưu trước, đồng bộ sau.
+    saveProfile({ ...loadProfile(), name: "Lan Mới" });
+    const sync = useAuth.getState().syncProfile({ name: "Lan Mới", avatar: "op" });
+    release({ display_name: "Hùng", avatar: "mochi" });
+    await sync;
+    await new Promise((r) => setTimeout(r, 20));
+    expect(useProfile.getState().profile.name).toBe("Lan Mới");
+    expect(upserts).toEqual([{ id: "u-google", display_name: "Lan Mới", avatar: "op" }]);
+  });
+
+  const failNextProfileCall = () =>
+    sb.from.mockImplementationOnce(() => {
+      throw new Error("paused");
+    });
+  const stored = () => JSON.parse(local.getItem("brain-rizz:profile") ?? "{}");
+
+  it("kéo hồ sơ lỗi → syncProfile kéo lại trước; tài khoản có tên thì không đè", async () => {
+    session = GOOGLE;
+    profileRow = { display_name: "Hùng", avatar: "mochi" };
+    failNextProfileCall();
+    const { useAuth, useProfile } = await loadWith({ name: "Lan", avatar: "op" });
+    await useAuth.getState().init();
+    await vi.waitFor(() => expect(console.warn).toHaveBeenCalled());
+    expect(useProfile.getState().profile.name).toBe("Lan");
+    // Vd. ensureSession(profile) khi vào phòng: kéo lại được → tên tài khoản thắng, không đẩy "Lan".
+    await useAuth.getState().syncProfile({ name: "Lan", avatar: "op" });
+    expect(useProfile.getState().profile.name).toBe("Hùng");
+    expect(upserts).toEqual([]);
+  });
+
+  it("kéo lại vẫn lỗi → không đẩy; lần sau kéo được thì xử lý bình thường", async () => {
+    session = GOOGLE;
+    failNextProfileCall();
+    failNextProfileCall();
+    const { useAuth } = await loadWith({ name: "Lan", avatar: "op" });
+    await useAuth.getState().init();
+    await vi.waitFor(() => expect(console.warn).toHaveBeenCalled());
+    await useAuth.getState().syncProfile({ name: "Lan", avatar: "op" });
+    expect(upserts).toEqual([]);
+    // Tài khoản chưa có tên, hồ sơ trên máy chưa gắn ai → đẩy lên (không bị kẹt bởi lần lỗi trước).
+    await useAuth.getState().syncProfile({ name: "Lan", avatar: "op" });
+    await vi.waitFor(() => expect(upserts).toHaveLength(1));
+    expect(stored().owner).toBe("u-google");
+  });
+
+  it("sửa tên tay lúc Supabase lỗi → dấu bền trên máy; lần tải sau kéo được thì bản sửa tay thắng", async () => {
+    session = GOOGLE;
+    profileRow = { display_name: "Hùng", avatar: "mochi" };
+    failNextProfileCall();
+    failNextProfileCall();
+    let mod = await loadWith({ name: "Hùng", avatar: "mochi", owner: "u-google" });
+    await mod.useAuth.getState().init();
+    await vi.waitFor(() => expect(console.warn).toHaveBeenCalled());
+    // Như confirmProfile ở HomeScreen.
+    mod.saveProfile({ ...mod.useProfile.getState().profile, name: "Hùng Mới" });
+    await mod.useAuth
+      .getState()
+      .syncProfile({ name: "Hùng Mới", avatar: "mochi" }, { edited: true });
+    expect(upserts).toEqual([]);
+    expect(stored()).toMatchObject({ name: "Hùng Mới", editedFor: "u-google" });
+
+    // Tải lại trang (Supabase đã chạy lại): tài khoản vẫn "Hùng" nhưng bản sửa tay thắng.
+    mod = await loadWith(null);
+    void mod.useAuth.getState().init();
+    await vi.waitFor(() => expect(upserts).toHaveLength(1));
+    expect(upserts[0]).toEqual({ id: "u-google", display_name: "Hùng Mới", avatar: "mochi" });
+    expect(mod.useProfile.getState().profile.name).toBe("Hùng Mới");
+    await vi.waitFor(() => expect(stored().editedFor).toBeNull());
+    expect(stored().owner).toBe("u-google");
+  });
+
+  it("máy dùng chung: hồ sơ của tài khoản khác, tài khoản mới chưa có tên → không đẩy, xoá tên + phụ kiện", async () => {
+    session = GOOGLE;
+    const saved = {
+      name: "Lan",
+      colorIndex: 1,
+      avatar: "op",
+      difficulty: 3,
+      accessories: ["crown"],
+      owner: "u-other",
+    };
+    const { useAuth, useProfile } = await loadWith(saved);
+    void useAuth.getState().init();
+    await vi.waitFor(() => expect(useProfile.getState().profile.name).toBe(""));
+    expect(useProfile.getState().profile).toMatchObject({
+      avatar: "op",
+      difficulty: 3,
+      accessories: [],
+    });
+    expect(stored().owner).toBe("u-google");
+    await new Promise((r) => setTimeout(r, 20));
+    expect(upserts).toEqual([]);
+  });
+
+  it("đổi tên khi là khách → hồ sơ thôi gắn tài khoản cũ; đăng nhập tài khoản mới chưa có tên thì đẩy lên", async () => {
+    session = GUEST;
+    const { useAuth, useProfile, saveProfile } = await loadWith({
+      name: "Lan",
+      avatar: "op",
+      owner: "u-other",
+    });
+    await useAuth.getState().init();
+    saveProfile({ ...useProfile.getState().profile, name: "Mai" });
+    await useAuth.getState().syncProfile({ name: "Mai", avatar: "op" }, { edited: true });
+    expect(stored().owner).toBeNull();
+    upserts = [];
+    useAuth.setState({ status: "google", userId: "u-google" });
+    await vi.waitFor(() => expect(upserts).toHaveLength(1));
+    expect(upserts[0]).toEqual({ id: "u-google", display_name: "Mai", avatar: "op" });
   });
 });

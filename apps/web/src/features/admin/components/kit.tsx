@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useLoadingWhile } from "@/stores/top-loading.store";
 import type { AdminLoad } from "../admin.store";
 import { colorIndexFor } from "../format";
 import { type AdminSection, SECTION_ICON } from "../sections";
@@ -243,9 +244,10 @@ export function IconTile({
   );
 }
 
-/** Đang tải: thẻ có khung xám nhấp nháy, `aria-busy`. */
+/** Đang tải: thẻ có khung xám nhấp nháy, `aria-busy`, kèm thanh tải trên đầu trang. */
 export function LoadingPanel({ section, rows = 7 }: { section: AdminSection; rows?: number }) {
   const { t } = useTranslation();
+  useLoadingWhile(true);
   return (
     <Panel aria-busy="true" className="flex flex-col gap-3 p-4">
       <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5">

@@ -71,7 +71,7 @@ interface PartyConfig { version: number; scoring: ScoringConfig; disabledGames: 
 
 | Trường | Kiểu | Ý nghĩa |
 | --- | --- | --- |
-| `disabledGames` | `string[]` | Game admin tắt — không có trên trống quay, không chọn/bầu được ở trận này |
+| `disabledGames` | `string[]` | Game admin tắt — không có trên trống quay, không chọn/bầu được ở trận này. Từ 2026-11-21 Luyện tập cũng ẩn các game này, đọc qua RPC công khai `party_disabled_games` ([CR-027](../00-tracking/change-requests.md#cr-027)); Kiểm tra não chưa áp |
 | `scoringJson` | `string` | `JSON.stringify(ScoringConfig)` của trận hiện tại; web đọc bằng `parseScoringJson` để hiện hệ số và điểm thứ hạng |
 | `configVersion` | `number` | `party_settings.version` đang áp dụng (0 = mặc định trong code) |
 

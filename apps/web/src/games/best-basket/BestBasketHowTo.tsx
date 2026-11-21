@@ -18,7 +18,7 @@ const S = 0.5;
 const BASKET_X = [90, 280, 470] as const;
 const BASKET_Y = 227;
 /** Mép trên thẻ giỏ trong hình (toạ độ giỏ của scene: quai cao tới y ≈ −199). */
-const CARD_TOP = -214;
+export const CARD_TOP = -214;
 /** Túi xu ở góc trái trên (thẻ 276 × 140 của scene, thu 0,6). */
 const BAG = { x: 8, y: 12, k: 0.6 };
 
@@ -31,7 +31,7 @@ function pathOf(pts: readonly Pt[], close: boolean) {
 }
 
 /** Vẽ hình của `art.ts` (cùng hình với scene). `mono` = bóng phẳng màu mực nhãn dán. */
-function Shapes({ shapes, mono = false }: { shapes: readonly Shape[]; mono?: boolean }) {
+export function Shapes({ shapes, mono = false }: { shapes: readonly Shape[]; mono?: boolean }) {
   return (
     <>
       {shapes.map((shape) => {
@@ -72,7 +72,17 @@ function Shapes({ shapes, mono = false }: { shapes: readonly Shape[]; mono?: boo
 }
 
 /** Món ăn vặt có bóng phẳng phía dưới, tâm (x, y), phóng `k`. */
-function Snack({ kind, x, y, k = 1 }: { kind: BestBasketSnack; x: number; y: number; k?: number }) {
+export function Snack({
+  kind,
+  x,
+  y,
+  k = 1,
+}: {
+  kind: BestBasketSnack;
+  x: number;
+  y: number;
+  k?: number;
+}) {
   const art = snackArt(kind);
   return (
     <g transform={`translate(${x} ${y}) scale(${k})`}>
@@ -85,7 +95,17 @@ function Snack({ kind, x, y, k = 1 }: { kind: BestBasketSnack; x: number; y: num
 }
 
 /** Chữ số Baloo 2, `y` là tâm chữ số. */
-function Digit({ x, y, size, value }: { x: number; y: number; size: number; value: number }) {
+export function Digit({
+  x,
+  y,
+  size,
+  value,
+}: {
+  x: number;
+  y: number;
+  size: number;
+  value: number;
+}) {
   return (
     <text
       x={x}
@@ -100,7 +120,7 @@ function Digit({ x, y, size, value }: { x: number; y: number; size: number; valu
 }
 
 /** Thẻ giá / thẻ sao dưới món (toạ độ trong giỏ). */
-function Tag({
+export function Tag({
   x,
   y,
   icon,
@@ -168,7 +188,7 @@ interface Item {
  * Dòng tổng "🪙7 ✓ · ★5" ở đáy giỏ, căn giữa (bề rộng chữ số ước theo Baloo 2 ≈ 0,55 cỡ chữ).
  * Giỏ lố tiền: số giá gạch đỏ, ✗.
  */
-function TotalsRow({ price, stars, ok }: { price: number; stars: number; ok: boolean }) {
+export function TotalsRow({ price, stars, ok }: { price: number; stars: number; ok: boolean }) {
   const size = 38;
   const r = 15;
   const digit = size * 0.55;

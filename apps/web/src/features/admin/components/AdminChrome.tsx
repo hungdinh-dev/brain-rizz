@@ -17,8 +17,10 @@ import { LanguageToggle } from "@/components/common/LanguageToggle";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/stores/auth.store";
+import { useLoadingWhile } from "@/stores/top-loading.store";
 import { ADMIN_SECTIONS, type AdminSection, SECTION_ICON } from "../sections";
 import { Chip, IconTile, Panel } from "./kit";
 
@@ -128,6 +130,44 @@ export function AdminNav({
 
 export type GateKind = "checking" | "signin" | "forbidden" | "offline" | "error";
 
+/**
+ * Đang kiểm quyền: khung xương đúng bố cục bảng điều khiển (hàng tab trên điện thoại, menu cạnh +
+ * thẻ trên máy tính) để vào được thì không nhảy bố cục, kèm thanh tải trên đầu trang.
+ */
+function GateChecking() {
+  const { t } = useTranslation();
+  useLoadingWhile(true);
+  return (
+    <div aria-busy="true" className="flex flex-col gap-3">
+      <div className="-mx-4 flex gap-2 overflow-hidden px-4 pt-0.5 pb-2 @min-[820px]/root:hidden">
+        {ADMIN_SECTIONS.slice(0, 4).map((id) => (
+          <Skeleton key={id} tone="board" className="h-11 w-28 shrink-0 rounded-full" />
+        ))}
+      </div>
+      <div className="grid items-start gap-3 @min-[820px]/root:grid-cols-[224px_minmax(0,1fr)] @min-[820px]/root:gap-5.5">
+        <div className="hidden flex-col gap-1.5 @min-[820px]/root:flex">
+          {ADMIN_SECTIONS.map((id) => (
+            <Skeleton key={id} tone="board" className="h-11 rounded-[14px]" />
+          ))}
+        </div>
+        <Panel className="flex flex-col gap-3 p-4">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-18" />
+            ))}
+          </div>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-8.5" />
+          ))}
+          <output className="block text-[12.5px] text-muted-foreground">
+            {t("admin.gate.checking")}
+          </output>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
 /** Cổng (ẩn menu): chưa đăng nhập Google, không có quyền, chưa kết nối, lỗi kiểm quyền. */
 export function AdminGate({
   kind,
@@ -144,14 +184,7 @@ export function AdminGate({
   const signInGoogle = useAuth((s) => s.signInGoogle);
   const [opening, setOpening] = useState(false);
 
-  if (kind === "checking") {
-    return (
-      <output className="flex flex-1 items-center justify-center gap-2 py-16 text-chalk">
-        <LoaderCircleIcon aria-hidden className="size-6 motion-safe:animate-spin" />
-        {t("admin.gate.checking")}
-      </output>
-    );
-  }
+  if (kind === "checking") return <GateChecking />;
 
   async function openGoogle(selectAccount: boolean) {
     setOpening(true);

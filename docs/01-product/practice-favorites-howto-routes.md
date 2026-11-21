@@ -3,14 +3,14 @@
 | | |
 | --- | --- |
 | Giai đoạn SDLC | Thiết kế + làm: [CR-020](../00-tracking/change-requests.md#cr-020), [CR-021](../00-tracking/change-requests.md#cr-021), [CR-022](../00-tracking/change-requests.md#cr-022) duyệt 2026-11-19, nhánh `feat/admin-12-players` (làm tiếp sau commit `3c557d3`) |
-| Phiên bản tài liệu | 0.2 · 2026-11-19 · điều phối chốt 5 điểm của ui-designer (UI-UX 6.10–6.11): nhãn ⭐ cố định "Yêu thích: {tên}" + `aria-pressed`; `Demo` có `loops`/`onEnd`; điện thoại đưa nút chính lên dưới ô độ khó; thẻ điện thoại gọn 1 dòng, đủ thông tin trong Phóng to; biểu tượng kỷ lục ⭐ → cúp (0.1: bản đầu) |
+| Phiên bản tài liệu | 0.3 · 2026-11-21 · bản đồ URL (3.4): `/profile/accessories`, `/gacha`, link cũ `/wardrobe` (CR-026), game bị tắt ở Luyện tập (CR-027); hướng dẫn động đủ 30 game (CR-021 đợt hai) · 0.2 · 2026-11-19 · điều phối chốt 5 điểm của ui-designer (UI-UX 6.10–6.11): nhãn ⭐ cố định "Yêu thích: {tên}" + `aria-pressed`; `Demo` có `loops`/`onEnd`; điện thoại đưa nút chính lên dưới ô độ khó; thẻ điện thoại gọn 1 dòng, đủ thông tin trong Phóng to; biểu tượng kỷ lục ⭐ → cúp (0.1: bản đầu) |
 | Liên quan | [SRS](srs.md) (UC-13, UC-21, FR-MR-17, FR-GD-13, FR-GD-14), [UI-UX](ui-ux.md), [admin-console.md](admin-console.md) (`/admin`), ADR 0010 (không 3D), ADR 0011 (Supabase) |
 | Cập nhật khi | Đổi hợp đồng ở mục 3 (bảng/RPC, khoá localStorage, bản đồ URL, kiểu `GameClient`) → sửa ở đây trước |
 
 ## 1. Tóm tắt
 
 1. **Game yêu thích** (CR-020): ⭐ trên thẻ game ở Luyện tập; mục **Yêu thích** đứng đầu danh sách. Lưu trên máy ngay, đồng bộ lên tài khoản khi có phiên.
-2. **Hướng dẫn to và động** (CR-021): khung hướng dẫn lớn hơn + nút **Phóng to** toàn màn; hình minh hoạ chuyển động (SVG + CSS) diễn cách chơi, dùng chung một "khung diễn". Đợt này: 5 game MVP (Kẻ lạc đàn, Theo dấu ánh đèn, Cân não, Bóng bay số, Xoay hình); 25 game còn lại làm sau khi chủ dự án duyệt.
+2. **Hướng dẫn to và động** (CR-021): khung hướng dẫn lớn hơn + nút **Phóng to** toàn màn; hình minh hoạ chuyển động (SVG + CSS) diễn cách chơi, dùng chung một "khung diễn". Đợt này: 5 game MVP (Kẻ lạc đàn, Theo dấu ánh đèn, Cân não, Bóng bay số, Xoay hình); 25 game còn lại làm sau khi chủ dự án duyệt — đã làm 2026-11-21, đủ 30 game (danh sách: [UI-UX 6.11](ui-ux.md#611-hướng-dẫn-to--động-s11-s12-s13-cr-021)).
 3. **Tách URL** (CR-022): mỗi màn ngoài phòng có đường dẫn riêng; Back/Forward/F5 giữ đúng màn; trong phòng giữ `/r/<mã>`.
 
 ## 2. Quyết định (chủ dự án duyệt 2026-11-19)
@@ -67,9 +67,12 @@
 | Đường dẫn | Màn | Ghi chú |
 | --- | --- | --- |
 | `/` | Giới thiệu / menu | Như cũ |
-| `/profile` | Chọn bạn đồng hành | |
-| `/practice`, `/practice?cat=<nhóm\|fav>` | Luyện tập · chọn game | `?cat=` = chip lọc đang chọn (`identify`, `memorize`, `analyze`, `compute`, `visualize`, `fav` = Yêu thích; không có = Tất cả). Đổi chip → `replaceState`. Nút "Luyện ngay" của thú khoá theo nhóm (Thông) mở `/practice?cat=analyze` (CR-024) |
-| `/practice/<gameId>`, `/practice/<gameId>?d=<0–3>` | Luyện tập · hướng dẫn game đó | Đếm ngược/chơi/kết quả vẫn ở URL này (không đẩy lịch sử); `gameId` lạ → `/practice` (replace). `?d=` = mức tối thiểu chọn sẵn lần này (mức đang nhớ thấp hơn thì nâng lên; không ghi vào kỷ lục, "mức lần trước" chỉ lưu khi chơi xong lượt) — nút "Luyện ngay" của Ộp mở `/practice/number-balloons?d=1` (CR-024) |
+| `/profile` | Hồ sơ · tab Bạn đồng hành | Gộp Tủ đồ ([CR-026](../00-tracking/change-requests.md#cr-026)). Chưa có hồ sơ mà mở link sâu cũng vào đây |
+| `/profile/accessories` | Hồ sơ · tab Phụ kiện (Tủ đồ cũ) | Đổi tab → `replaceState` (giữ đích quay về sau khi xong hồ sơ). Tab lạ (`/profile/xyz`) → tab Bạn đồng hành. "Mặc thử" ở màn mở quà mở tab này, đeo thử món (chỉ trong bộ nhớ, không lên URL) |
+| `/wardrobe`, `/wardrobe/pets` | (link cũ của Tủ đồ, CR-023) | → `/profile/accessories` và `/profile` (replace) |
+| `/gacha` | Máy quay phụ kiện | CR-023 |
+| `/practice`, `/practice?cat=<nhóm\|fav>` | Luyện tập · chọn game | `?cat=` = chip lọc đang chọn (`identify`, `memorize`, `analyze`, `compute`, `visualize`, `fav` = Yêu thích; không có = Tất cả). Đổi chip → `replaceState`. Nút "Luyện ngay" của thú khoá theo nhóm (Thông) mở `/practice?cat=analyze` (CR-024). Nhóm không còn game bật (CR-027) thì ẩn chip; `?cat=` nhóm đó hiện như Tất cả |
+| `/practice/<gameId>`, `/practice/<gameId>?d=<0–3>` | Luyện tập · hướng dẫn game đó | Đếm ngược/chơi/kết quả vẫn ở URL này (không đẩy lịch sử); `gameId` lạ → `/practice` (replace); game quản trị viên tắt → `/practice` (replace) khi chưa vào lượt ([CR-027](../00-tracking/change-requests.md#cr-027)). `?d=` = mức tối thiểu chọn sẵn lần này (mức đang nhớ thấp hơn thì nâng lên; không ghi vào kỷ lục, "mức lần trước" chỉ lưu khi chơi xong lượt) — nút "Luyện ngay" của Ộp mở `/practice/number-balloons?d=1` (CR-024) |
 | `/brain-test` | Kiểm tra não | Pha trong phòng do server quyết, một URL |
 | `/leaderboard`, `/leaderboard/<gameId>` | Bảng xếp hạng Điểm Não / theo game | `gameId` lạ → `/leaderboard` |
 | `/account` | Tài khoản & lịch sử | Quay về từ Google vẫn chạy như cũ |

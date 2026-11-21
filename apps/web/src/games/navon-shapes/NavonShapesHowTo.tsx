@@ -18,7 +18,7 @@ const ARROW = "M-9 0 L9 0 M2 -7 L9 0 L2 7";
 const TRIANGLE_ICON = "M0 -14 L16 14 L-16 14 Z";
 
 /** Toạ độ góc trên trái của từng ô trong chuỗi ô vuông quanh hình vuông cạnh `size` tâm (0, 0). */
-function squareLinks(size: number, link: number, perSide: number): [number, number][] {
+export function squareLinks(size: number, link: number, perSide: number): [number, number][] {
   const half = size / 2;
   const step = (size - link) / (perSide - 1);
   const out = new Map<string, [number, number]>();

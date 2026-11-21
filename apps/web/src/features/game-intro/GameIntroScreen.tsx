@@ -12,11 +12,11 @@ import { BotBadge } from "@/components/characters";
 import { CategoryChip, RoundChip } from "@/components/common/MatchChips";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { Button } from "@/components/ui/button";
-import { loadProfile, saveProfile } from "@/features/home";
 import { countdownHint, useGameText } from "@/hooks/use-game-text";
 import { DESKTOP_QUERY, TOUCH_QUERY, useMediaQuery } from "@/hooks/use-media-query";
 import { usePendingAction } from "@/hooks/use-pending-action";
 import { useServerClock } from "@/hooks/use-server-clock";
+import { saveProfile, useProfile } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 import { send } from "@/net/connection";
 import { useGame, useMe } from "@/stores/game.store";
@@ -66,7 +66,8 @@ function IntroView({ gameId }: { gameId: GameId }) {
   function chooseDifficulty(difficulty: Difficulty) {
     send(ClientMessage.SetDifficulty, { difficulty });
     // Lần sau mặc định mức vừa chọn.
-    saveProfile({ ...loadProfile(), difficulty });
+    // Ghép từ store (không từ localStorage: bị chặn thì sẽ xoá mất tên).
+    saveProfile({ ...useProfile.getState().profile, difficulty });
   }
 
   const autoStart = (

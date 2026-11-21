@@ -15,10 +15,10 @@ import {
 /** Nét phấn sần (filter #chalk khai báo một lần trong <ChalkDefs /> của App). */
 const CHALK = "filter-[url(#chalk)]";
 
-type Side = "left" | "right";
+export type Side = "left" | "right";
 
 /** Hoa văn mặt trống: trái = vòng đồng tâm + chấm giữa, phải = dây chéo chữ X ở viền (như scene). */
-function Pattern({ r, side, className }: { r: number; side: Side; className: string }) {
+export function Pattern({ r, side, className }: { r: number; side: Side; className: string }) {
   return (
     <g className={className} fill="none">
       <circle r={r * DRUM_RIM} />
@@ -39,7 +39,7 @@ function Pattern({ r, side, className }: { r: number; side: Side; className: str
  * Một trống. Sáng: nền vàng to 106 %, viền mực + viền phấn bên trong, hoa văn mực, hai vòng sóng
  * lan ra (`wave`). Tắt: mặt bảng tối, viền và hoa văn phấn.
  */
-function Drum({
+export function Drum({
   x,
   y,
   r,

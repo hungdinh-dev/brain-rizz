@@ -24,7 +24,7 @@ const CHALK = {
   strokeLinejoin: "round",
 } as const;
 
-type MarkSymbol = "dot" | "ring" | "plus";
+export type MarkSymbol = "dot" | "ring" | "plus";
 
 /** Ký hiệu kem viền mực (cỡ ô 56 px, tâm 0,0), như `<g id="fb-h-…">` của bản mẫu. */
 function Mark({ symbol, transform }: { symbol: MarkSymbol; transform: string }) {
@@ -47,7 +47,17 @@ function Mark({ symbol, transform }: { symbol: MarkSymbol; transform: string }) 
 }
 
 /** Thẻ giấy viền mực có bóng đổ. */
-function Card({ x, y, size, border }: { x: number; y: number; size: number; border: number }) {
+export function Card({
+  x,
+  y,
+  size,
+  border,
+}: {
+  x: number;
+  y: number;
+  size: number;
+  border: number;
+}) {
   return (
     <>
       <rect x={x} y={y + 4} width={size} height={size} rx={16} className="fill-ink" />
@@ -65,7 +75,15 @@ function Card({ x, y, size, border }: { x: number; y: number; size: number; bord
 }
 
 /** Lưới chữ thập trên thẻ, tâm (cx, cy): viền mực, ô tím, đường gấp, ba ký hiệu. */
-function Net({ cx, cy, marks }: { cx: number; cy: number; marks: [MarkSymbol, number, number][] }) {
+export function Net({
+  cx,
+  cy,
+  marks,
+}: {
+  cx: number;
+  cy: number;
+  marks: [MarkSymbol, number, number][];
+}) {
   const rects = NET.map(([x, y]) => (
     <rect key={`${x},${y}`} x={x} y={y} width={CELL} height={CELL} />
   ));
@@ -99,42 +117,9 @@ function Net({ cx, cy, marks }: { cx: number; cy: number; marks: [MarkSymbol, nu
  * Đặt trên nền bảng (`bg-board`). Mặt trên/phải của khối là màu nhóm Hình dung phủ kem/mực để sáng/tối hơn.
  */
 export function FoldBoxHowTo({ className }: { className?: string }) {
-  const top = "318.11 54 280 32 241.89 54 280 76";
-  const left = "280 76 241.89 54 241.89 98 280 120";
-  const right = "318.11 54 280 76 280 120 318.11 98";
   return (
     <svg viewBox="4 4 552 352" aria-hidden className={cn("overflow-visible", className)}>
-      {/* Thẻ khối mẫu + icon con mắt */}
-      <Card x={220} y={14} size={120} border={5} />
-      <path
-        d="M226 30 C229 25 233 23 237 23 C241 23 245 25 248 30 C245 35 241 37 237 37 C233 37 229 35 226 30 Z"
-        className="fill-paper stroke-ink"
-        strokeWidth={2}
-        strokeLinejoin="round"
-      />
-      <circle cx={237} cy={30} r={3.5} className="fill-visualize stroke-ink" strokeWidth={1.5} />
-
-      {/* Khối isometric: bóng, mặt trái, mặt phải (tối hơn), mặt trên (sáng hơn) */}
-      <g strokeLinejoin="round">
-        <polygon
-          points="241.89 58 280 36 318.11 58 318.11 102 280 124 241.89 102"
-          className="fill-ink stroke-ink"
-          strokeWidth={4}
-        />
-        <polygon points={left} className="fill-visualize" />
-        <polygon points={right} className="fill-visualize" />
-        <polygon points={right} className="fill-ink" fillOpacity={0.25} />
-        <polygon points={top} className="fill-visualize" />
-        <polygon points={top} className="fill-paper" fillOpacity={0.3} />
-        <g fill="none" className="stroke-ink" strokeWidth={4}>
-          <polygon points={left} />
-          <polygon points={right} />
-          <polygon points={top} />
-        </g>
-      </g>
-      <Mark symbol="ring" transform="matrix(0.68 0.39 0 0.79 260.95 87)" />
-      <Mark symbol="plus" transform="matrix(0.68 -0.39 0 0.79 299.05 87)" />
-      <Mark symbol="dot" transform="matrix(0.68 -0.39 0.68 0.39 280 54)" />
+      <BoxCard />
 
       {/* Hai thẻ lựa chọn: đúng (ba ký hiệu ở ba ô kề nhau) và sai (chấm đối diện vòng tròn) */}
       <Card x={110} y={200} size={130} border={3} />
@@ -205,5 +190,50 @@ export function FoldBoxHowTo({ className }: { className?: string }) {
         <rect x={6} y={-4.5} width={9} height={9} className="fill-chalk" />
       </g>
     </svg>
+  );
+}
+
+/**
+ * Thẻ khối mẫu (120 × 120 tại 220, 14): khối isometric tâm mặt trên (280, 54), chấm ở trên, vòng
+ * tròn bên trái, dấu cộng bên phải. Dùng chung với hình động `FoldBoxDemo`.
+ */
+export function BoxCard() {
+  const top = "318.11 54 280 32 241.89 54 280 76";
+  const left = "280 76 241.89 54 241.89 98 280 120";
+  const right = "318.11 54 280 76 280 120 318.11 98";
+  return (
+    <>
+      {/* Thẻ khối mẫu + icon con mắt */}
+      <Card x={220} y={14} size={120} border={5} />
+      <path
+        d="M226 30 C229 25 233 23 237 23 C241 23 245 25 248 30 C245 35 241 37 237 37 C233 37 229 35 226 30 Z"
+        className="fill-paper stroke-ink"
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
+      <circle cx={237} cy={30} r={3.5} className="fill-visualize stroke-ink" strokeWidth={1.5} />
+
+      {/* Khối isometric: bóng, mặt trái, mặt phải (tối hơn), mặt trên (sáng hơn) */}
+      <g strokeLinejoin="round">
+        <polygon
+          points="241.89 58 280 36 318.11 58 318.11 102 280 124 241.89 102"
+          className="fill-ink stroke-ink"
+          strokeWidth={4}
+        />
+        <polygon points={left} className="fill-visualize" />
+        <polygon points={right} className="fill-visualize" />
+        <polygon points={right} className="fill-ink" fillOpacity={0.25} />
+        <polygon points={top} className="fill-visualize" />
+        <polygon points={top} className="fill-paper" fillOpacity={0.3} />
+        <g fill="none" className="stroke-ink" strokeWidth={4}>
+          <polygon points={left} />
+          <polygon points={right} />
+          <polygon points={top} />
+        </g>
+      </g>
+      <Mark symbol="ring" transform="matrix(0.68 0.39 0 0.79 260.95 87)" />
+      <Mark symbol="plus" transform="matrix(0.68 -0.39 0 0.79 299.05 87)" />
+      <Mark symbol="dot" transform="matrix(0.68 -0.39 0.68 0.39 280 54)" />
+    </>
   );
 }

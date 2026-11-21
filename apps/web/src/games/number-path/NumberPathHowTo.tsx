@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 const CHALK = "filter-[url(#chalk)]";
 
 /** Ô phép 88 × 48: bóng đổ mực, mặt giấy, nhãn phép (như ô phép trong scene). */
-function Cell({ x, y, label }: { x: number; y: number; label: string }) {
+export function Cell({ x, y, label }: { x: number; y: number; label: string }) {
   return (
     <g transform={`translate(${x} ${y})`}>
       <rect x={-44} y={-20} width={88} height={48} rx={12} className="fill-ink" />
@@ -31,7 +31,7 @@ function Cell({ x, y, label }: { x: number; y: number; label: string }) {
 }
 
 /** Cửa ra: đĩa mực (tối: viền phấn), bên trong là hình riêng của đường. */
-function Exit({ x, children }: { x: number; children: ReactNode }) {
+export function Exit({ x, children }: { x: number; children: ReactNode }) {
   return (
     <g transform={`translate(${x} 280)`}>
       <circle cy={4} r={26} className="fill-ink" />

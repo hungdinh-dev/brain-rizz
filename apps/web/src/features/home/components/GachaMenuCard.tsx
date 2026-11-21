@@ -138,7 +138,7 @@ export function GachaMenuCard({ profile }: { profile: Profile }) {
         <Button
           variant="outline"
           className="ml-auto h-11 min-h-11 gap-1 px-3 text-[14.5px]"
-          onClick={() => go("wardrobe")}
+          onClick={() => go({ screen: "profile", tab: "accessories" })}
         >
           <ShirtIcon aria-hidden className="size-4" />
           {t("home.menu.gacha.wardrobe")}

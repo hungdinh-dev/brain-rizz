@@ -33,7 +33,7 @@ const TRAY_Y = 290;
 const trayX = (i: number) => TRAY_LEFT + TRAY_PITCH * i + TRAY_SIZE / 2;
 
 /** Một khối vẽ từ cùng bảng hình với scene (blocks.ts): màu gợi ý, hoa văn phấn, hình giữa khối. */
-function Block({
+export function Block({
   kind,
   x,
   y,

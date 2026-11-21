@@ -18,18 +18,18 @@ const CHAIN_XS = [60, 148, 236, 324, 412, 500] as const;
 const CARD = { w: 128, h: 84, r: 14 } as const;
 
 const TICK = "M-12 1 L-3 10 L13 -9";
-const QUESTION = "M-8 -9 C-8 -18 8 -18 8 -9 C8 -3 0 -3 0 5";
+export const QUESTION = "M-8 -9 C-8 -18 8 -18 8 -9 C8 -3 0 -3 0 5";
 /** Mũi tên phấn từ thẻ đúng lên chỗ "?" (đi qua khe giữa chuỗi và hàng thẻ). */
 const GUIDE = "M240 160 C300 140 410 150 474 132";
 const GUIDE_HEAD = "M458 128 L474 132 L464 145";
 
-type Pattern = "stripe" | "checker";
+export type Pattern = "stripe" | "checker";
 
 /**
  * Một hạt: thân màu theo hình, hoa văn (sọc / ca-rô) phủ mực mờ cắt theo hình, viền.
  * `edge` = lớp màu viền (phấn trên bảng, chữ thẻ trên thẻ).
  */
-function Bead({
+export function Bead({
   x,
   y,
   shape,
@@ -57,7 +57,7 @@ function Bead({
 }
 
 /** Mẫu hoa văn theo cỡ hạt (cùng tỉ lệ với scene). Gốc mẫu = tâm hạt nhờ `userSpaceOnUse`. */
-function PatternDefs({ ids, size }: { ids: Record<Pattern, string>; size: number }) {
+export function PatternDefs({ ids, size }: { ids: Record<Pattern, string>; size: number }) {
   const period = size * STRIPE.period;
   const cell = size / CHECKER_CELLS;
   return (

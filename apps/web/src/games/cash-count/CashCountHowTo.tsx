@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
  * Màu giấy tờ tiền trong hình, lấy từ bảng `BILLS` của CashCountScene (không import thẳng từ scene
  * được: scene kéo theo Phaser, chỉ được tải lười khi vào vòng chơi).
  */
-const BILL_20K = { width: 258, fill: "#9cc2f2", label: "20.000" };
-const BILL_10K = { width: 248, fill: "#f0cf72", label: "10.000" };
-const BILL_5K = { width: 236, fill: "#c3b2ee", label: "5.000" };
+export const BILL_20K = { width: 258, fill: "#9cc2f2", label: "20.000" };
+export const BILL_10K = { width: 248, fill: "#f0cf72", label: "10.000" };
+export const BILL_5K = { width: 236, fill: "#c3b2ee", label: "5.000" };
 
 /** Nét phấn sần (filter #chalk khai báo trong <ChalkDefs /> của App). */
 const CHALK = "fill-none stroke-chalk filter-[url(#chalk)]";
@@ -26,7 +26,7 @@ const CARDS = [
 ];
 
 /** Tờ tiền nhãn dán: giấy luôn sáng nên chữ số dùng mực đậm ở cả hai chủ đề. Vẽ ở tỉ lệ 0,5. */
-function Bill(props: {
+export function Bill(props: {
   x: number;
   y: number;
   angle: number;
@@ -77,7 +77,7 @@ function Bill(props: {
   );
 }
 
-function Card(props: { x: number; y: number; label: string }) {
+export function Card(props: { x: number; y: number; label: string }) {
   const { x, y, label } = props;
   return (
     <g>

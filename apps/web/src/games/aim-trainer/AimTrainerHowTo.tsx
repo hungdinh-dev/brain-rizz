@@ -18,7 +18,7 @@ const HAND =
   "M9 11 L9 5.5 C9 4.4 9.9 3.5 11 3.5 C12.1 3.5 13 4.4 13 5.5 L13 10 L17 10.8 C18.5 11.1 19.4 12.5 19 14 L17.8 18.5 C17.5 19.7 16.4 20.5 15.2 20.5 L11.3 20.5 C10.5 20.5 9.8 20.1 9.3 19.5 L5.6 14.9 C5 14.1 5.2 13 6 12.5 C6.7 12 7.6 12.1 8.2 12.7 L9 13.5 Z";
 
 /** Bia hồng tâm bán kính `r`: bóng mực, ba vòng giấy / cam Nhận diện / vàng. */
-function Bullseye(props: { x: number; y: number; r: number }) {
+export function Bullseye(props: { x: number; y: number; r: number }) {
   const { x, y, r } = props;
   return (
     <g transform={`translate(${x} ${y})`}>

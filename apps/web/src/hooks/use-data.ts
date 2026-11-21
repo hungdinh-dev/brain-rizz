@@ -1,5 +1,6 @@
 import { type DependencyList, useCallback, useEffect, useState } from "react";
 import type { DataFailure, DataResult } from "@/net/data-api";
+import { useLoadingWhile } from "@/stores/top-loading.store";
 
 export type DataState<T> =
   | { status: "loading" }
@@ -11,11 +12,14 @@ export type DataState<T> =
  * chưa kết nối / chưa có phiên / lỗi. `reload()` cho nút Thử lại (quay lại "đang tải").
  * Đổi `deps` → tải lại; kết quả cũ về muộn bị bỏ.
  * `enabled = false` → đứng yên ở trạng thái `no-session` (vd. chưa có phiên thì khỏi hỏi).
+ * Đang tải → hiện thanh tải trên đầu trang (stores/top-loading.store.ts), trừ khi `background`:
+ * dữ liệu phụ tải nền (vd. "Cao nhất" trên thẻ menu) không bật thanh lúc mở app.
  */
 export function useData<T>(
   fetcher: () => Promise<DataResult<T>>,
   deps: DependencyList,
   enabled = true,
+  options: { background?: boolean } = {},
 ): DataState<T> & { reload(): void } {
   const [state, setState] = useState<DataState<T>>({ status: "loading" });
   const [nonce, setNonce] = useState(0);
@@ -36,6 +40,8 @@ export function useData<T>(
       live = false;
     };
   }, [...deps, enabled, nonce]);
+
+  useLoadingWhile(!options.background && enabled && state.status === "loading");
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
   return { ...state, reload };

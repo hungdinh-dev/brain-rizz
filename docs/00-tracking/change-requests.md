@@ -50,6 +50,9 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 | [CR-022](#cr-022) | Tách URL theo màn ngoài phòng (Back/Forward/F5 giữ màn, link sâu) | 2026-11-19 | Kỹ thuật + thay đổi thiết kế | +1 ngày | Duyệt (2026-11-19) |
 | [CR-023](#cr-023) | Phấn (tiền trong game, không tiền thật), máy quay phụ kiện công khai tỉ lệ + bảo hiểm, tủ đồ 24 phụ kiện cả phòng thấy | 2026-11-20 | Thêm tính năng | +3–4 ngày công | Duyệt (2026-11-19, chủ dự án uỷ quyền) |
 | [CR-024](#cr-024) | 6 bạn đồng hành mới khoá theo thành tích (điểm game, trung bình nhóm, trận party, Điểm Não), tiến độ + Luyện ngay | 2026-11-20 | Thêm tính năng | +2 ngày công | Duyệt (2026-11-19, chủ dự án uỷ quyền) |
+| [CR-025](#cr-025) | Thanh tải mảnh trên đầu trang (kiểu YouTube) + khung xương thay vòng xoay khi tải màn / dữ liệu | 2026-11-21 | Thay đổi thiết kế | +0,5 ngày | Duyệt (2026-11-21) |
+| [CR-026](#cr-026) | Gộp Tủ đồ vào trang Hồ sơ: tab Bạn đồng hành (`/profile`) và Phụ kiện (`/profile/accessories`), bỏ `/wardrobe` | 2026-11-21 | Thay đổi thiết kế | +0,5 ngày | Duyệt (2026-11-21) |
+| [CR-027](#cr-027) | Game quản trị viên tắt cũng ẩn ở Luyện tập (RPC công khai `party_disabled_games`) | 2026-11-21 | Đổi luật | +0,5 ngày | Duyệt (2026-11-21) — Kiểm tra não chờ quyết định |
 
 ---
 
@@ -522,7 +525,7 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
   - *Chi phí:* 0 đồng. *Lịch:* +1,5 ngày cho khung + 5 game MVP; 25 game còn lại khoảng 3 ngày, làm sau khi chủ dự án duyệt đợt đầu.
 - **Quyết định:** **Duyệt** (2026-11-19) phương án A, đợt đầu 5 game MVP.
 - **Tài liệu kéo theo:** SRS (FR-GD-13), UI-UX 6.11, folder-structure, features.md, changelog.
-- **Kết quả:** đang làm trên nhánh `feat/admin-12-players`.
+- **Kết quả:** đợt đầu 5 game MVP làm trên nhánh `feat/admin-12-players` (2026-11-20). **Đợt hai** (chủ dự án yêu cầu và duyệt 2026-11-21): 25 game còn lại có `<Name>Demo.tsx`, đủ 30/30 game; kịch bản viết thẳng trong code theo khung diễn chung (chưa có artboard trên canvas), 17 game có test mốc thời gian riêng. Nhánh `claude/ui-fixes-optimization-e45651`.
 
 ---
 
@@ -573,6 +576,59 @@ Tiêu chí duyệt nhanh: CR phải hỗ trợ ít nhất một [trụ cột thi
 - **Quyết định:** **Duyệt** — chủ dự án uỷ quyền (2026-11-19).
 - **Tài liệu kéo theo:** SRS (UC-26, FR-GC-*), GDD (nhân vật, mở khoá), UI-UX, folder-structure, features.md, changelog.
 - **Kết quả:** đang làm trên nhánh `feat/admin-12-players`.
+
+---
+
+### CR-025
+
+**Thanh tải trên đầu trang và khung xương**
+
+- **Ngày mở:** 2026-11-21 · **Loại:** Thay đổi thiết kế · **Người đề xuất:** chủ dự án — chủ dự án yêu cầu và duyệt 2026-11-21.
+- **Mô tả:** khi đang tải chunk của một màn (màn tải lười) hoặc dữ liệu người chơi đang chờ (Supabase), hiện một **thanh mảnh 3 px trên đầu trang** kiểu YouTube (nhích dần, không chạm 100 % tới khi xong, xong thì chạy hết rồi mờ). Chỗ trước đây là vòng xoay "Đang tải…" giữa màn đổi thành **khung xương** đúng bố cục màn sắp hiện (đầu màn + khối nội dung; cổng trang quản trị; lưới bạn đồng hành; tab Phụ kiện).
+- **Lý do:** vòng xoay giữa màn làm bố cục nhảy khi nội dung về và không cho biết cái gì đang tải; trụ cột "Vào là chơi" (cảm giác nhanh), nguyên tắc UI-UX 1.4 "Luôn biết chuyện gì đang xảy ra".
+- **Phân tích tác động:**
+  - *Kỹ thuật:* chỉ web: `stores/top-loading.store.ts` (đếm việc đang tải, ngưỡng 150 ms chống nháy, `useLoadingWhile`), `components/common/TopLoadingBar.tsx` (đặt một lần ở `App`), `components/common/ScreenSkeleton.tsx` (fallback `Suspense` thay `ScreenLoading`), `components/ui/skeleton.tsx` thêm prop `tone` (`card` trong thẻ / `board` trên bảng), `hooks/use-data.ts` thêm `{ background }` (dữ liệu phụ tải nền như "Cao nhất" ở menu không bật thanh). Không đổi giao thức, seed, server, Supabase.
+  - *Hiệu năng:* thanh dùng `scaleX` + `opacity` (không đổi bố cục), hẹn giờ chỉ chạy khi thanh đang hiện; giảm chuyển động thì thanh đứng yên ở 50 %, khung xương không nhấp nháy.
+  - *Trợ năng:* thanh và khung xương `aria-hidden`; chỗ đang tải tự có `role="status"` / `aria-busy` + chữ "Đang tải…" cho trình đọc màn hình.
+  - *Chi phí:* 0 đồng. *Lịch:* +0,5 ngày.
+- **Quyết định:** **Duyệt** (2026-11-21) — chủ dự án yêu cầu và duyệt.
+- **Tài liệu kéo theo:** SRS (FR-GD-15), UI-UX (mục 5 Component, 6.13), folder-structure, features.md, changelog.
+- **Kết quả:** code xong trên nhánh `claude/ui-fixes-optimization-e45651` (2026-11-21), chờ QA. Chưa có artboard trên canvas.
+
+---
+
+### CR-026
+
+**Gộp Tủ đồ vào trang Hồ sơ**
+
+- **Ngày mở:** 2026-11-21 · **Loại:** Thay đổi thiết kế · **Người đề xuất:** chủ dự án — chủ dự án yêu cầu và duyệt 2026-11-21.
+- **Mô tả:** trang **Hồ sơ của bạn** có hai tab: **Bạn đồng hành** (`/profile`, lưới 12 nhân vật như cũ) và **Phụ kiện** (`/profile/accessories`, phần Tủ đồ cũ: 3 chỗ Đầu / Mặt / Cổ, lưới món đã có). Thẻ danh thiếp bên cạnh luôn vẽ nhân vật đang đeo. Bỏ màn Tủ đồ `/wardrobe`: link cũ `/wardrobe` → `/profile/accessories`, `/wardrobe/pets` → `/profile` (thay mục lịch sử). Nút "Tủ đồ" ở menu, máy quay, "Mặc thử" ở màn mở quà đều mở tab Phụ kiện (về lại máy quay khi xong).
+- **Lý do:** hai màn cùng sửa nhân vật (Hồ sơ chọn thú, Tủ đồ chọn thú + phụ kiện) làm người chơi không biết vào đâu; một chỗ duy nhất để chỉnh "trông mình thế nào".
+- **Phân tích tác động:**
+  - *Kỹ thuật:* chỉ web: `features/home/components/ProfileScreen.tsx` (tab `pill`, tab Phụ kiện tải lười cùng chữ gacha, tải trước khi rê/chạm tab), `features/wardrobe` chỉ còn `AccessoriesTab` (xoá `WardrobeScreen.tsx`), `features/pets` bỏ `PetsTab.tsx` và bố cục `wardrobe` của `PetGrid`, `stores/nav.store.ts` (`ProfileTab`, `setProfileTab` thay mục lịch sử, bỏ màn `wardrobe`), `App.tsx`, `GachaScreen`, `GachaMenuCard`, i18n (bỏ khoá thừa). Không đổi giao thức, server, Supabase.
+  - *Hiệu năng:* gói đầu không tăng (tab Phụ kiện vẫn là chunk riêng như Tủ đồ cũ).
+  - *Chi phí:* 0 đồng. *Lịch:* +0,5 ngày.
+- **Quyết định:** **Duyệt** (2026-11-21) — chủ dự án yêu cầu và duyệt.
+- **Tài liệu kéo theo:** SRS (UC-25, UC-26, FR-GC-05, FR-GD-14), UI-UX (bản đồ màn hình, S3, S20, 6.12), [bản đồ URL](../01-product/practice-favorites-howto-routes.md#34-bản-đồ-url-frontend-dev), [kế hoạch gacha](../01-product/gacha-pets-unlocks.md), folder-structure, features.md, changelog.
+- **Kết quả:** code xong trên nhánh `claude/ui-fixes-optimization-e45651` (2026-11-21), chờ QA. Canvas khu 31 vẫn vẽ Tủ đồ cũ (chưa cập nhật bản mẫu).
+
+---
+
+### CR-027
+
+**Game bị quản trị viên tắt cũng ẩn ở Luyện tập**
+
+- **Ngày mở:** 2026-11-21 · **Loại:** Đổi luật · **Người đề xuất:** chủ dự án (báo game đã tắt như Nhại nhịp `rhythm-echo` vẫn hiện ở Luyện tập) — chủ dự án yêu cầu và duyệt 2026-11-21.
+- **Mô tả:** game quản trị viên tắt ở `/admin` (CR-019) không hiện ở Luyện tập: lưới chọn game, chip nhóm (nhóm hết game thì ẩn), mục Yêu thích (⭐ vẫn giữ trong dữ liệu, bật lại là hiện lại), đường dẫn `/practice/<game>` (về `/practice`, trừ khi đang chơi dở lượt). Số game trên thẻ Luyện tập ở menu đếm game đang bật.
+- **Lý do:** trước đây SRS ghi "cấu hình chỉ áp dụng cho trận party" nên Luyện tập vẫn hiện game đã tắt (thường là game đang lỗi / chưa cân bằng) → người chơi gặp game mà quản trị viên đã rút.
+- **Phân tích tác động:**
+  - *Kỹ thuật:* Supabase migration `20261121000000_public_disabled_games.sql`: RPC `party_disabled_games()` (`security definer`, chỉ trả cột `disabled_games`, grant `anon` + `authenticated`) vì `party_settings` không cho client đọc. Web: `lib/enabled-games.ts` (gọi REST bằng `fetch` + khoá publishable, không tải supabase-js; đệm 5 phút; lỗi / quá giờ 5 s / chưa có hàm → đủ danh mục; dùng `parsePartyConfig` + `enabledGameIds` của shared như server, còn < 2 game bật thì hiện đủ), `features/practice/enabled-games.ts`, `PracticeScreen`, `PracticePick`, `MenuScreen`. Không đổi server, giao thức, seed, bảng xếp hạng.
+  - *Chưa áp:* **Kiểm tra não** vẫn chọn từ đủ danh mục (server chọn 5 game theo luật `BRAIN_TEST_RULES_VERSION`; đổi thì ảnh hưởng điểm chuẩn và bảng xếp hạng Điểm Não) — chờ chủ dự án quyết định.
+  - *Bảo mật:* RPC chỉ lộ danh sách id game tắt — dữ liệu không nhạy cảm, vốn đã lộ qua state phòng party (`disabledGames`).
+  - *Chi phí:* 0 đồng. *Lịch:* +0,5 ngày.
+- **Quyết định:** **Duyệt** (2026-11-21) — chủ dự án yêu cầu và duyệt; phạm vi Luyện tập + thẻ menu, Kiểm tra não để sau.
+- **Tài liệu kéo theo:** SRS (UC-13, UC-24 quy tắc, FR-QT-03, FR-MR-18, Dữ liệu), [kế hoạch quản trị](../01-product/admin-console.md), [bản đồ URL](../01-product/practice-favorites-howto-routes.md#34-bản-đồ-url-frontend-dev), [supabase-setup](../03-guides/supabase-setup.md) mục 11, [deployment](../03-guides/deployment.md), folder-structure, features.md, changelog.
+- **Kết quả:** code xong trên nhánh `claude/ui-fixes-optimization-e45651` (2026-11-21), chờ QA. **Chủ dự án cần chạy migration** trên Supabase (chạy lúc nào cũng được; chưa chạy thì Luyện tập hiện đủ danh mục như cũ).
 
 ---
 

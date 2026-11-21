@@ -29,24 +29,29 @@ const CELLS = [0, 1, 2, 3, 4, 5];
 const cellX = (i: number, dx = 0) => (COLS[i % 3] ?? 0) + dx;
 const cellY = (i: number) => ROWS[Math.floor(i / 3)] ?? 0;
 
-/** Vật vẽ bằng nét phấn: chỉ các đường viền chính của hình chung với Cân não. */
-function ChalkItem({
+/**
+ * Vật vẽ bằng nét phấn: chỉ các đường viền chính của hình chung với Cân não. `rough = false` bỏ
+ * filter phấn (lớp động của hình hướng dẫn động `PairFlipDemo` không dùng filter).
+ */
+export function ChalkItem({
   item,
   x,
   y,
   size = ITEM_SIZE,
   width = 7,
+  rough = true,
 }: {
   item: BalanceItem;
   x: number;
   y: number;
   size?: number;
   width?: number;
+  rough?: boolean;
 }) {
   return (
     <g
       transform={`translate(${x} ${y}) scale(${size})`}
-      className={cn(CHALK, "fill-none", ITEM_STROKE[item] ?? "stroke-chalk")}
+      className={cn(rough && CHALK, "fill-none", ITEM_STROKE[item] ?? "stroke-chalk")}
       strokeWidth={width}
       strokeLinecap="round"
       strokeLinejoin="round"

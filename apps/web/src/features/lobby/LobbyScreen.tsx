@@ -11,9 +11,9 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ChatSettingRow } from "@/features/chat";
-import { loadProfile, saveProfile } from "@/features/home";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { usePendingAction } from "@/hooks/use-pending-action";
+import { currentProfile, saveProfile } from "@/lib/profile";
 import { CLASSIC_SEATS, LOBBY_ROOMY_QUERY, lobbySlotCount } from "@/lib/room-size";
 import { cn } from "@/lib/utils";
 import { leaveParty, SERVER_ERROR_TOAST_ID, send } from "@/net/connection";
@@ -118,7 +118,7 @@ export function LobbyScreen() {
 
   function pickCharacter(avatar: CharacterId) {
     // Nhớ cho lần sau vào phòng (hồ sơ lưu ở máy) và đồng bộ lên tài khoản nếu có phiên.
-    const next = { ...loadProfile(), avatar };
+    const next = { ...currentProfile(), avatar };
     // Gửi kèm phụ kiện đang đeo (CR-023): server kiểm lại cả hai theo quyền sở hữu.
     send(ClientMessage.SetProfile, { avatar, accessories: next.accessories });
     saveProfile(next);

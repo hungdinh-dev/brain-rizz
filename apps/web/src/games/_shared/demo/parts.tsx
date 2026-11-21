@@ -175,6 +175,59 @@ export function Ring({
   );
 }
 
+/** Vòng khoanh chữ nhật bo góc `w × h` (góc `rx`) quanh tâm: như `Ring`, để khoanh thẻ. */
+export function RectRing({
+  k,
+  x,
+  y,
+  w,
+  h,
+  rx,
+}: {
+  k: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rx: number;
+}) {
+  const rect = { x: -w / 2, y: -h / 2, width: w, height: h, rx, fill: "none" } as const;
+  return (
+    <A k={k} x={x} y={y}>
+      <rect {...rect} className="stroke-ink" strokeWidth={9} />
+      <rect {...rect} className="stroke-primary" strokeWidth={5} />
+    </A>
+  );
+}
+
+/**
+ * Huy hiệu icon tròn r `r` nền bảng viền phấn 2,5, bóng 3 (icon xoay, gương, mặt đối diện…). Icon
+ * vẽ quanh tâm, trong nhóm nét phấn không tô, đầu/góc nét tròn (con tự đặt `strokeWidth`).
+ */
+export function IconBadge({
+  k,
+  x,
+  y,
+  r,
+  children,
+}: {
+  k: string;
+  x: number;
+  y: number;
+  r: number;
+  children: ReactNode;
+}) {
+  return (
+    <A k={k} x={x} y={y}>
+      <circle cy={3} r={r} className="fill-ink" />
+      <circle r={r} className="fill-board stroke-chalk" strokeWidth={2.5} />
+      <g fill="none" className="stroke-chalk" strokeLinecap="round" strokeLinejoin="round">
+        {children}
+      </g>
+    </A>
+  );
+}
+
 /** Huy hiệu số nhỏ (r 14, nền giấy hoặc màu), bóng 2: thứ tự chạm, thứ tự đúng. */
 export function NumberBadge({
   k,
