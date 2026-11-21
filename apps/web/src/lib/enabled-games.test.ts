@@ -1,4 +1,4 @@
-import { enabledGameIds, GAME_IDS, type GameId } from "@brain-rizz/shared";
+import { enabledGameIds, GAME_IDS, type GameId, parsePartyConfig } from "@brain-rizz/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createEnabledGames, enabledFromDisabledList, fetchDisabledGames } from "./enabled-games";
 
@@ -21,6 +21,23 @@ describe("enabledFromDisabledList", () => {
     expect(enabledFromDisabledList(GAME_IDS.slice(1))).toEqual([...GAME_IDS]);
     expect(enabledFromDisabledList([...GAME_IDS])).toEqual([...GAME_IDS]);
     expect(enabledFromDisabledList([FIRST])).toEqual(enabledGameIds([FIRST]));
+  });
+
+  it("khớp luật của server (parsePartyConfig + enabledGameIds) với mọi kiểu dữ liệu", () => {
+    const cases: unknown[][] = [
+      [],
+      [FIRST],
+      [FIRST, SECOND, "khong-co", 7, null],
+      [...GAME_IDS],
+      GAME_IDS.slice(1),
+      GAME_IDS.slice(2),
+      [THIRD, THIRD, { id: FIRST }],
+    ];
+    for (const data of cases) {
+      expect(enabledFromDisabledList(data)).toEqual(
+        enabledGameIds(parsePartyConfig({ disabledGames: data }).disabledGames),
+      );
+    }
   });
 
   it("dữ liệu sai dạng → null (coi như lỗi)", () => {

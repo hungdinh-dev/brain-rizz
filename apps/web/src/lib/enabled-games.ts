@@ -1,4 +1,4 @@
-import { enabledGameIds, GAME_IDS, type GameId, parsePartyConfig } from "@brain-rizz/shared";
+import { GAME_IDS, type GameId } from "@brain-rizz/shared";
 import { SUPABASE_CONFIGURED } from "./supabase";
 
 /**
@@ -7,8 +7,9 @@ import { SUPABASE_CONFIGURED } from "./supabase";
  *
  * - Đọc qua RPC công khai `party_disabled_games` (migration 20261121000000) bằng `fetch` thường tới
  *   REST của Supabase với khoá publishable: không cần phiên, không phải tải supabase-js cho khách.
- * - Cùng luật với server: `parsePartyConfig` bỏ id lạ, `enabledGameIds` trả cả danh mục khi còn
- *   < 2 game bật.
+ * - Cùng luật với server (`parsePartyConfig` bỏ id lạ, `enabledGameIds` trả cả danh mục khi còn
+ *   < 2 game bật) nhưng viết lại ở đây: import `party-config.ts` kéo zod vào gói JS ban đầu (thẻ
+ *   Luyện tập ở menu dùng file này). `enabled-games.test.ts` đối chiếu với hai hàm của shared.
  * - Không bao giờ chặn màn hình: trước khi tải xong, chưa cấu hình Supabase, lỗi mạng, quá giờ hay
  *   DB chưa có hàm → giữ kết quả lần trước, chưa có thì đủ danh mục (`GAME_IDS`).
  * - Đệm trong bộ nhớ `ENABLED_GAMES_TTL_MS`; nhiều nơi hỏi cùng lúc chỉ gọi một lần. Lỗi thì không
@@ -23,7 +24,9 @@ const ALL_GAMES: readonly GameId[] = GAME_IDS;
 /** Dữ liệu thô của RPC → game đang bật; sai dạng (không phải mảng) → `null` (coi như lỗi). */
 export function enabledFromDisabledList(data: unknown): GameId[] | null {
   if (!Array.isArray(data)) return null;
-  return enabledGameIds(parsePartyConfig({ disabledGames: data }).disabledGames);
+  const off = new Set(data.filter((v): v is string => typeof v === "string"));
+  const enabled = GAME_IDS.filter((id) => !off.has(id));
+  return enabled.length < 2 ? [...GAME_IDS] : enabled;
 }
 
 /**
