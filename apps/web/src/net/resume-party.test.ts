@@ -129,6 +129,22 @@ describe("nối lại phòng khi tải lại trang", { timeout: 30_000 }, () => 
     expect(useGame.getState().sessionId).toBe("s-ABCD");
   });
 
+  it("qua cửa tải lười (App): gọi hai lần liền (StrictMode) → vẫn một yêu cầu, giữ token mới", async () => {
+    storage.setItem(TOKEN_KEY, "old-token");
+    reconnectMock
+      .mockResolvedValueOnce(fakeRoom("ABCD", "new-token"))
+      .mockRejectedValueOnce(Object.assign(new Error("already consumed"), { code: 4003 }));
+    const { useGame } = await load();
+    const lazy = await import("./lazy-connection");
+
+    const [first, second] = await Promise.all([lazy.resumeParty(), lazy.resumeParty()]);
+
+    expect(reconnectMock).toHaveBeenCalledTimes(1);
+    expect([first, second]).toEqual([true, true]);
+    expect(storage.getItem(TOKEN_KEY)).toBe("new-token");
+    expect(useGame.getState().sessionId).toBe("s-ABCD");
+  });
+
   it("không có token → không gọi máy chủ", async () => {
     const { resumeParty } = await load();
     await expect(resumeParty()).resolves.toBe(false);

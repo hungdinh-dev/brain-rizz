@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { UnlockCelebration } from "@/features/pets";
 import { playSfx } from "@/features/sfx";
-import { createParty, joinParty } from "@/net/connection";
+import { createParty, joinParty } from "@/net/lazy-connection";
 import { useAuth } from "@/stores/auth.store";
 import { useNav } from "@/stores/nav.store";
 import { IntroScreen } from "./components/IntroScreen";

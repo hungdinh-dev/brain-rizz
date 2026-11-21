@@ -17,7 +17,7 @@ import { loadAdminLocales } from "@/i18n/admin";
 import { loadGachaLocales } from "@/i18n/gacha";
 import { loadSoloLocales } from "@/i18n/solo";
 import { cn } from "@/lib/utils";
-import { resumeParty } from "@/net/connection";
+import { resumeParty } from "@/net/lazy-connection";
 import { takeOAuthReturnScreen, useAuth } from "@/stores/auth.store";
 import { useGame } from "@/stores/game.store";
 import { enterRoomEntry, pathForScreen, type Screen, useNav } from "@/stores/nav.store";
